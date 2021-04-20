@@ -2,6 +2,10 @@
 
 This repository is hosting tools to curate PET brain data. 
 
+## Survey
+
+While prepariong tools, we surveyed practices to ensure most users can get the most of our tools. All questions and results are avaialble in here.
+
 ## Retrospective curation
 
 This folder contains code aiming at curating already collected data (images and spreadsheets/text files) converting them to BIDS.
