@@ -194,7 +194,7 @@ for j=1:length(FileList)
     
     % save raw data
     if savemat
-        ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
+        ecat = round(img_temp).*(Sca*mh.ecat_calibration_factor);
         save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'ecat','-v7.3');
     end
 end
