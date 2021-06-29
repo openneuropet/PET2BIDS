@@ -1,15 +1,21 @@
-# Read and write ecat files as nifti + json
+# Read and write raw scanner files as nifti + json
 
 BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one reads data. One issue is that some information is not encoded in ecat headers and thus needs to be created overwise.
 
-## dependencies
+## Dependencies
 
-we use the jsonwrite function available with the BIDS matlab tools and-or json.io
+We use the jsonwrite function available with the [BIDS matlab tools](https://github.com/bids-standard/bids-matlab/blob/dev/%2Bbids/%2Butil/jsonwrite.m) and-or [json.io](https://github.com/gllmflndn/JSONio). Please download one of there toolbox and set it up in your path.
 
-## usage
+## Configuration
 
+Defaults parameters should be set in the .txt files to generate metadata easily (i.e. avoiding to pass all arguments in). 
+
+## Usage
+
+### for ecat files (HRRT)
 ```matlab
-metadata = get_SiemensHRRT_metadata(varargin)
+metadata = get_SiemensHRRT_metadata('tracer','DASB','Radionuclide','C11', ...
+                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 ecat2nii({full_file_name},{metadata})
 ```
 
