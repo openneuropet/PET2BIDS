@@ -1,8 +1,23 @@
 function metadata = get_GEAdvance_metadata(varargin)
 
-% Routine that outputs the GE Advance PET scanner metadata following <https://bids.neuroimaging.io/ BIDS>
-% OPTONAL are a series of acuisition and reconstruction parameters, these can be set 
-%         at the beginning on the function or passed as arguments
+% Routine that outputs the GE Advance PET scanner metadata following 
+% <https://bids.neuroimaging.io/ BIDS>
+%
+% Defaults parameters (acuisition and reconstruction parameters) should be 
+% stored in a GEAdvanceparameters.txt seating on disk next to this function
+% or passed as argument in. Here is an example of such defaults, used at NRU
+%
+% AcquisitionMode                = '3D sinogram';
+% ImageDecayCorrected            = true;
+% InstitutionName                = 'Rigshospitalet, NRU, DK',
+% ImageDecayCorrectionTime       = 0;
+% ReconMethodName                = 'Filtered Back Projection';
+% ReconMethodParameterLabels     = {'none','none'};
+% ReconMethodParameterUnits      = {'none','none'};
+% ReconMethodParameterValues     = [0,0];
+% ReconFilterType                = {'Hann','Ramp'};
+% ReconFilterSize                = [6,8.5];
+% AttenuationCorrection          = '10-min transmission scan';
 %
 % FORMAT:  metadata = get_GEAdvance_metadata(name,value)
 %
@@ -37,19 +52,7 @@ function metadata = get_GEAdvance_metadata(varargin)
 % Neuropbiology Research Unit, Rigshospitalet
 % Martin Nørgaard & Cyril Pernet - 2021
 
-%% defaults
-
-AcquisitionMode                = '3D sinogram';
-ImageDecayCorrected            = true;
-InstitutionName                = 'Rigshospitalet, NRU, DK',
-ImageDecayCorrectionTime       = 0;
-ReconMethodName                = 'Filtered Back Projection';
-ReconMethodParameterLabels     = {'none','none'};
-ReconMethodParameterUnits      = {'none','none'};
-ReconMethodParameterValues     = [0,0];
-ReconFilterType                = {'Hann','Ramp'};
-ReconFilterSize                = [6,8.5];
-AttenuationCorrection          = '10-min transmission scan';
+%% defaults are loaded via the SiemensHRRTparameters.txt file
 
 %% check inputs
 
@@ -72,10 +75,10 @@ else
             MolecularWeight = varargin{n+1};
         elseif contains(varargin{n},'Administration','IgnoreCase',true)
             ModeOfAdministration = varargin{n+1};
-        elseif any(strcmpi(varargin{n},{'AcquisitionMode','Acquisition Mode'}))
-            AcquisitionMode = varargin{n+1}; 
         elseif contains(varargin{n},'InstitutionName','IgnoreCase',true)
             InstitutionName = varargin{n+1};
+        elseif any(strcmpi(varargin{n},{'AcquisitionMode','Acquisition Mode'}))
+            AcquisitionMode = varargin{n+1}; 
         elseif contains(varargin{n},'DecayCorrected','IgnoreCase',true)
             ImageDecayCorrected = varargin{n+1};
         elseif contains(varargin{n},'DecayCorrectionTime','IgnoreCase',true)
@@ -100,6 +103,42 @@ else
     mandatory = {'tracer','Radionuclide','InjectedRadioactivity','InjectedMass','MolarActivity'};
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs are missing')
+    end
+       
+    optional = {'InstitutionName','AcquisitionMode','ImageDecayCorrected','ImageDecayCorrectionTime',...
+        'ReconMethodParameterLabels','ReconMethodParameterUnits','ReconMethodParameterValues',...
+        'ReconMethodName','ReconFilterType','ReconFilterSize','AttenuationCorrection'};
+    parameter_file = fullfile(fileparts(which('get_GEAdvance_metadata.m')),'GEAdvanceparameters.txt');
+    if ~any(cellfun(@exist, optional))
+        if exist(parameter_file,'file')
+            setmetadata = importdata(parameter_file);
+            for opt = 1:length(optional)
+                if ~exist(optional{opt},'var')
+                    try
+                        eval(setmetadata{find(contains(setmetadata,optional{opt}))}); % shoul evaluate the = sign, creating name/value pairs                end
+                        if isempty(eval(optional{opt}))
+                            error('''%s'' from GEAdvanceparameters.txt is empty\n',optional{opt})
+                        end
+                    catch evalerr
+                        error('''%s'' from GEAdvanceparameters.txt is empty\n',optional{opt})
+                    end
+                end
+            end
+        else
+            T = table({'AcquisitionMode            = '''';',...
+                'ImageDecayCorrected        = ;',...
+                'ImageDecayCorrectionTime   = ;',...
+                'ReconMethodName            = '''';',...
+                'ReconFilterType            = '''';',...
+                'ReconMethodParameterLabels = {'''',''''};',...
+                'ReconMethodParameterUnits  = {'''',''''};',...
+                'ReconMethodParameterValues = [,];',...
+                'ReconFilterSize            = ;',...
+                'AttenuationCorrection      = '''';'}',...
+                'VariableNames',{'# Defaults'});
+            writetable(T,parameter_file);
+            error('GEAdvanceparameters.txt to load default parameters is missing - a template file has been created, please fill missing information, or pass them as arguments in')
+        end
     end
 end
 
