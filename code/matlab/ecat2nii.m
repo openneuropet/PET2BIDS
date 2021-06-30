@@ -1,4 +1,4 @@
-function ecat2nii(FileList,MetaList,varargin)
+function fileout = ecat2nii(FileList,MetaList,varargin)
 
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
@@ -12,7 +12,9 @@ function ecat2nii(FileList,MetaList,varargin)
 %                'gz' is true (default) or false to output .nii.gz or .nii
 %                'savemat' is true or false (default) to save the ecat data as .mat
 %
-% Example: ecat2nii({ecatfile},{meta},'gz',false,'sifout',true)
+% Example meta = get_SiemensHRRT_metadata('tracer','DASB','Radionuclide','C11', ...
+%                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+%        fileout = ecat2nii({ecatfile},{meta},'gz',false,'sifout',true);
 %
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
@@ -116,7 +118,7 @@ for j=1:length(FileList)
         end
     end
     
-    % rescale - for quantitative PET
+    % rescale - for quantitative PET   
     MaxImg   = max(img_temp(:));
     img_temp = img_temp/MaxImg*32767;
     Sca      = MaxImg/32767;
@@ -141,6 +143,7 @@ for j=1:length(FileList)
     end
     
     % write nifti format + json
+    fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
     info                                  = MetaList{1};
     sub_iter                              = strsplit(sh{1,1}.annotation);
     iterations                            = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
@@ -159,12 +162,12 @@ for j=1:length(FileList)
     info.FrameDuration                    = DeltaTime';
     info.FrameTimesStart                  = zeros(size(info.FrameDuration));
     info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
-    TimeZero                              = strsplit(datestr(utc2datenum(mh.scan_start_time)));
+    TimeZero                              = strsplit(datestr(datenum(now))); % strsplit(datestr(utc2datenum(mh.scan_start_time)));
     info.TimeZero                         = TimeZero{2};
     info.ScanStart                        = 0;
     info.InjectionStart                   = 0;
     info.CalibrationFactor                = Sca*mh.ecat_calibration_factor;
-    info.Filename                         = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
+    info.Filename                         = fileout;
     info.Filemoddate                      = datestr(now);
     info.Version                          = 'NIfTI1';
     info.Description                      = 'Open Neuro PET hrrt2neuro';
@@ -187,9 +190,11 @@ for j=1:length(FileList)
     info.TransformName                    = 'Sform';
     info.Qfactor                          = 1;
     if gz
-        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),[pet_path filesep pet_file(1:end-2) '.nii'],info,'Endian','little','Compressed',true);
+        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),...
+            fileout,info,'Endian','little','Compressed',true);
     else
-        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),[pet_path filesep pet_file(1:end-2) '.nii'],info,'Endian','little','Compressed',false);
+        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),...
+            fileout,info,'Endian','little','Compressed',false);
     end
     
     % save raw data
