@@ -35,7 +35,7 @@ img_diff   = img(:)-img_reread(:);
 figure
 subplot(1,3,1);plot(img(:),img_reread(:),'*');
 xlabel('Original'); ylabel('Reread'); title('Read vs Written');
-subplot(1,3,2);plot(img(:),img_diff(:),'*')
+subplot(1,3,2);[simg,index] = sort(img(:)); plot(simg(:),img_diff(index),'*')
 xlabel('Original'); ylabel('Org-Reread'); title(sprintf('Average error: %f\n',mean(img_diff(:))));
 subplot(1,3,3); histogram((img_diff),200);
 xlabel('error'); title('Distribution of errors')
