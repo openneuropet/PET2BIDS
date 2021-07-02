@@ -12,7 +12,7 @@ function fileout = ecat2nii(FileList,MetaList,varargin)
 %                'gz' is true (default) or false to output .nii.gz or .nii
 %                'savemat' is true or false (default) to save the ecat data as .mat
 %
-% Example meta = get_SiemensHRRT_metadata('tracer','DASB','Radionuclide','C11', ...
+% Example meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %        fileout = ecat2nii({ecatfile},{meta},'gz',false,'sifout',true);
 %
@@ -84,6 +84,13 @@ end
 for j=1:length(FileList)
     
     fprintf('Conversion of file: %s\n',FileList{j});
+    
+    % quickly ensure we have the TimeZero - key to all analyzes! 
+    info     = MetaList{1};
+    if ~isfield(info,'TimeZero')
+        error('Metadata TimeZero is missing - set to ScanStart or empty to use the scanning time as injection time')
+    end
+
     % Read ECAT file headers
     [pet_path,pet_file,ext]=fileparts(FileList{j});
     if strcmp(ext,'.gz')
@@ -131,9 +138,14 @@ for j=1:length(FileList)
     % write timing info separately
     if sifout
         pid = fopen(fullfile(pet_path,[pet_file(1:end-2) '.sif']),'w');
-
+        
         if (pid~=0)
-            fprintf(pid,'%s %i 4 1\n',datestr(utc2datenum(mh.scan_start_time)), length(Start));
+            offset   = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
+            scantime = datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset;
+            if offset ~=0
+                warning('sif scantime is adjusted by local time difference to UTC: %s',offset)
+            end
+            fprintf(pid,'%s %i 4 1\n',scantime, length(Start));
             for i=1:length(Start)
                 fprintf(pid,'%i %i %i %i\n',round(Start(i)),round(Start(i)+DeltaTime(i)),...
                     round(Prompts(i)),round(Randoms(i)));
@@ -143,8 +155,7 @@ for j=1:length(FileList)
     end
     
     % write nifti format + json
-    fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
-    info                                  = MetaList{1};
+    fileout  = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
     sub_iter                              = strsplit(sh{1,1}.annotation);
     iterations                            = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
     subsets                               = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
@@ -162,10 +173,14 @@ for j=1:length(FileList)
     info.FrameDuration                    = DeltaTime';
     info.FrameTimesStart                  = zeros(size(info.FrameDuration));
     info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
-%     TimeZero                              = strsplit(datestr(utc2datenum(mh.scan_start_time))); 
-%     info.TimeZero                         = TimeZero{2}; % there is 1 hour difference?
-    [h,m,s]                               = hms(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC'));
-    info.TimeZero                         = [num2str(h) ':' num2str(m) ':' num2str(s)];
+    if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
+        offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
+        [h,m,s]                           = hms(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset);
+        info.TimeZero                     = [num2str(h) ':' num2str(m) ':' num2str(s)];
+        if offset ~=0
+            warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
+        end
+    end
     info.ScanStart                        = 0;
     info.InjectionStart                   = 0;
     info.CalibrationFactor                = Sca*mh.ecat_calibration_factor;
