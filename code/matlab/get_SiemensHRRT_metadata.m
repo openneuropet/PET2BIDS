@@ -7,7 +7,7 @@ function metadata = get_SiemensHRRT_metadata(varargin)
 % stored in a SiemensHRRTparameters.txt seating on disk next to this function
 % or passed as argument in. Here is an example of such defaults, used at NRU
 %
-% InstitutionName                = 'Rigshospitalet, NRU, DK',
+% InstitutionName                = 'Rigshospitalet, NRU, DK';
 % AcquisitionMode                = 'list mode';
 % ImageDecayCorrected            = true;
 % ImageDecayCorrectionTime       = 0;
@@ -18,16 +18,22 @@ function metadata = get_SiemensHRRT_metadata(varargin)
 %
 % FORMAT:  metadata = get_SiemensHRRT_metadata(name,value)
 %
-% Example: metadata = get_SiemensHRRT_metadata('tracer','DASB','Radionuclide','C11', ...
+% Example: metadata = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %
 % INPUTS a series of name/value pairs are expected
 %        MANDATORY
+%                  TimeZero: when was the tracer injected    e.g. TimeZero,'11:05:01'
 %                  tracer: which tracer was used             e.g. 'tracer','DASB'
 %                  Radionuclide: which nuclide was used      e.g. 'Radionuclide','C11'
 %                  Injected Radioactivity Dose: value in MBq e.g. 'Radioactivity', 605.3220
 %                  InjectedMass: Value in ug                 e.g. 'InjectedMass', 1.5934
 %                  MolarActivity: value in GBq/umol          e.g. 'MolarActivity', 107.66
+%
+%        note the TimeZero can also be [] or 'ScanStart' indicating that
+%        the scanning time should be used as TimeZero, this will be filled
+%        out automatically by ecat2nii
+%
 %        OPTIONAL 
 %                  MolecularWeight: value in g/mol 
 %                  ModeOfAdministration e.g.'bolus'
@@ -58,7 +64,9 @@ if nargin == 0
     return
 else    
     for n=1:2:nargin
-        if strcmpi(varargin{n},'tracer')
+        if any(strcmpi(varargin{n},{'TimeZero','Time Zero'}))
+            TimeZero = varargin{n+1};
+        elseif strcmpi(varargin{n},'tracer')
             tracer = varargin{n+1};
         elseif strcmpi(varargin{n},'Radionuclide')
             Radionuclide = varargin{n+1};
@@ -82,12 +90,6 @@ else
             ImageDecayCorrectionTime = varargin{n+1};
         elseif contains(varargin{n},'MethodName','IgnoreCase',true)
             ReconMethodName = varargin{n+1};
-        elseif contains(varargin{n},'ParameterLabels','IgnoreCase',true)
-            ReconMethodParameterLabels = varargin{n+1};
-        elseif contains(varargin{n},'ParameterUnits','IgnoreCase',true)
-            ReconMethodParameterUnits = varargin{n+1};
-        elseif contains(varargin{n},'ParameterValues','IgnoreCase',true)
-            ReconMethodParameterValues = varargin{n+1};
         elseif contains(varargin{n},'FilterType','IgnoreCase',true)
             ReconFilterType = varargin{n+1};
         elseif contains(varargin{n},'FilterSize','IgnoreCase',true)
@@ -97,7 +99,7 @@ else
         end
     end
     
-    mandatory = {'tracer','Radionuclide','InjectedRadioactivity','InjectedMass','MolarActivity'};
+    mandatory = {'TimeZero','tracer','Radionuclide','InjectedRadioactivity','InjectedMass','MolarActivity'};
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs are missing')
     end
@@ -143,6 +145,14 @@ metadata.Manufacturer                   = 'Siemens';
 metadata.ManufacturersModelName         = 'High-Resolution Research Tomograph (HRRT, CTI/Siemens)';
 metadata.Units                          = 'Bq/mL';
 metadata.BodyPart                       = 'Brain';
+if isempty(TimeZero)
+    metadata.TimeZero                   = [];
+elseif strcmpi(varargin{n},{'ScanStart','Scan Start'})
+    metadata.TimeZero                   = 'ScanStart';
+else
+    metadata.TimeZero                   = TimeZero;   
+end
+metadata.TimeZero                       = TimeZero;
 metadata.TracerName                     = tracer;
 metadata.TracerRadionuclide             = Radionuclide;
 metadata.InjectedRadioactivity          = InjectedRadioactivity;
@@ -163,6 +173,7 @@ if exist('ModeOfAdministration','var')
     metadata.ModeOfAdministration       = ModeOfAdministration;
 end
 
+metadata.InstitutionName                = InstitutionName;
 metadata.AcquisitionMode                = AcquisitionMode;
 metadata.ImageDecayCorrected            = ImageDecayCorrected;
 metadata.ImageDecayCorrectionTime       = ImageDecayCorrectionTime;
