@@ -4,7 +4,8 @@ BIDS requires nifti files and json. While json can be writen be hand, this is mo
 
 ## Dependencies
 
-We use the jsonwrite function available with the [BIDS matlab tools](https://github.com/bids-standard/bids-matlab/blob/dev/%2Bbids/%2Butil/jsonwrite.m) and-or [json.io](https://github.com/gllmflndn/JSONio). Please download one of there toolbox and set it up in your path.
+We use the [niftiwrite](https://se.mathworks.com/help/images/ref/niftiwrite.html) from the Matlab image processing toolbox.  
+The jsonwrite function is distributed here, taken from [json.io](https://github.com/gllmflndn/JSONio). 
 
 ## Configuration
 
