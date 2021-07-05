@@ -126,10 +126,10 @@ for j=1:length(FileList)
     end
     
     % rescale - for quantitative PET   
-    MaxImg   = max(img_temp(:));
-    img_temp = img_temp/MaxImg*32767;
-    Sca      = MaxImg/32767;
-    MinImg   = min(img_temp(:));
+    MaxImg       = max(img_temp(:));
+    img_temp     = img_temp/MaxImg*32767;
+    Sca          = MaxImg/32767;
+    MinImg       = min(img_temp(:));
     if (MinImg<-32768)
         img_temp = img_temp/MinImg*(-32768);
         Sca      = Sca*MinImg/(-32768);
@@ -140,6 +140,7 @@ for j=1:length(FileList)
         pid = fopen(fullfile(pet_path,[pet_file(1:end-2) '.sif']),'w');
         
         if (pid~=0)
+%            fprintf(pid,'%s %i 4 1\n',datestr(utc2datenum(mh.scan_start_time)), length(Start));
             offset   = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
             scantime = datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset;
             if offset ~=0
