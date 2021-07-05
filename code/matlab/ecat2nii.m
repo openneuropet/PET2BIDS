@@ -156,7 +156,7 @@ for j=1:length(FileList)
     end
     
     % write nifti format + json
-    fileout  = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
+    fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
     sub_iter                              = strsplit(sh{1,1}.annotation);
     iterations                            = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
     subsets                               = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
@@ -176,8 +176,7 @@ for j=1:length(FileList)
     info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
     if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
         offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
-        [h,m,s]                           = hms(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset);
-        info.TimeZero                     = [num2str(h) ':' num2str(m) ':' num2str(s)];
+        info.TimeZero                     = datestr((datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset),'hh.mm.ss'); 
         if offset ~=0
             warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
         end
