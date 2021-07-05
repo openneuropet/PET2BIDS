@@ -1,0 +1,40 @@
+# Convert ecat file to nii+json
+
+Siemens ecat (.v) files version 7+ can be converted to nifti (.nii) and accompagning json (.json) file in a [BIDS](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html) compliant fashion.
+
+## Usage
+
+```matlab
+meta = get_SiemensHRRT_metadata('TimeZero','XXX','tracer','XXX','Radionuclide','XXX', ...
+               'Radioactivity', XXX,'InjectedMass', XXX,'MolarActivity', XXX);
+fileout = ecat2nii({ecatfile1,ecatfile2,ecatfile3},{meta},'gz',false,'sifout',true);
+```
+
+### Metadata
+
+Following BIDS, there are a few mandatory metadata information that must be provided - simply because this cannot be retreived from the ecat header information. By default `TimeZero` and a few radiochemistry information must be passed along. Other parameters should be set in the accompagning text file (because those are defaults unlikely to change).
+
+| Syntax | Description |
+| ----------- | ----------- |
+| TimeZero | Time zero to which all scan and/or blood measurements have been adjusted to |
+| TracerName | Name of the tracer compound used |
+| TracerRadionuclide | Radioisotope labelling tracer |
+| InjectedRadioactivity | Total amount of radioactivity injected into the patient |
+| InjectedMass | Total mass of radiolabeled compound injected into subject |
+| MolarActivity | Molar activity of compound injecte |
+
+Once this metadata is generated, this is passed along to the ecat2nii.m function which will add scanner specific information and save this as a json file.
+
+### nifti
+
+We read the ecat file, rescale the data to 16 bits, round, multiply by the scanner calibration factor, and use the Matlab nifti write function (little endian).
+
+## Testing
+
+### 'Rounding' errors
+
+`niftiwrite_test.m` is a simple test, creating random data, that are rescaled and saved as nifti - reread and the difference between the generted data and reread data plotted. This shows that the rescaling method used created small (up to 0.00009) errors.
+
+### Precision
+
+`ecat2nii_test.m` is meant to run on actual data. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled (for instance in 16 bits), round and multiply by the calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. Because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means, with real data, most errors are concentrated around zero.
