@@ -35,6 +35,8 @@ We read the ecat file, rescale the data to 16 bits, round, multiply by the scann
 
 `niftiwrite_test.m` is a simple test, creating random data, that are rescaled and saved as nifti - reread and the difference between the generted data and reread data plotted. This shows that the rescaling method used created small (up to 0.00009) errors.
 
+![small_error](D:\BIDS\ONP\BIDS-converter\code\matlab\unit_tests\error.jpg)
+
 ### Precision
 
-`ecat2nii_test.m` is meant to run on actual data. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled (for instance in 16 bits), round and multiply by the calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. Because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means, with real data, most errors are concentrated around zero.
+`ecat2nii_test.m` is meant to run on actual data. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled (for instance in 16 bits), round and multiply by the calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. Because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means, with real data, most errors are concentrated around zero. With real data, we observed errors of maximum +/- 0.03 out of a 884410 data range values, i.e. 0.0000033921% (with average error values in the 10^-7 range).
