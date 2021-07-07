@@ -10,6 +10,7 @@ function ecat2nii_test(ecatfile)
 % Copyright OpenNeuroPET team
 
 meta.info = 'just running a test';
+meta.TimeZero = datestr(now,'hh:mm:ss');
 ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
 
 [filepath,filename] = fileparts(ecatfile);
@@ -34,10 +35,14 @@ subplot(2,2,1); plot(img(:),img_reread(:),'*'); hold on;
 M = max(max([img(:) img_reread(:)])); axis([0 M 0 M])
 plot([0 M],[0 M],'r','LineWidth',1); grid on
 xlabel('Original'); ylabel('Nifti'); title('Read vs Written');
+
 [simg,index] = sort(img(:)); subplot(2,2,3); plot(img(:),(simg-img_reread(index)),'*')
 xlabel('Original'); ylabel('Difference'); title(sprintf('Average error: %f\n',meandiff));
+
 subplot(2,2,2); plot(summary_diff(:,2),'LineWidth',2); grid on; xlabel('frames'); 
-ylabel('Difference'); subplot(2,2,4); histogram(Diff_ecat_nifti(:)); 
+ylabel('Difference'); title('Avg error per frame')
+
+subplot(2,2,4); histogram(Diff_ecat_nifti(:)); 
 axis([A B 0 10000]); xlabel('error'); title('Distribution of all errors')
 
 vidObj = VideoWriter([filename '_error']);
