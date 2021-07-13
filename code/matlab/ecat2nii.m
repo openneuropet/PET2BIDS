@@ -188,7 +188,7 @@ for j=1:length(FileList)
     info.Version                          = 'NIfTI1';
     info.Description                      = 'Open Neuro PET hrrt2neuro';
     info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
-    info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0]*.10;
+    info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
     jsonwrite([pet_path filesep pet_file(1:end-2) '.json'],info)
     
     info.Datatype                         = 'single';
