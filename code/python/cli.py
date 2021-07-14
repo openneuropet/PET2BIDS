@@ -2,10 +2,10 @@ import argparse
 import pathlib
 import sys
 from os.path import join
-
 from ecat_dump import EcatDump
+
 """
-simple command line tool to extract header info from ecat files.
+simple command line tool to extract header info from ecat files and convert ecat to nifti.
 """
 
 
@@ -13,13 +13,15 @@ def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument("ecat", metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
-    parser.add_argument("--convert", "-c", required=False, action='store_true', help="If supplied will attempt conversion.")
+    parser.add_argument("--convert", "-c", required=False, action='store_true',
+                        help="If supplied will attempt conversion.")
     parser.add_argument("--dump", "-d", help="Dump information in Header", action="store_true", default=False)
     parser.add_argument("--json", "-j", action="store_true", default=False, help="""
         Output header and subheader info as JSON to stdout, overrides all other options""")
     parser.add_argument("--nifti", "-n", metavar="file_name", help="Name of nifti output file", required=False)
     parser.add_argument("--subheader", '-s', help="Display subheaders", action="store_true", default=False)
-    parser.add_argument("--sidecar", action="store_true")
+    parser.add_argument("--sidecar", action="store_true", help="Output a bids formatted sidecar for pairing with"
+                                                               "a nifti.")
     args = parser.parse_args()
     return args
 

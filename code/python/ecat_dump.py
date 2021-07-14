@@ -3,7 +3,7 @@ import re
 import nibabel
 import os
 import json
-from helper_functions import compress, decompress
+import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 
@@ -18,17 +18,27 @@ def parse_this_date(date_like_object):
 
 
 class EcatDump:
-
+    """
+    This class reads an ecat file w/ nibabel.ecat.load and extracts header, subheader, and image matrices for
+    viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
+    """
     def __init__(self, ecat_file, nifti_file=None, decompress=True):
-        self.ecat_header = {}
-        self.subheaders = []
+        """
+        Initialization of this class requires only a path to an ecat file
+        :param ecat_file: path to a valid ecat file
+        :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
+        to output the nevly generated nifti
+        :param decompress: attempt to decompress the ecat file, should probably be set to false
+        """
+        self.ecat_header = {}           # ecat header information is stored here
+        self.subheaders = []            # subheader information is placed here
         self.ecat_info = {}
-        self.affine = {}
-        self.frame_start_times = []
-        self.frame_durations = []
-        self.decay_factors = []
-        self.sidecar_template = sidecar_template_full
-        self.sidecar_template_short = sidecar_template_short
+        self.affine = {}                # affine matrix/information is stored here.
+        self.frame_start_times = []     # frame_start_times, frame_durations, and decay_factors are all
+        self.frame_durations = []       # extracted from ecat subheaders. They're pretty important and get
+        self.decay_factors = []         # stored here
+        self.sidecar_template = sidecar_template_full  # bids approved sidecar file with ALL bids fields
+        self.sidecar_template_short = sidecar_template_short  # bids approved sidecar with only required bids fields
         if os.path.isfile(ecat_file):
             self.ecat_file = ecat_file
         else:
@@ -36,7 +46,7 @@ class EcatDump:
 
         if '.gz' in self.ecat_file and decompress is True:
             uncompressed_ecat_file = re.sub('.gz', '', self.ecat_file)
-            decompress(self.ecat_file, uncompressed_ecat_file)
+            helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
 
         if '.gz' in self.ecat_file and decompress is False:
             raise Exception("Nifti must be decompressed for reading of file headers")
@@ -57,12 +67,18 @@ class EcatDump:
         self.ecat_info['subheaders'] = self.subheaders
         self.ecat_info['affine'] = self.affine
 
+        # swap file extensions and save output nifti with same name as original ecat
         if not nifti_file:
             self.nifti_file = os.path.splitext(self.ecat_file)[0] + ".nii"
         else:
             self.nifti_file = nifti_file
 
     def make_nifti(self, output_path=None):
+        """
+        Outputs a nifti from the read in ECAT file
+        :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
+        :return: the output path the nifti was written to, used later for placing metadata/sidecar files
+        """
         # read ecat
         img = self.ecat
         # convert to nifti
@@ -78,10 +94,10 @@ class EcatDump:
 
         return output
 
-    def display_ecat_and_nifti(self):
-        print(f"ecat is {self.ecat_file}\nnifti is {self.nifti_file}")
-
     def extract_affine(self):
+        """
+        Extract affine matrix from ecat
+        """
         self.affine = self.ecat.affine.tolist()
 
     def extract_header_info(self):
@@ -93,7 +109,6 @@ class EcatDump:
         for name in header_entries:
 
             value = self.ecat.header[name].tolist()
-            value_not_to_list = self.ecat.header[name]
 
             # convert to string if value is type bytes
             if type(value) is bytes:
@@ -112,6 +127,10 @@ class EcatDump:
         return self.ecat_header
 
     def extract_subheaders(self):
+        """
+        Similar to extract headers, but iterates through subheaders as well
+        :return:
+        """
         # collect subheaders
         subheaders = self.ecat.dataobj._subheader.subheaders
         for subheader in subheaders:
@@ -127,20 +146,32 @@ class EcatDump:
             self.subheaders.append(holder)
 
     def show_affine(self):
+        """
+        Display affine to stdout
+        :return: affine matrix row by row.
+        """
         for row in self.affine:
             print(row)
 
     def show_header(self):
+        """
+        Display header to stdout in key: value format
+        :return: None
+        """
         for key, value in self.ecat_header.items():
             print(f"{key}: {value}")
 
     def show_subheaders(self):
+        """
+        Displays subheaders to stdout
+        :return: None
+        """
         for subheader in self.subheaders:
             print(subheader)
 
     def populate_sidecar(self):
         """
-        creates a side car json with any bids relevant information within the ecat.
+        creates a side car dictionary with any bids relevant information extracted from the ecat.
         """
         # if it's an ecat it's Siemens
         self.sidecar_template['Manufacturer'] = 'Siemens'
@@ -198,7 +229,12 @@ class EcatDump:
 
         return destroyed
 
-    def show_sidecar(self, output_path):
+    def show_sidecar(self, output_path=None):
+        """
+        Write sidecar file to a json or display to stdout if no filepath is supplied
+        :param output_path: path to output a json file
+        :return:
+        """
         self.prune_sidecar()
         if output_path:
             with open(output_path, 'w') as outfile:
@@ -207,11 +243,20 @@ class EcatDump:
             print(json.dumps(self.sidecar_template, indent=4))
 
     def json_out(self):
+        """
+        Dumps entire ecat header and header info into stdout formatted as json.
+        :return: None
+        """
         temp_json = json.dumps(self.ecat_info, indent=4)
         print(temp_json)
 
     @staticmethod
     def transform_from_bytes(bytes_like):
+        """
+        Attempts to decode from bytes, not particularly well
+        :param bytes_like: a bytes like object e.g. b'x\00\01\
+        :return: a decoded object
+        """
         if type(bytes_like) is bytes:
             return bytes_like.decode()
         else:

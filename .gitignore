@@ -1,0 +1,8 @@
+# I think matlab generates these when you're running interactive files
+*.asv
+
+# pycharm nonsense
+*.idea
+
+# python nonsense
+*__pycache__*
