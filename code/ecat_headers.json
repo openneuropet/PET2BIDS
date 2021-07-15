@@ -1,0 +1,2401 @@
+{
+  "__comments": {
+    "Note to reader": "The datastructures below are a direct translation of the pdf's included in this repository,\nwhich are assumed to be taken from official Siemens documentation at the time of this writing.\nFor that reason the values associated with byte, variable_name, type, and comment should be viewed as partly historical as they have been directly transposed from that official documentation.\nAdditional fields are all added for additional convenience to the user/author/developer and should be viewed from that lense",
+    "ecat_headers": "Entries in this dictionary are labeled ecat<version number major><version number minor>_<main or subheader>_<type of information in matrix files>",
+    "type": "refers to the type of data defined in the ECAT documentation; includes: Integer*2, Integer*4, Real*4, and Character*N",
+    "variable_name": "refers to the name of the variable as defined in the ECAT documentation, case sensitive",
+    "byte": "refers to the absolute byte position, data is organized in the same order as byte position such that list[0] -> the 0th byte",
+    "comment": "refers to the comment field from the ECAT documentation, some comments list enumerated types as type1, type2, etc., etc. at the time of this writing those et cetera are unknown, good luck.",
+    "enumerated_values": "Best guesses and translations of the possible enumerated types in the comments",
+    "units": "when possible the units corresponding to each byte/variable name are defined here"
+  },
+  "ecat_headers": {
+    "ecat63_mainheader_matrix_data_files": [
+      {
+        "byte": 0,
+        "variable_name": "%FILL(14)",
+        "type": "Integer*2",
+        "comment": "User reserved space (28 bytes)"
+      },
+      {
+        "byte": 28,
+        "variable_name": "ORIGINAL_FILE_NAME",
+        "type": "Character*20",
+        "comment": "Scan file's creation name"
+      },
+      {
+        "byte": 48,
+        "variable_name": "SW_VERSION",
+        "type": "Integer*2",
+        "comment": "Enumerated type (VER_PRE5, VER_5, etc.)"
+      },
+      {
+        "byte": 50,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "E. Type (DTYPE_BYTES, DTYPE_12, etc.)"
+      },
+      {
+        "byte": 52,
+        "variable_name": "SYSTEM_TYPE",
+        "type": "Integer*2",
+        "comment": "E. Type (MODEL_911_01, _02, etc.)"
+      },
+      {
+        "byte": 54,
+        "variable_name": "FILE_TYPE",
+        "type": "Integer*2",
+        "comment": "E. Type (FTYPE_SCAN, _IMAGE, etc.)"
+      },
+      {
+        "byte": 56,
+        "variable_name": "NODE_ID",
+        "type": "Character*10",
+        "comment": "Unique ID of the ECAT system used"
+      },
+      {
+        "byte": 66,
+        "variable_name": "SCAN_START_DAY",
+        "type": "Integer*2",
+        "comment": "Day acquisition was started"
+      },
+      {
+        "byte": 68,
+        "variable_name": "SCAN_START_MONTH",
+        "type": "Integer*2",
+        "comment": "Month acquisition was started"
+      },
+      {
+        "byte": 70,
+        "variable_name": "SCAN_START_YEAR",
+        "type": "Integer*2",
+        "comment": "Year acquisition was started"
+      },
+      {
+        "byte": 72,
+        "variable_name": "SCAN_START_HOUR",
+        "type": "Integer*2",
+        "comment": "Hour acquisition was started"
+      },
+      {
+        "byte": 74,
+        "variable_name": "SCAN_START_MINUTE",
+        "type": "Integer*2",
+        "comment": "Minute acquisition was started"
+      },
+      {
+        "byte": 76,
+        "variable_name": "SCAN_START_SECOND",
+        "type": "Integer*2",
+        "comment": "Second acquisition was started"
+      },
+      {
+        "byte": 78,
+        "variable_name": "ISOTOPE_CODE",
+        "type": "Character*8",
+        "comment": "Isotope specifier"
+      },
+      {
+        "byte": 86,
+        "variable_name": "ISOTOPE_HALFLIFE",
+        "type": "Real*4",
+        "comment": "Half-life of isotope specified (in sec.)"
+      },
+      {
+        "byte": 90,
+        "variable_name": "RADIOPHARMACUETICAL",
+        "type": "Character*32",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 122,
+        "variable_name": "GANTRY_TILT",
+        "type": "Real*4",
+        "comment": "Angle (in degrees)"
+      },
+      {
+        "byte": 126,
+        "variable_name": "GANTRY_ROTATION",
+        "type": "Real*4",
+        "comment": "Angle (in degrees)"
+      },
+      {
+        "byte": 130,
+        "variable_name": "BED_ELEVATION",
+        "type": "Real*4",
+        "comment": "Bed height (in cm.) from lowest point"
+      },
+      {
+        "byte": 134,
+        "variable_name": "ROT_SOURCE_SPEED",
+        "type": "Integer*2",
+        "comment": "Revolutions/minute (0 if not rotating)"
+      },
+      {
+        "byte": 136,
+        "variable_name": "WOBBLE_SPEED",
+        "type": "Integer*2",
+        "comment": "Revolutions/minute (0 if not wobbled)"
+      },
+      {
+        "byte": 138,
+        "variable_name": "TRANSM_SOURCE_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (SRC_NONE, _RRS, etc.)"
+      },
+      {
+        "byte": 140,
+        "variable_name": "AXIAL_FOV",
+        "type": "Real*4",
+        "comment": "Distance (in cm.) from first to last plane"
+      },
+      {
+        "byte": 144,
+        "variable_name": "TRANSAXIAL_FOV",
+        "type": "Real*4",
+        "comment": "Distance (in cm.) of transaxial view"
+      },
+      {
+        "byte": 148,
+        "variable_name": "TRANSAXIAL_SAMP_MODE",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (XSAMP_STAT, _3, etc.)"
+      },
+      {
+        "byte": 150,
+        "variable_name": "COIN_SAMP_MODE",
+        "type": "Integer*2",
+        "comment": "E. type (CSAMP_NET_TRUES, etc.)"
+      },
+      {
+        "byte": 152,
+        "variable_name": "AXIAL_SAMP_MODE",
+        "type": "Integer*2",
+        "comment": "E. type (ASAMP_NORM, _2X, etc.)"
+      },
+      {
+        "byte": 154,
+        "variable_name": "CALIBRATION_FACTOR",
+        "type": "Real*4",
+        "comment": "Quantification scale factor"
+      },
+      {
+        "byte": 158,
+        "variable_name": "CALIBRATION_UNITS",
+        "type": "Integer*2",
+        "comment": "Enumerated type (UNIT_UCIML, etc.)"
+      },
+      {
+        "byte": 160,
+        "variable_name": "COMPRESSION_CODE",
+        "type": "Integer*2",
+        "comment": "Enumerate type (COMP_NONE, etc.)"
+      },
+      {
+        "byte": 162,
+        "variable_name": "STUDY_NAME",
+        "type": "Character*12",
+        "comment": "Study descriptor"
+      },
+      {
+        "byte": 174,
+        "variable_name": "PATIENT_ID",
+        "type": "Character*16",
+        "comment": "Patient identification descriptor"
+      },
+      {
+        "byte": 190,
+        "variable_name": "PATIENT_NAME",
+        "type": "Character*32",
+        "comment": "Patient name (free format ASCII)"
+      },
+      {
+        "byte": 222,
+        "variable_name": "PATIENT_SEX",
+        "type": "Character*1",
+        "comment": "E. type (SEX_MALE, _FEMALE, etc.)"
+      },
+      {
+        "byte": 223,
+        "variable_name": "PATIENT_AGE",
+        "type": "Character*10",
+        "comment": "Patient age (free format)"
+      },
+      {
+        "byte": 233,
+        "variable_name": "PATIENT_HEIGHT",
+        "type": "Character*10",
+        "comment": "Patient height (free format)"
+      },
+      {
+        "byte": 243,
+        "variable_name": "PATIENT_WEIGHT",
+        "type": "Character*10",
+        "comment": "Patient weight (free format)"
+      },
+      {
+        "byte": 253,
+        "variable_name": "PATIENT_DEXTERITY",
+        "type": "Character*1",
+        "comment": "E. type (DEXT_RT, _LF, _AMB, etc.)"
+      },
+      {
+        "byte": 254,
+        "variable_name": "PHYSICIAN_NAME",
+        "type": "Character*32",
+        "comment": "Physician name (free format)"
+      },
+      {
+        "byte": 286,
+        "variable_name": "OPERATOR_NAME",
+        "type": "Character*32",
+        "comment": "Operator name (free format)"
+      },
+      {
+        "byte": 318,
+        "variable_name": "STUDY_DESCRIPTION",
+        "type": "Character*32",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 350,
+        "variable_name": "ACQUISITION_TYPE",
+        "type": "Integer*2",
+        "comment": "E. type (ACQ_RECTTR, _DYEM, etc.)"
+      },
+      {
+        "byte": 352,
+        "variable_name": "BED_TYPE",
+        "type": "Integer*2",
+        "comment": "E. type (BED_CTI, BED_SIEMENS, etc.)"
+      },
+      {
+        "byte": 354,
+        "variable_name": "SEPTA_TYPE",
+        "type": "Integer*2",
+        "comment": "E. type (SEPTA_NONE, 3MM, etc.)"
+      },
+      {
+        "byte": 356,
+        "variable_name": "FACILITY_NAME",
+        "type": "Character*20",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 376,
+        "variable_name": "NUM_PLANES",
+        "type": "Integer*2",
+        "comment": "Number of planes of data collected"
+      },
+      {
+        "byte": 378,
+        "variable_name": "NUM_FRAMES",
+        "type": "Integer*2",
+        "comment": "Number of frames of data collected"
+      },
+      {
+        "byte": 380,
+        "variable_name": "NUM_GATES",
+        "type": "Integer*2",
+        "comment": "Number of gates of data collected"
+      },
+      {
+        "byte": 382,
+        "variable_name": "NUM_BED_POS",
+        "type": "Integer*2",
+        "comment": "Number of bed positions of data collected"
+      },
+      {
+        "byte": 384,
+        "variable_name": "INIT_BED_POSITION",
+        "type": "Real*4",
+        "comment": "Absolute bed location of bed position 0 (cm.)"
+      },
+      {
+        "byte": 388,
+        "variable_name": "BED_OFFSET(15)",
+        "type": "Real*4",
+        "comment": "Offset from INIT_BED_POSITION (in cm.)"
+      },
+      {
+        "byte": 448,
+        "variable_name": "PLANE_SEPARATION",
+        "type": "Real*4",
+        "comment": "Distance between adjacent planes (in cm.)"
+      },
+      {
+        "byte": 452,
+        "variable_name": "LWR_SCTR_THRES",
+        "type": "Integer*2",
+        "comment": "Lowest threshold setting for scatter (in KeV)"
+      },
+      {
+        "byte": 454,
+        "variable_name": "LWR_TRUE_THRES",
+        "type": "Integer*2",
+        "comment": "Lower threshold setting for trues (in KeV)"
+      },
+      {
+        "byte": 456,
+        "variable_name": "UPR_TRUE_THRES",
+        "type": "Integer*2",
+        "comment": "Upper threshold setting for trues (in KeV)"
+      },
+      {
+        "byte": 458,
+        "variable_name": "COLLIMATOR",
+        "type": "Real*4",
+        "comment": "Collimator position (if applicable--911's)"
+      },
+      {
+        "byte": 462,
+        "variable_name": "USER_PROCESS_CODE",
+        "type": "Character*10",
+        "comment": "Data processing code (defined by user)"
+      },
+      {
+        "byte": 472,
+        "variable_name": "%FILL(20)",
+        "type": "Integer*2",
+        "comment": "User reserved space (40 bytes)"
+      }
+    ],
+    "ecat63_subheader_matrix_scan_files": [
+      {
+        "byte": 0,
+        "variable_name": "%FILL(63)",
+        "type": "Integer*2",
+        "comment": "User reserved space (126 bytes)"
+      },
+      {
+        "byte": 126,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated file data type"
+      },
+      {
+        "byte": 128,
+        "variable_name": "%FILL(2)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 132,
+        "variable_name": "DIMENSION_1",
+        "type": "Integer*2",
+        "comment": "Total views collected (y dimension)"
+      },
+      {
+        "byte": 134,
+        "variable_name": "DIMENSION_2",
+        "type": "Integer*2",
+        "comment": "Total elements collected (x dimension)"
+      },
+      {
+        "byte": 136,
+        "variable_name": "SMOOTHING",
+        "type": "Integer*2",
+        "comment": "0 = not smoothed, 1 = 9 x 9 smoothing"
+      },
+      {
+        "byte": 138,
+        "variable_name": "PROCESSING_CODE",
+        "type": "Integer*2",
+        "comment": "Designates processing applied to scan data"
+      },
+      {
+        "byte": 140,
+        "variable_name": "%FILL(3)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 146,
+        "variable_name": "SAMPLE_DISTANCE",
+        "type": "Real*4",
+        "comment": "Actual Distance of view sample (in cm.)"
+      },
+      {
+        "byte": 150,
+        "variable_name": "%FILL(8)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 166,
+        "variable_name": "ISOTOPE_HALFLIFE",
+        "type": "Real*4",
+        "comment": "Half-life of isotope (in sec.)"
+      },
+      {
+        "byte": 170,
+        "variable_name": "FRAME_DURATION_SEC",
+        "type": "Integer*2",
+        "comment": "Frame duration (in sec.)"
+      },
+      {
+        "byte": 172,
+        "variable_name": "GATE_DURATION",
+        "type": "Integer*4",
+        "comment": "Gating segment length (in msec.)"
+      },
+      {
+        "byte": 176,
+        "variable_name": "R_WAVE_OFFSET",
+        "type": "Integer*4",
+        "comment": "Time from start of first gate (in msec.)"
+      },
+      {
+        "byte": 180,
+        "variable_name": "%FILL(1)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 182,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "Always set to 1"
+      },
+      {
+        "byte": 186,
+        "variable_name": "%FILL(3)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 192,
+        "variable_name": "SCAN_MIN",
+        "type": "Integer*2",
+        "comment": "Minimum value in sinogram"
+      },
+      {
+        "byte": 194,
+        "variable_name": "SCAN_MAX",
+        "type": "Integer*2",
+        "comment": "Maximum value in sinogram"
+      },
+      {
+        "byte": 196,
+        "variable_name": "PROMPTS",
+        "type": "Integer*4",
+        "comment": "Total prompts collected in this frame/gate"
+      },
+      {
+        "byte": 200,
+        "variable_name": "DELAYED",
+        "type": "Integer*4",
+        "comment": "Total delays collected in this frame/gate"
+      },
+      {
+        "byte": 204,
+        "variable_name": "MULTIPLES",
+        "type": "Integer*4",
+        "comment": "Total multiples collected in thes frame/gate"
+      },
+      {
+        "byte": 208,
+        "variable_name": "NET_TRUES",
+        "type": "Integer*4",
+        "comment": "Total net trues (prompts--randoms)"
+      },
+      {
+        "byte": 212,
+        "variable_name": "%FILL(52)",
+        "type": "Integer*2",
+        "comment": "User reserved space (104 bytes)"
+      },
+      {
+        "byte": 316,
+        "variable_name": "COR_SINGLES(16)",
+        "type": "Real*4",
+        "comment": "Total singles with loss correction factoring"
+      },
+      {
+        "byte": 380,
+        "variable_name": "UNCOR_SINGLES(16)",
+        "type": "Real*4",
+        "comment": "Total singles without loss correction factoring"
+      },
+      {
+        "byte": 444,
+        "variable_name": "TOT_AVG_COR",
+        "type": "Real*4",
+        "comment": "Mean value of loss-corrected singles"
+      },
+      {
+        "byte": 448,
+        "variable_name": "TOTAL_AVG_UNCOR",
+        "type": "Real*4",
+        "comment": "Mean value of singles (not loss corrected)"
+      },
+      {
+        "byte": 452,
+        "variable_name": "TOTAL_COIN_RATE",
+        "type": "Integer*4",
+        "comment": "Measured coincidence rate (from IPCP)"
+      },
+      {
+        "byte": 456,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "Time offset from first frame time (in msec.)"
+      },
+      {
+        "byte": 460,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec.)"
+      },
+      {
+        "byte": 464,
+        "variable_name": "LOSS_CORRECTION_FCTR",
+        "type": "Real*4",
+        "comment": "Loss correction factor applied to the sinogram"
+      },
+      {
+        "byte": 468,
+        "variable_name": "%FILL(22)",
+        "type": "Integer*2",
+        "comment": "Unused (44 bytes)"
+      }
+    ],
+    "ecat63_subheader_matrix_image_files": [
+      {
+        "byte": 0,
+        "variable_name": "%FILL(63)",
+        "type": "Integer*2",
+        "comment": "User reserved space (126 bytes)"
+      },
+      {
+        "byte": 126,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (DTYPE_BYTES, _I2, etc)"
+      },
+      {
+        "byte": 128,
+        "variable_name": "NUM_DIMENSIONS",
+        "type": "Integer*2",
+        "comment": "Number of dimensions"
+      },
+      {
+        "byte": 130,
+        "variable_name": "%FILL(1)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 132,
+        "variable_name": "DIMENSION_1",
+        "type": "Integer*2",
+        "comment": "Dimension along x axis"
+      },
+      {
+        "byte": 134,
+        "variable_name": "DIMENSION_2",
+        "type": "Integer*2",
+        "comment": "Dimension along y axis"
+      },
+      {
+        "byte": 136,
+        "variable_name": "%FILL(12)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 160,
+        "variable_name": "X_ORIGIN",
+        "type": "Real*4",
+        "comment": "Offset in x axis for recon target (in cm.)"
+      },
+      {
+        "byte": 164,
+        "variable_name": "Y_ORIGIN",
+        "type": "Real*4",
+        "comment": "Offset in y axis for recon target (in cm.)"
+      },
+      {
+        "byte": 168,
+        "variable_name": "RECON_SCALE",
+        "type": "Real*4",
+        "comment": "Reconstruction magnification factor (zoom)"
+      },
+      {
+        "byte": 172,
+        "variable_name": "QUANT_SCALE",
+        "type": "Real*4",
+        "comment": "Quantification scale factor ( in Quant_units)"
+      },
+      {
+        "byte": 176,
+        "variable_name": "IMAGE_MIN",
+        "type": "Integer*2",
+        "comment": "Image minimum pixel value"
+      },
+      {
+        "byte": 178,
+        "variable_name": "IMAGE_MAX",
+        "type": "Integer*2",
+        "comment": "Image maximum pixel value"
+      },
+      {
+        "byte": 180,
+        "variable_name": "%FILL(2)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 184,
+        "variable_name": "PIXEL_SIZE",
+        "type": "Real*4",
+        "comment": "Pixel size (in cm.)"
+      },
+      {
+        "byte": 188,
+        "variable_name": "SLICE_WIDTH",
+        "type": "Real*4",
+        "comment": "Axial slice thickness (in cm.)"
+      },
+      {
+        "byte": 192,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec.)"
+      },
+      {
+        "byte": 196,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "Frame start time (offset from first frame)"
+      },
+      {
+        "byte": 200,
+        "variable_name": "SLICE_LOCATION",
+        "type": "Integer*2",
+        "comment": "Location offset from initial bed position (cm.)"
+      },
+      {
+        "byte": 202,
+        "variable_name": "RECON_START_HOUR",
+        "type": "Integer*2",
+        "comment": "Hour reconstruction began"
+      },
+      {
+        "byte": 204,
+        "variable_name": "RECON_START_MIN",
+        "type": "Integer*2",
+        "comment": "Minute reconstruction began"
+      },
+      {
+        "byte": 206,
+        "variable_name": "RECON_START_SEC",
+        "type": "Integer*2",
+        "comment": "Second reconstruction began"
+      },
+      {
+        "byte": 208,
+        "variable_name": "RECON_DURATION",
+        "type": "Integer*4",
+        "comment": "Duration of reconstruction (in msec.)"
+      },
+      {
+        "byte": 212,
+        "variable_name": "%FILL(12)",
+        "type": "Integer*2",
+        "comment": "Unused (24 bytes)"
+      },
+      {
+        "byte": 236,
+        "variable_name": "FILTER_CODE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (FILT_NONE, _RAMP, etc.)"
+      },
+      {
+        "byte": 238,
+        "variable_name": "SCAN_MATRIX_NUM",
+        "type": "Integer*4",
+        "comment": "File index to corresponding scan data"
+      },
+      {
+        "byte": 242,
+        "variable_name": "NORM_MATRIX_NUM",
+        "type": "Integer*4",
+        "comment": "File index to corresponding normal data"
+      },
+      {
+        "byte": 246,
+        "variable_name": "ATTEN_COR_MAT_NUM",
+        "type": "Integer*4",
+        "comment": "File index to attenuation correction data"
+      },
+      {
+        "byte": 250,
+        "variable_name": "%FILL(23)",
+        "type": "Integer*2",
+        "comment": "Unused (46 bytes)"
+      },
+      {
+        "byte": 296,
+        "variable_name": "IMAGE_ROTATION",
+        "type": "Real*4",
+        "comment": "Angle image was rotated (in degrees)"
+      },
+      {
+        "byte": 300,
+        "variable_name": "PLANE_EFF_CORR_FCTR",
+        "type": "Real*4",
+        "comment": "Plane efficiency factor applied"
+      },
+      {
+        "byte": 304,
+        "variable_name": "DECAY_CORR_FCTR",
+        "type": "Real*4",
+        "comment": "Isotope deca compensation applied to data"
+      },
+      {
+        "byte": 308,
+        "variable_name": "LOSS_CORR_FCTR",
+        "type": "Real*4",
+        "comment": "Loss correction factor (dead time) applied"
+      },
+      {
+        "byte": 312,
+        "variable_name": "%FILL(32)",
+        "type": "Integer*2",
+        "comment": "Unused (64 bytes)"
+      },
+      {
+        "byte": 376,
+        "variable_name": "PROCESSING_CODE",
+        "type": "Integer*2",
+        "comment": "Bit encoded (PROC_DECAY_MASK, etc.)"
+      },
+      {
+        "byte": 378,
+        "variable_name": "%FILL(1)",
+        "type": "Integer*2",
+        "comment": "Unused"
+      },
+      {
+        "byte": 380,
+        "variable_name": "QUANT_UNITS",
+        "type": "Integer*2",
+        "comment": "E. type (UNIT_MCIML, _NONE, etc.)"
+      },
+      {
+        "byte": 382,
+        "variable_name": "RECON_START_DAY",
+        "type": "Integer*2",
+        "comment": "Day image was reconstructed"
+      },
+      {
+        "byte": 384,
+        "variable_name": "RECON_START_MONTH",
+        "type": "Integer*2",
+        "comment": "Month image was reconstructed"
+      },
+      {
+        "byte": 386,
+        "variable_name": "RECON_START_YEAR",
+        "type": "Integer*2",
+        "comment": "Year image was reconstructed."
+      },
+      {
+        "byte": 388,
+        "variable_name": "ECAT_CALIBRATION_FCTR",
+        "type": "Real*4",
+        "comment": "ECAT calibration factor"
+      },
+      {
+        "byte": 392,
+        "variable_name": "WELL_COUNTER_CAL_FCTR",
+        "type": "Real*4",
+        "comment": "Well counter calibration factor"
+      },
+      {
+        "byte": 396,
+        "variable_name": "FILTER_PARAMS(6)",
+        "type": "Real*4",
+        "comment": "Cutoff frequency, DC component, ramp slope"
+      },
+      {
+        "byte": 420,
+        "variable_name": "ANNOTATION",
+        "type": "Character*40",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 460,
+        "variable_name": "%FILL(26)",
+        "type": "Integer*2",
+        "comment": "User reserved space (52 bytes)"
+      }
+    ],
+    "ecat72_mainheader": [
+      {
+        "byte": 0,
+        "variable_name": "MAGIC_NUMBER",
+        "type": "Character*14",
+        "comment": "UNIX file type identification number (NOT PART OF THE MATRIX HEADER DATA)"
+      },
+      {
+        "byte": 14,
+        "variable_name": "ORIGINAL_FILE_NAME",
+        "type": "Character*32",
+        "comment": "Scan file’s creation name"
+      },
+      {
+        "byte": 46,
+        "variable_name": "SW_VERSION",
+        "type": "Integer*2",
+        "comment": "Software version number"
+      },
+      {
+        "byte": 48,
+        "variable_name": "SYSTEM TYPE",
+        "type": "Integer*2",
+        "comment": "Scanner model (i.e., 951, 951R, 953, 953B, 921, 922, 925, 961, 962, 966)"
+      },
+      {
+        "byte": 50,
+        "variable_name": "FILE_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (00=unknown, 01=Sinogram, 02=Image-16, 03=Attenuation Correction, 04=Normalization, 05=Polar Map, 06=Volume 8, 07=Volume 16, 08=Projection 8, 09=Projection 16, 10=Image 8, 11=3D Sinogram 16, 12=3D Sinogram 8, 13=3D Normalization, 14=3D Sinogram Fit)"
+      },
+      {
+        "byte": 52,
+        "variable_name": "SERIAL_NUMBER",
+        "type": "Character*10",
+        "comment": "The serial number of the gantry"
+      },
+      {
+        "byte": 62,
+        "variable_name": "SCAN_START_TIME",
+        "type": "Integer*4",
+        "comment": "Date and time that acquisition was started (in secs from base time)"
+      },
+      {
+        "byte": 66,
+        "variable_name": "ISOTOPE_NAME",
+        "type": "Character*8",
+        "comment": "Isotope"
+      },
+      {
+        "byte": 74,
+        "variable_name": "ISOTOPE_HALFLIFE",
+        "type": "Real*4",
+        "comment": "Half-life of isotope specified (in sec.)"
+      },
+      {
+        "byte": 78,
+        "variable_name": "RADIOPHARMACEUTICAL",
+        "type": "Character*32",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 110,
+        "variable_name": "GANTRY_TILT",
+        "type": "Real*4",
+        "comment": "Angle (in degrees)"
+      },
+      {
+        "byte": 114,
+        "variable_name": "GANTRY_ROTATION",
+        "type": "Real*4",
+        "comment": "Angle (in degrees)"
+      },
+      {
+        "byte": 118,
+        "variable_name": "BED_ELEVATION",
+        "type": "Real*4",
+        "comment": "Bed height (in cm.) from lowest point"
+      },
+      {
+        "byte": 122,
+        "variable_name": "INTRINSIC_TILT",
+        "type": "Real*4",
+        "comment": "Angle (in degrees),Angle that the first detector of Bucket 0 is offset from top center (in degrees)"
+      },
+      {
+        "byte": 126,
+        "variable_name": "WOBBLE_SPEED",
+        "type": "Integer*2",
+        "comment": "Revolutions/minute (0 if not wobbled)"
+      },
+      {
+        "byte": 128,
+        "variable_name": "TRANSM_SOURCE_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (SRC_NONE, _RRING, _RING, _ROD, _RROD)"
+      },
+      {
+        "byte": 130,
+        "variable_name": "DISTANCE_SCANNED",
+        "type": "Real*4",
+        "comment": "Total distance scanned (in cm)"
+      },
+      {
+        "byte": 134,
+        "variable_name": "TRANSAXIAL_FOV",
+        "type": "Real*4",
+        "comment": "Diameter (in cm.) of transaxial view"
+      },
+      {
+        "byte": 138,
+        "variable_name": "ANGULAR_COMPRESSION",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (0=no mash,1=mash of 2, 2=mash of 4)"
+      },
+      {
+        "byte": 140,
+        "variable_name": "COIN_SAMP_MODE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Net Trues, 1=Prompts and Delayed, 3= Prompts, Delayed, and Multiples)"
+      },
+      {
+        "byte": 142,
+        "variable_name": "AXIAL_SAMP_MODE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Normal, 1=2X, 2=3X)"
+      },
+      {
+        "byte": 144,
+        "variable_name": "ECAT_CALIBRATION_FACTOR",
+        "type": "Real*4",
+        "comment": "Quantification scale factor (to convert from ECAT counts to activity counts)"
+      },
+      {
+        "byte": 148,
+        "variable_name": "CALIBRATION_UNITS",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Uncalibrated, 1=Calibrated,)"
+      },
+      {
+        "byte": 150,
+        "variable_name": "CALIBRATION_UNITS_LABE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (BLOOD_FLOW, LMRGLU)"
+      },
+      {
+        "byte": 152,
+        "variable_name": "COMPRESSION_CODE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (COMP_NONE, (This is the only value))"
+      },
+      {
+        "byte": 154,
+        "variable_name": "STUDY_TYPE",
+        "type": "Character*12",
+        "comment": "Study descriptor"
+      },
+      {
+        "byte": 166,
+        "variable_name": "PATIENT_ID",
+        "type": "Character*16",
+        "comment": "Patient identification descriptor"
+      },
+      {
+        "byte": 182,
+        "variable_name": "PATIENT_NAME",
+        "type": "Character*32",
+        "comment": "Patient name (free format ASCII)"
+      },
+      {
+        "byte": 214,
+        "variable_name": "PATIENT_SEX",
+        "type": "Character*1",
+        "comment": "Enumerated type (SEX_MALE, _FEMALE, _UNKNOWN)"
+      },
+      {
+        "byte": 215,
+        "variable_name": "PATIENT_DEXTERITY",
+        "type": "Character*1",
+        "comment": "Enumerated type (DEXT_RT, _LF, _UNKNOWN)"
+      },
+      {
+        "byte": 216,
+        "variable_name": "PATIENT_AGE",
+        "type": "Real*4",
+        "comment": "Patient age (years)"
+      },
+      {
+        "byte": 220,
+        "variable_name": "PATIENT_HEIGHT",
+        "type": "Real*4",
+        "comment": "Patient height (cm)"
+      },
+      {
+        "byte": 224,
+        "variable_name": "PATIENT_WEIGHT",
+        "type": "Real*4",
+        "comment": "Patient weight (kg)"
+      },
+      {
+        "byte": 228,
+        "variable_name": "PATIENT_BIRTH_DATE",
+        "type": "Integer*4",
+        "comment": "Format is YYYYMMDD"
+      },
+      {
+        "byte": 232,
+        "variable_name": "PHYSICIAN_NAME",
+        "type": "Character*32",
+        "comment": "Attending Physician name (free format)"
+      },
+      {
+        "byte": 264,
+        "variable_name": "OPERATOR_NAME",
+        "type": "Character*32",
+        "comment": "Operator name (free format)"
+      },
+      {
+        "byte": 296,
+        "variable_name": "STUDY_DESCRIPTION",
+        "type": "Character*32",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 328,
+        "variable_name": "ACQUISITION_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Undefined, 1=Blank, 2=Transmission, 3=Static emission, 4=Dynamic emission, 5=Gated emission, 6=Transmission rectilinear, 7=Emission rectilinear)"
+      },
+      {
+        "byte": 330,
+        "variable_name": "PATIENT_ORIENTATION",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (Bit 0 clear - Feet first, Bit 0 set - Head first, Bit 1-2 00 - Prone, Bit 1-2 01 - Supine, Bit 1-2 10 - Decubitus Right, Bit 1-2 11 - Decubitus Left)"
+      },
+      {
+        "byte": 332,
+        "variable_name": "FACILITY_NAME",
+        "type": "Character*20",
+        "comment": "Free format ASCII"
+      },
+      {
+        "byte": 352,
+        "variable_name": "NUM_PLANES",
+        "type": "Integer*2",
+        "comment": "Number of planes of data collected"
+      },
+      {
+        "byte": 354,
+        "variable_name": "NUM_FRAMES",
+        "type": "Integer*2",
+        "comment": "Number of frames of data collected OR Highest frame number (in partially reconstructed files)"
+      },
+      {
+        "byte": 356,
+        "variable_name": "NUM_GATES",
+        "type": "Integer*2",
+        "comment": "Number of gates of data collected"
+      },
+      {
+        "byte": 358,
+        "variable_name": "NUM_BED_POS",
+        "type": "Integer*2",
+        "comment": "Number of bed positions of data collected"
+      },
+      {
+        "byte": 360,
+        "variable_name": "INIT_BED_POSITION",
+        "type": "Real*4",
+        "comment": "Absolute location of initial bed position (in cm.)"
+      },
+      {
+        "byte": 364,
+        "variable_name": "BED_POSITION(15)",
+        "type": "Real*4",
+        "comment": "Absolute bed location (in cm.)"
+      },
+      {
+        "byte": 424,
+        "variable_name": "PLANE_SEPARATION",
+        "type": "Real*4",
+        "comment": "Physical distance between adjacent planes (in cm.)"
+      },
+      {
+        "byte": 428,
+        "variable_name": "LWR_SCTR_THRES",
+        "type": "Integer*2",
+        "comment": "Lowest threshold setting for scatter (in KeV)"
+      },
+      {
+        "byte": 430,
+        "variable_name": "LWR_TRUE_THRES",
+        "type": "Integer*2",
+        "comment": "Lower threshold setting for trues in (in KeV)"
+      },
+      {
+        "byte": 432,
+        "variable_name": "UPR_TRUE_THRES",
+        "type": "Integer*2",
+        "comment": "Upper threshold setting for trues (in KeV)"
+      },
+      {
+        "byte": 434,
+        "variable_name": "USER_PROCESS_CODE",
+        "type": "Character*10",
+        "comment": "Data processing code (defined by user)"
+      },
+      {
+        "byte": 444,
+        "variable_name": "ACQUISITION_MODE",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (0=Normal, 1=Windowed, 2=Windowed & Nonwindowed, 3=Dual energy, 4=Upper energy, 5=Emission and Transmission)"
+      },
+      {
+        "byte": 446,
+        "variable_name": "BIN_SIZE",
+        "type": "Real*4",
+        "comment": "Width of view sample (in cm)"
+      },
+      {
+        "byte": 450,
+        "variable_name": "BRANCHING_FRACTION",
+        "type": "Real*4",
+        "comment": "Fraction of decay by positron emission"
+      },
+      {
+        "byte": 454,
+        "variable_name": "DOSE_START_TIME",
+        "type": "Integer*4",
+        "comment": "Actual time radiopharmaceutical was injected or flow was started (in sec since base time)"
+      },
+      {
+        "byte": 458,
+        "variable_name": "DOSAGE",
+        "type": "Real*4",
+        "comment": "Radiopharmaceutical dosage (in bequerels/cc) at time of injection"
+      },
+      {
+        "byte": 462,
+        "variable_name": "WELL_COUNTER_CORR_FACTOR",
+        "type": "Real*4",
+        "comment": "TBD"
+      },
+      {
+        "byte": 466,
+        "variable_name": "DATA_UNITS",
+        "type": "Character*32"
+      },
+      {
+        "byte": 498,
+        "variable_name": "SEPTA_STATE",
+        "type": "Integer*2",
+        "comment": "Septa position during scan (0=septa extended, 1=septa retracted)"
+      },
+      {
+        "byte": 500,
+        "variable_name": "FILL(6)",
+        "type": "Integer*2",
+        "comment": "CTI Reserved space (12 bytes)"
+      }
+    ],
+    "ecat72_subheader_matrix_attenuation_files:": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (DTYPE_BYTES, _I2, _I4, _VAXR4, _SUNFL, _SUNIN)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "NUM_DIMENSIONS",
+        "type": "Integer*2",
+        "comment": "Number of dimensions"
+      },
+      {
+        "byte": 4,
+        "variable_name": "ATTENUATION_TYPE",
+        "type": "Integer*2",
+        "comment": "E. type (ATTEN_NONE, _MEAS, _CALC)"
+      },
+      {
+        "byte": 6,
+        "variable_name": "NUM_R_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total elements collected (x dimension)"
+      },
+      {
+        "byte": 8,
+        "variable_name": "NUM_ANGLES",
+        "type": "Integer*2",
+        "comment": "Total views collected (y dimensions)"
+      },
+      {
+        "byte": 10,
+        "variable_name": "NUM_Z_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total elements collected (z dimension)"
+      },
+      {
+        "byte": 12,
+        "variable_name": "RING_DIFFERENCE",
+        "type": "Integer*2",
+        "comment": "Maximum acceptance angle."
+      },
+      {
+        "byte": 14,
+        "variable_name": "X_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the x dimension (in cm)"
+      },
+      {
+        "byte": 18,
+        "variable_name": "Y_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the y dimension (in cm)"
+      },
+      {
+        "byte": 22,
+        "variable_name": "Z_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the z dimension (in cm)"
+      },
+      {
+        "byte": 26,
+        "variable_name": "W_RESOLUTION",
+        "type": "Real*4",
+        "comment": "TBD"
+      },
+      {
+        "byte": 30,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "Attenuation Scale Factor"
+      },
+      {
+        "byte": 34,
+        "variable_name": "X_OFFSET",
+        "type": "Real*4",
+        "comment": "Ellipse offset in x axis from center (in cm.)"
+      },
+      {
+        "byte": 38,
+        "variable_name": "Y_OFFSET",
+        "type": "Real*4",
+        "comment": "Ellipse offset in y axis from center (in cm.)"
+      },
+      {
+        "byte": 42,
+        "variable_name": "X_RADIUS",
+        "type": "Real*4",
+        "comment": "Ellipse radius in x axis (in cm.)"
+      },
+      {
+        "byte": 46,
+        "variable_name": "Y_RADIUS",
+        "type": "Real*4",
+        "comment": "Ellipse radius in y axis (in cm.)"
+      },
+      {
+        "byte": 50,
+        "variable_name": "TILT_ANGLE",
+        "type": "Real*4",
+        "comment": "Tilt angel of the ellipse (in degrees)"
+      },
+      {
+        "byte": 54,
+        "variable_name": "ATTENUATION_COEFF",
+        "type": "Real*4",
+        "comment": "M u-absorption coefficient (in cm^-1)"
+      },
+      {
+        "byte": 58,
+        "variable_name": "ATTENUATION_MIN",
+        "type": "Real*4",
+        "comment": "Minimum value in the attenuation data"
+      },
+      {
+        "byte": 62,
+        "variable_name": "ATTENUATION_MAX",
+        "type": "Real*4",
+        "comment": "Maximum value in the attentuation data"
+      },
+      {
+        "byte": 66,
+        "variable_name": "SKULL_THICKNESS",
+        "type": "Real*4",
+        "comment": "Skull thickness in cm"
+      },
+      {
+        "byte": 70,
+        "variable_name": "NUM_ADDITIONAL_ATTN_COEFF",
+        "type": "Integer*2",
+        "comment": "Number of attenuation coefficients other than the Mu absorption coefficient above (max 8)"
+      },
+      {
+        "byte": 72,
+        "variable_name": "ADDITIONAL_ATTEN_COEFF(8)",
+        "type": "Real*4",
+        "comment": "The additional attention coefficient values"
+      },
+      {
+        "byte": 104,
+        "variable_name": "EDGE_FINDING_THRESHOLD",
+        "type": "Real*4",
+        "comment": "The threshold value used by automatic edge-detection routine (fraction of maximum)"
+      },
+      {
+        "byte": 108,
+        "variable_name": "STORAGE_ORDER",
+        "type": "Integer*2",
+        "comment": "Data storage order (RThetaZD, RZThetaD)"
+      },
+      {
+        "byte": 110,
+        "variable_name": "SPAN",
+        "type": "Integer*2",
+        "comment": "Axial compression specifier (number of ring differences spanned by a segment)"
+      },
+      {
+        "byte": 112,
+        "variable_name": "Z_ELEMENTS(64)",
+        "type": "Integer*2",
+        "comment": "Number of 'planes' in z direction for each ring difference segment"
+      },
+      {
+        "byte": 240,
+        "variable_name": "FILL(86)",
+        "type": "Integer*2",
+        "comment": "Unused (172 bytes)"
+      },
+      {
+        "byte": 412,
+        "variable_name": "FILL(50)",
+        "type": "Integer*2",
+        "comment": "User Reserved space (100 bytes) Note: use highest bytes first"
+      }
+    ],
+    "ecat72_subheader_matrix_image_files.json": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "NUM_DIMENSIONS",
+        "type": "Integer*2",
+        "comment": "Number of dimensions"
+      },
+      {
+        "byte": 4,
+        "variable_name": "X_DIMENSION",
+        "type": "Integer*2",
+        "comment": "Dimension along x axis"
+      },
+      {
+        "byte": 6,
+        "variable_name": "Y_DIMENSION",
+        "type": "Integer*2",
+        "comment": "Dimension along y axis"
+      },
+      {
+        "byte": 8,
+        "variable_name": "Z_DIMENSION",
+        "type": "Integer*2",
+        "comment": "Dimension along z axis"
+      },
+      {
+        "byte": 10,
+        "variable_name": "X_OFFSET",
+        "type": "Real*4",
+        "comment": "Offset in x axis for recon target (in cm)"
+      },
+      {
+        "byte": 14,
+        "variable_name": "Y_OFFSET",
+        "type": "Real*4",
+        "comment": "Offset in y axis for recon target (in cm)"
+      },
+      {
+        "byte": 18,
+        "variable_name": "Z_OFFSET",
+        "type": "Real*4",
+        "comment": "Offset in z axis for recon target (in cm)"
+      },
+      {
+        "byte": 22,
+        "variable_name": "RECON_ZOOM",
+        "type": "Real*4",
+        "comment": "Reconstruction magnification factor (zoom)"
+      },
+      {
+        "byte": 26,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "Quantification scale factor (in Quant_units)"
+      },
+      {
+        "byte": 30,
+        "variable_name": "IMAGE_MIN",
+        "type": "Integer*2",
+        "comment": "Image minimum pixel value"
+      },
+      {
+        "byte": 32,
+        "variable_name": "IMAGE_MAX",
+        "type": "Integer*2",
+        "comment": "Image maximum pixel value"
+      },
+      {
+        "byte": 34,
+        "variable_name": "X_PIXEL_SIZE",
+        "type": "Real*4",
+        "comment": "X dimension pixel size (in cm.)"
+      },
+      {
+        "byte": 38,
+        "variable_name": "Y_PIXEL_SIZE",
+        "type": "Real*4",
+        "comment": "Y dimension pixel size (in cm.)"
+      },
+      {
+        "byte": 42,
+        "variable_name": "Z_PIXEL_SIZE",
+        "type": "Real*4",
+        "comment": "Z dimension pixel size (in cm.)"
+      },
+      {
+        "byte": 46,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec.)"
+      },
+      {
+        "byte": 50,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "frame start time (offset from first frame, in msec)"
+      },
+      {
+        "byte": 54,
+        "variable_name": "FILTER_CODE",
+        "type": "Integer*2",
+        "comment": "enumerated type (0=all pass, 1=ramp, 2=Butterworth, 3=Hanning, 4=Hamming, 5=Parzen, 6=shepp, 7=butterworth-order 2, 8=Gaussian, 9=Median, 10=Boxcar)"
+      },
+      {
+        "byte": 56,
+        "variable_name": "X_RESOLUTION",
+        "type": "Real*4",
+        "comment": "resolution in the x dimension (in cm)"
+      },
+      {
+        "byte": 60,
+        "variable_name": "Y_RESOLUTION",
+        "type": "Real*4",
+        "comment": "resolution in the y dimension (in cm)"
+      },
+      {
+        "byte": 64,
+        "variable_name": "Z_RESOLUTION",
+        "type": "Real*4",
+        "comment": "resolution in the z dimension (in cm)"
+      },
+      {
+        "byte": 68,
+        "variable_name": "NUM_R_ELEMENTS",
+        "type": "Real*4",
+        "comment": "number r elements from sinogram"
+      },
+      {
+        "byte": 72,
+        "variable_name": "NUM_ANGLES",
+        "type": "Real*4",
+        "comment": "number of angles from sinogram"
+      },
+      {
+        "byte": 76,
+        "variable_name": "Z_ROTATION_ANGLE",
+        "type": "Real*4",
+        "comment": "rotation in the xy plane (in degrees). Use right-hand coordinate system for rotation angle sign."
+      },
+      {
+        "byte": 80,
+        "variable_name": "DECAY_CORR_FCTR",
+        "type": "Real*4",
+        "comment": "isotope decay compensation applied to data"
+      },
+      {
+        "byte": 84,
+        "variable_name": "PROCESSING_CODE",
+        "type": "Integer*4",
+        "comment": "bit mask (0=not processed, 1=normalized, 2=Measured Attenuation Correction, 4=Calculated attenuation correction, 8=x smoothing, 16=Y smoothing, 32=Z smoothing, 64=2d scatter correction, 128=3D scatter correction, 256=arc correction, 512=decay correction, 1024=Online compression)"
+      },
+      {
+        "byte": 88,
+        "variable_name": "GATE_DURATION",
+        "type": "Integer*4",
+        "comment": "gate duration (in msec)"
+      },
+      {
+        "byte": 92,
+        "variable_name": "R_WAVE_OFFSET",
+        "type": "Integer*4",
+        "comment": "r wave offset (for phase sliced studies, average, in msec)"
+      },
+      {
+        "byte": 96,
+        "variable_name": "NUM_ACCEPTED_BEATS",
+        "type": "Integer*4",
+        "comment": "number of accepted beats for this gate"
+      },
+      {
+        "byte": 100,
+        "variable_name": "FILTER_CUTOFF_FREQUENCY",
+        "type": "real*4",
+        "comment": "cutoff frequency"
+      },
+      {
+        "byte": 104,
+        "variable_name": "FILTER_RESOLUTION",
+        "type": "Real*4",
+        "comment": "do not use"
+      },
+      {
+        "byte": 108,
+        "variable_name": "FILTER_RAMP_SLOPE",
+        "type": "Real*4",
+        "comment": "do not use"
+      },
+      {
+        "byte": 112,
+        "variable_name": "FILTER_ORDER",
+        "type": "Integer*2",
+        "comment": "do not use"
+      },
+      {
+        "byte": 114,
+        "variable_name": "FILTER_SCATTER_FRACTION",
+        "type": "Real*4",
+        "comment": "do not use"
+      },
+      {
+        "byte": 118,
+        "variable_name": "FILTER_SCATTER_SLOPE",
+        "type": "Real*4",
+        "comment": "do not use"
+      },
+      {
+        "byte": 122,
+        "variable_name": "ANNOTATION",
+        "type": "Character*40",
+        "comment": "free format ascii"
+      },
+      {
+        "byte": 162,
+        "variable_name": "MT_1_1",
+        "type": "Real*4",
+        "comment": "matrix transformation element (1,1)."
+      },
+      {
+        "byte": 166,
+        "variable_name": "MT_1_2",
+        "type": "Real*4",
+        "comment": "matrix transformation element (1,2)."
+      },
+      {
+        "byte": 170,
+        "variable_name": "MT_1_3",
+        "type": "Real*4",
+        "comment": "matrix transformation element (1,3)."
+      },
+      {
+        "byte": 174,
+        "variable_name": "MT_2_1",
+        "type": "Real*4",
+        "comment": "matrix transformation element (2,1)."
+      },
+      {
+        "byte": 178,
+        "variable_name": "MT_2_2",
+        "type": "Real*4",
+        "comment": "matrix transformation element (2,2)."
+      },
+      {
+        "byte": 182,
+        "variable_name": "MT_2_3",
+        "type": "Real*4",
+        "comment": "matrix transformation element (2,3)."
+      },
+      {
+        "byte": 186,
+        "variable_name": "MT_3_1",
+        "type": "Real*4",
+        "comment": "matrix transformation element (3,1)."
+      },
+      {
+        "byte": 190,
+        "variable_name": "MT_3_2",
+        "type": "Real*4",
+        "comment": "matrix transformation element (3,2)."
+      },
+      {
+        "byte": 194,
+        "variable_name": "MT_3_3",
+        "type": "Real*4",
+        "comment": "matrix transformation element (3,3)."
+      },
+      {
+        "byte": 198,
+        "variable_name": "RFILTER_CUTOFF",
+        "type": "Real*4"
+      },
+      {
+        "byte": 202,
+        "variable_name": "RFILTER_RESOLUTION",
+        "type": "Real*4"
+      },
+      {
+        "byte": 206,
+        "variable_name": "RFILTER_CODE",
+        "type": "Integer*2"
+      },
+      {
+        "byte": 208,
+        "variable_name": "RFILTER_ORDER",
+        "type": "Integer*2"
+      },
+      {
+        "byte": 210,
+        "variable_name": "ZFILTER_CUTOFF",
+        "type": "Real*4"
+      },
+      {
+        "byte": 214,
+        "variable_name": "ZFILTER_RESOLUTION",
+        "type": "Real*4"
+      },
+      {
+        "byte": 218,
+        "variable_name": "ZFILTER_CODE",
+        "type": "Integer*2"
+      },
+      {
+        "byte": 220,
+        "variable_name": "ZFILTER_ORDER",
+        "type": "Integer*2"
+      },
+      {
+        "byte": 222,
+        "variable_name": "MT_1_4",
+        "type": "Real*4",
+        "comment": "Matrix transformation element (1,4)"
+      },
+      {
+        "byte": 226,
+        "variable_name": "MT_2_4",
+        "type": "Real*4",
+        "comment": "Matrix transformation element (2,4)"
+      },
+      {
+        "byte": 230,
+        "variable_name": "MT_3_4",
+        "type": "Real*4",
+        "comment": "Matrix transformation element (3,4)"
+      },
+      {
+        "byte": 234,
+        "variable_name": "SCATTER_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=None, 1=Deconvolution, 2=Simulated, 3=Dual Energy)"
+      },
+      {
+        "byte": 236,
+        "variable_name": "RECON_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0=Filtered backprojection, 1=Forward projection 3D (PROMIS), 2=Ramp 3D, 3=FAVOR 3D, 4=SSRB, 5=Multi-slice rebinning, 6=FORE)"
+      },
+      {
+        "byte": 238,
+        "variable_name": "RECON_VIEWS",
+        "type": "Integer*2",
+        "comment": "Number of views used to reconstruct the data"
+      },
+      {
+        "byte": 240,
+        "variable_name": "FILL(87)",
+        "type": "Integer*2",
+        "comment": "CTI Reserved space (174 bytes)"
+      },
+      {
+        "byte": 414,
+        "variable_name": "FILL(48)",
+        "type": "Integer*2",
+        "comment": "User Reserved space (100 bytes) Note: Use highest bytes first"
+      }
+    ],
+    "ecat72_subheader_matrix_polar_map_files": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (DTYPE_BYTES, _I2,_I4)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "POLAR_MAP_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (Always 0 for now; denotes the version of the PM structure)"
+      },
+      {
+        "byte": 4,
+        "variable_name": "NUM_RINGS",
+        "type": "Integer*2",
+        "comment": "Number of rings in this polar map"
+      },
+      {
+        "byte": 6,
+        "variable_name": "SECTORS_PER_RING(32)",
+        "type": "Integer*2",
+        "comment": "Number of sectors in each ring for up to 32 rings (1, 9, 18, or 32 sectors normally)"
+      },
+      {
+        "byte": 70,
+        "variable_name": "RING_POSITION(32)",
+        "type": "Real*4",
+        "comment": "Fractional distance along the long axis from base to apex"
+      },
+      {
+        "byte": 198,
+        "variable_name": "RING_ANGLE(32)",
+        "type": "Integer*2",
+        "comment": "Ring angle relative to long axis(90 degrees along cylinder, decreasing to 0 at the apex)"
+      },
+      {
+        "byte": 262,
+        "variable_name": "START_ANGLE",
+        "type": "Integer*2",
+        "comment": "Start angle for rings (Always 258 degrees, defines Polar Map’s 0)"
+      },
+      {
+        "byte": 264,
+        "variable_name": "LONG_AXIS_LEFT(3)",
+        "type": "Integer*2",
+        "comment": "x, y, z location of long axis base end (in pixels)"
+      },
+      {
+        "byte": 270,
+        "variable_name": "LONG_AXIS_RIGHT(3)",
+        "type": "Integer*2",
+        "comment": "x, y, z location of long axis apex end (in pixels)"
+      },
+      {
+        "byte": 276,
+        "variable_name": "POSITION_DATA",
+        "type": "Integer*2",
+        "comment": "Enumerated type (0 - Not available, 1 - Present)"
+      },
+      {
+        "byte": 278,
+        "variable_name": "IMAGE_MIN",
+        "type": "Integer*2",
+        "comment": "Minimum pixel value in this polar map"
+      },
+      {
+        "byte": 280,
+        "variable_name": "IMAGE_MAX",
+        "type": "Integer*2",
+        "comment": "Maximum pixel value in this polar map"
+      },
+      {
+        "byte": 282,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "Scale factor to restore integer values to float values"
+      },
+      {
+        "byte": 286,
+        "variable_name": "PIXEL_SIZE",
+        "type": "Real*4",
+        "comment": "Pixel size (in cubic cm, represents voxels)"
+      },
+      {
+        "byte": 290,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec)"
+      },
+      {
+        "byte": 294,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "Frame start time (offset from first frame, in msec)"
+      },
+      {
+        "byte": 298,
+        "variable_name": "PROCESSING_CODE",
+        "type": "Integer*2",
+        "comment": "Bit Encoded (1- Map type (0 = Sector Analysis, 1 = Volumetric), 2 - Threshold Applied, 3 - Summed Map, 4 - Subtracted Map, 5 - Product of two maps, 6 - Ratio of two maps, 7 - Bias, 8 - Multiplier, 9 - Transform, 10 - Polar Map calculational protocol used)"
+      },
+      {
+        "byte": 300,
+        "variable_name": "QUANT_UNITS",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (0 - Default (see main header), 1 - Normalized, 2 - Mean, 3 - Std. Deviation from Mean)"
+      },
+      {
+        "byte": 302,
+        "variable_name": "ANNOTATION",
+        "type": "Character*40",
+        "comment": "label for polar map display"
+      },
+      {
+        "byte": 342,
+        "variable_name": "GATE_DURATION",
+        "type": "Integer*4",
+        "comment": "Gate duration (in msec)"
+      },
+      {
+        "byte": 346,
+        "variable_name": "R_WAVE_OFFSET",
+        "type": "Integer*4",
+        "comment": "R wave offset (Average, in msec)"
+      },
+      {
+        "byte": 350,
+        "variable_name": "NUM_ACCEPTED_BEATS",
+        "type": "Integer*4",
+        "comment": "Number of accepted beats for this gate"
+      },
+      {
+        "byte": 354,
+        "variable_name": "POLAR_MAP_PROTOCOL",
+        "type": "Character*20",
+        "comment": "Polar Map protocol used to generate this polar map"
+      },
+      {
+        "byte": 374,
+        "variable_name": "DATABASE_NAME",
+        "type": "Character*30",
+        "comment": "Database name used for polar map comparison"
+      },
+      {
+        "byte": 404,
+        "variable_name": "FILL(27)",
+        "type": "Integer*2",
+        "comment": "Reserved for future CTI use (54 bytes)"
+      },
+      {
+        "byte": 464,
+        "variable_name": "FILL(27)",
+        "type": "Integer*2",
+        "comment": "User reserved space (54 bytes) Note: Use highest bytes first"
+      }
+    ],
+    "ecat72_subheader_3d_matrix_scan_files": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (ByteData, SunShortt)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "NUM_DIMENSIONS",
+        "type": "Integer*2",
+        "comment": "Number of Dimensions"
+      },
+      {
+        "byte": 4,
+        "variable_name": "NUM_R_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total views collected (θ dimension)"
+      },
+      {
+        "byte": 6,
+        "variable_name": "NUM_ANGLES",
+        "type": "Integer*2",
+        "comment": "Total views collected (θ dimension)"
+      },
+      {
+        "byte": 8,
+        "variable_name": "CORRECTIONS_APPLIED",
+        "type": "Integer*2",
+        "comment": "Designates processing applied to scan data (Bit encoded, Bit 0 - Norm, Bit 1 - Atten, Bit 2 - Smooth)"
+      },
+      {
+        "byte": 10,
+        "variable_name": "NUM_Z_ELEMENTS(64)",
+        "type": "Integer*2",
+        "comment": "Number of elements in z dimension for each ring difference segment in 3D scans"
+      },
+      {
+        "byte": 138,
+        "variable_name": "RING_DIFFERENCE",
+        "type": "Integer*2",
+        "comment": "Max ring difference (d dimension) in this frame"
+      },
+      {
+        "byte": 140,
+        "variable_name": "STORAGE_ORDER",
+        "type": "Integer*2",
+        "comment": "Data storage order (rθzd or rzθd)"
+      },
+      {
+        "byte": 142,
+        "variable_name": "AXIAL_COMPRESSION",
+        "type": "Integer*2",
+        "comment": "Axial compression code or factor, generally referred to as SPAN"
+      },
+      {
+        "byte": 144,
+        "variable_name": "X_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the r dimension (in cm)"
+      },
+      {
+        "byte": 148,
+        "variable_name": "V_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the θ dimension (in radians)"
+      },
+      {
+        "byte": 152,
+        "variable_name": "Z_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the z dimension (in cm)"
+      },
+      {
+        "byte": 156,
+        "variable_name": "W_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Not Used"
+      },
+      {
+        "byte": 160,
+        "variable_name": "FILL(6)",
+        "type": "Integer*2",
+        "comment": "RESERVED for gating"
+      },
+      {
+        "byte": 172,
+        "variable_name": "GATE_DURATION",
+        "type": "Integer*4",
+        "comment": "Gating segment length (msec, Average time if phased gates are used)"
+      },
+      {
+        "byte": 176,
+        "variable_name": "R_WAVE_OFFSET",
+        "type": "Integer*4",
+        "comment": "Time from start of first gate (Average, in msec.)"
+      },
+      {
+        "byte": 180,
+        "variable_name": "NUM_ACCEPTED_BEATS",
+        "type": "Integer*4",
+        "comment": "Number of accepted beats for this gate"
+      },
+      {
+        "byte": 184,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "If data type is integer, this factor is used to convert to float values"
+      },
+      {
+        "byte": 188,
+        "variable_name": "SCAN_MIN",
+        "type": "Integer*2",
+        "comment": "Minimum value in sinogram if data is in integer form  (not currently filled in)"
+      },
+      {
+        "byte": 190,
+        "variable_name": "SCAN_MAX",
+        "type": "Integer*2",
+        "comment": "Maximum value in sinogram if data is in integer form  (not currently filled in)"
+      },
+      {
+        "byte": 192,
+        "variable_name": "PROMPTS",
+        "type": "Integer*4",
+        "comment": "Total prompts collected in this frame/gate"
+      },
+      {
+        "byte": 196,
+        "variable_name": "DELAYED",
+        "type": "Integer*4",
+        "comment": "Total delays collected in this frame/gate"
+      },
+      {
+        "byte": 200,
+        "variable_name": "MULTIPLES",
+        "type": "Integer*4",
+        "comment": "Total multiples collected in this frame/gate (notused)"
+      },
+      {
+        "byte": 204,
+        "variable_name": "NET_TRUES",
+        "type": "Integer*4",
+        "comment": "Total net trues (prompts–-randoms)"
+      },
+      {
+        "byte": 208,
+        "variable_name": "TOT_AVG_COR",
+        "type": "Real*4",
+        "comment": "Mean value of loss-corrected singles"
+      },
+      {
+        "byte": 212,
+        "variable_name": "TOT_AVG_UNCOR",
+        "type": "Real*4",
+        "comment": "Mean value of singles (not loss corrected)"
+      },
+      {
+        "byte": 216,
+        "variable_name": "TOTAL_COIN_RATE",
+        "type": "Integer*4",
+        "comment": "Measured coincidence rate (from IPCP)"
+      },
+      {
+        "byte": 220,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "Time offset from first frame time (in msec.)"
+      },
+      {
+        "byte": 224,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec.)"
+      },
+      {
+        "byte": 228,
+        "variable_name": "DEADTIME_CORRECTION_FACTOR",
+        "type": "Real*4",
+        "comment": "Dead-time correction factor applied to the sinogram"
+      },
+      {
+        "byte": 232,
+        "variable_name": "FILL(90)",
+        "type": "Integer*2",
+        "comment": "CTI Reserved space (180 bytes)"
+      },
+      {
+        "byte": 412,
+        "variable_name": "FILL(50)",
+        "type": "Integer*2",
+        "comment": "User Reserved space (100 bytes) Note: Use highest bytes first"
+      },
+      {
+        "byte": 512,
+        "variable_name": "UNCOR_SINGLES(128)",
+        "type": "Real*4",
+        "comment": "Total uncorrected singles from each bucket"
+      }
+    ],
+    "ecat72_subheader_3d_normalized_files": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (IeeeFloat)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "NUM_R_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total elements collected (y dimension)"
+      },
+      {
+        "byte": 4,
+        "variable_name": "NUM_TRANSAXIAL_CRYSTALS",
+        "type": "Integer*2",
+        "comment": "Number of transaxial crystals per block"
+      },
+      {
+        "byte": 6,
+        "variable_name": "NUM_CRYSTAL_RINGS",
+        "type": "Integer*2",
+        "comment": "Number of crystal rings"
+      },
+      {
+        "byte": 8,
+        "variable_name": "CRYSTALS_PER_RING",
+        "type": "Integer*2",
+        "comment": "Number of crystals per ring"
+      },
+      {
+        "byte": 10,
+        "variable_name": "NUM_GEO_CORR_PLANES",
+        "type": "Integer*2",
+        "comment": "Number of rows in the Plane Geometric Correction array"
+      },
+      {
+        "byte": 12,
+        "variable_name": "ULD",
+        "type": "Integer*2",
+        "comment": "Upper energy limit"
+      },
+      {
+        "byte": 14,
+        "variable_name": "LLD",
+        "type": "Integer*2",
+        "comment": "Lower energy limit"
+      },
+      {
+        "byte": 16,
+        "variable_name": "SCATTER_ENERGY",
+        "type": "Integer*2",
+        "comment": "Scatter energy threshold"
+      },
+      {
+        "byte": 18,
+        "variable_name": "NORM_QUALITY_FACTOR",
+        "type": "Real*4",
+        "comment": "Used by Daily Check to determine the quality of the scanner"
+      },
+      {
+        "byte": 22,
+        "variable_name": "NORM_QUALITY_FACTOR_CODE",
+        "type": "Integer*2",
+        "comment": "Enumerated Type (TBD)"
+      },
+      {
+        "byte": 24,
+        "variable_name": "RING_DTCOR1(32)",
+        "type": "Real*4",
+        "comment": "First “per ring” dead time correction coefficient"
+      },
+      {
+        "byte": 152,
+        "variable_name": "RING_DTCOR2(32)",
+        "type": "Real*4",
+        "comment": "Second “per ring” dead time correction coefficient"
+      },
+      {
+        "byte": 280,
+        "variable_name": "CRYSTAL_DTCOR(8)",
+        "type": "Real*4",
+        "comment": "Dead time correction factors for transaxial crystals"
+      },
+      {
+        "byte": 312,
+        "variable_name": "SPAN",
+        "type": "Integer*2",
+        "comment": "Axial compression specifier (number of ring differences included in each segment)"
+      },
+      {
+        "byte": 314,
+        "variable_name": "MAX_RING_DIFF",
+        "type": "Integer*2",
+        "comment": "Maximum ring difference acquired"
+      },
+      {
+        "byte": 316,
+        "variable_name": "FILL(48)",
+        "type": "Integer*2",
+        "comment": "CTI Reserved space (96 bytes)"
+      },
+      {
+        "byte": 412,
+        "variable_name": "FILL(50)",
+        "type": "Integer*2",
+        "comment": "User Reserved space (100 bytes) Note: Use highest bytes first"
+      }
+    ],
+    "ecat72_subheader_imported_6.5_matrix_scan_files": [
+      {
+        "byte": 0,
+        "variable_name": "DATA_TYPE",
+        "type": "Integer*2",
+        "comment": "Enumerated type (DTYPE_BYTES, _I2, _I4, _VAXR4, _SUNFL, _SUNIN)"
+      },
+      {
+        "byte": 2,
+        "variable_name": "NUM_DIMENSIONS",
+        "type": "Integer*2",
+        "comment": "Number of Dimensions"
+      },
+      {
+        "byte": 4,
+        "variable_name": "NUM_R_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total elements collected (x dimension)"
+      },
+      {
+        "byte": 6,
+        "variable_name": "NUM_ANGLES",
+        "type": "Integer*2",
+        "comment": "Total views collected (y dimension)"
+      },
+      {
+        "byte": 8,
+        "variable_name": "CORRECTIONS_APPLIED",
+        "type": "Integer*2",
+        "comment": "Designates processing applied to scan data (Bit encoded, Bit 0 - Norm, Bit 1 - Atten, Bit 2 - Smooth)"
+      },
+      {
+        "byte": 10,
+        "variable_name": "NUM_Z_ELEMENTS",
+        "type": "Integer*2",
+        "comment": "Total elements collected (z dimension) For 3D scans"
+      },
+      {
+        "byte": 12,
+        "variable_name": "RING_DIFFERENCE",
+        "type": "Integer*2",
+        "comment": "Maximum acceptance angle"
+      },
+      {
+        "byte": 14,
+        "variable_name": "X_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the x dimension (in cm)"
+      },
+      {
+        "byte": 18,
+        "variable_name": "Y_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the y dimension (in cm)"
+      },
+      {
+        "byte": 22,
+        "variable_name": "Z_RESOLUTION",
+        "type": "Real*4",
+        "comment": "Resolution in the z dimension (in cm)"
+      },
+      {
+        "byte": 26,
+        "variable_name": "W_RESOLUTION",
+        "type": "Real*4",
+        "comment": "TBD"
+      },
+      {
+        "byte": 30,
+        "variable_name": "FILL(6)",
+        "type": "Integer*2",
+        "comment": "RESERVED for gating"
+      },
+      {
+        "byte": 42,
+        "variable_name": "GATE_DURATION",
+        "type": "Integer*4",
+        "comment": "Gating segment length (msec, Average time if phased gates are used)"
+      },
+      {
+        "byte": 46,
+        "variable_name": "R_WAVE_OFFSET",
+        "type": "Integer*4",
+        "comment": "Time from start of first gate (Average, in msec.)"
+      },
+      {
+        "byte": 50,
+        "variable_name": "NUM_ACCEPTED_BEATS",
+        "type": "Integer*4",
+        "comment": "Number of accepted beats for this gate"
+      },
+      {
+        "byte": 54,
+        "variable_name": "SCALE_FACTOR",
+        "type": "Real*4",
+        "comment": "If data type=integer, use this factor, convert to float values"
+      },
+      {
+        "byte": 58,
+        "variable_name": "SCAN_MIN",
+        "type": "Integer*2",
+        "comment": "Minimum value in sinogram if data is in integer form"
+      },
+      {
+        "byte": 60,
+        "variable_name": "SCAN_MAX",
+        "type": "Integer*2",
+        "comment": "Maximum value in sinogram if data is in integer form"
+      },
+      {
+        "byte": 62,
+        "variable_name": "PROMPTS",
+        "type": "Integer*4",
+        "comment": "Total prompts collected in this frame/gate"
+      },
+      {
+        "byte": 66,
+        "variable_name": "DELAYED",
+        "type": "Integer*4",
+        "comment": "Total delays collected in thes frame/gate"
+      },
+      {
+        "byte": 70,
+        "variable_name": "MULTIPLES",
+        "type": "Integer*4",
+        "comment": "Total multiples collected in the frame/gate"
+      },
+      {
+        "byte": 74,
+        "variable_name": "NET_TRUES",
+        "type": "Integer*4",
+        "comment": "Total net trues (prompts--randoms)"
+      },
+      {
+        "byte": 78,
+        "variable_name": "COR_SINGLES(16)",
+        "type": "Real*4",
+        "comment": "Total singles with loss correction factoring"
+      },
+      {
+        "byte": 142,
+        "variable_name": "UNCOR_SINGLES(16)",
+        "type": "Real*4",
+        "comment": "Total singles without loss correction factoring"
+      },
+      {
+        "byte": 206,
+        "variable_name": "TOT_AVG_COR",
+        "type": "Real*4",
+        "comment": "Mean value of loss-corrected singles"
+      },
+      {
+        "byte": 210,
+        "variable_name": "TOT_AVG_UNCOR",
+        "type": "Real*4",
+        "comment": "Mean value of singles (not loss corrected)"
+      },
+      {
+        "byte": 214,
+        "variable_name": "TOTAL_COIN_RATE",
+        "type": "Integer*4",
+        "comment": "Measured coincidence rate (from IPCP)"
+      },
+      {
+        "byte": 218,
+        "variable_name": "FRAME_START_TIME",
+        "type": "Integer*4",
+        "comment": "Time offset from first frame time (in msec.)"
+      },
+      {
+        "byte": 222,
+        "variable_name": "FRAME_DURATION",
+        "type": "Integer*4",
+        "comment": "Total duration of current frame (in msec.)"
+      },
+      {
+        "byte": 226,
+        "variable_name": "DEADTIME_CORRECTION_FACTOR",
+        "type": "Real*4",
+        "comment": "Dead-time correction factor applied to the sinogram"
+      },
+      {
+        "byte": 230,
+        "variable_name": "PHYSICAL_PLANES(8)",
+        "type": "Integer*2",
+        "comment": "Physical planes that make up this logical plane"
+      },
+      {
+        "byte": 246,
+        "variable_name": "FILL(83)",
+        "type": "Integer*2",
+        "comment": "CTI Reserved space (166 bytes)"
+      },
+      {
+        "byte": 412,
+        "variable_name": "FILL(50)",
+        "type": "Integer*2",
+        "comment": "User Reserved space (100 bytes) Note: use highest bytes first"
+      }
+    ]
+  }
+}
