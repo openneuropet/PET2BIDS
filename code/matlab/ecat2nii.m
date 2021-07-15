@@ -161,7 +161,7 @@ for j=1:length(FileList)
     subsets                               = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
     info.ReconMethodParameterLabels       = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
     info.ReconMethodParameterUnits        = {'none', 'none', 'keV', 'keV'};
-    info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_sctr_thres, mh.upr_true_thres];
+    info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
     for idx = 1:numel(sh)
         info.ScaleFactor(idx,1)           = sh{idx}.scale_factor;
         info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
@@ -182,7 +182,7 @@ for j=1:length(FileList)
     end
     info.ScanStart                        = 0;
     info.InjectionStart                   = 0;
-    info.CalibrationFactor                = Sca*mh.ecat_calibration_factor;
+    info.DoseCalibrationFactor                = Sca*mh.ecat_calibration_factor;
     info.Filename                         = fileout;
     info.Filemoddate                      = datestr(now);
     info.Version                          = 'NIfTI1';
