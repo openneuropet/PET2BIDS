@@ -153,22 +153,28 @@ for j=1:length(FileList)
         end
     end
     
+    % save raw data
+    if savemat
+        ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
+        save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'ecat','-v7.3');
+    end
+    
     % write nifti format + json
-    img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
     fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
+    img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
     if isfield(sh{1,1},'annotation')
         if ~isempty(sh{1,1}.annotation)
             sub_iter                      = strsplit(sh{1,1}.annotation);
             iterations                    = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
             subsets                       = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
         end
-        info.ReconMethodParameterLabels       = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
-        info.ReconMethodParameterUnits        = {'none', 'none', 'keV', 'keV'};
-        info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
+        info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+        info.ReconMethodParameterValues   = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
     else
-        info.ReconMethodParameterLabels       = {'lower_threshold', 'upper_threshold'};
-        info.ReconMethodParameterUnits        = {'keV', 'keV'};
-        info.ReconMethodParameterValues       = [mh.lwr_true_thres, mh.upr_true_thres];        
+        info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits    = {'keV', 'keV'};
+        info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];        
     end
     
     for idx = 1:numel(sh)
@@ -254,15 +260,9 @@ for j=1:length(FileList)
     info.raw.srow_z         = [0 0 sh{1}.z_pixel_size sh{1}.z_pixel_size].*10;
     info.raw.intent_name    = '';
     info.raw.magic          = 'n+1 ';
-    
     if gz
         niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',true);
     else
         niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',false);
-    end
-    
-    % save raw data
-    if savemat
-        save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'img_temp','-v7.3');
     end
 end
