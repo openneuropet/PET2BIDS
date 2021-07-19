@@ -22,7 +22,7 @@ function fileout = ecat2nii(FileList,MetaList,varargin)
 % Uses: readECAT7.m (Raymond Muzic, 2002)
 % See also get_SiemensHRRT_metadata.m to generate the metadata structure
 %
-% Claus Svarer & Cyril Pernet
+% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
 %    (some of the code is based on code from Mark Lubbering
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
@@ -156,12 +156,21 @@ for j=1:length(FileList)
     
     % write nifti format + json
     fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
-    sub_iter                              = strsplit(sh{1,1}.annotation);
-    iterations                            = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
-    subsets                               = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
-    info.ReconMethodParameterLabels       = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
-    info.ReconMethodParameterUnits        = {'none', 'none', 'keV', 'keV'};
-    info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
+    if isfield(sh{1,1},'annotation')
+        if ~isempty(sh{1,1}.annotation)
+            sub_iter                      = strsplit(sh{1,1}.annotation);
+            iterations                    = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
+            subsets                       = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
+        end
+        info.ReconMethodParameterLabels       = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits        = {'none', 'none', 'keV', 'keV'};
+        info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
+    else
+        info.ReconMethodParameterLabels       = {'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits        = {'keV', 'keV'};
+        info.ReconMethodParameterValues       = [mh.lwr_true_thres, mh.upr_true_thres];        
+    end
+    
     for idx = 1:numel(sh)
         info.ScaleFactor(idx,1)           = sh{idx}.scale_factor;
         info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
