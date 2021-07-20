@@ -3,7 +3,8 @@ function fileout = ecat2nii(FileList,MetaList,varargin)
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
 %
-% FORNAT: ecat2nii(FileList,MetaList,options)
+% FORMAT: ecat2nii(FileList,MetaList)
+%         ecat2nii(FileList,MetaList,options)
 %
 % INPUT: FileList - Cell array of char strings with filenames and paths
 %        MetaList - Cell array of structures for metadata
@@ -25,7 +26,7 @@ function fileout = ecat2nii(FileList,MetaList,varargin)
 % Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
 %    (some of the code is based on code from Mark Lubbering
 % ----------------------------------------------
-% Copyright OpenNeuroPET team
+% Copyright Open NeuroPET team
 
 
 %% defaults
@@ -37,6 +38,14 @@ savemat = false; % save ecat data as .mat
 
 %% check inputs
 % ------------
+
+if nargin<=1
+    if nargin == 1
+        warning('only 1 argument in, missing input')
+    end
+    help ecat2nii
+    return
+end
 
 if ~iscell(FileList)
     if ischar(FileList) && size(FileList,1)==1
@@ -95,7 +104,7 @@ for j=1:length(FileList)
     [pet_path,pet_file,ext]=fileparts(FileList{j});
     if strcmp(ext,'.gz')
         newfile = gunzip([pet_path filesep pet_file ext]);
-        [pet_path,pet_file,ext]=fileparts(newfile);
+        [~,pet_file,ext]=fileparts(newfile{1});
     end
     
     pet_file = [pet_file ext]; %#ok<AGROW>
