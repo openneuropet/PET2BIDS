@@ -52,10 +52,11 @@ for f=1:size(Diff_ecat_nifti,4)
     for rep = 1:8 % use to slow down the video
     clf
     subplot(3,2,[1 2 3 4]);
-    histogram(frame{f}(:)); axis([-0.02 0.02 0 5000])
+    all = frame{f}(:); all(all==0)=[];
+    histogram(all); axis([-13 13 -0.5 50])
     xlabel('error values'); ylabel('freq.'); 
-    title(sprintf('errors frame %g',f)); 
-
+    title(sprintf('errors frame %g max %g%%',f,max(all(:))/max(max(max(img(:,:,:,f))))*100)); 
+    
     subplot(3,2,[5 6]); plot(signal,'LineWidth',2); axis tight
     hold on; plot(f,signal(f),'rO','LineWidth',4); axis tight; 
     xlabel('frames'); ylabel('all brain TAC'); grid on; hold off
