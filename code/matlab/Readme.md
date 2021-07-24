@@ -28,4 +28,4 @@ metadata2 = get_GEAdvance_metadata('TimeZero','XXX','tracer','DASB','Radionuclid
 metadata  = [metadata2;metadata1];                        
 jsonwrite('mynewjsonfile.json'],metadata)                        
 ```  
-Simple routine to add metadata to a json file
+Simple routine to add metadata to a json file, here for GE Advance data already converted (using e.g. dcm2nixx)
