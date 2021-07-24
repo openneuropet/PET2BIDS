@@ -19,5 +19,13 @@ metadata = get_SiemensHRRT_metadata('TimeZero','XXX','tracer','DASB','Radionucli
                         'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 ecat2nii({full_file_name},{metadata})
 ```  
-See the [documentation](https://github.com/openneuropet/BIDS-converter/blob/main/code/matlab/doc.mkd) for further details.
+See the [documentation](https://github.com/openneuropet/BIDS-converter/blob/main/code/matlab/doc.mkd) for further details on ecat conversion.  
 
+```matlab
+metadata1 = jsondecode(textread(myjsonfile.json)); % or use jsonread from the matlab BIDS library
+metadata2 = get_GEAdvance_metadata('TimeZero','XXX','tracer','DASB','Radionuclide','C11', ...
+                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+metadata  = [metadata2;metadata1];                        
+jsonwrite('mynewjsonfile.json'],metadata)                        
+```  
+Simple routine to add metadata to a json file
