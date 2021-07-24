@@ -12,7 +12,7 @@ fileout = ecat2nii({ecatfile1,ecatfile2,ecatfile3},{meta},'gz',false,'sifout',tr
 
 ### Metadata
 
-Following BIDS, there are a few mandatory metadata information that must be provided - simply because this cannot be retreived from the ecat header information. By default `TimeZero` and a few radiochemistry information must be passed along. Other parameters should be set in the accompagning text file (because those are defaults unlikely to change).
+Following BIDS, there are a few mandatory metadata information that must be provided manually - simply because this cannot be retreived from the ecat header information. By default `TimeZero` and a few radiochemistry information must be passed along. Other parameters should be set in the accompagning text file (because those are defaults unlikely to change) but can also be passed as arguments in.
 
 | Syntax | Description |
 | ----------- | ----------- |
@@ -33,12 +33,12 @@ We read the ecat file, rescale the data to 16 bits, round, multiply by the scann
 
 ### 'Rounding' errors
 
-`niftiwrite_test.m` is a simple test, creating random data, that are rescaled and saved as nifti - reread and the difference between the generated data and reread data plotted. This shows that the rescaling method used, creates small (up to 0.00009) errors.
+`niftiwrite_test.m` is a simple test, creating random data, that are rescaled and saved as nifti - reread and the difference between the generated data and reread data plotted. This shows that the rescaling method used, creates small errors (up to 0.0008 for a simulated data range of 256, i.e. 0.0003125%).
 
 ![small_error](https://github.com/openneuropet/BIDS-converter/blob/main/code/matlab/unit_tests/error.jpg)
 
 ### Precision
 
-`ecat2nii_test.m` is meant to run on actual data. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled in 16 bits, round and multiply by the calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. In addition, because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means, with real data, most errors are concentrated around zero (see bottom left subplot below). With real data, we observed errors of maximum +/- 0.03 out of a 884410 data range values, i.e. 0.0000033921% (bottom right subplot below) with average error values in the 10^-7 range (top right subplot - due to quantization, errors occurs more often at frames in which there is a large range of values to encode).
+`ecat2nii_test.m` is meant to run on actual data. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled in 16 bits, round and multiply by the dose calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. In addition, because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means, with real data, most errors are concentrated around zero (see bottom left subplot below). With real data, we observed most errors around 0 with a maximum +/- 13 out of a 884410 data range values, i.e. 0.0015% (bottom right subplot below) staying constant across all data frames (top right subplot), altough more small (positive) errors occur when there is more signal (see e.g. avi file for a DASB pet scan).
 
 ![small_error](https://github.com/openneuropet/BIDS-converter/blob/main/code/matlab/unit_tests/avgerror.jpg)
