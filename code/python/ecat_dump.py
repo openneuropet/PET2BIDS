@@ -133,9 +133,7 @@ class EcatDump:
         self.sidecar_template['Manufacturer'] = 'Siemens'
         # Siemens model best guess
         self.sidecar_template['ManufacturersModelName'] = self.ecat_header.get('SERIAL_NUMBER', None)
-
         self.sidecar_template['TracerRadionuclide'] = self.ecat_header.get('ISOTOPE_NAME', None)
-
         self.sidecar_template['PharmaceuticalName'] = self.ecat_header.get('RADIOPHARAMCEUTICAL', None)
 
         # collect frame time start and populate various subheader fields
@@ -169,6 +167,25 @@ class EcatDump:
         # if decay correction exists mark decay correction boolean as true
         if len(self.decay_factors) > 0:
             self.sidecar_template['ImageDecayCorrected'] = "true"
+
+        self.sidecar_template['CalibrationFactor'] = self.ecat_header.get('ECAT_CALIBRATION_FACTOR')
+        self.sidecar_template['Filename'] = os.path.basename(self.nifti_file)
+        self.sidecar_template['ImageSize'] = [
+            self.subheaders[0]['X_DIMENSION'],
+            self.subheaders[0]['Y_DIMENSION'],
+            self.subheaders[0]['Z_DIMENSION'],
+            self.ecat_header['NUM_FRAMES']
+        ]
+
+        self.sidecar_template['PixelDimensions'] = [
+            self.subheaders[0]['X_PIXEL_SIZE'],
+            self.subheaders[0]['Y_PIXEL_SIZE'],
+            self.subheaders[0]['Z_PIXEL_SIZE']
+        ]*0.1
+
+        # include any additional values
+        for field, value in kwargs.items():
+            self.sidecar_template[field] = value
 
     def prune_sidecar(self):
         """
