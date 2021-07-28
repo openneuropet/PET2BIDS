@@ -6,6 +6,7 @@ import json
 import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
+import numpy
 
 
 def parse_this_date(date_like_object):
@@ -82,7 +83,11 @@ class EcatDump:
         # read ecat
         img = self.ecat
         # convert to nifti
-        img_nii = nibabel.Nifti1Image(img.get_fdata(), img.affine)
+        fdata_int16 = img.get_fdata(dtype=numpy.int16)
+        fdata_int32 = img.get_fdata(dtype=numpy.int32)
+        fdata_float64 = img.get_fdata()
+        #fdata_prescaled_data = img.raw_data_from_file_obj()
+        img_nii = nibabel.Nifti1Image(img.get_fdata(dtype=numpy.int16), img.affine)
         img_nii.header.set_xyzt_units('mm', 'unknown')
 
         # save nifti
