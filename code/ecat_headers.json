@@ -1193,7 +1193,7 @@
         "comment": "CTI Reserved space (12 bytes)"
       }
     ],
-    "ecat72_subheader_matrix_attenuation_files:": [
+    "ecat72_subheader_matrix_attenuation_files": [
       {
         "byte": 0,
         "variable_name": "DATA_TYPE",
@@ -1369,7 +1369,7 @@
         "comment": "User Reserved space (100 bytes) Note: use highest bytes first"
       }
     ],
-    "ecat72_subheader_matrix_image_files.json": [
+    "ecat72_subheader_matrix_image_files": [
       {
         "byte": 0,
         "variable_name": "DATA_TYPE",
