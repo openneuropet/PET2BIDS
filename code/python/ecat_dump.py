@@ -7,6 +7,7 @@ import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 import numpy
+from thisbytes import read_ecat_7
 
 
 def parse_this_date(date_like_object):
@@ -59,9 +60,8 @@ class EcatDump:
             raise err
 
         # extract ecat info
-        self.extract_header_info()
-        self.extract_subheaders()
         self.extract_affine()
+        self.ecat_header, self.subheaders, self.data = read_ecat_7(self.ecat_file)
 
         # aggregate ecat info into ecat_info dictionary
         self.ecat_info['header'] = self.ecat_header
@@ -83,10 +83,6 @@ class EcatDump:
         # read ecat
         img = self.ecat
         # convert to nifti
-        fdata_int16 = img.get_fdata(dtype=numpy.int16)
-        fdata_int32 = img.get_fdata(dtype=numpy.int32)
-        fdata_float64 = img.get_fdata()
-        #fdata_prescaled_data = img.raw_data_from_file_obj()
         img_nii = nibabel.Nifti1Image(img.get_fdata(dtype=numpy.int16), img.affine)
         img_nii.header.set_xyzt_units('mm', 'unknown')
 
@@ -104,51 +100,6 @@ class EcatDump:
         Extract affine matrix from ecat
         """
         self.affine = self.ecat.affine.tolist()
-
-    def extract_header_info(self):
-        """
-        Extracts header and coverts it to sane type -> dictionary
-        :return: self.header_info
-        """
-        header_entries = [entry for entry in self.ecat.header]
-        for name in header_entries:
-
-            value = self.ecat.header[name].tolist()
-
-            # convert to string if value is type bytes
-            if type(value) is bytes:
-                try:
-                    value = value.decode("utf-8")
-                except UnicodeDecodeError as err:
-                    print(f"Error decoding header entry {name}: {value}\n {value} is type: {type(value)}")
-                    print(f"Attempting to decode {value} skipping invalid bytes.")
-
-                    if err.reason == 'invalid start byte':
-                        value = value.decode("utf-8", "ignore")
-                        print(f"Decoded {self.ecat.header[name].tolist()} to {value}.")
-
-            self.ecat_header[name] = value
-
-        return self.ecat_header
-
-    def extract_subheaders(self):
-        """
-        Similar to extract headers, but iterates through subheaders as well
-        :return:
-        """
-        # collect subheaders
-        subheaders = self.ecat.dataobj._subheader.subheaders
-        for subheader in subheaders:
-            holder = {}
-            subheader_data = subheader.tolist()
-            subheader_dtypes = subheader.dtype.descr
-
-            for i in range(len(subheader_data)):
-                holder[subheader_dtypes[i][0]] = {
-                    'value': self.transform_from_bytes(subheader_data[i]),
-                    'dtype': self.transform_from_bytes(subheader_dtypes[i][1])}
-
-            self.subheaders.append(holder)
 
     def show_affine(self):
         """
@@ -174,37 +125,43 @@ class EcatDump:
         for subheader in self.subheaders:
             print(subheader)
 
-    def populate_sidecar(self):
+    def populate_sidecar(self, **kwargs):
         """
         creates a side car dictionary with any bids relevant information extracted from the ecat.
         """
         # if it's an ecat it's Siemens
         self.sidecar_template['Manufacturer'] = 'Siemens'
         # Siemens model best guess
-        self.sidecar_template['ManufacturersModelName'] = self.ecat_header.get('serial_number', None)
+        self.sidecar_template['ManufacturersModelName'] = self.ecat_header.get('SERIAL_NUMBER', None)
 
-        self.sidecar_template['TracerRadionuclide'] = self.ecat_header.get('isotope_name', None)
+        self.sidecar_template['TracerRadionuclide'] = self.ecat_header.get('ISOTOPE_NAME', None)
 
-        self.sidecar_template['PharmaceuticalName'] = self.ecat_header.get('radiopharmaceutical', None)
-        # collect frame time start
-        for header in self.subheaders:
-            self.frame_start_times.append(header['frame_start_time']['value'])
-            self.frame_durations.append(header['frame_duration']['value'])
-            self.decay_factors.append(header['decay_corr_fctr']['value'])
+        self.sidecar_template['PharmaceuticalName'] = self.ecat_header.get('RADIOPHARAMCEUTICAL', None)
 
-        self.sidecar_template['DecayFactor'] = self.decay_factors
-        self.sidecar_template['FrameTimesStart'] = self.frame_start_times
-        self.sidecar_template['FrameDuration'] = self.frame_durations
+        # collect frame time start and populate various subheader fields
+        for subheader in self.subheaders:
+            self.sidecar_template['DecayCorrectionFactor'].append(subheader.get('DECAY_CORR_FCTR', None))
+            self.sidecar_template['FrameTimesStart'].append(subheader.get('FRAME_START_TIME', None))
+            self.sidecar_template['FrameDuration'].append(subheader.get('FRAME_DURATION', None))
+            self.sidecar_template['ScaleFactor'].append(subheader.get('SCALE_FACTOR', None))
+
+            # note some of these values won't be in the subheaders for the standard matrix image
+            # need to make sure to clean up arrays and fields filled w/ none during pruning
+            self.sidecar_template['ScatterFraction'].append(subheader.get('SCATTER_FRACTION', None))
+            self.sidecar_template['PromptRate'].append(subheader.get('PROMPT_RATE', None))
+            self.sidecar_template['RandomRate'].append(subheader.get('RANDOM_RATE', None))
+            self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE', None))
 
         # collect and convert start times for acquisition/time zero?
-        scan_start_time = self.ecat_header.get('scan_start_time', None)
+        scan_start_time = self.ecat_header.get('SCAN_START_TIME', None)
+
         if scan_start_time:
             scan_start_time = parse_this_date(scan_start_time)
             self.sidecar_template['AcquisitionTime'] = scan_start_time
             self.sidecar_template['ScanStart'] = scan_start_time
 
         # collect dose start time
-        dose_start_time = self.ecat_header.get('dose_start_time', None)
+        dose_start_time = self.ecat_header.get('DOSE_START_TIME', None)
         if dose_start_time:
             parsed_dose_time = parse_this_date(dose_start_time)
             self.sidecar_template['PharmaceuticalDoseTime'] = parsed_dose_time
@@ -222,7 +179,16 @@ class EcatDump:
         exclude_list = []
         for field, value in self.sidecar_template.items():
             if value:
-                exclude_list.append(field)
+                # check to make sure value isn't a list of null types
+                # e.g. if value = [None, None, None] we don't want to include it.
+                if type(value) is list:
+                    none_count = value.count(None)
+                    if len(value) == none_count:
+                        pass
+                    else:
+                        exclude_list.append(field)
+                else:
+                    exclude_list.append(field)
 
         exclude_list = exclude_list + short_fields
 

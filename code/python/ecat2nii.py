@@ -5,7 +5,7 @@ from thisbytes import read_ecat_7
 import os
 
 
-def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, **kwargs):
+def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, **kwargs):
     # if a nifti file/path is not included write a nifti next to the ecat file
     if not nifti_file:
         nifti_file = os.path.splitext(ecat_file)[0] + ".nii"
@@ -67,9 +67,6 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, **kwargs):
             prompts.append(0)
             randoms.append(0)
 
-    # collect affine
-    affine = None
-
     # rescale for quantitative PET
     max_image = img_temp.max()
     img_temp = img_temp/(max_image*32767)
@@ -79,7 +76,9 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, **kwargs):
         img_temp = img_temp/(min_image*(-32768))
         sca = sca*min_image/(-32768)
 
-    img_nii = nibabel.Nifti1Image(img_temp, affine=affine)
+    img_nii = nibabel.Nifti2Image(img_temp, affine=affine)
+
+    # niftiheader items to include
     img_nii.header.set_xyzt_units('mm', 'unknown')
 
     # save nifti
@@ -89,4 +88,4 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, **kwargs):
     if sif_out:
         pass
 
-    return img_nii
+    return nifti_file
