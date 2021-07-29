@@ -7,7 +7,7 @@ import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 import numpy
-from thisbytes import read_ecat_7
+from read_ecat import read_ecat_7
 
 
 def parse_this_date(date_like_object):
@@ -31,6 +31,8 @@ class EcatDump:
         :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
         to output the nevly generated nifti
         :param decompress: attempt to decompress the ecat file, should probably be set to false
+        :param kwargs: used to manually override or insert information into the the nifti sidecare.json.
+        Useful for including information that isn't w/ in an ECAT file.
         """
         self.ecat_header = {}           # ecat header information is stored here
         self.subheaders = []            # subheader information is placed here
@@ -74,16 +76,16 @@ class EcatDump:
         else:
             self.nifti_file = nifti_file
 
-    def make_nifti(self, output_path=None):
+    def make_nifti(self, output_path=None, affine=None):
         """
         Outputs a nifti from the read in ECAT file
+        :param affine: Affine matrix, not required for inclusion, but parameter is there
         :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
+        :param kwargs: Optional key value pairs to insert into the sidecar json accompanying the nifti
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
         """
-        # read ecat
-        img = self.ecat
         # convert to nifti
-        img_nii = nibabel.Nifti1Image(img.get_fdata(dtype=numpy.int16), img.affine)
+        img_nii = nibabel.Nifti1Image(self.data, affine=affine)
         img_nii.header.set_xyzt_units('mm', 'unknown')
 
         # save nifti
@@ -178,14 +180,14 @@ class EcatDump:
         ]
 
         self.sidecar_template['PixelDimensions'] = [
-            self.subheaders[0]['X_PIXEL_SIZE'],
-            self.subheaders[0]['Y_PIXEL_SIZE'],
-            self.subheaders[0]['Z_PIXEL_SIZE']
-        ]*0.1
+            self.subheaders[0]['X_PIXEL_SIZE']*0.1,
+            self.subheaders[0]['Y_PIXEL_SIZE']*0.1,
+            self.subheaders[0]['Z_PIXEL_SIZE']*0.1
+        ]
 
         # include any additional values
-        for field, value in kwargs.items():
-            self.sidecar_template[field] = value
+        if kwargs:
+            self.sidecar_template.update(**kwargs)
 
     def prune_sidecar(self):
         """

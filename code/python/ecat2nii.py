@@ -1,7 +1,7 @@
 import nibabel
 import numpy
 import pathlib
-from thisbytes import read_ecat_7
+from read_ecat import read_ecat_7
 import os
 
 
