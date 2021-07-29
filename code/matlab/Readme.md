@@ -15,8 +15,9 @@ Defaults parameters should be set in the .txt files to generate metadata easily 
 
 ### for ecat files (HRRT)
 ```matlab
-metadata = get_SiemensHRRT_metadata('tracer','DASB','Radionuclide','C11', ...
+metadata = get_SiemensHRRT_metadata('TimeZero','XXX','tracer','DASB','Radionuclide','C11', ...
                         'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 ecat2nii({full_file_name},{metadata})
-```
+```  
+See the [documentation](https://github.com/openneuropet/BIDS-converter/blob/main/code/matlab/doc.mkd) for further details.
 

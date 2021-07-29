@@ -22,7 +22,7 @@ function fileout = ecat2nii(FileList,MetaList,varargin)
 % Uses: readECAT7.m (Raymond Muzic, 2002)
 % See also get_SiemensHRRT_metadata.m to generate the metadata structure
 %
-% Claus Svarer & Cyril Pernet
+% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
 %    (some of the code is based on code from Mark Lubbering
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
@@ -98,34 +98,33 @@ for j=1:length(FileList)
         [pet_path,pet_file,ext]=fileparts(newfile);
     end
     
-    pet_file = [pet_file ext];
-    [mh,sh]  = readECAT7([pet_path filesep pet_file]);
-    if sh{1}.data_type == 6
-        datatype    = 16;
-    else
-        error('Conversion for 16 bit signed data only (type 6 in ecat file)');
+    pet_file = [pet_file ext]; %#ok<AGROW>
+    [mh,sh]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
+    if sh{1}.data_type ~= 6
+        error('Conversion for 16 bit signed data only (type 6 in ecat file) - error loading ecat file');
     end
     Nframes  = mh.num_frames;
     
     % Create data reading 1 frame at a time
     img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
     for i=Nframes:-1:1
-        fprintf('  Working at frame: %i\n',i);
-        [mh,shf,data]      = readECAT7([pet_path filesep pet_file],i);
+        fprintf('Working at frame: %i\n',i);
+        [mh,shf,data]     = readECAT7([pet_path filesep pet_file],i);
         img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*sh{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
         % also get timing information
-        Start(i)     = shf{1}.frame_start_time*60; %#ok<NASGU>
-        DeltaTime(i) = shf{1}.frame_duration*60;
-        if mh.sw_version>=73
-            Prompts(i) = shf{1}.prompt_rate*shf{1}.frame_duration*60;
-            Randoms(i) = shf{1}.random_rate*shf{1}.frame_duration*60;
+        Start(i)          = shf{1}.frame_start_time*60; %#ok<NASGU>
+        DeltaTime(i)      = shf{1}.frame_duration*60;
+        if mh.sw_version >=73
+            Prompts(i)    = shf{1}.prompt_rate*shf{1}.frame_duration*60;
+            Randoms(i)    = shf{1}.random_rate*shf{1}.frame_duration*60;
         else
-            Prompts(i) = 0;
-            Randoms(i) = 0;
+            Prompts(i)    = 0;
+            Randoms(i)    = 0;
         end
     end
+
     
-    % rescale - for quantitative PET   
+    % rescale to 16 bits  
     MaxImg       = max(img_temp(:));
     img_temp     = img_temp/MaxImg*32767;
     Sca          = MaxImg/32767;
@@ -154,14 +153,30 @@ for j=1:length(FileList)
         end
     end
     
+    % save raw data
+    if savemat
+        ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
+        save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'ecat','-v7.3');
+    end
+    
     % write nifti format + json
     fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
-    sub_iter                              = strsplit(sh{1,1}.annotation);
-    iterations                            = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
-    subsets                               = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
-    info.ReconMethodParameterLabels       = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
-    info.ReconMethodParameterUnits        = {'none', 'none', 'keV', 'keV'};
-    info.ReconMethodParameterValues       = [iterations, subsets, mh.lwr_sctr_thres, mh.upr_true_thres];
+    img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
+    if isfield(sh{1,1},'annotation')
+        if ~isempty(sh{1,1}.annotation)
+            sub_iter                      = strsplit(sh{1,1}.annotation);
+            iterations                    = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
+            subsets                       = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
+        end
+        info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+        info.ReconMethodParameterValues   = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
+    else
+        info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+        info.ReconMethodParameterUnits    = {'keV', 'keV'};
+        info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];        
+    end
+    
     for idx = 1:numel(sh)
         info.ScaleFactor(idx,1)           = sh{idx}.scale_factor;
         info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
@@ -182,13 +197,13 @@ for j=1:length(FileList)
     end
     info.ScanStart                        = 0;
     info.InjectionStart                   = 0;
-    info.CalibrationFactor                = Sca*mh.ecat_calibration_factor;
+    info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
     info.Filename                         = fileout;
     info.Filemoddate                      = datestr(now);
     info.Version                          = 'NIfTI1';
-    info.Description                      = 'Open Neuro PET hrrt2neuro';
+    info.Description                      = 'Open NeuroPET ecat2nii.m conversion';
     info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
-    info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0]*.10;
+    info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
     jsonwrite([pet_path filesep pet_file(1:end-2) '.json'],info)
     
     info.Datatype                         = 'single';
@@ -204,18 +219,50 @@ for j=1:length(FileList)
     info.TimeOffset                       = 0;
     info.DisplayIntensityRange            = [0 0];
     info.TransformName                    = 'Sform';
+    info.Transform.Dimensionality         = 3;
+    info.Transform.T                      = eye(4);
     info.Qfactor                          = 1;
-    if gz
-        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),...
-            fileout,info,'Endian','little','Compressed',true);
-    else
-        niftiwrite(single(round(img_temp).*(Sca*mh.ecat_calibration_factor)),...
-            fileout,info,'Endian','little','Compressed',false);
-    end
     
-    % save raw data
-    if savemat
-        ecat = round(img_temp).*(Sca*mh.ecat_calibration_factor);
-        save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'ecat','-v7.3');
+    % map https://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
+    info.raw.sizeof_hdr     = 348;
+    info.raw.dim_info       = '';
+    info.raw.dim            = [4 sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames 1 1 1];
+    info.raw.intent_p1      = 0;
+    info.raw.intent_p2      = 0;
+    info.raw.intent_p3      = 0;
+    info.raw.intent_code    = 0;
+    info.raw.datatype       = 16;
+    info.raw.bitpix         = 32;
+    info.raw.slice_start    = 0;
+    info.raw.pixdim         = [1 sh{1}.x_pixel_size*10 sh{1}.y_pixel_size*10 sh{1}.z_pixel_size*10 0 0 0 0];
+    info.raw.vox_offset     = 352;
+    info.raw.scl_slope      = 0; % this is where the DoseCalibrationFactor could be set rather than in the data
+    info.raw.scl_inter      = 0;
+    info.raw.slice_end      = 0;
+    info.raw.slice_code     = 0;
+    info.raw.xyzt_units     = 10;
+    info.raw.cal_max        = max(img_temp(:));
+    info.raw.cal_min        = min(img_temp(:));
+    info.raw.slice_duration = 0;
+    info.raw.toffset        = 0;
+    info.raw.descrip        = 'Open NeuroPET ecat2nii.m conversion';
+    info.raw.aux_file       = '';
+    info.raw.qform_code     = 0;
+    info.raw.sform_code     = 1;
+    info.raw.quatern_b      = 0;
+    info.raw.quatern_c      = 0;
+    info.raw.quatern_d      = 0;
+    info.raw.qoffset_x      = 0;
+    info.raw.qoffset_y      = 0;
+    info.raw.qoffset_z      = 0;
+    info.raw.srow_x         = [sh{1}.x_pixel_size 0 0 sh{1}.x_pixel_size].*10;
+    info.raw.srow_y         = [0 sh{1}.y_pixel_size 0 sh{1}.y_pixel_size].*10;
+    info.raw.srow_z         = [0 0 sh{1}.z_pixel_size sh{1}.z_pixel_size].*10;
+    info.raw.intent_name    = '';
+    info.raw.magic          = 'n+1 ';
+    if gz
+        niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',true);
+    else
+        niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',false);
     end
 end
