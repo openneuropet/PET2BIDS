@@ -6,7 +6,6 @@ import json
 import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-import numpy
 from read_ecat import read_ecat_7
 
 
@@ -239,15 +238,3 @@ class EcatDump:
         """
         temp_json = json.dumps(self.ecat_info, indent=4)
         print(temp_json)
-
-    @staticmethod
-    def transform_from_bytes(bytes_like):
-        """
-        Attempts to decode from bytes, not particularly well
-        :param bytes_like: a bytes like object e.g. b'x\00\01\
-        :return: a decoded object
-        """
-        if type(bytes_like) is bytes:
-            return bytes_like.decode()
-        else:
-            return bytes_like

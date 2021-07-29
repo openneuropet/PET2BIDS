@@ -26,7 +26,8 @@ def cli():
     parser.add_argument("--dump", "-d", help="Dump information in Header", action="store_true", default=False)
     parser.add_argument("--json", "-j", action="store_true", default=False, help="""
         Output header and subheader info as JSON to stdout, overrides all other options""")
-    parser.add_argument("--nifti", "-n", metavar="file_name", help="Name of nifti output file", required=False)
+    parser.add_argument("--nifti", "-n", metavar="file_name", help="Name of nifti output file", required=False,
+                        default=None)
     parser.add_argument("--subheader", '-s', help="Display subheaders", action="store_true", default=False)
     parser.add_argument("--sidecar", action="store_true", help="Output a bids formatted sidecar for pairing with"
                                                                "a nifti.")
@@ -41,7 +42,8 @@ def cli():
 
 def main():
     cli_args = cli()
-    ecat = EcatDump(cli_args.ecat)
+    ecat = EcatDump(ecat_file=cli_args.ecat,
+                    nifti_file=cli_args.nifti)
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)

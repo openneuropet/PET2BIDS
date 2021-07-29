@@ -4,19 +4,20 @@ import dotenv
 import os
 from datetime import datetime
 from ecat2nii import ecat2nii
+import pathlib
 
 # collect path to test ecat file
 dotenv.load_dotenv(dotenv.find_dotenv())  # load path from .env file into env
-ecat_path = os.environ['ECAT_PATH']
+ecat_path = os.environ['TEST_ECAT_PATH']
+nifti_path = os.environ['OUTPUT_NIFTI_PATH']
 
 if __name__ == '__main__':
-    new_fields = {'FakeField1': 1, 'FakeField2': 'two'}
-    read_and_write = EcatDump(ecat_path, **new_fields)
+    read_and_write = EcatDump(ecat_file=ecat_path, nifti_file=nifti_path)
     time_zero = datetime.fromtimestamp(read_and_write.ecat_header['DOSE_START_TIME']).strftime('%I:%M:%S')
+    read_and_write.make_nifti(output_path=None, affine=None)
     read_and_write.populate_sidecar()
-    read_and_write.make_nifti()
     read_and_write.prune_sidecar()
 
-    # now test ecat2nii
-    ecat2nii(ecat_path)
-    print('done')
+    nifti_path = read_and_write.make_nifti()
+    read_and_write.show_sidecar(os.path.join(os.path.dirname(nifti_path),
+                                             os.path.basename(nifti_path),) + '.json')
