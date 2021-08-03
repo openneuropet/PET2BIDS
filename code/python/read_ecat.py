@@ -185,23 +185,41 @@ def read_ecat_7(ecat_file: str, calibrated: bool = False):
     row 3: ??? Number of frames contained in w/ in the byte blocks between row 1 and 2?
     """
 
-    # Collecting File Directory/Index
+    # Collecting First Part of File Directory/Index
     next_block = read_bytes(
         path_to_bytes=ecat_file,
         byte_start=read_to,
         byte_stop=read_to + 512)
 
-    read_that_byte_array = numpy.frombuffer(next_block, dtype=numpy.dtype('>i4'), count=-1)
-    # reshape 1d array into 2d
-    reshaped = numpy.transpose(numpy.reshape(read_that_byte_array, (-1, 4)))
-    # chop of rows after 32
-    directory = reshaped[:, 0:32]
-    # get rid of zero columns
-    columns_to_remove = []
-    for index, column in enumerate(directory.T):
-        if sum(column) == 0:
-            columns_to_remove.append(index)
-    directory = numpy.delete(directory, columns_to_remove, axis=1)
+    directory = None
+    while True:
+        # if [4,1] of the directory is 0 break
+        # if [2,1] of the directory is 2 break
+
+        read_that_byte_array = numpy.frombuffer(next_block, dtype=numpy.dtype('>i4'), count=-1)
+        # reshape 1d array into 2d
+        reshaped = numpy.transpose(numpy.reshape(read_that_byte_array, (-1, 4)))
+        # chop off columns after 32
+        reshaped = reshaped[:, 0:32]
+        # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
+        directory_size = reshaped[3, 0]
+        if directory_size == 0:
+            break
+        # on the first pass do this
+        if directory is None:
+            directory = reshaped[:, 1:directory_size + 1]
+        else:
+            directory = numpy.append(directory, reshaped[:, 1:directory_size + 1], axis=1)
+        # determine if this is the last directory by examining the 2nd row of the first column of the buffer
+        next_directory_position = reshaped[1, 0]
+        if next_directory_position == 2:
+            break
+        # looks like there is more directory to read, collect some more bytes
+        next_block = read_bytes(
+            path_to_bytes=ecat_file,
+            byte_start=(next_directory_position-1) * 512,
+            byte_stop=next_directory_position * 512
+        )
 
     # sort the directory contents as they're sometimes out of order
     sorted_directory = directory[:, directory[0].argsort()]
@@ -258,12 +276,12 @@ def read_ecat_7(ecat_file: str, calibrated: bool = False):
 
     # collect subheaders and pixel data
     subheaders, data = [], []
-    for i in range(len(sorted_directory.T) - 1):
+    for i in range(len(sorted_directory.T)):
         frame_number = i + 1
-        print(f"Reading subheader from frame {i}")
+        print(f"Reading subheader from frame {frame_number}")
 
         # collect frame info/column
-        frame_info = sorted_directory[:, i + 1]
+        frame_info = sorted_directory[:, i]
         frame_start = frame_info[1]
         frame_stop = frame_info[2]
 
@@ -275,7 +293,7 @@ def read_ecat_7(ecat_file: str, calibrated: bool = False):
 
         # collect pixel data from file
         pixel_data = read_bytes(path_to_bytes=ecat_file,
-                                byte_start=512 * frame_start,
+                                byte_start=512 * byte_position,
                                 byte_stop=512 * frame_stop)
 
         # calculate size of matrix for pixel data, may vary depending on image type (polar, 3d, etc.)
