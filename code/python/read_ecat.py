@@ -135,11 +135,11 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
         byte_width = get_buffer_size(data_type, variable_name)
         relative_byte_position = byte_position + byte_offset
         something = read_bytes(ecat_file, relative_byte_position, byte_width)
-        something_filtered = bytes(filter(None, something))
         if 'Character' in data_type:
+            something_filtered = bytes(filter(None, something))
             something_to_string = str(something_filtered, 'UTF-8')
         elif 'Integer' in data_type:
-            something_to_string = int.from_bytes(something_filtered, 'big')
+            something_to_string = int.from_bytes(something, 'big')
         elif 'Real' in data_type:
             number_of_fs = int(byte_width / 4)
             something_to_real = struct.unpack('>' + number_of_fs * 'f', something)
@@ -293,7 +293,7 @@ def read_ecat_7(ecat_file: str, calibrated: bool = False):
 
         # collect pixel data from file
         pixel_data = read_bytes(path_to_bytes=ecat_file,
-                                byte_start=512 * byte_position,
+                                byte_start=512 * frame_start,
                                 byte_stop=512 * frame_stop)
 
         # calculate size of matrix for pixel data, may vary depending on image type (polar, 3d, etc.)
