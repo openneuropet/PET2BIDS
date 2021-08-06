@@ -1,7 +1,7 @@
 import nibabel
 import numpy
 import pathlib
-from read_ecat import read_ecat_7
+from read_ecat import read_ecat_72
 import os
 
 
@@ -15,7 +15,7 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
     output_folder = pathlib.Path(nifti_file).parent
 
     # collect ecat_file
-    main_header, sub_headers, data = read_ecat_7(ecat_file=ecat_file)
+    main_header, sub_headers, data = read_ecat_72(ecat_file=ecat_file)
     # check for TimeZero supplied via kwargs
     if kwargs.get('TimeZero', None):
         TimeZero = kwargs['TimeZero']
@@ -76,7 +76,9 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
         img_temp = img_temp/(min_image*(-32768))
         sca = sca*min_image/(-32768)
 
-    img_nii = nibabel.Nifti2Image(img_temp, affine=affine)
+    properly_scaled = img_temp*sca*main_header['ECAT_CALIBRATION_FACTOR']
+
+    img_nii = nibabel.Nifti1Image(properly_scaled, affine=affine)
 
     # niftiheader items to include
     img_nii.header.set_xyzt_units('mm', 'unknown')

@@ -1,10 +1,7 @@
-import unittest
 from ecat_dump import EcatDump
 import dotenv
 import os
 from datetime import datetime
-from ecat2nii import ecat2nii
-import pathlib
 
 # collect path to test ecat file
 dotenv.load_dotenv(dotenv.find_dotenv())  # load path from .env file into env
@@ -12,9 +9,22 @@ ecat_path = os.environ['TEST_ECAT_PATH']
 nifti_path = os.environ['OUTPUT_NIFTI_PATH']
 
 if __name__ == '__main__':
+    """
+    More manual testing of nifti writing functions works for now as there is no public or frozen dataset to test on
+    that is accessible by CI. Requires a .env file with the following fields:
+    
+    TEST_ECAT_PATH=<path to a valid ecat>
+    OUTPUT_NIFTI_PATH=<desired output path>
+    
+    usage:
+    > python test_nifti_write.py
+    
+    or more likely this gets run w/ a debugger in an IDE such as pycharm or vs code.
+    
+    """
     read_and_write = EcatDump(ecat_file=ecat_path, nifti_file=nifti_path)
     time_zero = datetime.fromtimestamp(read_and_write.ecat_header['DOSE_START_TIME']).strftime('%I:%M:%S')
-    read_and_write.make_nifti(output_path=None, affine=None)
+    read_and_write.make_nifti(output_path=None)
     read_and_write.populate_sidecar()
     read_and_write.prune_sidecar()
 

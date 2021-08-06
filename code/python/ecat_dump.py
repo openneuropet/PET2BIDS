@@ -6,7 +6,7 @@ import json
 import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from read_ecat import read_ecat_7
+from read_ecat import read_ecat_72
 
 
 def parse_this_date(date_like_object):
@@ -62,7 +62,7 @@ class EcatDump:
 
         # extract ecat info
         self.extract_affine()
-        self.ecat_header, self.subheaders, self.data = read_ecat_7(self.ecat_file)
+        self.ecat_header, self.subheaders, self.data = read_ecat_72(self.ecat_file)
 
         # aggregate ecat info into ecat_info dictionary
         self.ecat_info['header'] = self.ecat_header
@@ -75,7 +75,7 @@ class EcatDump:
         else:
             self.nifti_file = nifti_file
 
-    def make_nifti(self, output_path=None, affine=None):
+    def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file
         :param affine: Affine matrix, not required for inclusion, but parameter is there
@@ -84,7 +84,7 @@ class EcatDump:
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
         """
         # convert to nifti
-        img_nii = nibabel.Nifti1Image(self.data, affine=affine)
+        img_nii = nibabel.Nifti1Image(self.data, affine=self.affine)
         img_nii.header.set_xyzt_units('mm', 'unknown')
 
         # save nifti
@@ -179,9 +179,9 @@ class EcatDump:
         ]
 
         self.sidecar_template['PixelDimensions'] = [
-            self.subheaders[0]['X_PIXEL_SIZE']*0.1,
-            self.subheaders[0]['Y_PIXEL_SIZE']*0.1,
-            self.subheaders[0]['Z_PIXEL_SIZE']*0.1
+            self.subheaders[0]['X_PIXEL_SIZE']*10,
+            self.subheaders[0]['Y_PIXEL_SIZE']*10,
+            self.subheaders[0]['Z_PIXEL_SIZE']*10
         ]
 
         # include any additional values

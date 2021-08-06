@@ -5,7 +5,7 @@ from os.path import join
 from ecat_dump import EcatDump
 
 """
-simple command line tool to extract header info from ecat files and convert ecat to nifti.
+simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
 """
 
 
