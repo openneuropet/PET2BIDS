@@ -24,10 +24,9 @@ if __name__ == '__main__':
     """
     read_and_write = Ecat(ecat_file=ecat_path, nifti_file=nifti_path)
     time_zero = datetime.fromtimestamp(read_and_write.ecat_header['DOSE_START_TIME']).strftime('%I:%M:%S')
-    read_and_write.make_nifti(output_path=None)
+    nifti_path = read_and_write.make_nifti()
     read_and_write.populate_sidecar()
     read_and_write.prune_sidecar()
 
-    nifti_path = read_and_write.make_nifti()
     read_and_write.show_sidecar(os.path.join(os.path.dirname(nifti_path),
                                              os.path.basename(nifti_path),) + '.json')
