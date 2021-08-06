@@ -2,7 +2,7 @@ import argparse
 import pathlib
 import sys
 from os.path import join
-from ecat_dump import EcatDump
+from ecat import Ecat
 
 """
 simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
@@ -42,8 +42,8 @@ def cli():
 
 def main():
     cli_args = cli()
-    ecat = EcatDump(ecat_file=cli_args.ecat,
-                    nifti_file=cli_args.nifti)
+    ecat = Ecat(ecat_file=cli_args.ecat,
+                nifti_file=cli_args.nifti)
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)

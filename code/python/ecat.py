@@ -18,7 +18,7 @@ def parse_this_date(date_like_object):
     return parsed_date.strftime("%H:%M:%S")
 
 
-class EcatDump:
+class Ecat:
     """
     This class reads an ecat file w/ nibabel.ecat.load and extracts header, subheader, and image matrices for
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.

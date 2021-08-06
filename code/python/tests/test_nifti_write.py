@@ -1,4 +1,4 @@
-from ecat_dump import EcatDump
+from ecat import Ecat
 import dotenv
 import os
 from datetime import datetime
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     or more likely this gets run w/ a debugger in an IDE such as pycharm or vs code.
     
     """
-    read_and_write = EcatDump(ecat_file=ecat_path, nifti_file=nifti_path)
+    read_and_write = Ecat(ecat_file=ecat_path, nifti_file=nifti_path)
     time_zero = datetime.fromtimestamp(read_and_write.ecat_header['DOSE_START_TIME']).strftime('%I:%M:%S')
     read_and_write.make_nifti(output_path=None)
     read_and_write.populate_sidecar()
