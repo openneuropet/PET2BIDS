@@ -1,0 +1,11 @@
+# I think matlab generates these when you're running interactive files
+*.asv
+
+# pycharm nonsense
+*.idea
+
+# python nonsense
+*__pycache__*
+
+# env vars,folders,files that should not be committed
+.env
