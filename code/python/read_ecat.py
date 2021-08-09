@@ -157,22 +157,45 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
     return header, read_head_position
 
 
-def read_ecat_72(ecat_file: str, calibrated: bool = False):
+def read_ecat(ecat_file: str, calibrated: bool = False):
     """
     Reads in an ecat file and collects the main header data, subheader data, and imagining data.
     This function does not differentiate between different versions of ECAT files, it only uses
     the ecat72 mainheader and ecat72_subheaders. This function still works on 7.3 ECAT files,
     but misses some additional fields included in the header schema's of each.
 
-    TODO refactor this to be a generic read that infers the ECAT version and subheader type from the
-    TODO magic number field in the main header.
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
     CALIBRATION_FACTOR in the main header
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
     """
-    # use ecat header 72 to collect bytes from ecat file
-    ecat_main_header = ecat_header_maps['ecat_headers']['ecat72_mainheader']
+    # try to determine what type of ecat this is
+    possible_ecat_headers = {}
+    for entry, dictionary in ecat_header_maps['ecat_headers'].items():
+        possible_ecat_headers[entry] = dictionary['mainheader']
+
+    read_headers = {}
+    for version, dictionary in possible_ecat_headers.items():
+        try:
+            read_headers[version], _ = get_header_data(dictionary, ecat_file)
+        except UnicodeDecodeError:
+            pass
+
+    # check on whether or not it's an ecat 6 or 7
+    for version, values in read_headers.items():
+        # note this is untested for ecat versions <7.x and may need to be refactored if the 6.X version field is not
+        # of the form 'SW_VERSION'=XX where XX is an int16. This will work for 7.2 and 7.3 however as their respective
+        # sw versions are: 'SW_VERSION'=72 and 'SW_VERSION'=73 respectively.
+        if version == values.get('SW_VERSION', None):
+            ecat_version = version
+            break
+        else:
+            # we've yet to see any images yet that aren't 7.3 so it's a safe bet
+            ecat_version = 73
+            print(f"Couldn't determine an ECAT version, defaulting to {ecat_version}")
+
+    ecat_main_header = ecat_header_maps['ecat_headers'][str(ecat_version)]['mainheader']
+
     main_header, read_to = get_header_data(ecat_main_header, ecat_file)
     # end collect main header
 
@@ -244,6 +267,7 @@ def read_ecat_72(ecat_file: str, calibrated: bool = False):
     subheader_type_number = main_header['FILE_TYPE']
 
     """
+    ECAT 7.2 Only
     Subheader types correspond to these enumerated types as defined below:
     00 = unknown, 
     01 = Sinogram, 
@@ -261,31 +285,27 @@ def read_ecat_72(ecat_file: str, calibrated: bool = False):
     13 = 3D Normalization, 
     14 = 3D Sinogram Fit)
 
-    Presently, only types 03, 05, 07, 11, and 13 correspond to known subheader types. If the
+    Presently, only types 03, 05, 07, 11, and 13 correspond to known subheader types for 72. If the
     value in FILE_TYPE is outside of this range the subheaders will not be read and this will
     raise an exception.
+    
+    ECAT 7.3 Only
+    00 = unknown
+    01 = unknown
+    02 = unknown
+    03 = Attenuation Correction
+    04 = unknown
+    05 = unknown
+    06 = unknown
+    07 = Volume 16
+    08 = unknown
+    09 = unknown
+    10 = unknown
+    11 = 3D Sinogram 16 
     """
 
-    # here we map the file types to the subheader byte tables/jsons defined in ecat_header_maps
-    subheader_types = {
-        0: None,
-        1: None,
-        2: None,
-        3: ecat_header_maps['ecat_headers']['ecat72_subheader_matrix_attenuation_files'],
-        4: None,
-        5: ecat_header_maps['ecat_headers']['ecat72_subheader_matrix_polar_map_files'],
-        6: None,
-        7: ecat_header_maps['ecat_headers']['ecat72_subheader_matrix_image_files'],
-        8: None,
-        9: None,
-        10: None,
-        11: ecat_header_maps['ecat_headers']['ecat72_subheader_3d_matrix_scan_files'],
-        12: None,
-        13: ecat_header_maps['ecat_headers']['ecat72_subheader_3d_normalized_files']
-    }
-
     # collect the bytes map file for the designated subheader, note some are not supported.
-    subheader_map = subheader_types.get(subheader_type_number)
+    subheader_map = ecat_header_maps['ecat_headers'][str(ecat_version)][str(subheader_type_number)]
 
     if not subheader_map:
         raise Exception(f"Unsupported data type: {subheader_type_number}")
