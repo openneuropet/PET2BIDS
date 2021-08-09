@@ -1,7 +1,7 @@
 import nibabel
 import numpy
 import pathlib
-from read_ecat import read_ecat_72
+from read_ecat import read_ecat
 import os
 
 
@@ -15,7 +15,7 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
     output_folder = pathlib.Path(nifti_file).parent
 
     # collect ecat_file
-    main_header, sub_headers, data = read_ecat_72(ecat_file=ecat_file)
+    main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
     # check for TimeZero supplied via kwargs
     if kwargs.get('TimeZero', None):
         TimeZero = kwargs['TimeZero']

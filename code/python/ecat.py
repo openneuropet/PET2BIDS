@@ -6,7 +6,7 @@ import json
 import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from read_ecat import read_ecat_72
+from read_ecat import read_ecat
 
 
 def parse_this_date(date_like_object):
@@ -62,7 +62,7 @@ class Ecat:
 
         # extract ecat info
         self.extract_affine()
-        self.ecat_header, self.subheaders, self.data = read_ecat_72(self.ecat_file)
+        self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file)
 
         # aggregate ecat info into ecat_info dictionary
         self.ecat_info['header'] = self.ecat_header

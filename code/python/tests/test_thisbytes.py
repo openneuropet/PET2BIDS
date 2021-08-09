@@ -45,7 +45,7 @@ if __name__ == "__main__":
         load_dotenv(env_path)
         ecat_test_file = os.environ.get("TES_ECAT_PATH")
 
-        test_main_header, test_subheaders, test_data = read_ecat_72(ecat_file=ecat_test_file)
+        test_main_header, test_subheaders, test_data = read_ecat(ecat_file=ecat_test_file)
         print(f"Main header info:")
         for k, v in test_main_header.items():
             print(f"{k}: {v}")
