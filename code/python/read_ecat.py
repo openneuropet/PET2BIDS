@@ -164,8 +164,6 @@ def read_ecat(ecat_file: str, calibrated: bool = False):
     the ecat72 mainheader and ecat72_subheaders. This function still works on 7.3 ECAT files,
     but misses some additional fields included in the header schema's of each.
 
-    TODO refactor this to be a generic read that infers the ECAT version and subheader type from the
-    TODO magic number field in the main header.
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
     CALIBRATION_FACTOR in the main header
