@@ -49,3 +49,26 @@ optional arguments:
   --sidecar             Output a bids formatted sidecar for pairing with a
                         nifti.
 ```
+
+## Testing
+
+To run the tests in `tests/` first copy the `template.env` file to `.env` with in this folder and then populate it 
+with paths to read ecats from as well as paths to write test niftis to.
+
+```bash
+cp template.env .env
+cat .env
+TEST_ECAT_PATH=
+OUTPUT_NIFTI_PATH=
+READ_ECAT_SAVE_AS_MATLAB=
+NIBABEL_READ_ECAT_SAVE_AS_MATLAB=
+```
+
+And after you've filled in you .env file it should resemble the following:
+```bash
+cat .env
+TEST_ECAT_PATH=/Users/user/ecat_file.v
+OUTPUT_NIFTI_PATH=/Users/user/test_nifti.nii
+READ_ECAT_SAVE_AS_MATLAB=/Users/user/python_ecat_read_object.mat
+NIBABEL_READ_ECAT_SAVE_AS_MATLAB=/Users/user/nibabel_ecat_read_object.mat
+```

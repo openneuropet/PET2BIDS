@@ -3,9 +3,18 @@ import numpy
 import pathlib
 from read_ecat import read_ecat
 import os
+import pickle
 
 
-def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, **kwargs):
+def ecat2nii(ecat_main_header=None,
+             ecat_subheaders=None,
+             ecat_pixel_data=None,
+             ecat_file=None,
+             nifti_file: str = '',
+             sif_out=False,
+             affine=None,
+             save_binary=False,
+             **kwargs):
     # if a nifti file/path is not included write a nifti next to the ecat file
     if not nifti_file:
         nifti_file = os.path.splitext(ecat_file)[0] + ".nii"
@@ -14,8 +23,19 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
     # collect the output folder from the nifti path will use for .sif files
     output_folder = pathlib.Path(nifti_file).parent
 
-    # collect ecat_file
-    main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
+    # if already read nifti file skip re-reading
+    if ecat_main_header is None and ecat_subheaders is None and ecat_pixel_data is None and ecat_file:
+        # collect ecat_file
+        main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
+    elif ecat_file is None and type(ecat_main_header) is dict and type(ecat_subheaders) is list and type(ecat_pixel_data) is numpy.ndarray:
+        main_header, sub_headers, data = ecat_main_header, ecat_subheaders, ecat_pixel_data
+    else:
+        raise Exception("Must pass in filepath for ECAT file or "
+                        "(ecat_main_header, ecat_subheaders, and ecat_pixel data "
+                        f"got ecat_file={ecat_file}, type(ecat_main_header)={type(ecat_main_header)}, "
+                        f"type(ecat_subheaders)={type(ecat_subheaders)}, "
+                        f"type(ecat_pixel_data)={type(ecat_pixel_data)} instead.")
+
     # check for TimeZero supplied via kwargs
     if kwargs.get('TimeZero', None):
         TimeZero = kwargs['TimeZero']
@@ -81,6 +101,18 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
     properly_scaled = img_temp * sca * main_header['ECAT_CALIBRATION_FACTOR']
 
     img_nii = nibabel.Nifti1Image(properly_scaled, affine=affine)
+    # nifti methods that are available to us
+    # img_nii.set_data_shape()
+    # img_nii.set_dim_info()
+    # img_nii.set_intent()
+    # img_nii.set_qform()
+    # img_nii.set_sform()
+    # img_nii.set_slice_durition()
+    # img_nii.set_slice_times()
+    # img_nii.set_slope_inter()
+    # img.set_xyzt_units()
+    # img.single_magic()
+    # img._single_vox_offset()
 
     # nifti header items to include
     img_nii.header.set_xyzt_units('mm', 'unknown')
@@ -88,8 +120,12 @@ def ecat2nii(ecat_file: str, nifti_file: str = '', sif_out=False, affine=None, *
     # save nifti
     nibabel.save(img_nii, nifti_file)
 
+    # used for testing veracity of nibabel read and write.
+    if save_binary:
+        pickle.dump(img_nii, open(nifti_file + '.pickle', "wb"))
+
     # write out timing file
     if sif_out:
         pass
 
-    return nifti_file
+    return img_nii
