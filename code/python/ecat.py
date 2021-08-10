@@ -7,6 +7,7 @@ import helper_functions
 from sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 from read_ecat import read_ecat
+from ecat2nii import ecat2nii
 
 
 def parse_this_date(date_like_object):
@@ -84,15 +85,17 @@ class Ecat:
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
         """
         # convert to nifti
-        img_nii = nibabel.Nifti1Image(self.data, affine=self.affine)
-        img_nii.header.set_xyzt_units('mm', 'unknown')
+        #img_nii = nibabel.Nifti1Image(self.data, affine=self.affine, template_dtype=None)
+        #img_nii.header.set_xyzt_units('mm', 'unknown')
 
         # save nifti
         if output_path is None:
             output = self.nifti_file
         else:
             output = output_path
-        nibabel.save(img_nii, output)
+        #nibabel.save(img_nii, output)
+        ecat2nii(ecat_main_header=self.ecat_header, ecat_subheaders=self.subheaders, ecat_pixel_data=self.data,
+                 nifti_file=output, affine=self.affine)
 
         return output
 
