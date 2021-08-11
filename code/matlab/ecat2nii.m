@@ -169,7 +169,8 @@ for j=1:length(FileList)
     end
     
     % write nifti format + json
-    fileout                               = [pet_path filesep pet_file(1:end-2) '.nii']; % note pet_file(1:end-2) to remove .v
+    [~,pet_filename]                      = fileparts(pet_file);
+    fileout                               = [pet_path filesep pet_filename];    
     img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
     if isfield(sh{1,1},'annotation')
         if ~isempty(deblank(sh{1,1}.annotation))
@@ -211,7 +212,11 @@ for j=1:length(FileList)
     info.ScanStart                        = 0;
     info.InjectionStart                   = 0;
     info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
-    info.Filename                         = fileout;
+    if gz
+        info.Filename                     = [fileout '.nii.gz'];
+    else
+        info.Filename                     = [fileout '.nii'];
+    end
     info.Filemoddate                      = datestr(now);
     info.Version                          = 'NIfTI1';
     info.Description                      = 'Open NeuroPET ecat2nii.m conversion';
@@ -277,8 +282,10 @@ for j=1:length(FileList)
     info.raw.intent_name    = '';
     info.raw.magic          = 'n+1 ';
     if gz
-        niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',true);
+        niftiwrite(img_temp,[fileout '.nii'],info,'Endian','little','Compressed',true);
+        fileout = [fileout '.nii.gz']; %#ok<*AGROW>
     else
+        fileout = [fileout '.nii'];
         niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',false);
     end
 end
