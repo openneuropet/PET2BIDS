@@ -27,7 +27,8 @@ def ecat2nii(ecat_main_header=None,
     if ecat_main_header is None and ecat_subheaders is None and ecat_pixel_data is None and ecat_file:
         # collect ecat_file
         main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
-    elif ecat_file is None and type(ecat_main_header) is dict and type(ecat_subheaders) is list and type(ecat_pixel_data) is numpy.ndarray:
+    elif ecat_file is None and type(ecat_main_header) is dict and type(ecat_subheaders) is list and type(
+            ecat_pixel_data) is numpy.ndarray:
         main_header, sub_headers, data = ecat_main_header, ecat_subheaders, ecat_pixel_data
     else:
         raise Exception("Must pass in filepath for ECAT file or "
@@ -102,9 +103,64 @@ def ecat2nii(ecat_main_header=None,
 
     img_nii = nibabel.Nifti1Image(properly_scaled, affine=affine)
     # nifti methods that are available to us
-    # img_nii.set_data_shape()
-    # img_nii.set_dim_info()
-    # img_nii.set_intent()
+    if img_nii.header['sizeof_hdr'] != 348:
+        img_nii.header['sizeof_hdr'] = 348
+    # img_nii.header['dim_info'] is populated on object creation
+    # img_nii.header['dim']  is populated on object creation
+    img_nii.header['intent_p1'] = 0
+    img_nii.header['intent_p2'] = 0
+    img_nii.header['intent_p3'] = 0
+    # img_nii.header['datatype'] # created on invocation seems to be 16 or int16
+    # img_nii.header['bitpix'] # also automatically created and inferred 32 as of testing w/ cimbi dataset
+    # img_nii.header['slice_type'] # defaults to 0
+    # img_nii.header['pixdim'] # appears as 1d array of length 8 we rescale this
+    img_nii.header['pixdim'] = numpy.array(
+        [1,
+         sub_headers[0]['X_PIXEL_SIZE'] * 10,
+         sub_headers[0]['Y_PIXEL_SIZE'] * 10,
+         sub_headers[0]['Z_PIXEL_SIZE'] * 10,
+         0,
+         0,
+         0,
+         0])
+    img_nii.header['vox_offset'] = 352
+
+    # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration factor
+    # TODO img_nii.header['scl_inter'] # defaults to NaN array
+    img_nii.header['scl_inter'] = 0
+    img_nii.header['slice_end'] = 0
+    img_nii.header['slice_code'] = 0
+    img_nii.header['xyzt_units'] = 10
+    img_nii.header['cal_max'] = properly_scaled.min()
+    img_nii.header['cal_min'] = properly_scaled.max()
+    img_nii.header['slice_duration'] = 0
+    img_nii.header['toffset'] = 0
+    img_nii.header['descrip'] = "OpenNeuroPET ecat2nii.py conversion"
+    # img_nii.header['aux_file'] # ignoring as this is set to '' in matlab
+    img_nii.header['qform_code'] = 0
+    img_nii.header['sform_code'] = 1  # 0: Arbitrary coordinates;
+    # 1: Scanner-based anatomical coordinates;
+    # 2: Coordinates aligned to another file's, or to anatomical "truth" (coregistration);
+    # 3: Coordinates aligned to Talairach-Tournoux Atlas; 4: MNI 152 normalized coordinates
+
+    img_nii.header['quatern_b'] = 0
+    img_nii.header['quatern_c'] = 0
+    img_nii.header['quatern_d'] = 0
+    # Please explain this
+    img_nii.header['qoffset_x'] = -1 * (
+        ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'X_PIXEL_SIZE'] * 5))
+    img_nii.header['qoffset_y'] = -1 * (
+        ((sub_headers[0]['Y_DIMENSION'] * sub_headers[0]['Y_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Y_PIXEL_SIZE'] * 5))
+    img_nii.header['qoffset_Z'] = -1 * (
+        ((sub_headers[0]['Z_DIMENSION'] * sub_headers[0]['Z_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Z_PIXEL_SIZE'] * 5))
+    img_nii.header['srow_x'] = numpy.array([sub_headers[0]['X_PIXEL_SIZE']*10, 0, 0, img_nii.header['qoffset_x']])
+    img_nii.header['srow_y'] = numpy.array([0, sub_headers[0]['Y_PIXEL_SIZE']*10, 0, img_nii.header['qoffset_y']])
+    img_nii.header['srow_z'] = numpy.array([0, 0, sub_headers[0]['Z_PIXEL_SIZE']*10, img_nii.header['qoffset_z']])
+
+
     # img_nii.set_qform()
     # img_nii.set_sform()
     # img_nii.set_slice_durition()
