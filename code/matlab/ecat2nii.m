@@ -119,7 +119,13 @@ for j=1:length(FileList)
     for i=Nframes:-1:1
         fprintf('Working at frame: %i\n',i);
         [mh,shf,data]     = readECAT7([pet_path filesep pet_file],i);
-        img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*sh{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
+        data_matrix = cell2mat(data);
+        arbitrary = data_matrix(100, :, 100);
+        % save this slice before the flip to compare w/ matlab
+        for j=1:256
+            fprintf('index %i: %i\n', j, arbitrary(j))
+        end
+        img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*sh{1}.scale_factor),2),3),1); %#ok<DFLIPDIM> 
         % also get timing information
         Start(i)          = shf{1}.frame_start_time*60; %#ok<NASGU>
         DeltaTime(i)      = shf{1}.frame_duration*60;

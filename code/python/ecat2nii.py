@@ -74,8 +74,12 @@ def ecat2nii(ecat_main_header=None,
     prompts, randoms = [], []
 
     # load frame data into img temp
-    for index in range(img_shape[3]):
+    for index in reversed(range(img_shape[3])):  # Don't throw stones working from existing matlab code
         print(f"Loading frame {index + 1}")
+        arbitrary = data[99, :, 99, index]
+        for index, number in enumerate(arbitrary):
+            print(f"index {index + 1}: {number}")
+        # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
             data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
         start.append(sub_headers[index]['FRAME_START_TIME'] * 60)  # scale to per minute
@@ -101,8 +105,38 @@ def ecat2nii(ecat_main_header=None,
 
     properly_scaled = img_temp * sca * main_header['ECAT_CALIBRATION_FACTOR']
 
-    img_nii = nibabel.Nifti1Image(properly_scaled, affine=affine)
-    # nifti methods that are available to us
+    final_image = numpy.around(properly_scaled)
+
+    # calculate qoffset to build  affine TODO add this to ecat read
+    qoffset_x = -1 * (
+        ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'X_PIXEL_SIZE'] * 5))
+
+    qoffset_y = -1 * (
+        ((sub_headers[0]['Y_DIMENSION'] * sub_headers[0]['Y_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Y_PIXEL_SIZE'] * 5))
+
+    qoffset_z = -1 * (
+        ((sub_headers[0]['Z_DIMENSION'] * sub_headers[0]['Z_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Z_PIXEL_SIZE'] * 5))
+
+    # build affine if it's not included in function call
+    if not affine:
+        t = numpy.identity(4)
+        t[0, 0] = sub_headers[0]['X_PIXEL_SIZE'] * 10
+        t[1, 1] = sub_headers[0]['Y_PIXEL_SIZE'] * 10
+        t[2, 2] = sub_headers[0]['Z_PIXEL_SIZE'] * 10
+
+        t[3, 0] = qoffset_x
+        t[3, 1] = qoffset_y
+        t[3, 2] = qoffset_z
+
+        # note this affine is the transform of of a nibabel ecat object's affine
+        affine = t
+
+    img_nii = nibabel.Nifti1Image(final_image, affine=affine)
+
+    # populating nifti header
     if img_nii.header['sizeof_hdr'] != 348:
         img_nii.header['sizeof_hdr'] = 348
     # img_nii.header['dim_info'] is populated on object creation
@@ -131,8 +165,8 @@ def ecat2nii(ecat_main_header=None,
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0
     img_nii.header['xyzt_units'] = 10
-    img_nii.header['cal_max'] = properly_scaled.min()
-    img_nii.header['cal_min'] = properly_scaled.max()
+    img_nii.header['cal_max'] = final_image.min()
+    img_nii.header['cal_min'] = final_image.max()
     img_nii.header['slice_duration'] = 0
     img_nii.header['toffset'] = 0
     img_nii.header['descrip'] = "OpenNeuroPET ecat2nii.py conversion"
@@ -147,28 +181,17 @@ def ecat2nii(ecat_main_header=None,
     img_nii.header['quatern_c'] = 0
     img_nii.header['quatern_d'] = 0
     # Please explain this
-    img_nii.header['qoffset_x'] = -1 * (
-        ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
-            'X_PIXEL_SIZE'] * 5))
-    img_nii.header['qoffset_y'] = -1 * (
-        ((sub_headers[0]['Y_DIMENSION'] * sub_headers[0]['Y_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
-            'Y_PIXEL_SIZE'] * 5))
-    img_nii.header['qoffset_Z'] = -1 * (
-        ((sub_headers[0]['Z_DIMENSION'] * sub_headers[0]['Z_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
-            'Z_PIXEL_SIZE'] * 5))
+    img_nii.header['qoffset_x'] = qoffset_x
+    img_nii.header['qoffset_y'] = qoffset_y
+    img_nii.header['qoffset_z'] = qoffset_z
     img_nii.header['srow_x'] = numpy.array([sub_headers[0]['X_PIXEL_SIZE']*10, 0, 0, img_nii.header['qoffset_x']])
     img_nii.header['srow_y'] = numpy.array([0, sub_headers[0]['Y_PIXEL_SIZE']*10, 0, img_nii.header['qoffset_y']])
     img_nii.header['srow_z'] = numpy.array([0, 0, sub_headers[0]['Z_PIXEL_SIZE']*10, img_nii.header['qoffset_z']])
 
 
-    # img_nii.set_qform()
-    # img_nii.set_sform()
-    # img_nii.set_slice_durition()
-    # img_nii.set_slice_times()
-    # img_nii.set_slope_inter()
-    # img.set_xyzt_units()
-    # img.single_magic()
-    # img._single_vox_offset()
+
+    img_nii.header['intent_name'] = ''
+    img_nii.header['magic'] = 'n + 1 '
 
     # nifti header items to include
     img_nii.header.set_xyzt_units('mm', 'unknown')
