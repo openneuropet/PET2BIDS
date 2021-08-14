@@ -119,7 +119,7 @@ for j=1:length(FileList)
     for i=Nframes:-1:1
         fprintf('Working at frame: %i\n',i);
         [mh,shf,data]     = readECAT7([pet_path filesep pet_file],i);
-        img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*sh{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
+        img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*shf{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
         % also get timing information
         Start(i)          = shf{1}.frame_start_time*60; %#ok<NASGU>
         DeltaTime(i)      = shf{1}.frame_duration*60;
