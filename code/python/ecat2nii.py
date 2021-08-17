@@ -82,13 +82,13 @@ def ecat2nii(ecat_main_header=None,
         # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
             data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
-        start.append(sub_headers[index]['FRAME_START_TIME'] * 60)  # scale to per minute
-        delta.append(sub_headers[index]['FRAME_DURATION'] * 60)  # scale to per minute
+        start.append(sub_headers[index]['FRAME_START_TIME'] * 0.001)  # scale to per minute
+        delta.append(sub_headers[index]['FRAME_DURATION'] * 0.001)  # scale to per minute
 
         if main_header.get('SW_VERSION', 0) >= 73:
             # scale both to per minute
-            prompts.append(sub_headers[index]['PROMPT_RATE'] * sub_headers[index]['FRAME_DURATION'] * 60)
-            randoms.append(sub_headers[index]['RANDOM_RATE'] * sub_headers[index]['FRAME_DURATION'] * 60)
+            prompts.append(sub_headers[index]['PROMPT_RATE'] * sub_headers[index]['FRAME_DURATION'] * 0.001)
+            randoms.append(sub_headers[index]['RANDOM_RATE'] * sub_headers[index]['FRAME_DURATION'] * 0.001)
         else:
             # this field is not available in ecat 7.2
             prompts.append(0)
@@ -209,9 +209,9 @@ def ecat2nii(ecat_main_header=None,
             scantime = datetime.datetime.fromtimestamp(main_header['SCAN_START_TIME'])
             scantime = scantime.astimezone().isoformat()
             siffile.write(f"{scantime} {len(start)} 4 1\n")
-            for index in range(len(start)):
+            for index in reversed(range(len(start))):
                 start_i = round(start[index])
-                start_i_plus_delta_i = start_i + delta[index]
+                start_i_plus_delta_i = start_i + round(delta[index])
                 prompt = round(prompts[index])
                 random = round(randoms[index])
                 output_string = f"{start_i} {start_i_plus_delta_i} {prompt} {random}\n"
