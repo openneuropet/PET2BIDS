@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     # testing how much this image gets mangled w/ nifti conversion
     # write nifti and save binary of nibabel.Nifti1 object
-    read_from_ecat_but_not_written = ecat2nii(ecat_file=ecat_path, nifti_file=nifti_path, save_binary=True)
+    read_from_ecat_but_not_written = ecat2nii(ecat_file=ecat_path, nifti_file=nifti_path, save_binary=True, sif_out=True)
 
     # load pickled object why not?
     pickled_nifti = pickle.load(open(nifti_path + ".pickle", 'rb'))
