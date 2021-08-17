@@ -76,9 +76,6 @@ def ecat2nii(ecat_main_header=None,
     # load frame data into img temp
     for index in reversed(range(img_shape[3])):  # Don't throw stones working from existing matlab code
         print(f"Loading frame {index + 1}")
-        arbitrary = data[99, :, 99, index]
-        for index, number in enumerate(arbitrary):
-            print(f"index {index + 1}: {number}")
         # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
             data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
