@@ -27,7 +27,8 @@ def ecat2nii(ecat_main_header=None,
     if ecat_main_header is None and ecat_subheaders is None and ecat_pixel_data is None and ecat_file:
         # collect ecat_file
         main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
-    elif ecat_file is None and type(ecat_main_header) is dict and type(ecat_subheaders) is list and type(ecat_pixel_data) is numpy.ndarray:
+    elif ecat_file is None and type(ecat_main_header) is dict and type(ecat_subheaders) is list and type(
+            ecat_pixel_data) is numpy.ndarray:
         main_header, sub_headers, data = ecat_main_header, ecat_subheaders, ecat_pixel_data
     else:
         raise Exception("Must pass in filepath for ECAT file or "
@@ -73,8 +74,9 @@ def ecat2nii(ecat_main_header=None,
     prompts, randoms = [], []
 
     # load frame data into img temp
-    for index in range(img_shape[3]):
+    for index in reversed(range(img_shape[3])):  # Don't throw stones working from existing matlab code
         print(f"Loading frame {index + 1}")
+        # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
             data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
         start.append(sub_headers[index]['FRAME_START_TIME'] * 60)  # scale to per minute
@@ -100,19 +102,93 @@ def ecat2nii(ecat_main_header=None,
 
     properly_scaled = img_temp * sca * main_header['ECAT_CALIBRATION_FACTOR']
 
-    img_nii = nibabel.Nifti1Image(properly_scaled, affine=affine)
-    # nifti methods that are available to us
-    # img_nii.set_data_shape()
-    # img_nii.set_dim_info()
-    # img_nii.set_intent()
-    # img_nii.set_qform()
-    # img_nii.set_sform()
-    # img_nii.set_slice_durition()
-    # img_nii.set_slice_times()
-    # img_nii.set_slope_inter()
-    # img.set_xyzt_units()
-    # img.single_magic()
-    # img._single_vox_offset()
+    final_image = numpy.around(properly_scaled)
+
+    # calculate qoffset to build  affine TODO add this to ecat read
+    qoffset_x = -1 * (
+        ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'X_PIXEL_SIZE'] * 5))
+
+    qoffset_y = -1 * (
+        ((sub_headers[0]['Y_DIMENSION'] * sub_headers[0]['Y_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Y_PIXEL_SIZE'] * 5))
+
+    qoffset_z = -1 * (
+        ((sub_headers[0]['Z_DIMENSION'] * sub_headers[0]['Z_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
+            'Z_PIXEL_SIZE'] * 5))
+
+    # build affine if it's not included in function call
+    if not affine:
+        t = numpy.identity(4)
+        t[0, 0] = sub_headers[0]['X_PIXEL_SIZE'] * 10
+        t[1, 1] = sub_headers[0]['Y_PIXEL_SIZE'] * 10
+        t[2, 2] = sub_headers[0]['Z_PIXEL_SIZE'] * 10
+
+        t[3, 0] = qoffset_x
+        t[3, 1] = qoffset_y
+        t[3, 2] = qoffset_z
+
+        # note this affine is the transform of of a nibabel ecat object's affine
+        affine = t
+
+    img_nii = nibabel.Nifti1Image(final_image, affine=affine)
+
+    # populating nifti header
+    if img_nii.header['sizeof_hdr'] != 348:
+        img_nii.header['sizeof_hdr'] = 348
+    # img_nii.header['dim_info'] is populated on object creation
+    # img_nii.header['dim']  is populated on object creation
+    img_nii.header['intent_p1'] = 0
+    img_nii.header['intent_p2'] = 0
+    img_nii.header['intent_p3'] = 0
+    # img_nii.header['datatype'] # created on invocation seems to be 16 or int16
+    # img_nii.header['bitpix'] # also automatically created and inferred 32 as of testing w/ cimbi dataset
+    # img_nii.header['slice_type'] # defaults to 0
+    # img_nii.header['pixdim'] # appears as 1d array of length 8 we rescale this
+    img_nii.header['pixdim'] = numpy.array(
+        [1,
+         sub_headers[0]['X_PIXEL_SIZE'] * 10,
+         sub_headers[0]['Y_PIXEL_SIZE'] * 10,
+         sub_headers[0]['Z_PIXEL_SIZE'] * 10,
+         0,
+         0,
+         0,
+         0])
+    img_nii.header['vox_offset'] = 352
+
+    # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration factor
+    # TODO img_nii.header['scl_inter'] # defaults to NaN array
+    img_nii.header['scl_inter'] = 0
+    img_nii.header['slice_end'] = 0
+    img_nii.header['slice_code'] = 0
+    img_nii.header['xyzt_units'] = 10
+    img_nii.header['cal_max'] = final_image.min()
+    img_nii.header['cal_min'] = final_image.max()
+    img_nii.header['slice_duration'] = 0
+    img_nii.header['toffset'] = 0
+    img_nii.header['descrip'] = "OpenNeuroPET ecat2nii.py conversion"
+    # img_nii.header['aux_file'] # ignoring as this is set to '' in matlab
+    img_nii.header['qform_code'] = 0
+    img_nii.header['sform_code'] = 1  # 0: Arbitrary coordinates;
+    # 1: Scanner-based anatomical coordinates;
+    # 2: Coordinates aligned to another file's, or to anatomical "truth" (coregistration);
+    # 3: Coordinates aligned to Talairach-Tournoux Atlas; 4: MNI 152 normalized coordinates
+
+    img_nii.header['quatern_b'] = 0
+    img_nii.header['quatern_c'] = 0
+    img_nii.header['quatern_d'] = 0
+    # Please explain this
+    img_nii.header['qoffset_x'] = qoffset_x
+    img_nii.header['qoffset_y'] = qoffset_y
+    img_nii.header['qoffset_z'] = qoffset_z
+    img_nii.header['srow_x'] = numpy.array([sub_headers[0]['X_PIXEL_SIZE']*10, 0, 0, img_nii.header['qoffset_x']])
+    img_nii.header['srow_y'] = numpy.array([0, sub_headers[0]['Y_PIXEL_SIZE']*10, 0, img_nii.header['qoffset_y']])
+    img_nii.header['srow_z'] = numpy.array([0, 0, sub_headers[0]['Z_PIXEL_SIZE']*10, img_nii.header['qoffset_z']])
+
+
+
+    img_nii.header['intent_name'] = ''
+    img_nii.header['magic'] = 'n + 1 '
 
     # nifti header items to include
     img_nii.header.set_xyzt_units('mm', 'unknown')
