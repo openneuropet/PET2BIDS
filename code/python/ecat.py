@@ -172,7 +172,10 @@ class Ecat:
         if len(self.decay_factors) > 0:
             self.sidecar_template['ImageDecayCorrected'] = "true"
 
-        self.sidecar_template['CalibrationFactor'] = self.ecat_header.get('ECAT_CALIBRATION_FACTOR')
+        # calculate scaling factor
+        sca = self.data.max()/32767
+
+        self.sidecar_template['DoseCalibrationFactor'] = sca * self.ecat_header.get('ECAT_CALIBRATION_FACTOR')
         self.sidecar_template['Filename'] = os.path.basename(self.nifti_file)
         self.sidecar_template['ImageSize'] = [
             self.subheaders[0]['X_DIMENSION'],
