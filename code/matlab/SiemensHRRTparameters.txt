@@ -1,9 +1,0 @@
-# Defaults
-InstitutionName          = '';
-AcquisitionMode          = '';
-ImageDecayCorrected      = ;
-ImageDecayCorrectionTime = ;
-ReconMethodName          = '';
-ReconFilterType          = '';
-ReconFilterSize          = ;
-AttenuationCorrection    = '';
