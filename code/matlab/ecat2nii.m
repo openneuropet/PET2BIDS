@@ -57,13 +57,15 @@ if ~iscell(FileList)
 end
 
 if ~iscell(MetaList)
-    if ischar(FileList) && size(FileList,1)==1
-        tmp = FileList; clear FileList;
-        FileList{1} = tmp; clear tmp;
+    if isstruct(MetaList) && size(MetaList,1)==1
+        tmp = MetaList; clear MetaList;
+        MetaList{1} = tmp; clear tmp;
     else
         error('1st argument in must be a cell array of file names')
     end
-elseif iscell(MetaList) && any(size(MetaList)~=size(FileList))
+end
+
+if iscell(MetaList) && any(size(MetaList)~=size(FileList))
     if size(MetaList,1) ==1
         disp('Replicating metadata for all input')
         tmp = MetaList; clear MetaList;
@@ -172,7 +174,7 @@ for j=1:length(FileList)
         
         % write nifti format + json
         [~,pet_filename]                      = fileparts(pet_file);
-        fileout                               = [pet_path filesep pet_filename];
+        filenameout                           = [pet_path filesep pet_filename];
         img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
@@ -215,9 +217,9 @@ for j=1:length(FileList)
         info.InjectionStart                   = 0;
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
         if gz
-            info.Filename                     = [fileout '.nii.gz'];
+            info.Filename                     = [filenameout '.nii.gz'];
         else
-            info.Filename                     = [fileout '.nii'];
+            info.Filename                     = [filenameout '.nii'];
         end
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
@@ -284,11 +286,11 @@ for j=1:length(FileList)
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
         if gz
-            niftiwrite(img_temp,[fileout '.nii'],info,'Endian','little','Compressed',true);
-            fileout{j} = [fileout '.nii.gz']; %#ok<*AGROW>
+            niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
+            fileout{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
         else
-            fileout{j} = [fileout '.nii'];
-            niftiwrite(img_temp,fileout,info,'Endian','little','Compressed',false);
+            fileout{j} = [filenameout '.nii'];
+            niftiwrite(img_temp,fileout{j},info,'Endian','little','Compressed',false);
         end
         
     catch conversionerr
