@@ -9,10 +9,11 @@ import numpy
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
+data_dir = code_dir.parent
 
 # collect ecat header maps
 try:
-    with open(join(code_dir, 'ecat_headers.json'), 'r') as infile:
+    with open(join(data_dir, 'ecat_info', 'ecat_headers.json'), 'r') as infile:
         ecat_header_maps = json.load(infile)
 except FileNotFoundError:
     raise Exception("Unable to load header definitions and map from ecat_headers.json. Aborting.")
