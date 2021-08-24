@@ -1,8 +1,10 @@
 import argparse
+import os
 import pathlib
 import sys
 from os.path import join
 from ecat import Ecat
+from helper_functions import load_vars_from_config
 
 """
 simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
@@ -36,6 +38,11 @@ def cli():
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
                              "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
+    parser.add_argument('--scannerparams', '-s', nargs='*', help="Loads saved scanner params from a configuration file following"
+                                                       "--scanner-params/-s if this option is used without an argument"
+                                                       "this cli will look for any scanner parameters file in the "
+                                                       "directory with the name *parameters.txtfrom which this cli is "
+                                                       "called.")
     args = parser.parse_args()
     return args
 
@@ -47,6 +54,33 @@ def main():
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)
+    if cli_args.scannerparams:
+        # if no args are suppled to --scannerparams/-s
+        if cli_args is []:
+            files_in_command_line_dir_call = os.listdir()
+            scanner_txt = None
+            for each in files_in_command_line_dir_call:
+                if "scanner.txt" in each:
+                    scanner_txt = each
+                    break
+            if scanner_txt is None:
+                raise Exception(f'No scanner file found in {os.getcwd()} create a scanner.txt file, omit the '
+                                f'--scanner/-s argument, or specify a full path to a scanner.txt file after the '
+                                f'argument.')
+        else:
+            scanner_txt = cli_args[0]
+        scanner_params = load_vars_from_config(scanner_txt)
+
+        # if any additional non null values have been included in a scanner.txt include those in the sidecar,
+        # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
+        if scanner_params and cli_args.kwargs:
+            for variable_name, value in cli_args.kwargs.items():
+                cli_args.scannerparams[variable_name] = value
+            # update cli.kwargs
+            cli_args.kwargs = cli_args.scannerparams
+        else:
+            cli_args.kwargs = scanner_params
+
     if cli_args.dump:
         ecat.show_header()
     if cli_args.affine:
@@ -54,6 +88,7 @@ def main():
     if cli_args.subheader:
         ecat.show_subheaders()
     if cli_args.sidecar:
+
         ecat.populate_sidecar(**cli_args.kwargs)
         ecat.show_sidecar()
     if cli_args.convert:

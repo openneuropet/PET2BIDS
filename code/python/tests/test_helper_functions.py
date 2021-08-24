@@ -21,6 +21,7 @@ class TestHelperFunctions(unittest.TestCase):
             outfile.write(test_config_string)
 
         cls.test_load = helper_functions.load_vars_from_config(cls.test_env_file_path)
+
     def test_load_vars_from_config(self):
         self.test_load = helper_functions.load_vars_from_config(self.test_env_file_path)
         self.assertEqual(type(self.test_load), collections.OrderedDict)  # add assertion here
@@ -32,10 +33,10 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(self.test_load['test_float'], 99.9)
 
     def test_int_list(self):
-        self.assertEqual(self.test_load['test_int_list'], [1,2,3,4])
+        self.assertEqual(self.test_load['test_int_list'], [1, 2, 3, 4])
 
     def test_float_list(self):
-        self.assertEqual(self.test_load['test_float_list'], [1.0, 2.0, 3.0, 4.0] )
+        self.assertEqual(self.test_load['test_float_list'], [1.0, 2.0, 3.0, 4.0])
 
     def test_string(self):
         self.assertEqual(self.test_load['test_string'], 'CharlieWorks')

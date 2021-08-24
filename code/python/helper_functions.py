@@ -63,9 +63,3 @@ def load_vars_from_config(path_to_config: str):
             parameters[parameter] = str(value)
 
     return parameters
-
-
-if __name__ == '__main__':
-    my_vars = load_vars_from_config('datafiles/test_parameters.env')
-    for key in my_vars.keys():
-        print(key, my_vars[key])
