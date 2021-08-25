@@ -9,3 +9,11 @@
 
 # env vars,folders,files that should not be committed
 .env
+
+# pyinstall files and folders
+code/python/build/
+code/python/dist/
+*.spec
+
+# annoying pycharm files
+*.DS_STORE

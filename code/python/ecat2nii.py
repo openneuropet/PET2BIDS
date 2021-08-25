@@ -16,6 +16,7 @@ def ecat2nii(ecat_main_header=None,
              sif_out=False,
              affine=None,
              save_binary=False,
+             load_scanner_parameters=False,
              **kwargs):
     # if a nifti file/path is not included write a nifti next to the ecat file
     if not nifti_file:
@@ -159,8 +160,8 @@ def ecat2nii(ecat_main_header=None,
          0])
     img_nii.header['vox_offset'] = 352
 
-    # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration factor
-    # TODO img_nii.header['scl_inter'] # defaults to NaN array
+    # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
+    #  factor img_nii.header['scl_inter'] # defaults to NaN array
     img_nii.header['scl_inter'] = 0
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0
@@ -188,8 +189,6 @@ def ecat2nii(ecat_main_header=None,
     img_nii.header['srow_y'] = numpy.array([0, sub_headers[0]['Y_PIXEL_SIZE']*10, 0, img_nii.header['qoffset_y']])
     img_nii.header['srow_z'] = numpy.array([0, 0, sub_headers[0]['Z_PIXEL_SIZE']*10, img_nii.header['qoffset_z']])
 
-
-
     img_nii.header['intent_name'] = ''
     img_nii.header['magic'] = 'n + 1 '
 
@@ -205,16 +204,16 @@ def ecat2nii(ecat_main_header=None,
 
     # write out timing file
     if sif_out:
-        with open(os.path.join(output_folder, nifti_file_w_out_extension + '.sif'), 'w') as siffile:
+        with open(os.path.join(output_folder, nifti_file_w_out_extension + '.sif'), 'w') as sif_file:
             scantime = datetime.datetime.fromtimestamp(main_header['SCAN_START_TIME'])
             scantime = scantime.astimezone().isoformat()
-            siffile.write(f"{scantime} {len(start)} 4 1\n")
+            sif_file.write(f"{scantime} {len(start)} 4 1\n")
             for index in reversed(range(len(start))):
                 start_i = round(start[index])
                 start_i_plus_delta_i = start_i + round(delta[index])
                 prompt = round(prompts[index])
                 random = round(randoms[index])
                 output_string = f"{start_i} {start_i_plus_delta_i} {prompt} {random}\n"
-                siffile.write(output_string)
+                sif_file.write(output_string)
 
     return img_nii

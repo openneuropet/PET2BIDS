@@ -1,6 +1,8 @@
 import gzip
 import os
 import re
+import dotenv
+import ast
 
 
 def compress(file_like_object, output_path=None):
@@ -46,3 +48,18 @@ def decompress(file_like_object, output_path=None):
     with open(output_path, 'wb') as outfile:
         outfile.write(compressed_input)
     return output_path
+
+
+def load_vars_from_config(path_to_config: str):
+    if os.path.isfile(path_to_config):
+        parameters = dotenv.main.dotenv_values(path_to_config)
+    else:
+        raise FileNotFoundError(path_to_config)
+
+    for parameter, value in parameters.items():
+        try:
+            parameters[parameter] = ast.literal_eval(value)
+        except ValueError:
+            parameters[parameter] = str(value)
+
+    return parameters
