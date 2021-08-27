@@ -1,0 +1,8 @@
+InstitutionName                = 'Rigshospitalet, NRU, DK'
+AcquisitionMode                = 'list mode'
+ImageDecayCorrected            = true
+ImageDecayCorrectionTime       = 0
+ReconMethodName                = '3D-OP-OSEM'
+ReconFilterType                = 'none'
+ReconFilterSize                = 0
+AttenuationCorrection          = '10-min transmission scan'
