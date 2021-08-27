@@ -111,7 +111,7 @@ for j=1:length(FileList)
             [~,pet_file,ext]=fileparts(newfile{1});
         end
         
-        pet_file = [pet_file ext]; %#ok<AGROW>
+        pet_file = [pet_file ext]; 
         [mh,sh]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
         if sh{1}.data_type ~= 6
             error('Conversion for 16 bit signed data only (type 6 in ecat file) - error loading ecat file');
@@ -125,7 +125,7 @@ for j=1:length(FileList)
             [mh,shf,data]     = readECAT7([pet_path filesep pet_file],i);
             img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*shf{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
             % also get timing information
-            Start(i)          = shf{1}.frame_start_time*60; %#ok<NASGU>
+            Start(i)          = shf{1}.frame_start_time*60; 
             DeltaTime(i)      = shf{1}.frame_duration*60;
             if mh.sw_version >=73
                 Prompts(i)    = shf{1}.prompt_rate*shf{1}.frame_duration*60;
@@ -178,9 +178,9 @@ for j=1:length(FileList)
         img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
-                sub_iter                      = strsplit(sh{1,1}.annotation);
-                iterations                    = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
-                subsets                       = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
+                sub_iter                          = strsplit(sh{1,1}.annotation);
+                iterations                        = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
+                subsets                           = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
                 info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
                 info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
                 info.ReconMethodParameterValues   = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
