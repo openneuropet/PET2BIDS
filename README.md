@@ -1,15 +1,15 @@
 # BIDS-converter
 
-This repository is hosting tools to curate PET brain data. 
+This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). 
 
-## Survey
+## Code
 
-While prepariong tools, we surveyed practices to ensure most users can get the most out of our tools. All questions and results are available in here.
+Matlab and Python codes are avaialble, providing the same output: a nifti file with a json file for the meta-data.
 
-## Retrospective curation
+## Data_in
 
-This folder contains code aiming at curating already collected data (images and spreadsheets/text files) converting them to BIDS.
+This folder contains examples of Siemens/Philips/GE PET scanner data.
 
-## Prospective curation
+## Metadata_in
 
-This folder contains code aiming at facilitate meatadata collection to be exported as tsv and json files compatible with BIDS.
+This folder contains exemples of metadata collected through spearsheet and how one can reorganize and convert such metadata.
