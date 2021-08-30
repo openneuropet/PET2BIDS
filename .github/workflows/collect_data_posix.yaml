@@ -24,14 +24,14 @@ jobs:
       - name: Decompress dataset
         run: "tar xvzf ecat_test && rm ecat_test"
 
-      - name: LS ${{ env.ECAT_TEST_FOLDER }}
-        run: ls ${{ env.ECAT_TEST_FOLDER}}
-
       - name: Install Python Reqs
         run: pip3 install -r python/requirements.txt
 
       - name: Test CLI --help
         run: python3 python/main.py --help
+
+      - name: Tree
+        run: tree
 
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.TEST_ECAT_PATH }} --dump"
