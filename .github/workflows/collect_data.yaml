@@ -1,5 +1,5 @@
 name: Collect Test Data from OpenNeuro
-on: [push]
+on: push
 jobs:
   Collect-Data:
     runs-on: ubuntu-latest
