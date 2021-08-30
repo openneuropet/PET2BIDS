@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+export ECAT_URL=https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz

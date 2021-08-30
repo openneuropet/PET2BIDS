@@ -1,0 +1,22 @@
+name: Collect Data OpenNeuro Posix
+on: push
+jobs:
+  Collect-Data:
+    runs-on: [ubuntu-latest, macOS-latest]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Check for environment_variables file
+        run: cat BIDS-converter/.github/workflows/environment_variables
+
+      - name: Collect Ecat Dataset w/ curl
+        run: "curl -o cimbi36.tar.gz https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz"
+
+      - name: Decompress dataset
+        run: "tar xvzf cimbi36.tar.gz"
+
+
+
+      - name: Install Python Reqs
+        run: pip3 install -r
