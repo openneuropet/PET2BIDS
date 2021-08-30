@@ -2,7 +2,7 @@
 
 ## Conversion
 
-the ecat file ECAT7_multiframe.v was converted here as a test, with ecat2nii.m as folow
+the ecat file ECAT7_multiframe.v was converted here as a test, with ecat2nii.m as follow
 ```matlab
 file          = fullfile(pathtofile,'ECAT7_multiframe.v'); % edit with the right path
 meta.info     = 'just running a test';
