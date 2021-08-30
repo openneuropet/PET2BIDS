@@ -1,7 +1,6 @@
 name: Collect Test Data from OpenNeuro
 on: push
 jobs:
-  Collect-Data
     runs-on: ubuntu-18.04
     steps:
       - run: "curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
