@@ -8,4 +8,5 @@ jobs:
         run: "curl -o cimbi36.tar.gz https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz"
 
       - name: Decompress dataset
-        run: "tar -xvz cimbi36.tar.gz"
+        run: "tar xvzf cimbi36.tar.gz"
+
