@@ -1,7 +1,12 @@
 name: Setup and Test Run
-on: push
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  Collect-Data:
+  Collect-Data-Test-CLI:
     runs-on: ${{ matrix.os }}
 
     env:
@@ -29,9 +34,6 @@ jobs:
 
       - name: Test CLI --help
         run: python3 python/main.py --help
-
-      - name: Tree
-        run: tree
 
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.TEST_ECAT_PATH }} --dump"
