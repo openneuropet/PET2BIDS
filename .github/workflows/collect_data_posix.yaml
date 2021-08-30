@@ -6,8 +6,8 @@ jobs:
 
     env:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
-      ECAT_TEST_FOLDER: ecat_test/
-      NIFTI_TEST_FOLDER: nifti_test/
+      ECAT_TEST_FOLDER: "ecat_test/"
+      NIFTI_TEST_FOLDER: "nifti_test/"
       TEST_ECAT_PATH: ${{ ECAT_TEST_FOLDER }}/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
 
     strategy:
