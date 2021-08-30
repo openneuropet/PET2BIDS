@@ -24,6 +24,9 @@ jobs:
       - name: Decompress dataset
         run: "tar xvzf ${{ env.ECAT_TEST_FOLDER }}"
 
+      - name: LS ${{ env.ECAT_TEST_FOLDER }}
+        run: ls ${{ env.ECAT_TEST_FOLDER}}
+
       - name: Install Python Reqs
         run: pip3 install -r python/requirements.txt
 
