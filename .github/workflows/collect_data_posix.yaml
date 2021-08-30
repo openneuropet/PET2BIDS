@@ -8,7 +8,7 @@ jobs:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "ecat_test/"
       NIFTI_TEST_FOLDER: "nifti_test/"
-      TEST_ECAT_PATH: ecat_test/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+      TEST_ECAT_PATH: ${{ env.ECAT_TEST_FOLDER }}/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
 
     strategy:
       matrix:
@@ -22,7 +22,7 @@ jobs:
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
-        run: "tar xvzf ${{ ECAT_TEST_FOLDER }}"
+        run: "tar xvzf ${{ env.ECAT_TEST_FOLDER }}"
 
       - name: Install Python Reqs
         run: pip3 install -r python/requirements.txt
@@ -31,5 +31,5 @@ jobs:
         run: python3 python/main.py --help
 
       - name: Test CLI Ecat Dump
-        run: "python3 python/main.py ${{ TEST_ECAT_PATH }} --dump"
+        run: "python3 python/main.py ${{ env.TEST_ECAT_PATH }} --dump"
 
