@@ -50,6 +50,8 @@ def cli():
 
 def main():
     cli_args = cli()
+    if cli_args.dump:
+        collect_pixel_data = False
     if cli_args.scannerparams is not None:
         # if no args are supplied to --scannerparams/-s
         if cli_args.scannerparams == []:
@@ -80,13 +82,15 @@ def main():
             cli_args.kwargs = scanner_params
 
     ecat = Ecat(ecat_file=cli_args.ecat,
-                nifti_file=cli_args.nifti)
+                nifti_file=cli_args.nifti,
+                collect_pixel_data=collect_pixel_data)
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)
 
     if cli_args.dump:
         ecat.show_header()
+        sys.exit(0)
     if cli_args.affine:
         ecat.show_affine()
     if cli_args.subheader:

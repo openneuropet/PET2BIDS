@@ -24,7 +24,7 @@ class Ecat:
     This class reads an ecat file w/ nibabel.ecat.load and extracts header, subheader, and image matrices for
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
     """
-    def __init__(self, ecat_file, nifti_file=None, decompress=True):
+    def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True):
         """
         Initialization of this class requires only a path to an ecat file
         :param ecat_file: path to a valid ecat file
@@ -63,7 +63,10 @@ class Ecat:
 
         # extract ecat info
         self.extract_affine()
-        self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file)
+        if collect_pixel_data:
+            self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file)
+        else:
+            self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file, collect_pixel_data=False)
 
         # aggregate ecat info into ecat_info dictionary
         self.ecat_info['header'] = self.ecat_header
@@ -79,21 +82,15 @@ class Ecat:
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file
-        :param affine: Affine matrix, not required for inclusion, but parameter is there
         :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
-        :param kwargs: Optional key value pairs to insert into the sidecar json accompanying the nifti
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
         """
-        # convert to nifti
-        #img_nii = nibabel.Nifti1Image(self.data, affine=self.affine, template_dtype=None)
-        #img_nii.header.set_xyzt_units('mm', 'unknown')
 
         # save nifti
         if output_path is None:
             output = self.nifti_file
         else:
             output = output_path
-        #nibabel.save(img_nii, output)
         ecat2nii(ecat_main_header=self.ecat_header, ecat_subheaders=self.subheaders, ecat_pixel_data=self.data,
                  nifti_file=output, affine=self.affine)
 
