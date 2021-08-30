@@ -13,7 +13,7 @@ data_dir = code_dir.parent
 
 # collect ecat header maps
 try:
-    with open(join(data_dir, 'ecat_info', 'ecat_headers.json'), 'r') as infile:
+    with open(join(parent_dir, 'ecat_info', 'ecat_headers.json'), 'r') as infile:
         ecat_header_maps = json.load(infile)
 except FileNotFoundError:
     raise Exception("Unable to load header definitions and map from ecat_headers.json. Aborting.")
@@ -39,7 +39,6 @@ def get_ecat_bytes(path_to_ecat: str):
 
 def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
     """
-
     :param path_to_bytes:
     :param byte_start:
     :param byte_stop:
