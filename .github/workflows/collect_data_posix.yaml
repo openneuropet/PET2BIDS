@@ -12,6 +12,9 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
+      - name: Where are we
+        run: "pwd && ls"
+
       - name: Check for environment_variables file
         run: cat BIDS-converter/.github/workflows/environment_variables
 
