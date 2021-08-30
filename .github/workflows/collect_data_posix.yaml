@@ -2,7 +2,12 @@ name: Collect Data OpenNeuro Posix
 on: push
 jobs:
   Collect-Data:
-    runs-on: [ubuntu-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
