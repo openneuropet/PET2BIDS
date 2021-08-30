@@ -1,0 +1,40 @@
+name: Setup and Test Run
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Collect-Data-Test-CLI:
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
+      ECAT_TEST_FOLDER: "cimbi36"
+      NIFTI_TEST_FOLDER: "nifti_test"
+      TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Collect Ecat Dataset w/ curl
+        run: "curl -o ecat_test ${{ env.ECAT_URL }}"
+
+      - name: Decompress dataset
+        run: "tar xvzf ecat_test && rm ecat_test"
+
+      - name: Install Python Reqs
+        run: pip3 install -r python/requirements.txt
+
+      - name: Test CLI --help
+        run: python3 python/main.py --help
+
+      - name: Test CLI Ecat Dump
+        run: "python3 python/main.py ${{ env.TEST_ECAT_PATH }} --dump"
+
