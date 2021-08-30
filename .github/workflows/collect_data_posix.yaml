@@ -4,6 +4,9 @@ jobs:
   Collect-Data:
     runs-on: ${{ matrix.os }}
 
+    env:
+      ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
+
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -12,19 +15,11 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-      - name: Where are we
-        run: "pwd && ls"
-
-      - name: Check for environment_variables file
-        run: cat BIDS-converter/.github/workflows/environment_variables
-
       - name: Collect Ecat Dataset w/ curl
-        run: "curl -o cimbi36.tar.gz https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz"
+        run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
-        run: "tar xvzf cimbi36.tar.gz"
-
-
+        run: "tar xvzf ecat_test"
 
       - name: Install Python Reqs
-        run: pip3 install -r
+        run: pip3 install -r python/requirements.txt
