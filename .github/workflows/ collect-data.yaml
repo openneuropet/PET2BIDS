@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: "curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip"
-      - run: "unzip awscliz2.zip"
+      - run: "unzip awscliv2.zip"
       - run: "sudo ./aws/install"
       - run: "aws --help"
       - run: "aws s3 sync --no-sign-request s3://openneuro.org/${{secrets.OPEN_NEURO_DATASET}} %{{secrets.OPEN_NEURO_DATASET}}-download/"
