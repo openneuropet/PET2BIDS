@@ -22,7 +22,7 @@ jobs:
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
-        run: "tar xvzf ecat_test"
+        run: "tar xvzf ${{ ECAT_TEST_FOLDER }}"
 
       - name: Install Python Reqs
         run: pip3 install -r python/requirements.txt
@@ -31,5 +31,5 @@ jobs:
         run: python3 python/main.py --help
 
       - name: Test CLI Ecat Dump
-        run: python3 python/main.py ${{ TEST_ECAT_PATH }} --dump
+        run: "python3 python/main.py ${{ TEST_ECAT_PATH }} --dump"
 
