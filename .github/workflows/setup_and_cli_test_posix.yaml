@@ -42,14 +42,20 @@ jobs:
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
+      - name: cd into python
+        run: pushd python
+
       - name: Test ecatread
-        run: "python3 python/tests/test_ecatread.py"
+        run: "python3 -m tests.test_ecatread"
 
       - name: Test helper_functions
-        run: "python3 python/tests/test_helper_functions.py"
+        run: "python3 -m tests.test_helper_functions"
 
       - name: Test nifti write
-        run: "python3 python/tests/test_nifti_write.py"
+        run: "python3 -m tests.test_nifti_write"
 
       - name: Test bytes
-        run: "python3 python/tests/test_thisbytes.py"
+        run: "python3 -m tests.test_thisbytes."
+
+      - name: Return to Repository main level
+        run: popd
