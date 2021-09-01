@@ -14,9 +14,9 @@ jobs:
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
       TEST_ECAT_PATH: PETData_in/Siemens_ecat/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: PETData_in/Siemens_ecat/nifti_test.nii
-      READ_ECAT_SAVE_AS_MATLAB: ${{ env.TEST_ECAT_PATH }}.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ env.TEST_ECAT_PATH }}.nibabel.mat
+      OUTPUT_NIFTI_PATH: PETData_in/Siemens_ecat/ECAT7_multiframe.nii
+      READ_ECAT_SAVE_AS_MATLAB: PETData_in/Siemens_ecat/ECAT7_multiframe.mat
+      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: PETData_in/Siemens_ecat/ECAT7_multiframe.nibabel.mat
 
 
     strategy:
