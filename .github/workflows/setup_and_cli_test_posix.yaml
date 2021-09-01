@@ -23,7 +23,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macOS-latest]
+        os: [macOS-latest, ubuntu-latest]
 
     steps:
       - name: Checkout Repo
@@ -46,6 +46,9 @@ jobs:
 
       - name: Copy Test Files to tests/
         run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
+
+      - name: Make sure files are in tests/
+        run: "ls python/tests && echo SMALLER_ECAT_PATH=$SMALLER_ECAT_PATH"
 
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
