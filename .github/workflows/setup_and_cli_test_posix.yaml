@@ -13,7 +13,6 @@ jobs:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      #                   PETdata_in/Siemens_ecat
       SMALLER_ECAT_PATH: PETdata_in/Siemens_ecat/ECAT7_multiframe.v
       TEST_ECAT_PATH: ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ECAT7_multiframe.nii
@@ -26,6 +25,11 @@ jobs:
         os: [macOS-latest, ubuntu-latest]
 
     steps:
+      - name: Echo ENV variables
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "RUNNER_OS: $RUNNER_OS"
+
       - name: Checkout Repo
         uses: actions/checkout@v2
 
