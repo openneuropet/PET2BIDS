@@ -104,7 +104,10 @@ for j=1:length(FileList)
         end
         
         % Read ECAT file headers
-        assert(exist(FileList{j},'file'),'the file %s does not exist',FileList{j})
+        if ~exist(FileList{j},'file')
+            error('the file %s does not exist',FileList{j}),
+        end
+        
         [pet_path,pet_file,ext]=fileparts(FileList{j});
         if strcmp(ext,'.gz')
             newfile = gunzip([pet_path filesep pet_file ext]);
@@ -223,7 +226,8 @@ for j=1:length(FileList)
         end
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
-        info.Description                      = 'Open NeuroPET ecat2nii.m conversion';
+        info.ConversionSoftware               = 'ecat2nii.m';
+        info.Description                      = 'Open NeuroPET ecat7+ matlab based conversion';
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         jsonwrite([pet_path filesep pet_file(1:end-2) '.json'],info)
