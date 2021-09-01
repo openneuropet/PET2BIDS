@@ -44,7 +44,7 @@ jobs:
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
       - name: Copy Test Files to tests/
-        run: cp ${{ env.SMALLER_ECAT_FILE }} python/tests/
+        run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
 
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
