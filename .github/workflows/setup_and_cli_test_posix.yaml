@@ -42,3 +42,14 @@ jobs:
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
+      - name: Test ecatread
+        run: "python3 python/tests/test_ecatread.py"
+
+      - name: Test helper_functions
+        run: "python3 python/tests/test_helper_functions.py"
+
+      - name: Test nifti write
+        run: "python3 python/tests/test_nifti_write.py"
+
+      - name: Test bytes
+        run: "python3 python/tests/test_thisbytes.py"
