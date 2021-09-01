@@ -42,8 +42,14 @@ jobs:
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
-      - name: cd into python
-        run: pushd python
+      - name: Starting dir
+        run: echo $PWD
+
+      - name: Change dir
+        run: cd python/
+
+      - name: final dir
+        echo: $PWD
 
       - name: Test ecatread
         run: "python3 -m tests.test_ecatread"
