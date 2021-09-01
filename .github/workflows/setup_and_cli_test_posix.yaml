@@ -49,7 +49,7 @@ jobs:
         run: cd python/
 
       - name: final dir
-        echo: $PWD
+        run: echo $PWD
 
       - name: Test ecatread
         run: "python3 -m tests.test_ecatread"
