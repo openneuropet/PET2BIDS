@@ -13,11 +13,11 @@ jobs:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: PETdata_in/Siemens_ecat/ECAT7_multiframe.v
-      TEST_ECAT_PATH: python/tests/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: python/tests/ECAT7_multiframe.nii
-      READ_ECAT_SAVE_AS_MATLAB: python/tests/ECAT7_multiframe.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: python/tests/ECAT7_multiframe.nibabel.mat
+      SMALLER_ECAT_PATH: ${{ github.workspace }}/PETdata_in/Siemens_ecat/ECAT7_multiframe.v
+      TEST_ECAT_PATH: ${{ github.workspace }}/python/tests/ECAT7_multiframe.v
+      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/python/tests/ECAT7_multiframe.nii
+      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/python/tests/ECAT7_multiframe.mat
+      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/python/tests/ECAT7_multiframe.nibabel.mat
 
 
     strategy:
@@ -48,8 +48,9 @@ jobs:
 
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
-        env:
-          TEST_ECAT_PATH: ${{ github.workspace }}/${{ env.TEST_ECAT_PATH }}
+        #env:
+        #  TEST_ECAT_PATH: ${{ github.workspace }}/${{ env.TEST_ECAT_PATH }}
+
 
       - name: Test helper_functions
         run: "cd python/ && python3 -m tests.test_helper_functions"
