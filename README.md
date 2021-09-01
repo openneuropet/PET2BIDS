@@ -1,4 +1,7 @@
+
 # BIDS-converter
+
+![Python CLI]()
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). 
 

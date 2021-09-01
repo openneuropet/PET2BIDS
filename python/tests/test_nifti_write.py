@@ -7,7 +7,6 @@ from datetime import datetime
 from ecat2nii import ecat2nii
 from nibabel import load
 import numpy
-import scipy
 
 # collect path to test ecat file
 dotenv.load_dotenv(dotenv.find_dotenv())  # load path from .env file into env
@@ -30,7 +29,6 @@ if __name__ == '__main__':
     """
     read_and_write = Ecat(ecat_file=ecat_path, nifti_file=nifti_path)
     time_zero = datetime.fromtimestamp(read_and_write.ecat_header['DOSE_START_TIME']).strftime('%I:%M:%S')
-    #nifti_path = read_and_write.make_nifti()
     read_and_write.populate_sidecar()
     read_and_write.prune_sidecar()
 
@@ -58,14 +56,14 @@ if __name__ == '__main__':
     if all_zero:
         print("They the same")
     else:
-        print("Something is happening.")
+        raise Exception("Something is happening.")
 
     pickle_zero = numpy.all(pickle_difference == 0.0)
 
     if pickle_zero:
         print("Pickle difference zero.")
     else:
-        print("Pickle differs from returned nifti from ecat2nii function.")
+        raise Exception("Pickle differs from returned nifti from ecat2nii function.")
 
 
 

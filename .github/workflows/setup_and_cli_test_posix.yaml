@@ -12,8 +12,12 @@ jobs:
     env:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
-      NIFTI_TEST_FOLDER: "nifti_test"
-      TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+      TEST_ECAT_PATH: PETData_in/Siemens_ecat/ECAT7_multiframe.v
+      OUTPUT_NIFTI_PATH: PETData_in/Siemens_ecat/nifti_test.nii
+      READ_ECAT_SAVE_AS_MATLAB: ${{ env.TEST_ECAT_PATH }}.mat
+      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ env.TEST_ECAT_PATH }}.nibabel.mat
+
 
     strategy:
       matrix:
@@ -36,5 +40,5 @@ jobs:
         run: python3 python/main.py --help
 
       - name: Test CLI Ecat Dump
-        run: "python3 python/main.py ${{ env.TEST_ECAT_PATH }} --dump"
+        run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
