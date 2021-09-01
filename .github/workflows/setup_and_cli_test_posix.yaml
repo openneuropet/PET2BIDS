@@ -1,4 +1,4 @@
-name: Setup and Test Run
+name: Python ECAT Test
 on:
   push:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  Collect-Data-Test-CLI:
+  Collect-Data-Test-Python:
     runs-on: ${{ matrix.os }}
 
     env:
@@ -43,14 +43,11 @@ jobs:
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
-      - name: Copy Test Files to tests/
+      - name: Copy Test File(s) to tests/
         run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
 
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
-        #env:
-        #  TEST_ECAT_PATH: ${{ github.workspace }}/${{ env.TEST_ECAT_PATH }}
-
 
       - name: Test helper_functions
         run: "cd python/ && python3 -m tests.test_helper_functions"
@@ -59,5 +56,5 @@ jobs:
         run: "cd python/ && python3 -m tests.test_nifti_write"
 
       - name: Test bytes
-        run: "cd python/ && python3 -m tests.test_thisbytes."
+        run: "cd python/ && python3 -m tests.test_thisbytes"
 
