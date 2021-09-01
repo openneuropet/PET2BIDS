@@ -42,26 +42,14 @@ jobs:
       - name: Test CLI Ecat Dump
         run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
-      - name: Starting dir
-        run: echo $PWD
-
-      - name: Change dir
-        run: cd python/
-
-      - name: final dir
-        run: echo $PWD
-
       - name: Test ecatread
-        run: "python3 -m tests.test_ecatread"
+        run: "cd python/ && python3 -m tests.test_ecatread"
 
       - name: Test helper_functions
-        run: "python3 -m tests.test_helper_functions"
+        run: "cd python/ && python3 -m tests.test_helper_functions"
 
       - name: Test nifti write
-        run: "python3 -m tests.test_nifti_write"
+        run: "cd python/ && python3 -m tests.test_nifti_write"
 
       - name: Test bytes
-        run: "python3 -m tests.test_thisbytes."
-
-      - name: Return to Repository main level
-        run: popd
+        run: "cd python/ && python3 -m tests.test_thisbytes."
