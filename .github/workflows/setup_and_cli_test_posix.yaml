@@ -49,7 +49,7 @@ jobs:
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
         env:
-          TEST_ECAT_PATH: ${{GITHUB_WORKSPACE}}/${{env.TEST_ECAT_PATH}}
+          TEST_ECAT_PATH: ${{ github.workspace }}/${{ env.TEST_ECAT_PATH }}
 
       - name: Test helper_functions
         run: "cd python/ && python3 -m tests.test_helper_functions"
