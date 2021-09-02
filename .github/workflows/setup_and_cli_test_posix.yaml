@@ -73,11 +73,12 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.TEST_ECAT_PATH }}');
+            ecat2nii_test('ECAT7_multiframe.v')
         if: matrix.os == 'ubuntu-latest'
 
-      # no matlab on the osx see if:
-      - name: run ecat2nii.m
-        uses: matlab-actions/run-command@v1
-        with:
-          command: ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
-        if: matrix.os == 'ubuntu-latest'
+#      # no matlab on the osx see if:
+#      - name: run ecat2nii.m
+#        uses: matlab-actions/run-command@v1
+#        with:
+#          command: ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
+#        if: matrix.os == 'ubuntu-latest'
