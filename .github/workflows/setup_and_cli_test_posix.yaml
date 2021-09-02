@@ -60,10 +60,10 @@ jobs:
         run: "cd python/ && python3 -m tests.test_thisbytes"
 
       - name: Perform setup-matlab
-        uses: matlab-actions/setup-matlab@v0
+        uses: matlab-actions/setup-matlab@v1
 
       - name: Add Matlab Code Folder to Path
-        uses: ./
+        uses: matlab-actions/run-command@v1
         with:
           command: |
             addpath('${{ env.MATLAB_CODE_PATH }}');
@@ -72,6 +72,6 @@ jobs:
             addpath('${{ env.TEST_ECAT_PATH }}');
 
       - name: run ecat2nii.m
-        uses: ./
+        uses: matlab-actions/run-command@v1
         with:
           command: ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
