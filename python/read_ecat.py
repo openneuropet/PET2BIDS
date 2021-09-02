@@ -13,7 +13,7 @@ data_dir = code_dir.parent
 
 # collect ecat header maps
 try:
-    with open(join(data_dir, 'ecat_info', 'ecat_headers.json'), 'r') as infile:
+    with open(join(parent_dir,  'ecat_headers.json'), 'r') as infile:
         ecat_header_maps = json.load(infile)
 except FileNotFoundError:
     raise Exception("Unable to load header definitions and map from ecat_headers.json. Aborting.")
@@ -39,7 +39,6 @@ def get_ecat_bytes(path_to_ecat: str):
 
 def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
     """
-
     :param path_to_bytes:
     :param byte_start:
     :param byte_stop:
@@ -158,12 +157,9 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
     return header, read_head_position
 
 
-def read_ecat(ecat_file: str, calibrated: bool = False):
+def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool = True):
     """
     Reads in an ecat file and collects the main header data, subheader data, and imagining data.
-    This function does not differentiate between different versions of ECAT files, it only uses
-    the ecat72 mainheader and ecat72_subheaders. This function still works on 7.3 ECAT files,
-    but misses some additional fields included in the header schema's of each.
 
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
@@ -193,7 +189,6 @@ def read_ecat(ecat_file: str, calibrated: bool = False):
         else:
             # we've yet to see any images yet that aren't 7.3 so it's a safe bet
             ecat_version = 73
-            print(f"Couldn't determine an ECAT version, defaulting to {ecat_version}")
 
     ecat_main_header = ecat_header_maps['ecat_headers'][str(ecat_version)]['mainheader']
 
@@ -315,7 +310,8 @@ def read_ecat(ecat_file: str, calibrated: bool = False):
     subheaders, data = [], []
     for i in range(len(sorted_directory.T)):
         frame_number = i + 1
-        print(f"Reading subheader from frame {frame_number}")
+        if collect_pixel_data:
+            print(f"Reading subheader from frame {frame_number}")
 
         # collect frame info/column
         frame_info = sorted_directory[:, i]
@@ -328,52 +324,59 @@ def read_ecat(ecat_file: str, calibrated: bool = False):
                                                    ecat_file,
                                                    byte_offset=frame_start_byte_position)
 
-        # collect pixel data from file
-        pixel_data = read_bytes(path_to_bytes=ecat_file,
-                                byte_start=512 * frame_start,
-                                byte_stop=512 * frame_stop)
+        if collect_pixel_data:
+            # collect pixel data from file
+            pixel_data = read_bytes(path_to_bytes=ecat_file,
+                                    byte_start=512 * frame_start,
+                                    byte_stop=512 * frame_stop)
 
-        # calculate size of matrix for pixel data, may vary depending on image type (polar, 3d, etc.)
-        if subheader_type_number == 7:
-            image_size = [subheader['X_DIMENSION'], subheader['Y_DIMENSION'], subheader['Z_DIMENSION']]
-            # check subheader for pixel datatype
-            if subheader['DATA_TYPE'] == 5:
-                pixel_data_type = '>f4'
-            elif subheader['DATA_TYPE'] == 6:
-                pixel_data_type = '>i2'
+            # calculate size of matrix for pixel data, may vary depending on image type (polar, 3d, etc.)
+            if subheader_type_number == 7:
+                image_size = [subheader['X_DIMENSION'], subheader['Y_DIMENSION'], subheader['Z_DIMENSION']]
+                # check subheader for pixel datatype
+                if subheader['DATA_TYPE'] == 5:
+                    pixel_data_type = '>f4'
+                elif subheader['DATA_TYPE'] == 6:
+                    pixel_data_type = '>i2'
 
-            # read it into a one dimensional matrix
-            pixel_data_matrix = numpy.frombuffer(pixel_data,
-                                                 dtype=numpy.dtype(pixel_data_type),
-                                                 count=image_size[0] * image_size[1] * image_size[2])
-            # reshape 1d matrix into 2d, using order F for fortran to keep parity w/ matlab converters
-            pixel_data_matrix_2d = numpy.reshape(pixel_data_matrix,
-                                                 (image_size[0] * image_size[1], image_size[2]),
-                                                 order='F')
-            # just making debugging less awful memory wise
-            del pixel_data_matrix
-            # reshape into 3d
-            pixel_data_matrix_3d = numpy.reshape(pixel_data_matrix_2d,
-                                                 (image_size[0], image_size[1], image_size[2]),
-                                                 order='F')
-            # again freeing memory manually, python probably takes care of this and this is unnecessary
-            del pixel_data_matrix_2d
+                # read it into a one dimensional matrix
+                pixel_data_matrix = numpy.frombuffer(pixel_data,
+                                                     dtype=numpy.dtype(pixel_data_type),
+                                                     count=image_size[0] * image_size[1] * image_size[2])
+                # reshape 1d matrix into 2d, using order F for fortran to keep parity w/ matlab converters
+                pixel_data_matrix_2d = numpy.reshape(pixel_data_matrix,
+                                                     (image_size[0] * image_size[1], image_size[2]),
+                                                     order='F')
+                # just making debugging less awful memory wise
+                del pixel_data_matrix
+                # reshape into 3d
+                pixel_data_matrix_3d = numpy.reshape(pixel_data_matrix_2d,
+                                                     (image_size[0], image_size[1], image_size[2]),
+                                                     order='F')
+                # again freeing memory manually, python probably takes care of this and this is unnecessary
+                del pixel_data_matrix_2d
+            else:
+                raise Exception(f"Unable to determine frame image size, unsupported image type {subheader_type_number}")
+
+            # we assume the user doesn't want to do multiplication to adjust for calibration here
+            if calibrated:
+                calibration_factor = subheader['SCALE_FACTOR'] * main_header['ECAT_CALIBRATION_FACTOR']
+                calibrated_pixel_data_matrix_3d = calibration_factor * pixel_data_matrix_3d
+                data.append(calibrated_pixel_data_matrix_3d)
+            else:
+                data.append(pixel_data_matrix_3d)
         else:
-            raise Exception(f"Unable to determine frame image size, unsupported image type {subheader_type_number}")
-
-        # we assume the user doesn't want to do multiplication to adjust for calibration here
-        if calibrated:
-            calibration_factor = subheader['SCALE_FACTOR'] * main_header['ECAT_CALIBRATION_FACTOR']
-            calibrated_pixel_data_matrix_3d = calibration_factor * pixel_data_matrix_3d
-            data.append(calibrated_pixel_data_matrix_3d)
-        else:
-            data.append(pixel_data_matrix_3d)
+            data = None
 
         subheaders.append(subheader)
 
-    # return 4d array instead of list of 3d arrays
-    pixel_data_matrix_4d = numpy.zeros(tuple(image_size + [len(data)]), dtype=numpy.dtype(pixel_data_type))
-    for index, frame in enumerate(data):
-        pixel_data_matrix_4d[:, :, :, index] = frame
+    if collect_pixel_data:
+        # return 4d array instead of list of 3d arrays
+        pixel_data_matrix_4d = numpy.zeros(tuple(image_size + [len(data)]), dtype=numpy.dtype(pixel_data_type))
+        for index, frame in enumerate(data):
+            pixel_data_matrix_4d[:, :, :, index] = frame
+
+    else:
+        pixel_data_matrix_4d = None
 
     return main_header, subheaders, pixel_data_matrix_4d
