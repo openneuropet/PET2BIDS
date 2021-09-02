@@ -59,9 +59,12 @@ jobs:
       - name: Test bytes
         run: "cd python/ && python3 -m tests.test_thisbytes"
 
+        # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
         uses: matlab-actions/setup-matlab@v1
+        if: matrix.os == 'ubuntu-latest'
 
+        # Again only running this on ubuntu
       - name: Add Matlab Code Folder to Path
         uses: matlab-actions/run-command@v1
         with:
@@ -70,8 +73,11 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.TEST_ECAT_PATH }}');
+        if: matrix.os == 'ubuntu-latest
 
+      # no matlab on the osx see if:
       - name: run ecat2nii.m
         uses: matlab-actions/run-command@v1
         with:
           command: ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
+        if: matrix.os == 'ubuntu-latest'
