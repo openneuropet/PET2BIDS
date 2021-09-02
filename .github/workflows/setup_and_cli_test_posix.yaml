@@ -65,7 +65,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
         # Again only running this on ubuntu
-      - name: Add Matlab Code Folder to Path
+      - name: Add Matlab Code Folder to Path and Run Tests
         uses: matlab-actions/run-command@v1
         with:
           command: |
