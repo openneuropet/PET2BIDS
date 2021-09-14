@@ -55,40 +55,47 @@ def write_header(filepath: str, schema: dict, values: dict = {}, byte_offset: in
     :return: the end byte position, spoilers this will be 512 bytes offset from byte_position if that argument is
     supplied.
     """
-    print(f"Writing to {filepath}")
-    for entry in schema:
-        byte_position, data_type, variable_name = entry['byte'] + byte_offset, entry['type'], entry['variable_name']
-        byte_width = get_buffer_size(data_type, variable_name)
-        write_these_bytes = []
-        value_to_write = values.get(variable_name, None)
-        if 'Character' in data_type:
-            if not value_to_write:
-                value_to_write = 'X' * byte_width
-            else:
-                padding_format = str((byte_width - len(value_to_write))) + 'x'
-                write_these_bytes = bytes(value_to_write, 'ascii') + struct.pack(padding_format)
-        elif 'Integer' in data_type:
-            if not value_to_write:
-                value_to_write = [0]
-            if byte_width == 4 and 'fill' not in variable_name.lower():
-                struct_format = '>i'
-            elif byte_width == 2 and 'fill' not in variable_name.lower():
-                struct_format = '>h'
-            else:
+
+    # open file for writing bytes
+    with open(filepath, 'wb') as outfile:
+
+        for entry in schema:
+            byte_position, data_type, variable_name = entry['byte'] + byte_offset, entry['type'], entry['variable_name']
+            byte_width = get_buffer_size(data_type, variable_name)
+            write_these_bytes = []
+            value_to_write = values.get(variable_name, None)
+            if 'Character' in data_type:
+                if not value_to_write:
+                    value_to_write = 'X' * byte_width
                 if len(value_to_write) != byte_width:
-                    value_to_write = value_to_write*byte_width
+                    padding_format = str((byte_width - len(value_to_write))) + 'x'
+                    padding = struct.pack(padding_format)
+                else:
+                    padding = b''
+                write_these_bytes = bytes(value_to_write, 'ascii') + padding
+            elif 'Integer' in data_type:
+                if not value_to_write:
+                    value_to_write = [0]
+                if byte_width == 4 and 'fill' not in variable_name.lower():
+                    struct_format = '>i'
+                elif byte_width == 2 and 'fill' not in variable_name.lower():
+                    struct_format = '>h'
+                else:
+                    if len(value_to_write) != byte_width:
+                        value_to_write = value_to_write*byte_width
 
-                struct_format = '>' + str(byte_width) + 'h'
+                    struct_format = '>' + str(byte_width) + 'h'
 
-            write_these_bytes = struct.pack(struct_format, *value_to_write)
-        elif 'Real' in data_type:
-            num_of_fs = int(byte_width/4)
-            struct_format = '>' + str(num_of_fs) + 'f'
-            if not value_to_write:
-                value_to_write = [0.0]*num_of_fs
+                write_these_bytes = struct.pack(struct_format, *value_to_write)
+            elif 'Real' in data_type:
+                num_of_fs = int(byte_width/4)
+                struct_format = '>' + str(num_of_fs) + 'f'
+                if not value_to_write:
+                    value_to_write = [0.0]*num_of_fs
 
-            write_these_bytes = struct.pack(struct_format, *value_to_write)
-        print(f"Variable nam print(byte_position)e: {variable_name}, type: {data_type}, value to write: {value_to_write}", f'bytes: {write_these_bytes}')
+                write_these_bytes = struct.pack(struct_format, *value_to_write)
+            #print(f"Variable nam print(byte_position)e: {variable_name}, type: {data_type}, value to write: {value_to_write}", f'bytes: {write_these_bytes}')
+            outfile.write(write_these_bytes)
 
     return byte_width + byte_position
 
@@ -102,7 +109,7 @@ def write_pixel_data(filepath: str, pixel_data: numpy.ndarray, byte_position: in
 
 
 if __name__ == "__main__":
-    x = write_header('/home/anthony', ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
+    x = write_header('bytes.txt', ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
     print(x)
 
 
