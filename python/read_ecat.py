@@ -227,7 +227,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     while True:
         # The exit conditions for this loop are below
         # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
-        # if [2,1] of the directory is 2 break ???? up for interpretation as to the exact meaning but,
+        # if [2,1] of the directory is 2 break ????, up for interpretation as to the exact meaning but,
         # observed to signal the end of an additional 512 byte block/buffer when the number of frames
         # exceeds 31
 
@@ -235,7 +235,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
         # reshape 1d array into 2d, a 4 row by 32 column table is expected
         reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
         # chop off columns after 32, rows after 32 appear to be noise
-        reshaped = reshaped[:, 0:32]
+        reshaped = reshaped[:, 0:read_byte_array[3] + 1]
         # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
         directory_size = reshaped[3, 0]
         if directory_size == 0:
