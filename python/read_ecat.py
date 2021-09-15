@@ -13,12 +13,13 @@ data_dir = code_dir.parent
 
 # collect ecat header maps
 try:
-    with open(join(parent_dir,  'ecat_headers.json'), 'r') as infile:
+    with open(join(parent_dir, 'ecat_headers.json'), 'r') as infile:
         ecat_header_maps = json.load(infile)
 except FileNotFoundError:
     raise Exception("Unable to load header definitions and map from ecat_headers.json. Aborting.")
 
 
+# noinspection PyShadowingNames
 def get_ecat_bytes(path_to_ecat: str):
     """
     Opens an ecat file and reads the entrie file into memory to return a bytes object
@@ -163,6 +164,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
 
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
+    :param collect_pixel_data: By default collects the entire ecat, can be passed false to only return headers
     CALIBRATION_FACTOR in the main header
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
     """
@@ -252,7 +254,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
         # looks like there is more directory to read, collect some more bytes
         next_block = read_bytes(
             path_to_bytes=ecat_file,
-            byte_start=(next_directory_position-1) * 512,
+            byte_start=(next_directory_position - 1) * 512,
             byte_stop=next_directory_position * 512
         )
 
@@ -340,21 +342,10 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                     pixel_data_type = '>i2'
 
                 # read it into a one dimensional matrix
-                pixel_data_matrix = numpy.frombuffer(pixel_data,
-                                                     dtype=numpy.dtype(pixel_data_type),
-                                                     count=image_size[0] * image_size[1] * image_size[2])
-                # reshape 1d matrix into 2d, using order F for fortran to keep parity w/ matlab converters
-                pixel_data_matrix_2d = numpy.reshape(pixel_data_matrix,
-                                                     (image_size[0] * image_size[1], image_size[2]),
-                                                     order='F')
-                # just making debugging less awful memory wise
-                del pixel_data_matrix
-                # reshape into 3d
-                pixel_data_matrix_3d = numpy.reshape(pixel_data_matrix_2d,
-                                                     (image_size[0], image_size[1], image_size[2]),
-                                                     order='F')
-                # again freeing memory manually, python probably takes care of this and this is unnecessary
-                del pixel_data_matrix_2d
+                pixel_data_matrix_3d = numpy.frombuffer(pixel_data,
+                                                        dtype=numpy.dtype(pixel_data_type),
+                                                        count=image_size[0] * image_size[1] * image_size[2]).reshape(
+                    *image_size, order='F')
             else:
                 raise Exception(f"Unable to determine frame image size, unsupported image type {subheader_type_number}")
 
