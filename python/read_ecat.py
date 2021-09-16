@@ -140,9 +140,10 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
             raw_bytes_filtered = bytes(filter(None, raw_bytes))
             decoded_bytes = str(raw_bytes_filtered, 'UTF-8')
         elif 'Integer' in data_type:
-            # we let python's int do the heavy lifting here since python only has 1 type anyway, no issues w/ this
-            # instead of using struct.unpack.
-            decoded_bytes = int.from_bytes(raw_bytes, 'big')
+            if 'fill' in str.lower(variable_name):
+                decoded_bytes = struct.unpack('>' + byte_width//2 * 'h', raw_bytes)
+            else:
+                decoded_bytes = int.from_bytes(raw_bytes, 'big')
         elif 'Real' in data_type:
             # using struct and c data types to decode
             number_of_fs = int(byte_width / 4)  # this corresponds to the number of bytes the variable has Real*4 -> 1
@@ -156,6 +157,46 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
         read_head_position = relative_byte_position + byte_width
 
     return header, read_head_position
+
+
+def get_directory_data(byte_block, ecat_file):
+    directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
+    while True:
+        # The exit conditions for this loop are below
+        # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
+        # if [2,1] of the directory is 2 break ????, up for interpretation as to the exact meaning but,
+        # observed to signal the end of an additional 512 byte block/buffer when the number of frames
+        # exceeds 31
+
+        read_byte_array = numpy.frombuffer(byte_block, dtype=numpy.dtype('>i4'), count=-1)
+        # reshape 1d array into 2d, a 4 row by 32 column table is expected
+        reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
+        # chop off columns after 32, rows after 32 appear to be noise
+        reshaped = reshaped[:, 0:read_byte_array[3] + 1]
+        # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
+        directory_size = reshaped[3, 0]
+        if directory_size == 0:
+            break
+        # on the first pass do this
+        if directory is None:
+            directory = reshaped[:, 1:directory_size + 1]
+        else:
+            directory = numpy.append(directory, reshaped[:, 1:directory_size + 1], axis=1)
+        # determine if this is the last directory by examining the 2nd row of the first column of the buffer
+        next_directory_position = reshaped[1, 0]
+        if next_directory_position == 2:
+            break
+        # looks like there is more directory to read, collect some more bytes
+        byte_block = read_bytes(
+            path_to_bytes=ecat_file,
+            byte_start=(next_directory_position - 1) * 512,
+            byte_stop=next_directory_position * 512
+        )
+
+    # sort the directory contents as they're sometimes out of order
+    sorted_directory = directory[:, directory[0].argsort()]
+
+    return sorted_directory
 
 
 def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool = True):
@@ -173,26 +214,20 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     for entry, dictionary in ecat_header_maps['ecat_headers'].items():
         possible_ecat_headers[entry] = dictionary['mainheader']
 
-    read_headers = {}
+    confirmed_version = None
     for version, dictionary in possible_ecat_headers.items():
         try:
-            read_headers[version], _ = get_header_data(dictionary, ecat_file)
+            possible_header, _ = get_header_data(dictionary, ecat_file)
+            if version == str(possible_header['SW_VERSION']):
+                confirmed_version = version
+                break
         except UnicodeDecodeError:
-            pass
+            continue
 
-    # check on whether or not it's an ecat 6 or 7
-    for version, values in read_headers.items():
-        # note this is untested for ecat versions <7.x and may need to be refactored if the 6.X version field is not
-        # of the form 'SW_VERSION'=XX where XX is an int16. This will work for 7.2 and 7.3 however as their respective
-        # sw versions are: 'SW_VERSION'=72 and 'SW_VERSION'=73 respectively.
-        if version == values.get('SW_VERSION', None):
-            ecat_version = version
-            break
-        else:
-            # we've yet to see any images yet that aren't 7.3 so it's a safe bet
-            ecat_version = 73
+    if not confirmed_version:
+        raise Exception(f"Unable to determine ECAT File Type from these types {possible_ecat_headers.keys()}")
 
-    ecat_main_header = ecat_header_maps['ecat_headers'][str(ecat_version)]['mainheader']
+    ecat_main_header = ecat_header_maps['ecat_headers'][confirmed_version]['mainheader']
 
     main_header, read_to = get_header_data(ecat_main_header, ecat_file)
     # end collect main header
@@ -225,41 +260,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
         byte_start=read_to,
         byte_stop=read_to + 512)
 
-    directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
-    while True:
-        # The exit conditions for this loop are below
-        # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
-        # if [2,1] of the directory is 2 break ????, up for interpretation as to the exact meaning but,
-        # observed to signal the end of an additional 512 byte block/buffer when the number of frames
-        # exceeds 31
-
-        read_byte_array = numpy.frombuffer(next_block, dtype=numpy.dtype('>i4'), count=-1)
-        # reshape 1d array into 2d, a 4 row by 32 column table is expected
-        reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
-        # chop off columns after 32, rows after 32 appear to be noise
-        reshaped = reshaped[:, 0:read_byte_array[3] + 1]
-        # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
-        directory_size = reshaped[3, 0]
-        if directory_size == 0:
-            break
-        # on the first pass do this
-        if directory is None:
-            directory = reshaped[:, 1:directory_size + 1]
-        else:
-            directory = numpy.append(directory, reshaped[:, 1:directory_size + 1], axis=1)
-        # determine if this is the last directory by examining the 2nd row of the first column of the buffer
-        next_directory_position = reshaped[1, 0]
-        if next_directory_position == 2:
-            break
-        # looks like there is more directory to read, collect some more bytes
-        next_block = read_bytes(
-            path_to_bytes=ecat_file,
-            byte_start=(next_directory_position - 1) * 512,
-            byte_stop=next_directory_position * 512
-        )
-
-    # sort the directory contents as they're sometimes out of order
-    sorted_directory = directory[:, directory[0].argsort()]
+    directory = get_directory_data(next_block, ecat_file)
 
     # determine subheader type by checking main header
     subheader_type_number = main_header['FILE_TYPE']
@@ -303,20 +304,20 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     """
 
     # collect the bytes map file for the designated subheader, note some are not supported.
-    subheader_map = ecat_header_maps['ecat_headers'][str(ecat_version)][str(subheader_type_number)]
+    subheader_map = ecat_header_maps['ecat_headers'][confirmed_version][str(subheader_type_number)]
 
     if not subheader_map:
         raise Exception(f"Unsupported data type: {subheader_type_number}")
 
     # collect subheaders and pixel data
     subheaders, data = [], []
-    for i in range(len(sorted_directory.T)):
+    for i in range(len(directory.T)):
         frame_number = i + 1
         if collect_pixel_data:
             print(f"Reading subheader from frame {frame_number}")
 
         # collect frame info/column
-        frame_info = sorted_directory[:, i]
+        frame_info = directory[:, i]
         frame_start = frame_info[1]
         frame_stop = frame_info[2]
 

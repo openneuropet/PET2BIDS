@@ -50,7 +50,9 @@ def cli():
 
 def main():
     cli_args = cli()
-    if cli_args.dump:
+    if cli_args.convert:
+        collect_pixel_data = True
+    else:
         collect_pixel_data = False
     if cli_args.scannerparams is not None:
         # if no args are supplied to --scannerparams/-s

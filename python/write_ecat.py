@@ -59,6 +59,7 @@ def write_header(file, schema: dict, values: dict = {}, byte_offset: int = 0):
         byte_position, data_type, variable_name = entry['byte'] + byte_offset, entry['type'], entry['variable_name']
         byte_width = get_buffer_size(data_type, variable_name)
         value_to_write = values.get(variable_name, None)
+
         if 'Character' in data_type:
             if not value_to_write:
                 value_to_write = 'X' * byte_width
@@ -71,15 +72,19 @@ def write_header(file, schema: dict, values: dict = {}, byte_offset: int = 0):
         elif 'Integer' in data_type:
             if not value_to_write:
                 value_to_write = [0]
+            elif type(value_to_write) is not list and type(value_to_write) is not tuple:
+                value_to_write = [value_to_write]
             if byte_width == 4 and 'fill' not in variable_name.lower():
-                struct_format = '>i'
+                struct_format = 'l'
             elif byte_width == 2 and 'fill' not in variable_name.lower():
                 struct_format = '>h'
-            else:
-                if len(value_to_write) != byte_width:
-                    value_to_write = value_to_write*byte_width
+            elif 'fill' in variable_name.lower():
+                struct_format = '>' + 'h'*len(value_to_write)
+            #else:
+            #    if len(value_to_write) != byte_width:
+            #        value_to_write = value_to_write*byte_width
 
-                struct_format = '>' + str(byte_width) + 'h'
+                #struct_format = '>' + str(byte_width) + 'h'
 
             write_these_bytes = struct.pack(struct_format, *value_to_write)
         elif 'Real' in data_type:
@@ -87,6 +92,8 @@ def write_header(file, schema: dict, values: dict = {}, byte_offset: int = 0):
             struct_format = '>' + str(num_of_fs) + 'f'
             if not value_to_write:
                 value_to_write = [0.0]*num_of_fs
+            elif type(value_to_write) is not list:
+                value_to_write = [value_to_write]
 
             write_these_bytes = struct.pack(struct_format, *value_to_write)
         file.write(write_these_bytes)
@@ -143,10 +150,12 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
             table[3, 0] = frames_to_iterate
 
         for column in range(frames_to_iterate):
-            table[0, column + 1] = directory_order.pop()
+            if column != 0:
+                table_byte_position += 1
+            table[0, column + 1] = directory_order.pop(0)
             table[1, column + 1] = table_byte_position
             table_byte_position = int((pixel_byte_size * pixel_volume)/512 + table_byte_position)
-            table[2, column + 1] = table_byte_position + 1
+            table[2, column + 1] = table_byte_position
             table[3, column + 1] = 1
         directory_tables.append(table)
 
@@ -180,6 +189,7 @@ def write_pixel_data(file, pixel_data: numpy.ndarray):
 
 
 if __name__ == "__main__":
+
     with open('bytes.v', 'wb') as outfile:
         x = write_header(outfile, ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
         fake_data = numpy.ndarray([4, 4, 4, 4], dtype='>i2')
