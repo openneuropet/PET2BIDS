@@ -17,7 +17,7 @@
                     "variable_name": "%FILL(14)",
                     "type": "Integer*2",
                     "comment": "User reserved space (28 bytes)",
-                    "struct": "H"
+                    "struct": "14H"
                 },
                 {
                     "byte": 28,
@@ -367,7 +367,7 @@
                     "variable_name": "BED_OFFSET(15)",
                     "type": "Real*4",
                     "comment": "Offset from INIT_BED_POSITION (in cm.)",
-                    "struct": "f"
+                    "struct": "14f"
                 },
                 {
                     "byte": 448,
@@ -416,7 +416,7 @@
                     "variable_name": "%FILL(20)",
                     "type": "Integer*2",
                     "comment": "User reserved space (40 bytes)",
-                    "struct": "H"
+                    "struct": "20H"
                 }
             ],
             "subheader_matrix_scan_files": [
@@ -425,7 +425,7 @@
                     "variable_name": "%FILL(63)",
                     "type": "Integer*2",
                     "comment": "User reserved space (126 bytes)",
-                    "struct": "H"
+                    "struct": "63H"
                 },
                 {
                     "byte": 126,
@@ -439,7 +439,7 @@
                     "variable_name": "%FILL(2)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "2H"
                 },
                 {
                     "byte": 132,
@@ -474,7 +474,7 @@
                     "variable_name": "%FILL(3)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "3H"
                 },
                 {
                     "byte": 146,
@@ -488,7 +488,7 @@
                     "variable_name": "%FILL(8)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "8H"
                 },
                 {
                     "byte": 166,
@@ -537,7 +537,7 @@
                     "variable_name": "%FILL(3)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "3H"
                 },
                 {
                     "byte": 192,
@@ -586,21 +586,21 @@
                     "variable_name": "%FILL(52)",
                     "type": "Integer*2",
                     "comment": "User reserved space (104 bytes)",
-                    "struct": "H"
+                    "struct": "52H"
                 },
                 {
                     "byte": 316,
                     "variable_name": "COR_SINGLES(16)",
                     "type": "Real*4",
                     "comment": "Total singles with loss correction factoring",
-                    "struct": "f"
+                    "struct": "16f"
                 },
                 {
                     "byte": 380,
                     "variable_name": "UNCOR_SINGLES(16)",
                     "type": "Real*4",
                     "comment": "Total singles without loss correction factoring",
-                    "struct": "f"
+                    "struct": "16f"
                 },
                 {
                     "byte": 444,
@@ -649,7 +649,7 @@
                     "variable_name": "%FILL(22)",
                     "type": "Integer*2",
                     "comment": "Unused (44 bytes)",
-                    "struct": "H"
+                    "struct": "22H"
                 }
             ],
             "subheader_matrix_image_files": [
@@ -658,7 +658,7 @@
                     "variable_name": "%FILL(63)",
                     "type": "Integer*2",
                     "comment": "User reserved space (126 bytes)",
-                    "struct": "H"
+                    "struct": "63H"
                 },
                 {
                     "byte": 126,
@@ -700,7 +700,7 @@
                     "variable_name": "%FILL(12)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "12H"
                 },
                 {
                     "byte": 160,
@@ -749,7 +749,7 @@
                     "variable_name": "%FILL(2)",
                     "type": "Integer*2",
                     "comment": "Unused",
-                    "struct": "H"
+                    "struct": "2H"
                 },
                 {
                     "byte": 184,
@@ -819,7 +819,7 @@
                     "variable_name": "%FILL(12)",
                     "type": "Integer*2",
                     "comment": "Unused (24 bytes)",
-                    "struct": "H"
+                    "struct": "12H"
                 },
                 {
                     "byte": 236,
@@ -854,7 +854,7 @@
                     "variable_name": "%FILL(23)",
                     "type": "Integer*2",
                     "comment": "Unused (46 bytes)",
-                    "struct": "H"
+                    "struct": "23H"
                 },
                 {
                     "byte": 296,
@@ -889,7 +889,7 @@
                     "variable_name": "%FILL(32)",
                     "type": "Integer*2",
                     "comment": "Unused (64 bytes)",
-                    "struct": "H"
+                    "struct": "32H"
                 },
                 {
                     "byte": 376,
@@ -952,7 +952,7 @@
                     "variable_name": "FILTER_PARAMS(6)",
                     "type": "Real*4",
                     "comment": "Cutoff frequency, DC component, ramp slope",
-                    "struct": "f"
+                    "struct": "6f"
                 },
                 {
                     "byte": 420,
@@ -966,7 +966,7 @@
                     "variable_name": "%FILL(26)",
                     "type": "Integer*2",
                     "comment": "User reserved space (52 bytes)",
-                    "struct": "H"
+                    "struct": "26H"
                 }
             ]
         },
@@ -1208,7 +1208,7 @@
                     "variable_name": "PATIENT_BIRTH_DATE",
                     "type": "Integer*4",
                     "comment": "Format is YYYYMMDD",
-                    "struct": "l"
+                    "struct": "I"
                 },
                 {
                     "byte": 232,
@@ -1292,7 +1292,7 @@
                     "variable_name": "BED_POSITION(15)",
                     "type": "Real*4",
                     "comment": "Absolute bed location (in cm.)",
-                    "struct": "f"
+                    "struct": "15f"
                 },
                 {
                     "byte": 424,
@@ -1389,7 +1389,7 @@
                     "variable_name": "FILL(6)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (12 bytes)",
-                    "struct": "H"
+                    "struct": "6H"
                 }
             ],
             "3": [
@@ -1552,7 +1552,7 @@
                     "variable_name": "ADDITIONAL_ATTEN_COEFF(8)",
                     "type": "Real*4",
                     "comment": "The additional attention coefficient values",
-                    "struct": "f"
+                    "struct": "8f"
                 },
                 {
                     "byte": 104,
@@ -1580,21 +1580,21 @@
                     "variable_name": "Z_ELEMENTS(64)",
                     "type": "Integer*2",
                     "comment": "Number of 'planes' in z direction for each ring difference segment",
-                    "struct": "H"
+                    "struct": "64H"
                 },
                 {
                     "byte": 240,
                     "variable_name": "FILL(86)",
                     "type": "Integer*2",
                     "comment": "Unused (172 bytes)",
-                    "struct": "H"
+                    "struct": "86H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
-                    "struct": "H"
+                    "struct": "50H"
                 }
             ],
             "7": [
@@ -2008,14 +2008,14 @@
                     "variable_name": "FILL(87)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (174 bytes)",
-                    "struct": "H"
+                    "struct": "87H"
                 },
                 {
                     "byte": 414,
                     "variable_name": "FILL(48)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
-                    "struct": "H"
+                    "struct": "48H"
                 }
             ],
             "5": [
@@ -2045,21 +2045,21 @@
                     "variable_name": "SECTORS_PER_RING(32)",
                     "type": "Integer*2",
                     "comment": "Number of sectors in each ring for up to 32 rings (1, 9, 18, or 32 sectors normally)",
-                    "struct": "H"
+                    "struct": "32H"
                 },
                 {
                     "byte": 70,
                     "variable_name": "RING_POSITION(32)",
                     "type": "Real*4",
                     "comment": "Fractional distance along the long axis from base to apex",
-                    "struct": "f"
+                    "struct": "32f"
                 },
                 {
                     "byte": 198,
                     "variable_name": "RING_ANGLE(32)",
                     "type": "Integer*2",
                     "comment": "Ring angle relative to long axis(90 degrees along cylinder, decreasing to 0 at the apex)",
-                    "struct": "H"
+                    "struct": "32H"
                 },
                 {
                     "byte": 262,
@@ -2073,14 +2073,14 @@
                     "variable_name": "LONG_AXIS_LEFT(3)",
                     "type": "Integer*2",
                     "comment": "x, y, z location of long axis base end (in pixels)",
-                    "struct": "H"
+                    "struct": "3H"
                 },
                 {
                     "byte": 270,
                     "variable_name": "LONG_AXIS_RIGHT(3)",
                     "type": "Integer*2",
                     "comment": "x, y, z location of long axis apex end (in pixels)",
-                    "struct": "H"
+                    "struct": "3H"
                 },
                 {
                     "byte": 276,
@@ -2192,14 +2192,14 @@
                     "variable_name": "FILL(27)",
                     "type": "Integer*2",
                     "comment": "Reserved for future CTI use (54 bytes)",
-                    "struct": "H"
+                    "struct": "27H"
                 },
                 {
                     "byte": 464,
                     "variable_name": "FILL(27)",
                     "type": "Integer*2",
                     "comment": "User reserved space (54 bytes) Note: Use highest bytes first",
-                    "struct": "H"
+                    "struct": "27H"
                 }
             ],
             "11": [
@@ -2243,7 +2243,7 @@
                     "variable_name": "NUM_Z_ELEMENTS(64)",
                     "type": "Integer*2",
                     "comment": "Number of elements in z dimension for each ring difference segment in 3D scans",
-                    "struct": "H"
+                    "struct": "64H"
                 },
                 {
                     "byte": 138,
@@ -2299,7 +2299,7 @@
                     "variable_name": "FILL(6)",
                     "type": "Integer*2",
                     "comment": "RESERVED for gating",
-                    "struct": "H"
+                    "struct": "6H"
                 },
                 {
                     "byte": 172,
@@ -2418,21 +2418,21 @@
                     "variable_name": "FILL(90)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (180 bytes)",
-                    "struct": "H"
+                    "struct": "90H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
-                    "struct": "H"
+                    "struct": "50H"
                 },
                 {
                     "byte": 512,
                     "variable_name": "UNCOR_SINGLES(128)",
                     "type": "Real*4",
                     "comment": "Total uncorrected singles from each bucket",
-                    "struct": "f"
+                    "struct": "128f"
                 }
             ],
             "13": [
@@ -2518,21 +2518,21 @@
                     "variable_name": "RING_DTCOR1(32)",
                     "type": "Real*4",
                     "comment": "First \u201cper ring\u201d dead time correction coefficient",
-                    "struct": "f"
+                    "struct": "32f"
                 },
                 {
                     "byte": 152,
                     "variable_name": "RING_DTCOR2(32)",
                     "type": "Real*4",
                     "comment": "Second \u201cper ring\u201d dead time correction coefficient",
-                    "struct": "f"
+                    "struct": "32f"
                 },
                 {
                     "byte": 280,
                     "variable_name": "CRYSTAL_DTCOR(8)",
                     "type": "Real*4",
                     "comment": "Dead time correction factors for transaxial crystals",
-                    "struct": "f"
+                    "struct": "8f"
                 },
                 {
                     "byte": 312,
@@ -2553,14 +2553,14 @@
                     "variable_name": "FILL(48)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (96 bytes)",
-                    "struct": "H"
+                    "struct": "48H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
-                    "struct": "H"
+                    "struct": "50H"
                 }
             ],
             "subheader_imported_6.5_matrix_scan_files": [
@@ -2646,7 +2646,7 @@
                     "variable_name": "FILL(6)",
                     "type": "Integer*2",
                     "comment": "RESERVED for gating",
-                    "struct": "H"
+                    "struct": "6H"
                 },
                 {
                     "byte": 42,
@@ -2723,14 +2723,14 @@
                     "variable_name": "COR_SINGLES(16)",
                     "type": "Real*4",
                     "comment": "Total singles with loss correction factoring",
-                    "struct": "f"
+                    "struct": "16f"
                 },
                 {
                     "byte": 142,
                     "variable_name": "UNCOR_SINGLES(16)",
                     "type": "Real*4",
                     "comment": "Total singles without loss correction factoring",
-                    "struct": "f"
+                    "struct": "16f"
                 },
                 {
                     "byte": 206,
@@ -2779,21 +2779,21 @@
                     "variable_name": "PHYSICAL_PLANES(8)",
                     "type": "Integer*2",
                     "comment": "Physical planes that make up this logical plane",
-                    "struct": "H"
+                    "struct": "8H"
                 },
                 {
                     "byte": 246,
                     "variable_name": "FILL(83)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (166 bytes)",
-                    "struct": "H"
+                    "struct": "83H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
-                    "struct": "H"
+                    "struct": "50H"
                 }
             ]
         },
@@ -3035,7 +3035,7 @@
                     "variable_name": "PATIENT_BIRTH_DATE",
                     "type": "Integer*4",
                     "comment": "Format is YYYYMMDD",
-                    "struct": "l"
+                    "struct": "I"
                 },
                 {
                     "byte": 232,
@@ -3119,7 +3119,7 @@
                     "variable_name": "BED_POSITION(15)",
                     "type": "Real*4",
                     "comment": "Absolute bed location (in cm.)",
-                    "struct": "f"
+                    "struct": "15f"
                 },
                 {
                     "byte": 424,
@@ -3216,7 +3216,7 @@
                     "variable_name": "FILL(6)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (12 bytes)",
-                    "struct": "H"
+                    "struct": "6H"
                 }
             ],
             "3": [
@@ -3379,7 +3379,7 @@
                     "variable_name": "ADDITIONAL_ATTEN_COEFF(8)",
                     "type": "Real*4",
                     "comment": "The additional attention coefficient values",
-                    "struct": "f"
+                    "struct": "8f"
                 },
                 {
                     "byte": 104,
@@ -3407,21 +3407,21 @@
                     "variable_name": "Z_ELEMENTS(64)",
                     "type": "Integer*2",
                     "comment": "Number of 'planes' in z direction for each ring difference segment",
-                    "struct": "H"
+                    "struct": "64H"
                 },
                 {
                     "byte": 240,
                     "variable_name": "FILL(86)",
                     "type": "Integer*2",
                     "comment": "Unused (172 bytes)",
-                    "struct": "H"
+                    "struct": "86H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
-                    "struct": "H"
+                    "struct": "50H"
                 }
             ],
             "7": [
@@ -3863,14 +3863,14 @@
                     "variable_name": "FILL(87)",
                     "type": "Integer*2",
                     "comment": "",
-                    "struct": "H"
+                    "struct": "87H"
                 },
                 {
                     "byte": 430,
                     "variable_name": "FILL(41)",
                     "type": "Integer*2",
                     "comment": "",
-                    "struct": "H"
+                    "struct": "41H"
                 }
             ],
             "11": [
@@ -3914,7 +3914,7 @@
                     "variable_name": "NUM_Z_ELEMENTS(64)",
                     "type": "Integer*2",
                     "comment": "Number of elements in z dimension for each ring difference segment in 3D scans",
-                    "struct": "H"
+                    "struct": "64H"
                 },
                 {
                     "byte": 138,
@@ -3970,7 +3970,7 @@
                     "variable_name": "FILL(6)",
                     "type": "Integer*2",
                     "comment": "RESERVED for gating",
-                    "struct": "H"
+                    "struct": "6H"
                 },
                 {
                     "byte": 172,
@@ -4089,21 +4089,21 @@
                     "variable_name": "FILL(90)",
                     "type": "Integer*2",
                     "comment": "CTI Reserved space (180 bytes)",
-                    "struct": "H"
+                    "struct": "90H"
                 },
                 {
                     "byte": 412,
                     "variable_name": "FILL(50)",
                     "type": "Integer*2",
                     "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
-                    "struct": "H"
+                    "struct": "58H"
                 },
                 {
                     "byte": 512,
                     "variable_name": "UNCOR_SINGLES(128)",
                     "type": "Real*4",
                     "comment": "Total uncorrected singles from each bucket",
-                    "struct": "f"
+                    "struct": "128f"
                 }
             ]
         }

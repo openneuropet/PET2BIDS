@@ -95,6 +95,34 @@ def get_buffer_size(data_type, variable_name):
     return scalar
 
 
+def get_header_data_improved(header_data_map, ecat_file: str = '', byte_offset: int =0, clean=True):
+    header = {}
+
+    for value in header_data_map:
+        byte_position, variable_name, struct_fmt = value['byte'], value['variable_name'], '>' + value['struct']
+        byte_width = struct.calcsize(struct_fmt)
+        relative_byte_position = byte_position + byte_offset
+        raw_bytes = read_bytes(ecat_file, relative_byte_position, byte_width)
+        header[variable_name] = struct.unpack(struct_fmt, raw_bytes)
+        if clean and 'fill' not in variable_name.lower():
+            header[variable_name] = filter_bytes(header[variable_name], struct_fmt)
+        read_head_position = relative_byte_position + byte_width
+
+    return header, read_head_position
+
+
+def filter_bytes(unfiltered, struct_fmt):
+    if len(unfiltered) == 1:
+        unfiltered = unfiltered[0]
+    elif len(unfiltered) > 1:
+        unfiltered = list(unfiltered)
+    if 's' in struct_fmt:
+        filtered = str(bytes(filter(None, unfiltered)), 'UTF-8')
+    else:
+        filtered = unfiltered
+    return filtered
+
+
 def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset: int = 0):
     """
     Collects the header data from an ecat file, by default starts at byte position 0 (aka byte offset)
@@ -136,6 +164,8 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
         byte_width = get_buffer_size(data_type, variable_name)
         relative_byte_position = byte_position + byte_offset
         raw_bytes = read_bytes(ecat_file, relative_byte_position, byte_width)
+        if variable_name == 'PATIENT_BIRTH_DATE':
+            print(f"patients birth date in raw form is: {raw_bytes}")
         if 'Character' in data_type:
             raw_bytes_filtered = bytes(filter(None, raw_bytes))
             decoded_bytes = str(raw_bytes_filtered, 'UTF-8')
@@ -230,8 +260,10 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     ecat_main_header = ecat_header_maps['ecat_headers'][confirmed_version]['mainheader']
 
     main_header, read_to = get_header_data(ecat_main_header, ecat_file)
+    new_main_header, _ = get_header_data_improved(ecat_main_header, ecat_file)
     # end collect main header
-
+    for key in main_header.keys():
+        print(f'variable name: {key}, old value: {main_header[key]}, new value: {new_main_header[key]}')
     """
     Some notes about the file directory/sorted directory:
     
