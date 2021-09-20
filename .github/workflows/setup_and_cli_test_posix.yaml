@@ -24,15 +24,25 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
+        python: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
+      - name: Cache ECAT
+        id: cache-ecat
+        uses: actions/cache@v2
+        with:
+          path: cimbi36
+          key: ${{ runner.os }}-ecats
+
       - name: Collect Ecat Dataset w/ curl
+        if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
+        if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "tar xvzf ecat_test && rm ecat_test"
 
       - name: Install Python Reqs
