@@ -52,7 +52,7 @@ jobs:
 
       - name: Test ecatwrite
         env:
-          TEST_ECAT_PATH: "${{ env.REAL_TEST_ECAT }}"
+          TEST_ECAT_PATH: ${{ env.REAL_TEST_ECAT }}
         run: "cd python/ && python3 -m tests.test_write_ecat"
 
       - name: Test helper_functions
