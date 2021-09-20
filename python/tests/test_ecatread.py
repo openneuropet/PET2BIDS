@@ -1,5 +1,5 @@
 import scipy.io.matlab.miobase
-from read_ecat import read_ecat, get_header_data, get_header_data_improved
+from read_ecat import read_ecat, get_header_data
 from scipy.io import savemat
 import dotenv
 import os
@@ -35,43 +35,29 @@ read_ecat_save_as_matlab = os.environ['READ_ECAT_SAVE_AS_MATLAB']
 nibabel_read_ecat_save_as_matlab = os.environ['NIBABEL_READ_ECAT_SAVE_AS_MATLAB']
 
 
-class TestECATWrite(unittest.TestCase):
-    def test_ecat_read_new(self):
-        main_header_map = ecat_header_maps['ecat_headers']['73']['mainheader']
-        ecat_main_header, byte_position = get_header_data(header_data_map=main_header_map, ecat_file=ecat_path)
-        ecat_main_header_new, byte_position_new = get_header_data_improved(header_data_map=main_header_map, ecat_file=ecat_path)
-        # make sure they're both keeping track of bytes
-        self.assertEqual(byte_position_new, byte_position)
-
-        for key in ecat_main_header.keys():
-            if 'fill' not in key.lower():
-                self.assertEqual(ecat_main_header[key], ecat_main_header_new[key])
-
-
-
 if __name__ == '__main__':
     unittest.main()
-# # read in the ecat
-# ecat_main_header, ecat_subheaders, ecat_image = read_ecat(ecat_file=ecat_path)
-#
-# # read in the ecat with nibabel
-# nibabel_ecat = nibabel.ecat.load(ecat_path)
-# # extract the image data from nibabel
-# nibabel_data = nibabel_ecat.get_fdata()
-#
-# # save the read ecat pixel object as a matlab object for comparison
-# matlab_dictionary = {'data': ecat_image}
-# savemat(read_ecat_save_as_matlab, matlab_dictionary)
-# print(f"Saved read ecat datastructure as matlab matrix at:\n{read_ecat_save_as_matlab}")
-#
-# # save the nibabel ecat read as matlab object for comparison
-# matlab_dictionary = {'nibabel_data': nibabel_data}
-# try:
-#     savemat(nibabel_read_ecat_save_as_matlab, matlab_dictionary, do_compression=True)
-#     print(f"Saved read ecat datastructure as matlab matrix at:\n{nibabel_read_ecat_save_as_matlab}")
-# except scipy.io.matlab.miobase.MatWriteError as err:
-#     print(f"Unable to write nibabel array of size {nibabel_data.shape} and "
-#           f"datatype {nibabel_data.dtype} to matlab .mat file")
-#     print(err)
+# read in the ecat
+ecat_main_header, ecat_subheaders, ecat_image = read_ecat(ecat_file=ecat_path)
+
+# read in the ecat with nibabel
+nibabel_ecat = nibabel.ecat.load(ecat_path)
+# extract the image data from nibabel
+nibabel_data = nibabel_ecat.get_fdata()
+
+# save the read ecat pixel object as a matlab object for comparison
+matlab_dictionary = {'data': ecat_image}
+savemat(read_ecat_save_as_matlab, matlab_dictionary)
+print(f"Saved read ecat datastructure as matlab matrix at:\n{read_ecat_save_as_matlab}")
+
+# save the nibabel ecat read as matlab object for comparison
+matlab_dictionary = {'nibabel_data': nibabel_data}
+try:
+    savemat(nibabel_read_ecat_save_as_matlab, matlab_dictionary, do_compression=True)
+    print(f"Saved read ecat datastructure as matlab matrix at:\n{nibabel_read_ecat_save_as_matlab}")
+except scipy.io.matlab.miobase.MatWriteError as err:
+    print(f"Unable to write nibabel array of size {nibabel_data.shape} and "
+          f"datatype {nibabel_data.dtype} to matlab .mat file")
+    print(err)
 
 
