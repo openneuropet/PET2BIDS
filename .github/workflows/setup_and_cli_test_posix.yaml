@@ -62,7 +62,7 @@ jobs:
 
       - name: Test ecatwrite
         env:
-          TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+          TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
         run: "cd python/ && python3 -m tests.test_write_ecat"
 
       - name: Test helper_functions
