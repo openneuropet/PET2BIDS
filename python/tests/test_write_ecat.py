@@ -37,7 +37,7 @@ class TestECATWrite(unittest.TestCase):
         # data type should be int 32
         self.assertTrue(generated_directory_table[0].dtype == numpy.dtype('>i4'))
         # assert spacing between dimensions is correct
-        width = (generated_directory_table[0][2,1] - generated_directory_table[0][1,1]) * 512
+        width = (generated_directory_table[0][2,1] - generated_directory_table[0][1, 1]) * 512
         calculated_width = \
             pixel_dimensions['x'] * pixel_dimensions['y'] * pixel_dimensions['z'] * self.pixel_byte_size_int
         self.assertEqual(width, calculated_width)

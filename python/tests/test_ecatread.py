@@ -36,28 +36,27 @@ nibabel_read_ecat_save_as_matlab = os.environ['NIBABEL_READ_ECAT_SAVE_AS_MATLAB'
 
 
 if __name__ == '__main__':
-    unittest.main()
-# read in the ecat
-ecat_main_header, ecat_subheaders, ecat_image = read_ecat(ecat_file=ecat_path)
+    # read in the ecat
+    ecat_main_header, ecat_subheaders, ecat_image = read_ecat(ecat_file=ecat_path)
 
-# read in the ecat with nibabel
-nibabel_ecat = nibabel.ecat.load(ecat_path)
-# extract the image data from nibabel
-nibabel_data = nibabel_ecat.get_fdata()
+    # read in the ecat with nibabel
+    nibabel_ecat = nibabel.ecat.load(ecat_path)
+    # extract the image data from nibabel
+    nibabel_data = nibabel_ecat.get_fdata()
 
-# save the read ecat pixel object as a matlab object for comparison
-matlab_dictionary = {'data': ecat_image}
-savemat(read_ecat_save_as_matlab, matlab_dictionary)
-print(f"Saved read ecat datastructure as matlab matrix at:\n{read_ecat_save_as_matlab}")
+    # save the read ecat pixel object as a matlab object for comparison
+    matlab_dictionary = {'data': ecat_image}
+    savemat(read_ecat_save_as_matlab, matlab_dictionary)
+    print(f"Saved read ecat datastructure as matlab matrix at:\n{read_ecat_save_as_matlab}")
 
-# save the nibabel ecat read as matlab object for comparison
-matlab_dictionary = {'nibabel_data': nibabel_data}
-try:
-    savemat(nibabel_read_ecat_save_as_matlab, matlab_dictionary, do_compression=True)
-    print(f"Saved read ecat datastructure as matlab matrix at:\n{nibabel_read_ecat_save_as_matlab}")
-except scipy.io.matlab.miobase.MatWriteError as err:
-    print(f"Unable to write nibabel array of size {nibabel_data.shape} and "
-          f"datatype {nibabel_data.dtype} to matlab .mat file")
-    print(err)
+    # save the nibabel ecat read as matlab object for comparison
+    matlab_dictionary = {'nibabel_data': nibabel_data}
+    try:
+        savemat(nibabel_read_ecat_save_as_matlab, matlab_dictionary, do_compression=True)
+        print(f"Saved read ecat datastructure as matlab matrix at:\n{nibabel_read_ecat_save_as_matlab}")
+    except scipy.io.matlab.miobase.MatWriteError as err:
+        print(f"Unable to write nibabel array of size {nibabel_data.shape} and "
+              f"datatype {nibabel_data.dtype} to matlab .mat file")
+        print(err)
 
 
