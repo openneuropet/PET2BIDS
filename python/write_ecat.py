@@ -2,6 +2,7 @@ import struct
 from math import ceil, floor
 from read_ecat import ecat_header_maps, get_buffer_size
 import numpy
+
 """
 This program will create an ecat file if provided an ecat schema and a dictionary of values to populate that schema
 with.
@@ -42,7 +43,7 @@ then write each subheader and corresponding pixel data
 """
 
 
-def write_header(file, schema: dict, values: dict = {}, byte_offset: int = 0):
+def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 0):
     """
     Given a filepath and a schema this function will write an ecat header to a file. If supplied a dictionary of values
     it will populate the written header with them, if not it will fill the header with empty values. If a byte position
@@ -56,48 +57,35 @@ def write_header(file, schema: dict, values: dict = {}, byte_offset: int = 0):
     supplied.
     """
     for entry in schema:
-        byte_position, data_type, variable_name = entry['byte'] + byte_offset, entry['type'], entry['variable_name']
-        byte_width = get_buffer_size(data_type, variable_name)
+        byte_position, variable_name, struct_fmt = entry['byte'] + byte_offset, entry['variable_name'], entry['struct']
+        struct_fmt = '>' + struct_fmt
+        byte_width = struct.calcsize(struct_fmt)
         value_to_write = values.get(variable_name, None)
 
-        if 'Character' in data_type:
-            if not value_to_write:
-                value_to_write = 'X' * byte_width
-            if len(value_to_write) != byte_width:
-                padding_format = str((byte_width - len(value_to_write))) + 'x'
-                padding = struct.pack(padding_format)
-            else:
-                padding = b''
-            write_these_bytes = bytes(value_to_write, 'ascii') + padding
-        elif 'Integer' in data_type:
-            if not value_to_write:
-                value_to_write = [0]
-            elif type(value_to_write) is not list and type(value_to_write) is not tuple:
-                value_to_write = [value_to_write]
-            if byte_width == 4 and 'fill' not in variable_name.lower():
-                struct_format = 'l'
-            elif byte_width == 2 and 'fill' not in variable_name.lower():
-                struct_format = '>h'
-            elif 'fill' in variable_name.lower():
-                struct_format = '>' + 'h'*len(value_to_write)
-            #else:
-            #    if len(value_to_write) != byte_width:
-            #        value_to_write = value_to_write*byte_width
+        # if it's a fill variable pack it with empty bytes
+        if 'fill' in variable_name.lower():
+            pack_empty = True
+        # if no value is supplied in the value dict, pack with empty bytes as well
+        elif 'fill' not in variable_name.lower() and not value_to_write:
+            pack_empty = True
+        # set variable to false if neither of these conditions is met
+        else:
+            pack_empty = False
 
-                #struct_format = '>' + str(byte_width) + 'h'
-
-            write_these_bytes = struct.pack(struct_format, *value_to_write)
-        elif 'Real' in data_type:
-            num_of_fs = int(byte_width/4)
-            struct_format = '>' + str(num_of_fs) + 'f'
-            if not value_to_write:
-                value_to_write = [0.0]*num_of_fs
+        # for fill or empty values supplied in the values dictionary
+        if pack_empty:
+            fill = byte_width * 'x'
+            ecat_file.write(struct.pack(fill))
+        elif 's' in struct_fmt:
+            value_to_write = bytes(value_to_write, 'ascii')
+            ecat_file.write(struct.pack(struct_fmt, value_to_write))
+        # for all other cases
+        else:
+            if type(value_to_write) is tuple and len(value_to_write) > 1:
+                value_to_write = list(value_to_write)
             elif type(value_to_write) is not list:
                 value_to_write = [value_to_write]
-
-            write_these_bytes = struct.pack(struct_format, *value_to_write)
-        file.write(write_these_bytes)
-
+            ecat_file.write(struct.pack(struct_fmt, *value_to_write))
     return byte_width + byte_position
 
 

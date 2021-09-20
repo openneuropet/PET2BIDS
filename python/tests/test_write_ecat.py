@@ -5,7 +5,6 @@ from read_ecat import read_ecat, get_directory_data, read_bytes, ecat_header_map
 import numpy
 import dotenv
 
-
 dotenv.load_dotenv(dotenv.load_dotenv())
 
 
@@ -51,14 +50,18 @@ class TestECATWrite(unittest.TestCase):
         shutil.copy(os.environ['TEST_ECAT_PATH'], tempfile)
         with open(tempfile, 'r+b') as outfile:
             schema = ecat_header_maps['ecat_headers']['73']['mainheader']
-            write_header(file=outfile,
-                        schema=ecat_header_maps['ecat_headers']['73']['mainheader'],
-                            values=self.known_main_header)
-            # now read the file w ecat read to see if it's changed.
+            write_header(
+                ecat_file=outfile,
+                schema=schema,
+                values=self.known_main_header)
+
+        # now read the file w ecat read to see if it's changed.
         check_header, check_subheaders, check_pixel_data = read_ecat(tempfile, collect_pixel_data=False)
 
-        shutil.rmtree(tempfile)
-        self.assertEqual(self.known_main_header, check_header)
+        os.remove(tempfile)
+        for key, value in self.known_main_header.items():
+            if 'fill' not in str.lower(key):
+                self.assertEqual(self.known_main_header[key], check_header[key])
 
     def test_write_pixel_data(self):
         pass

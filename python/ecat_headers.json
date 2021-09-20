@@ -5,6 +5,7 @@
         "type": "refers to the type of data defined in the ECAT documentation; includes: Integer*2, Integer*4, Real*4, and Character*N",
         "variable_name": "refers to the name of the variable as defined in the ECAT documentation, case sensitive",
         "byte": "refers to the absolute byte position, data is organized in the same order as byte position such that list[0] -> the 0th byte",
+        "struct": "the c struct data type format of the variable, ",
         "comment": "refers to the comment field from the ECAT documentation, some comments list enumerated types as type1, type2, etc., etc. at the time of this writing those et cetera are unknown, good luck.",
         "enumerated_values": "Best guesses and translations of the possible enumerated types in the comments",
         "units": "when possible the units corresponding to each byte/variable name are defined here"

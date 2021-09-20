@@ -95,7 +95,18 @@ def get_buffer_size(data_type, variable_name):
     return scalar
 
 
-def get_header_data_improved(header_data_map, ecat_file: str = '', byte_offset: int =0, clean=True):
+def get_header_data(header_data_map, ecat_file: str = '', byte_offset: int = 0, clean=True):
+    """
+
+    :param header_data_map: schema for reading in header data, this is stored in dictionary that is read in from a
+    json file.
+    :param ecat_file: path to an ecat file, file is opened and byte blocks containing header data are then extracted,
+    read, and cleaned into python float, int, or list data types
+    :param byte_offset: off set from the head of the file to read from
+    :param clean: Whether to remove byte padding or not, if not provided strings will include padding w/ \0x bytes and
+    lists/arrays of data will be returned as tuples instead of lists. Uncleaned data will be of format b''.
+    :return: a dictionary with variable names of header fields as keys and cleaned/uncleaned header fields as values
+    """
     header = {}
 
     for value in header_data_map:
@@ -112,6 +123,14 @@ def get_header_data_improved(header_data_map, ecat_file: str = '', byte_offset: 
 
 
 def filter_bytes(unfiltered, struct_fmt):
+    """
+    Cleans up byte strings and bytes types into python int, float, string, and list data types, additionally
+    struct.unpack returns a tuple object even if only a single value is available, this function determines when to
+    return a single value or a list of values based on the contents of the unfiltered object.
+    :param unfiltered: a raw bytes type object
+    :param struct_fmt: the c struct type of the object
+    :return: a cleaned python int, float, string, or list
+    """
     if len(unfiltered) == 1:
         unfiltered = unfiltered[0]
     elif len(unfiltered) > 1:
@@ -121,72 +140,6 @@ def filter_bytes(unfiltered, struct_fmt):
     else:
         filtered = unfiltered
     return filtered
-
-
-def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset: int = 0):
-    """
-    Collects the header data from an ecat file, by default starts at byte position 0 (aka byte offset)
-    for any header that is not the main header this offset will need to be provided
-    :param header_data_map: The dictionary mapping of header data this dict must have following form:
-    "ecat72_mainheader": [
-      {
-        "byte": 0,
-        "variable_name": "MAGIC_NUMBER",
-        "type": "Character*14",
-        "comment": "UNIX file type identification number (NOT PART OF THE MATRIX HEADER DATA)"
-      },
-      {
-        "byte": 14,
-        "variable_name": "ORIGINAL_FILE_NAME",
-        "type": "Character*32",
-        "comment": "Scan file’s creation name"
-      },
-      {
-        "byte": 46,
-        "variable_name": "SW_VERSION",
-        "type": "Integer*2",
-        "comment": "Software version number"
-      },
-      .
-      .
-      .
-     ]
-    :param ecat_file: the path to the ecat file that is being read
-    :param byte_offset: position to start reading bytes at, the data in the header_data_map is relative
-    to this value. E.g. the main header lies at byte 0 of the ecat_file while, the subheader for frame n
-    lies at byte n*512
-    :return: a dictionary w/ keys corresponding to the variable_name in each header field and their
-    accompanying values and the last byte position read e.g. -> {'key': value, ....}, 512
-    """
-    header = {}
-    for values in header_data_map:
-        byte_position, data_type, variable_name = values['byte'], values['type'], values['variable_name']
-        byte_width = get_buffer_size(data_type, variable_name)
-        relative_byte_position = byte_position + byte_offset
-        raw_bytes = read_bytes(ecat_file, relative_byte_position, byte_width)
-        if variable_name == 'PATIENT_BIRTH_DATE':
-            print(f"patients birth date in raw form is: {raw_bytes}")
-        if 'Character' in data_type:
-            raw_bytes_filtered = bytes(filter(None, raw_bytes))
-            decoded_bytes = str(raw_bytes_filtered, 'UTF-8')
-        elif 'Integer' in data_type:
-            if 'fill' in str.lower(variable_name):
-                decoded_bytes = struct.unpack('>' + byte_width//2 * 'h', raw_bytes)
-            else:
-                decoded_bytes = int.from_bytes(raw_bytes, 'big')
-        elif 'Real' in data_type:
-            # using struct and c data types to decode
-            number_of_fs = int(byte_width / 4)  # this corresponds to the number of bytes the variable has Real*4 -> 1
-            something_to_real = struct.unpack('>' + number_of_fs * 'f', raw_bytes)  # apply the f width to decode
-            if len(something_to_real) > 1:
-                decoded_bytes = list(something_to_real)
-            else:
-                decoded_bytes = something_to_real[0]
-
-        header[variable_name] = decoded_bytes
-        read_head_position = relative_byte_position + byte_width
-
-    return header, read_head_position
 
 
 def get_directory_data(byte_block, ecat_file):
@@ -260,10 +213,6 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     ecat_main_header = ecat_header_maps['ecat_headers'][confirmed_version]['mainheader']
 
     main_header, read_to = get_header_data(ecat_main_header, ecat_file)
-    new_main_header, _ = get_header_data_improved(ecat_main_header, ecat_file)
-    # end collect main header
-    for key in main_header.keys():
-        print(f'variable name: {key}, old value: {main_header[key]}, new value: {new_main_header[key]}')
     """
     Some notes about the file directory/sorted directory:
     
