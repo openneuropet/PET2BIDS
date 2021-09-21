@@ -142,8 +142,9 @@ def filter_bytes(unfiltered, struct_fmt):
     return filtered
 
 
-def get_directory_data(byte_block, ecat_file):
+def get_directory_data(byte_block, ecat_file, return_raw = False):
     directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
+    raw = []
     while True:
         # The exit conditions for this loop are below
         # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
@@ -154,6 +155,9 @@ def get_directory_data(byte_block, ecat_file):
         read_byte_array = numpy.frombuffer(byte_block, dtype=numpy.dtype('>i4'), count=-1)
         # reshape 1d array into 2d, a 4 row by 32 column table is expected
         reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
+
+        raw.append(reshaped)
+
         # chop off columns after 32, rows after 32 appear to be noise
         reshaped = reshaped[:, 0:read_byte_array[3] + 1]
         # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
@@ -173,13 +177,16 @@ def get_directory_data(byte_block, ecat_file):
         byte_block = read_bytes(
             path_to_bytes=ecat_file,
             byte_start=(next_directory_position - 1) * 512,
-            byte_stop=next_directory_position * 512
+            byte_stop=1024
         )
 
     # sort the directory contents as they're sometimes out of order
     sorted_directory = directory[:, directory[0].argsort()]
 
-    return sorted_directory
+    if return_raw:
+        return raw
+    else:
+        return sorted_directory
 
 
 def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool = True):

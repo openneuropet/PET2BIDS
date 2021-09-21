@@ -37,7 +37,7 @@ directory in lines 227 through 257 in ecat_read.
     table.
     final output should be a bytes: 1024 type object.
     
-# after generating the table may you should then be able to write the main header, write the directory table,
+# after generating the table you should then be able to write the main header, write the directory table,
 then write each subheader and corresponding pixel data
 
 """
@@ -49,7 +49,7 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 
     it will populate the written header with them, if not it will fill the header with empty values. If a byte position
     argument is supplied write_header will write to the byte position in the file supplied at file path, else it will
     seek to the end of the file and write there.
-    :param file: the ecat file to be written
+    :param ecat_file: the ecat file to be written
     :param schema: dictionary schema of the ecat header
     :param values: dictionary of values corresponding to the 'variable_name' entries in the schema dictionary
     :param byte_offset: offset to write the header at, default is at the zero'th byte position.
@@ -62,11 +62,8 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 
         byte_width = struct.calcsize(struct_fmt)
         value_to_write = values.get(variable_name, None)
 
-        # if it's a fill variable pack it with empty bytes
-        if 'fill' in variable_name.lower():
-            pack_empty = True
         # if no value is supplied in the value dict, pack with empty bytes as well
-        elif 'fill' not in variable_name.lower() and not value_to_write:
+        if not value_to_write:
             pack_empty = True
         # set variable to false if neither of these conditions is met
         else:
@@ -133,7 +130,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
         else:
             frames_to_iterate = floor(num_frames / 31) * 31
             table[0, 0] = 0
-            table[1, 0] = 1337
+            table[1, 0] = 0 # note this is just a placeholder the real value is entered after the final position of the last entry in the first directory is calculated
             table[2, 0] = 0
             table[3, 0] = frames_to_iterate
 
@@ -145,6 +142,11 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
             table_byte_position = int((pixel_byte_size * pixel_volume)/512 + table_byte_position)
             table[2, column + 1] = table_byte_position
             table[3, column + 1] = 1
+
+        # VERY IMPORTANT
+        if i != (required_directory_blocks - 1):
+            table[1, 0] = table[2, column + 1] + 1
+
         directory_tables.append(table)
 
     return directory_tables
@@ -161,13 +163,17 @@ def write_directory_table(file, directory_tables: list):
     """
     # flatten the lists into byte strings
     flattened_lists = []
+    file.seek(512)
+    n = 1
     for table in directory_tables:
-        make_it_flat = table.flatten(order='F')
-        flattened_lists.append(make_it_flat.tobytes())
+        transpose_table = numpy.transpose(table)
+        flattened_transpose = numpy.reshape(transpose_table, (4, -1)).flatten()
 
-    for table in flattened_lists:
-        file.write(table)
-    return 512 * (1 + len(tables))
+        for index in range(flattened_transpose.size):
+            file.write(struct.pack('>l', flattened_transpose[index]))
+        n += 1
+
+    return file.tell()
 
 
 def write_pixel_data(file, pixel_data: numpy.ndarray):
@@ -176,16 +182,16 @@ def write_pixel_data(file, pixel_data: numpy.ndarray):
     return 0
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    with open('bytes.v', 'wb') as outfile:
-        x = write_header(outfile, ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
-        fake_data = numpy.ndarray([4, 4, 4, 4], dtype='>i2')
-        tables = create_directory_table(num_frames=4, pixel_dimensions={'x': 4, 'y': 4, 'z': 4}, pixel_byte_size=2)
-        write_directory_table(outfile, tables)
-        for i in range(4):
-            write_header(outfile, ecat_header_maps['ecat_headers']['73']['7'])
-            write_pixel_data(outfile, fake_data[:, :, :, i])
+    #with open('bytes.v', 'wb') as outfile:
+    #    x = write_header(outfile, ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
+    #    fake_data = numpy.ndarray([4, 4, 4, 4], dtype='>i2')
+    #    tables = create_directory_table(num_frames=4, pixel_dimensions={'x': 4, 'y': 4, 'z': 4}, pixel_byte_size=2)
+    #    write_directory_table(outfile, tables)
+    #    for i in range(4):
+    #        write_header(outfile, ecat_header_maps['ecat_headers']['73']['7'])
+    #        write_pixel_data(outfile, fake_data[:, :, :, i])
 
 
 
