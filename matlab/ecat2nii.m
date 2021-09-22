@@ -219,11 +219,6 @@ for j=1:length(FileList)
         info.ScanStart                        = 0;
         info.InjectionStart                   = 0;
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
-        if gz
-            info.Filename                     = [filenameout '.nii.gz'];
-        else
-            info.Filename                     = [filenameout '.nii'];
-        end
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
         info.ConversionSoftware               = 'ecat2nii.m';
