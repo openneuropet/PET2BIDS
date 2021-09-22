@@ -102,7 +102,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     """
     # first determine the number of byte blocks the directory table(s) require based on the
     # number of frames
-    required_directory_blocks = ceil(num_frames/32)
+    required_directory_blocks = ceil(num_frames / 32)
 
     # determine the width of the frame byte blocks with the pixel dimensions and data sizes
     pixel_volume = numpy.product([*pixel_dimensions.values()])
@@ -111,7 +111,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     directory_tables = []
 
     # create entries for the directory table
-    directory_order = [i+1 for i in range(num_frames)]
+    directory_order = [i + 1 for i in range(num_frames)]
 
     table_byte_position = 1 + required_directory_blocks
     for i in range(required_directory_blocks):
@@ -130,7 +130,8 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
         else:
             frames_to_iterate = floor(num_frames / 31) * 31
             table[0, 0] = 0
-            table[1, 0] = 0 # note this is just a placeholder the real value is entered after the final position of the last entry in the first directory is calculated
+            table[1, 0] = 0  # note this is just a placeholder the real value is entered after the final position of the
+                             # last entry in the first directory is calculated
             table[2, 0] = 0
             table[3, 0] = frames_to_iterate
 
@@ -139,7 +140,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
                 table_byte_position += 1
             table[0, column + 1] = directory_order.pop(0)
             table[1, column + 1] = table_byte_position
-            table_byte_position = int((pixel_byte_size * pixel_volume)/512 + table_byte_position)
+            table_byte_position = int((pixel_byte_size * pixel_volume) / 512 + table_byte_position)
             table[2, column + 1] = table_byte_position
             table[3, column + 1] = 1
 
@@ -162,16 +163,21 @@ def write_directory_table(file, directory_tables: list):
     :return: The byte position after writing
     """
     # flatten the lists into byte strings
-    flattened_lists = []
     file.seek(512)
-    n = 1
-    for table in directory_tables:
+    for n, table in enumerate(directory_tables):
+        # first table lies directly after the main header byte block, which is 512 bytes from the start of the file
+
+        if n == 0:
+            file.seek(512)
+        # additional directory table positions are recorded in the previous directory table in row 1 column 0
+        else:
+            next_table_position = directory_tables[n - 1][1, 0] - 1
+            file.seek(512*next_table_position)
         transpose_table = numpy.transpose(table)
         flattened_transpose = numpy.reshape(transpose_table, (4, -1)).flatten()
 
         for index in range(flattened_transpose.size):
             file.write(struct.pack('>l', flattened_transpose[index]))
-        n += 1
 
     return file.tell()
 
@@ -180,18 +186,3 @@ def write_pixel_data(file, pixel_data: numpy.ndarray):
     flattened_pixels = pixel_data.flatten(order='F').tobytes()
     file.write(flattened_pixels)
     return 0
-
-
-#if __name__ == "__main__":
-
-    #with open('bytes.v', 'wb') as outfile:
-    #    x = write_header(outfile, ecat_header_maps['ecat_headers']['73']['mainheader'], {'MAGIC_NUMBER': "Anthony"})
-    #    fake_data = numpy.ndarray([4, 4, 4, 4], dtype='>i2')
-    #    tables = create_directory_table(num_frames=4, pixel_dimensions={'x': 4, 'y': 4, 'z': 4}, pixel_byte_size=2)
-    #    write_directory_table(outfile, tables)
-    #    for i in range(4):
-    #        write_header(outfile, ecat_header_maps['ecat_headers']['73']['7'])
-    #        write_pixel_data(outfile, fake_data[:, :, :, i])
-
-
-

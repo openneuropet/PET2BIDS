@@ -98,6 +98,15 @@ class TestECATWrite(unittest.TestCase):
         self.assertTrue(just_written_directory_table[0][2, 0] == 0)
         self.assertTrue(just_written_directory_table[1][2, 0] == 2)
 
+        # assert additional directory table was created at correct byte position
+        if len(directory_table) > 1:
+            directory_block = read_bytes(path_to_bytes=self.temp_file,
+                                         byte_start=(just_written_directory_table[0][1, 0] -1) * 512,
+                                         byte_stop=1024)
+            additional_directory_table = numpy.frombuffer(directory_block, dtype=numpy.dtype('>i4'), count=-1)
+            additional_directory_table = numpy.transpose(numpy.reshape(additional_directory_table, (-1, 4)))
+            numpy.testing.assert_array_equal(additional_directory_table, directory_table[1])
+
 
 if __name__ == '__main__':
     unittest.main()
