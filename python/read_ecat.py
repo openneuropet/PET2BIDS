@@ -177,7 +177,7 @@ def get_directory_data(byte_block, ecat_file, return_raw = False):
         byte_block = read_bytes(
             path_to_bytes=ecat_file,
             byte_start=(next_directory_position - 1) * 512,
-            byte_stop=1024
+            byte_stop=512
         )
 
     # sort the directory contents as they're sometimes out of order

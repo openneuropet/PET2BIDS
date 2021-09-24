@@ -116,7 +116,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     table_byte_position = 1 + required_directory_blocks
     for i in range(required_directory_blocks):
         # initialize empty 4 x 64 array
-        table = numpy.ndarray((4, 64), dtype='>i4')
+        table = numpy.ndarray((4, 32), dtype='>i4')
 
         # populate first column of table with codes and undetermined codes
         # note these table values are only extrapolated from a data set w/ 45 frames and datasets with less than

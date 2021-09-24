@@ -16,7 +16,7 @@ class TestECATWrite(unittest.TestCase):
         # collect directory table from ecat
         directory_block = read_bytes(path_to_bytes=os.environ['TEST_ECAT_PATH'],
                                      byte_start=512,
-                                     byte_stop=1024)
+                                     byte_stop=512)
         cls.known_directory_table = get_directory_data(directory_block, os.environ['TEST_ECAT_PATH'])
         cls.known_directory_table_raw = get_directory_data(directory_block, os.environ['TEST_ECAT_PATH'], return_raw=True)
         cls.pixel_byte_size_int = 2
@@ -34,7 +34,7 @@ class TestECATWrite(unittest.TestCase):
                                                            pixel_byte_size=self.pixel_byte_size_int)
 
         # dimensions of directory should be 4 x 64
-        self.assertEqual(generated_directory_table[0].shape, (4, 64))
+        self.assertEqual(generated_directory_table[0].shape, (4, 32))
         # data type should be int 32
         self.assertTrue(generated_directory_table[0].dtype == numpy.dtype('>i4'))
         # assert spacing between dimensions is correct
@@ -83,10 +83,10 @@ class TestECATWrite(unittest.TestCase):
 
         directory_block = read_bytes(path_to_bytes=self.temp_file,
                                      byte_start=512,
-                                     byte_stop=1024)
+                                     byte_stop=512)
         just_written_directory_table = get_directory_data(directory_block, self.temp_file, return_raw=True)
         # dimensions of directory should be 4 x 64
-        self.assertEqual(just_written_directory_table[0].shape, (4, 64))
+        self.assertEqual(just_written_directory_table[0].shape, (4, 32))
         # data type should be int 32
         self.assertTrue(just_written_directory_table[0].dtype == numpy.dtype('>i4'))
         # assert spacing between dimensions is correct
@@ -102,7 +102,7 @@ class TestECATWrite(unittest.TestCase):
         if len(directory_table) > 1:
             directory_block = read_bytes(path_to_bytes=self.temp_file,
                                          byte_start=(just_written_directory_table[0][1, 0] -1) * 512,
-                                         byte_stop=1024)
+                                         byte_stop=512)
             additional_directory_table = numpy.frombuffer(directory_block, dtype=numpy.dtype('>i4'), count=-1)
             additional_directory_table = numpy.transpose(numpy.reshape(additional_directory_table, (-1, 4)))
             numpy.testing.assert_array_equal(additional_directory_table, directory_table[1])
