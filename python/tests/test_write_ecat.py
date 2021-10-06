@@ -4,6 +4,7 @@ from write_ecat import create_directory_table, write_header, write_directory_tab
 from read_ecat import read_ecat, get_directory_data, read_bytes, ecat_header_maps
 import numpy
 import dotenv
+import shutil
 
 dotenv.load_dotenv(dotenv.load_dotenv())
 
@@ -18,7 +19,9 @@ class TestECATWrite(unittest.TestCase):
                                      byte_start=512,
                                      byte_stop=512)
         cls.known_directory_table = get_directory_data(directory_block, os.environ['TEST_ECAT_PATH'])
-        cls.known_directory_table_raw = get_directory_data(directory_block, os.environ['TEST_ECAT_PATH'], return_raw=True)
+        cls.known_directory_table_raw = get_directory_data(directory_block,
+                                                           os.environ['TEST_ECAT_PATH'],
+                                                           return_raw=True)
         cls.pixel_byte_size_int = 2
         cls.temp_file = 'test_tempfile.v'
         cls.pixel_dimensions = {
@@ -40,14 +43,14 @@ class TestECATWrite(unittest.TestCase):
         # assert spacing between dimensions is correct
         width = (generated_directory_table[0][2, 1] - generated_directory_table[0][1, 1]) * 512
         calculated_width = \
-            self.pixel_dimensions['x'] * self.pixel_dimensions['y'] * self.pixel_dimensions['z'] * self.pixel_byte_size_int
+            self.pixel_dimensions['x'] * self.pixel_dimensions['y'] * \
+            self.pixel_dimensions['z'] * self.pixel_byte_size_int
         self.assertEqual(width, calculated_width)
         self.assertTrue(generated_directory_table[0][2, 0] == 0)
         self.assertTrue(generated_directory_table[1][2, 0] == 2)
 
     def test_write_header(self):
         temp_file = self.temp_file
-        import shutil
         shutil.copy(os.environ['TEST_ECAT_PATH'], temp_file)
         with open(temp_file, 'r+b') as outfile:
             schema = ecat_header_maps['ecat_headers']['73']['mainheader']
@@ -64,7 +67,6 @@ class TestECATWrite(unittest.TestCase):
             self.assertEqual(self.known_main_header[key], check_header[key])
 
     def test_write_directory_table(self):
-        import shutil
         shutil.copy(os.environ['TEST_ECAT_PATH'], self.temp_file)
         with open(self.temp_file, 'r+b') as outfile:
             # write header
@@ -106,6 +108,34 @@ class TestECATWrite(unittest.TestCase):
             additional_directory_table = numpy.frombuffer(directory_block, dtype=numpy.dtype('>i4'), count=-1)
             additional_directory_table = numpy.transpose(numpy.reshape(additional_directory_table, (-1, 4)))
             numpy.testing.assert_array_equal(additional_directory_table, directory_table[1])
+
+    def test_write_pixel_data(self):
+        self.known_main_header, self.known_subheaders, self.known_pixel_data = read_ecat(os.environ['TEST_ECAT_PATH'],
+                                                                                         collect_pixel_data=True)
+        shutil.copy(os.environ['TEST_ECAT_PATH'], self.temp_file)
+        # locate the first frame in the test file
+        frame_one_start = self.known_directory_table[1, 0] * 512
+        frame_one_stop = self.known_directory_table[2, 0] * 512
+        frame_one = self.known_pixel_data[:, :, :, 0]
+
+        replacement_frame = numpy.full(frame_one.shape, 1234,dtype=numpy.dtype('>i2'))
+
+        with open(self.temp_file, 'r+b') as outfile:
+            write_pixel_data(outfile, frame_one_start, replacement_frame)
+
+        # reread in the pixel data, verify that it has been written
+        write_pixel_main_header, write_pixel_subheaders, write_pixel_pixel_data = read_ecat(self.temp_file,
+                                                                                            collect_pixel_data=True)
+
+        written_frame = write_pixel_pixel_data[:, :, :, 0]
+        numpy.testing.assert_array_equal(replacement_frame, written_frame)
+
+    @classmethod
+    def tearDown(cls) -> None:
+        try:
+            os.remove(cls.temp_file)
+        except FileNotFoundError:
+            pass
 
 
 if __name__ == '__main__':

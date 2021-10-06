@@ -82,7 +82,11 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 
                 value_to_write = list(value_to_write)
             elif type(value_to_write) is not list:
                 value_to_write = [value_to_write]
-            ecat_file.write(struct.pack(struct_fmt, *value_to_write))
+            try:
+                ecat_file.write(struct.pack(struct_fmt, *value_to_write))
+            except struct.error as err:
+                print(f"Oh no {value_to_write} is out of range for {struct_fmt}, variable {variable_name}")
+                raise err
     return byte_width + byte_position
 
 
@@ -182,7 +186,8 @@ def write_directory_table(file, directory_tables: list):
     return file.tell()
 
 
-def write_pixel_data(file, pixel_data: numpy.ndarray):
+def write_pixel_data(ecat_file, byte_position, pixel_data: numpy.ndarray):
+    ecat_file.seek(byte_position)
     flattened_pixels = pixel_data.flatten(order='F').tobytes()
-    file.write(flattened_pixels)
+    ecat_file.write(flattened_pixels)
     return 0
