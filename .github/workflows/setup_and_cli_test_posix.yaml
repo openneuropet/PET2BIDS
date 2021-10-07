@@ -7,71 +7,13 @@ on:
 
 jobs:
   Collect-Data-and-Test:
-    runs-on: ${{ matrix.os }}
-
-    env:
-      ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
-      ECAT_TEST_FOLDER: "cimbi36"
-      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: ${{ github.workspace }}/PETdata_in/Siemens_ecat/ECAT7_multiframe.v
-      TEST_ECAT_PATH: ${{ github.workspace }}/python/tests/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/python/tests/ECAT7_multiframe.nii
-      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/python/tests/ECAT7_multiframe.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/python/tests/ECAT7_multiframe.nibabel.mat
-      MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
-
-
-    strategy:
-      matrix:
-        os: [macOS-latest, ubuntu-latest]
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
+      
+      - name: Get Working Dir
+        run: pwd
 
-      - name: Collect Ecat Dataset w/ curl
-        run: "curl -o ecat_test ${{ env.ECAT_URL }}"
-
-      - name: Decompress dataset
-        run: "tar xvzf ecat_test && rm ecat_test"
-
-      - name: Install Python Reqs
-        run: pip3 install -r python/requirements.txt
-
-      - name: Test CLI --help
-        run: python3 python/main.py --help
-
-      - name: Test CLI Ecat Dump
-        run: "python3 python/main.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
-
-      - name: Copy Test File(s) to tests/
-        run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
-
-      - name: Test ecatread
-        run: "cd python/ && python3 -m tests.test_ecatread"
-
-      - name: Test helper_functions
-        run: "cd python/ && python3 -m tests.test_helper_functions"
-
-      - name: Test nifti write
-        run: "cd python/ && python3 -m tests.test_nifti_write"
-
-      - name: Test bytes
-        run: "cd python/ && python3 -m tests.test_thisbytes"
-
-        # matlab not supported on MacOS!! at this time
-      - name: Perform setup-matlab
-        uses: matlab-actions/setup-matlab@v1
-        if: matrix.os == 'ubuntu-latest'
-
-        # Again only running this on ubuntu
-      - name: Add Matlab Code Folder to Path and Run Tests
-        uses: matlab-actions/run-command@v1
-        with:
-          command: |
-            addpath('${{ env.MATLAB_CODE_PATH }}');
-            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
-            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.TEST_ECAT_PATH }}');
-            ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
-        if: matrix.os == 'ubuntu-latest'
+      - name: List Working Dir Contents
+        run: ls -l
