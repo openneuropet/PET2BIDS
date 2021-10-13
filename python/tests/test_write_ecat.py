@@ -118,10 +118,15 @@ class TestECATWrite(unittest.TestCase):
         frame_one_stop = self.known_directory_table[2, 0] * 512
         frame_one = self.known_pixel_data[:, :, :, 0]
 
-        replacement_frame = numpy.full(frame_one.shape, 1234,dtype=numpy.dtype('>i2'))
+        replacement_frame = numpy.full(frame_one.shape,
+                                       1234,
+                                       dtype=numpy.dtype('>i2'))
 
         with open(self.temp_file, 'r+b') as outfile:
-            write_pixel_data(outfile, frame_one_start, replacement_frame)
+            write_pixel_data(ecat_file=outfile,
+                             pixel_data=replacement_frame,
+                             byte_position=frame_one_start,
+                             seek=True)
 
         # reread in the pixel data, verify that it has been written
         write_pixel_main_header, write_pixel_subheaders, write_pixel_pixel_data = read_ecat(self.temp_file,

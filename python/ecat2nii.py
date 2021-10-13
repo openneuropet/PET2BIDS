@@ -99,7 +99,7 @@ def ecat2nii(ecat_main_header=None,
     max_image = img_temp.max()
     img_temp = img_temp / (max_image * 32767)
     sca = max_image / 32767
-    min_image = img_temp.min()
+    min_image = img_temp.image_min()
     if min_image < -32768:
         img_temp = img_temp / (min_image * (-32768))
         sca = sca * min_image / (-32768)

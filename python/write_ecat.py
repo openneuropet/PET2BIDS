@@ -43,7 +43,7 @@ then write each subheader and corresponding pixel data
 """
 
 
-def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 0):
+def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int = 0, seek: bool = False):
     """
     Given a filepath and a schema this function will write an ecat header to a file. If supplied a dictionary of values
     it will populate the written header with them, if not it will fill the header with empty values. If a byte position
@@ -52,12 +52,17 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_offset: int = 
     :param ecat_file: the ecat file to be written
     :param schema: dictionary schema of the ecat header
     :param values: dictionary of values corresponding to the 'variable_name' entries in the schema dictionary
-    :param byte_offset: offset to write the header at, default is at the zero'th byte position.
+    :param byte_position: offset to write the header at, default is at the zero'th byte position.
+    :param seek: if True use the provided byte position argument else, collect byte position form opened ecat_file
     :return: the end byte position, spoilers this will be 512 bytes offset from byte_position if that argument is
     supplied.
     """
+
+    if not seek:
+        byte_position = ecat_file.tell()
+
     for entry in schema:
-        byte_position, variable_name, struct_fmt = entry['byte'] + byte_offset, entry['variable_name'], entry['struct']
+        byte_position, variable_name, struct_fmt = entry['byte'] + byte_position, entry['variable_name'], entry['struct']
         struct_fmt = '>' + struct_fmt
         byte_width = struct.calcsize(struct_fmt)
         value_to_write = values.get(variable_name, None)
@@ -157,22 +162,28 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     return directory_tables
 
 
-def write_directory_table(file, directory_tables: list):
+def write_directory_table(file, directory_tables: list, seek: bool = False):
     """
     Given a list of numpy.ndarray tables and a file path, this function flattens the directory tables to be written
     into the filepath as bytes strings, then writes the bytes strings to the end of the file, returning the byte position
     it left off on.
     :param file: an ecat file that has been initialized with it's main header information
     :param directory_tables: a list of directory tables (1 to 2) that are 4x64 in dimensions and of dtype int32.
+    :param seek: seek to directory table position at 512 bytes, defaults to writing at current position of
+    file read head.
     :return: The byte position after writing
     """
     # flatten the lists into byte strings
-    file.seek(512)
+
+    # file.seek(512)
     for n, table in enumerate(directory_tables):
         # first table lies directly after the main header byte block, which is 512 bytes from the start of the file
 
         if n == 0:
-            file.seek(512)
+            if seek:
+                file.seek(512)
+            else:
+                pass
         # additional directory table positions are recorded in the previous directory table in row 1 column 0
         else:
             next_table_position = directory_tables[n - 1][1, 0] - 1
@@ -186,8 +197,13 @@ def write_directory_table(file, directory_tables: list):
     return file.tell()
 
 
-def write_pixel_data(ecat_file, byte_position, pixel_data: numpy.ndarray):
-    ecat_file.seek(byte_position)
+def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int = 0, seek: bool = False):
+    if seek and byte_position:
+        ecat_file.seek(byte_position)
+    elif (seek and not byte_position) or (byte_position and not seek):
+        raise Exception("Must provide seek boolean and byte position")
+    else:
+        pass
     flattened_pixels = pixel_data.flatten(order='F').tobytes()
     ecat_file.write(flattened_pixels)
     return 0

@@ -736,7 +736,7 @@
                     "variable_name": "IMAGE_MIN",
                     "type": "Integer*2",
                     "comment": "Image minimum pixel value",
-                    "struct": "H"
+                    "struct": "h"
                 },
                 {
                     "byte": 178,
@@ -1674,7 +1674,7 @@
                     "variable_name": "IMAGE_MIN",
                     "type": "Integer*2",
                     "comment": "Image minimum pixel value",
-                    "struct": "H"
+                    "struct": "h"
                 },
                 {
                     "byte": 32,
@@ -2095,7 +2095,7 @@
                     "variable_name": "IMAGE_MIN",
                     "type": "Integer*2",
                     "comment": "Minimum pixel value in this polar map",
-                    "struct": "H"
+                    "struct": "h"
                 },
                 {
                     "byte": 280,
@@ -3501,7 +3501,7 @@
                     "variable_name": "IMAGE_MIN",
                     "type": "Integer*2",
                     "comment": "Image minimum pixel value",
-                    "struct": "H"
+                    "struct": "h"
                 },
                 {
                     "byte": 32,
