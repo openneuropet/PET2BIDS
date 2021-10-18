@@ -1,21 +1,27 @@
-function fileout = ecat2nii(FileList,MetaList,varargin)
+function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
 %
-% FORMAT: ecat2nii(FileList,MetaList)
-%         ecat2nii(FileList,MetaList,options)
+% FORMAT: fileout = ecat2nii(FileListIn,MetaList)
+%         fileout = ecat2nii(FileListIn,MetaList,options)
 %
-% INPUT: FileList - Cell array of char strings with filenames and paths
+% INPUT: FileListIn - Cell array of characters with paths and filenames 
 %        MetaList - Cell array of structures for metadata
 %        options are name/value pairs
+%                'FileListOut' a cell array of characters with filenames
+%                              (with path if the path out is different)
 %                'sifout' is true or false (default) to output a sif file
 %                'gz' is true (default) or false to output .nii.gz or .nii
 %                'savemat' is true or false (default) to save the ecat data as .mat
 %
-% Example meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+% OUTPUT FileListOut is the name or a cell array of names of the nifti files created
+%        (should ne the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
+%
+% Example Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%        fileout = ecat2nii({ecatfile},{meta},'gz',false,'sifout',true);
+%         FileListOut = ecat2nii({EcatFile},{Meta});
+%         FileListOut = ecat2nii({EcatFile},{Meta},'FileListOut',{ConvertedRenamedFile},'gz',false,'sifout',true);
 %
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
@@ -47,10 +53,10 @@ if nargin<=1
     return
 end
 
-if ~iscell(FileList)
-    if ischar(FileList) && size(FileList,1)==1
-        tmp = FileList; clear FileList;
-        FileList{1} = tmp; clear tmp;
+if ~iscell(FileListIn)
+    if ischar(FileListIn) && size(FileListIn,1)==1
+        tmp = FileListIn; clear FileListIn;
+        FileListIn{1} = tmp; clear tmp;
     else
         error('1st argument in must be a cell array of file names')
     end
@@ -65,11 +71,11 @@ if ~iscell(MetaList)
     end
 end
 
-if iscell(MetaList) && any(size(MetaList)~=size(FileList))
+if iscell(MetaList) && any(size(MetaList)~=size(FileListIn))
     if size(MetaList,1) ==1
         disp('Replicating metadata for all input')
         tmp = MetaList; clear MetaList;
-        MetaList = cell(size(FileList));
+        MetaList = cell(size(FileListIn));
         for f=1:size(MetaList,1)
             MetaList{f} = tmp;
         end
@@ -80,7 +86,9 @@ if iscell(MetaList) && any(size(MetaList)~=size(FileList))
 end
 
 for v=1:length(varargin)
-    if strcmpi(varargin{v},'sifout')
+    if strcmpi(varargin{v},'FileListOut')
+        FileListOut = varargin{v+1};
+    elseif strcmpi(varargin{v},'sifout')
         sifout = varargin{v+1};
     elseif strcmpi(varargin{v},'gz')
         gz = varargin{v+1};
@@ -89,13 +97,28 @@ for v=1:length(varargin)
     end
 end
 
+if exist('FileListOut','var')
+    if ~iscell(FileListOut)
+        if ischar(FileListOut) && size(FileListOut,1)==1
+            tmp = FileListOut; clear FileListOut;
+            FileListOut{1} = tmp; clear tmp;
+        else
+            error('Name(s) argument must be a cell array of file names')
+        end
+    end
+    
+    if any(size(FileListOut)~=size(FileListIn))
+        error('The number of files in (FileListIn) does not match the number of file names to create')
+    end
+end
+
 
 %% Read and write data
 % --------------------
-for j=1:length(FileList)
+for j=1:length(FileListIn)
     
     try
-        fprintf('Conversion of file: %s\n',FileList{j});
+        fprintf('Conversion of file: %s\n',FileListIn{j});
         
         % quickly ensure we have the TimeZero - key to all analyzes!
         info     = MetaList{1};
@@ -104,11 +127,11 @@ for j=1:length(FileList)
         end
         
         % Read ECAT file headers
-        if ~exist(FileList{j},'file')
-            error('the file %s does not exist',FileList{j}),
+        if ~exist(FileListIn{j},'file')
+            error('the file %s does not exist',FileListIn{j}),
         end
         
-        [pet_path,pet_file,ext]=fileparts(FileList{j});
+        [pet_path,pet_file,ext]=fileparts(FileListIn{j});
         if strcmp(ext,'.gz')
             newfile = gunzip([pet_path filesep pet_file ext]);
             [~,pet_file,ext]=fileparts(newfile{1});
@@ -150,9 +173,20 @@ for j=1:length(FileList)
             Sca      = Sca*MinImg/(-32768);
         end
         
+        % check names
+        if ~exist('FileListOut','var')
+            [~,pet_filename]           = fileparts(pet_file);
+        else
+            [newpet_path,pet_filename] = fileparts(FileListOut{j});
+            if ~isempty(newpet_path)
+                pet_path = newpet_path;
+            end
+        end 
+        filenameout  = [pet_path filesep pet_filename];
+
         % write timing info separately
         if sifout
-            pid = fopen(fullfile(pet_path,[pet_file(1:end-2) '.sif']),'w');
+            pid = fopen([filenameout '.sif'],'w');
             
             if (pid~=0)
                 offset   = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
@@ -172,12 +206,10 @@ for j=1:length(FileList)
         % save raw data
         if savemat
             ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
-            save(fullfile(pet_path,[pet_file(1:end-2) '.ecat.mat']),'ecat','-v7.3');
+            save([filenameout '.ecat.mat'],'ecat','-v7.3');
         end
         
         % write nifti format + json
-        [~,pet_filename]                      = fileparts(pet_file);
-        filenameout                           = [pet_path filesep pet_filename];
         img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
@@ -225,7 +257,7 @@ for j=1:length(FileList)
         info.Description                      = 'Open NeuroPET ecat7+ matlab based conversion';
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
-        jsonwrite([pet_path filesep pet_file(1:end-2) '.json'],info)
+        jsonwrite([filenameout '.json'],info)
         
         info.Datatype                         = 'single';
         info.BitsPerPixel                     = 32;
@@ -286,13 +318,13 @@ for j=1:length(FileList)
         info.raw.magic          = 'n+1 ';
         if gz
             niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
-            fileout{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+            FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
         else
-            fileout{j} = [filenameout '.nii'];
-            niftiwrite(img_temp,fileout{j},info,'Endian','little','Compressed',false);
+            FileListOut{j} = [filenameout '.nii'];
+            niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
         end
         
     catch conversionerr
-        fileout{j} = sprintf('%s failed to convert:%s',FileList{j},conversionerr.message);
+        FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end
 end
