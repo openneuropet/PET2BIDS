@@ -6,10 +6,11 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % FORMAT: fileout = ecat2nii(FileListIn,MetaList)
 %         fileout = ecat2nii(FileListIn,MetaList,options)
 %
-% INPUT: FileListIn - Cell array of characters with paths and filenames 
-%        MetaList - Cell array of structures for metadata
+% INPUT: FileListIn - a name or a Cell array of characters with paths and filenames 
+%        MetaList - a structure or Cell array of structures for metadata
+%        (a single structure can be use other many FileListIn - see examples)
 %        options are name/value pairs
-%                'FileListOut' a cell array of characters with filenames
+%                'FileListOut' a name or cell array of characters with filenames
 %                              (with path if the path out is different)
 %                'sifout' is true or false (default) to output a sif file
 %                'gz' is true (default) or false to output .nii.gz or .nii
@@ -18,10 +19,11 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % OUTPUT FileListOut is the name or a cell array of names of the nifti files created
 %        (should ne the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
-% Example Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+% Examples Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%         FileListOut = ecat2nii({EcatFile},{Meta});
-%         FileListOut = ecat2nii({EcatFile},{Meta},'FileListOut',{ConvertedRenamedFile},'gz',false,'sifout',true);
+%         FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
+%         FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
+%         FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));
 %
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
