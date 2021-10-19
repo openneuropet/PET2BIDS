@@ -1,4 +1,4 @@
-# BIDS-converter
+# PET to BIDS is a set of BIDS converter for your Brain PET data
 
 ![BIDS-converter main](https://github.com/openneuropet/BIDS-converter/actions/workflows/setup_and_cli_test_posix.yaml/badge.svg)
 
