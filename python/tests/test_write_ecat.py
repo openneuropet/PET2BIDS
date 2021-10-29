@@ -36,7 +36,7 @@ class TestECATWrite(unittest.TestCase):
                                                            self.pixel_dimensions,
                                                            pixel_byte_size=self.pixel_byte_size_int)
 
-        # dimensions of directory should be 4 x 64
+        # dimensions of directory should be 4 x 32
         self.assertEqual(generated_directory_table[0].shape, (4, 32))
         # data type should be int 32
         self.assertTrue(generated_directory_table[0].dtype == numpy.dtype('>i4'))
@@ -74,12 +74,14 @@ class TestECATWrite(unittest.TestCase):
             write_header(ecat_file=outfile,
                          schema=schema,
                          values=self.known_main_header)
+            file_position_after_main_header_write = outfile.tell()
 
             directory_table = create_directory_table(self.known_main_header['NUM_FRAMES'],
                                                      pixel_dimensions=self.pixel_dimensions,
                                                      pixel_byte_size=self.pixel_byte_size_int
                                                      )
             write_directory_table(outfile, directory_table)
+            file_position_after_directory_table_write = outfile.tell()
 
         # collect newly written directory table from temp file
 
@@ -87,7 +89,7 @@ class TestECATWrite(unittest.TestCase):
                                      byte_start=512,
                                      byte_stop=512)
         just_written_directory_table = get_directory_data(directory_block, self.temp_file, return_raw=True)
-        # dimensions of directory should be 4 x 64
+        # dimensions of directory should be 4 x 32
         self.assertEqual(just_written_directory_table[0].shape, (4, 32))
         # data type should be int 32
         self.assertTrue(just_written_directory_table[0].dtype == numpy.dtype('>i4'))
@@ -103,11 +105,16 @@ class TestECATWrite(unittest.TestCase):
         # assert additional directory table was created at correct byte position
         if len(directory_table) > 1:
             directory_block = read_bytes(path_to_bytes=self.temp_file,
-                                         byte_start=(just_written_directory_table[0][1, 0] -1) * 512,
+                                         byte_start=1024,
+                                         #byte_start=(just_written_directory_table[0][1, 0] - 1) * 512,
                                          byte_stop=512)
             additional_directory_table = numpy.frombuffer(directory_block, dtype=numpy.dtype('>i4'), count=-1)
             additional_directory_table = numpy.transpose(numpy.reshape(additional_directory_table, (-1, 4)))
             numpy.testing.assert_array_equal(additional_directory_table, directory_table[1])
+
+        # check to see if writing to the tempfile broke any other part of the datastructure
+        check_header, check_subheaders, check_pixel_data = read_ecat(ecat_file=self.temp_file,
+                                                                     collect_pixel_data=True)
 
     def test_write_pixel_data(self):
         self.known_main_header, self.known_subheaders, self.known_pixel_data = read_ecat(os.environ['TEST_ECAT_PATH'],

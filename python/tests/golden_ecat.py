@@ -16,6 +16,8 @@ golden_ecat_path = os.environ['GOLDEN_ECAT']
 # collect skeleton header
 skeleton_main_header, skeleton_subheader, _ = read_ecat(os.environ['GOLDEN_ECAT_TEMPLATE_ECAT'],
                                                         collect_pixel_data=False)
+# collect skeleton directory table
+
 
 number_of_frames = 4
 one_dimension = 16
@@ -53,7 +55,7 @@ with open(golden_ecat_path, 'wb') as ecat_file:
     subheaders_to_write = skeleton_subheader[0:one_dimension]
 
     for subheader in subheaders_to_write:
-        subheader['X_DIMENSION'] = one_dimension  # pixel data is 4-d, this is the 1/4 root of the flat array
+        subheader['X_DIMENSION'] = one_dimension  # pixel data is 3-d this is 1/3 root of the 3d array.
         subheader['Y_DIMENSION'] = one_dimension
         subheader['Z_DIMENSION'] = one_dimension
         subheader['IMAGE_MIN'] = integer_pixel_data.min()
@@ -69,6 +71,11 @@ with open(golden_ecat_path, 'wb') as ecat_file:
 
     # write the directory to file
     after_table_position = write_directory_table(ecat_file, directory)
+    seek_position = ecat_file.tell()
+    assert seek_position == after_table_position
+
+    # move forward 512 bytes as directory tables may be 1024 bytes, this one however is only 512
+    ecat_file.seek(512, 1)
 
     # reshape pixel data into 3-d arrays
     pixels_to_collect = one_dimension ** 3
@@ -78,7 +85,6 @@ with open(golden_ecat_path, 'wb') as ecat_file:
         frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
 
     # write frame data (subheaders and pixel data)
-
     # for the number of entries in the directory
     for index in range(directory[0][3, 0]):
         subheader_and_frame_byte_position = 512 * directory[0][1, index + 1]
@@ -86,6 +92,7 @@ with open(golden_ecat_path, 'wb') as ecat_file:
         pixel_seek = write_header(ecat_file=ecat_file,
                                   schema=ecat_header_maps['ecat_headers']['73']['7'],
                                   values=subheaders_to_write[index])
+
         assert ecat_file.tell() == subheader_and_frame_byte_position + 512
         write_pixel_data(ecat_file=ecat_file,
                          pixel_data=frames[index])

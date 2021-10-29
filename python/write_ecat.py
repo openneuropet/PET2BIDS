@@ -62,7 +62,8 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int 
         byte_position = ecat_file.tell()
 
     for entry in schema:
-        byte_position, variable_name, struct_fmt = entry['byte'] + byte_position, entry['variable_name'], entry['struct']
+        byte_position, variable_name, struct_fmt = entry['byte'] + byte_position, entry['variable_name'], entry[
+            'struct']
         struct_fmt = '>' + struct_fmt
         byte_width = struct.calcsize(struct_fmt)
         value_to_write = values.get(variable_name, None)
@@ -124,12 +125,12 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
 
     table_byte_position = 1 + required_directory_blocks
     for i in range(required_directory_blocks):
-        # initialize empty 4 x 64 array
+        # initialize empty 4 x 32 array
         table = numpy.ndarray((4, 32), dtype='>i4')
 
         # populate first column of table with codes and undetermined codes
         # note these table values are only extrapolated from a data set w/ 45 frames and datasets with less than
-        # 31 frames. Behavior or values for frames numbering above 45 (or more specifically 62) is unknown.
+        # 31 frames. Behavior or values for frames numbering above 45 (or more specifically 64) is unknown.
         if i == (required_directory_blocks - 1):
             frames_to_iterate = num_frames % 31
             table[0, 0] = 17
@@ -140,15 +141,18 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
             frames_to_iterate = floor(num_frames / 31) * 31
             table[0, 0] = 0
             table[1, 0] = 0  # note this is just a placeholder the real value is entered after the final position of the
-                             # last entry in the first directory is calculated
+            # last entry in the first directory is calculated
             table[2, 0] = 0
             table[3, 0] = frames_to_iterate
 
         for column in range(frames_to_iterate):
             if column != 0:
                 table_byte_position += 1
+            elif i > 0:
+                table_byte_position += 1
             table[0, column + 1] = directory_order.pop(0)
             table[1, column + 1] = table_byte_position
+            # frame byte position is shifted
             table_byte_position = int((pixel_byte_size * pixel_volume) / 512 + table_byte_position)
             table[2, column + 1] = table_byte_position
             table[3, column + 1] = 1
@@ -168,7 +172,7 @@ def write_directory_table(file, directory_tables: list, seek: bool = False):
     into the filepath as bytes strings, then writes the bytes strings to the end of the file, returning the byte position
     it left off on.
     :param file: an ecat file that has been initialized with it's main header information
-    :param directory_tables: a list of directory tables (1 to 2) that are 4x64 in dimensions and of dtype int32.
+    :param directory_tables: a list of directory tables (1 to 2) that are 4x32 in dimensions and of dtype int32.
     :param seek: seek to directory table position at 512 bytes, defaults to writing at current position of
     file read head.
     :return: The byte position after writing
@@ -185,9 +189,9 @@ def write_directory_table(file, directory_tables: list, seek: bool = False):
             else:
                 pass
         # additional directory table positions are recorded in the previous directory table in row 1 column 0
-        else:
-            next_table_position = directory_tables[n - 1][1, 0] - 1
-            file.seek(512*next_table_position)
+        #else:
+            #next_table_position = directory_tables[n - 1][1, 0] - 1
+            #file.seek(512 * next_table_position)
         transpose_table = numpy.transpose(table)
         flattened_transpose = numpy.reshape(transpose_table, (4, -1)).flatten()
 

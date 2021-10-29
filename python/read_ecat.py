@@ -142,7 +142,7 @@ def filter_bytes(unfiltered, struct_fmt):
     return filtered
 
 
-def get_directory_data(byte_block, ecat_file, return_raw = False):
+def get_directory_data(byte_block, ecat_file, return_raw=False):
     directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
     raw = []
     while True:
@@ -331,7 +331,8 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                 elif dt_val == 6:
                     pixel_data_type = '>i2'
                 else:
-                    raise ValueError(f"Unable to determine pixel data type from value: {dt_val}")
+                    raise ValueError(
+                        f"Unable to determine pixel data type from value: {dt_val} extracted from {subheader}")
                 # read it into a one dimensional matrix
                 pixel_data_matrix_3d = numpy.frombuffer(pixel_data,
                                                         dtype=numpy.dtype(pixel_data_type),
