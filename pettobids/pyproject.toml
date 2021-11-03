@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pettobids"
+version = "0.0.0"
+description = "A python implementation of an ECAT to BIDS converter."
+authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7,<3.10"
+nibabel = "^3.2.1"
+numpy = "^1.21.3"
+pyparsing = "^3.0.4"
+python-dateutil = "^2.8.2"
+python-dotenv = "^0.19.1"
+scipy = "^1.7.1"
+six = "^1.16.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+pettobids = 'pettobids.cli:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

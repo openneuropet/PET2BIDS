@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Tests for `pet2bids` package."""
+"""Tests for `src` package."""
 
 
 import unittest
@@ -9,7 +9,7 @@ from pet2bids import pet2bids
 
 
 class TestPet2bids(unittest.TestCase):
-    """Tests for `pet2bids` package."""
+    """Tests for `src` package."""
 
     def setUp(self):
         """Set up test fixtures, if any."""

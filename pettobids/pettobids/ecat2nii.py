@@ -3,7 +3,7 @@ import datetime
 import nibabel
 import numpy
 import pathlib
-from pet2bids.read_ecat import read_ecat
+from pettobids.read_ecat import read_ecat
 import os
 import pickle
 
