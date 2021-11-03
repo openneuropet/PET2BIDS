@@ -112,7 +112,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     """
     # first determine the number of byte blocks the directory table(s) require based on the
     # number of frames
-    required_directory_blocks = ceil(num_frames / 32)
+    required_directory_blocks = ceil(num_frames / 31)
 
     # determine the width of the frame byte blocks with the pixel dimensions and data sizes
     pixel_volume = numpy.product([*pixel_dimensions.values()])
@@ -149,10 +149,16 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
             if column != 0:
                 table_byte_position += 1
             elif i > 0:
-                table_byte_position += 1
+                # this captures some unique behavior w/ regards to the directory formatting as observed from an HRRT
+                # scanner. When the number of frames exceeds 31 an additional directory table must be created to
+                # index these additional frames to. For whatever reason an extra byte is positioned between frames
+                # existing above 31 at the start of the new directory table. This conditional accounts for that.
+                if column == 0:
+                    table_byte_position += 2
+                else:
+                    table_byte_position += 1
             table[0, column + 1] = directory_order.pop(0)
             table[1, column + 1] = table_byte_position
-            # frame byte position is shifted
             table_byte_position = int((pixel_byte_size * pixel_volume) / 512 + table_byte_position)
             table[2, column + 1] = table_byte_position
             table[3, column + 1] = 1
