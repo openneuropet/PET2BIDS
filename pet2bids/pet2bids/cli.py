@@ -3,8 +3,8 @@ import os
 import pathlib
 import sys
 from os.path import join
-from ecat import Ecat
-from helper_functions import load_vars_from_config
+from pet2bids.ecat import Ecat
+from pet2bids.helper_functions import load_vars_from_config
 
 """
 simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.

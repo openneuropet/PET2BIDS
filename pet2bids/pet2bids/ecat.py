@@ -3,11 +3,11 @@ import re
 import nibabel
 import os
 import json
-import helper_functions
-from sidecar import sidecar_template_full, sidecar_template_short
+import pet2bids.helper_functions
+from pet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from read_ecat import read_ecat
-from ecat2nii import ecat2nii
+from pet2bids.read_ecat import read_ecat
+from pet2bids.ecat2nii import ecat2nii
 
 
 def parse_this_date(date_like_object):
@@ -50,7 +50,7 @@ class Ecat:
 
         if '.gz' in self.ecat_file and decompress is True:
             uncompressed_ecat_file = re.sub('.gz', '', self.ecat_file)
-            helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
+            pet2bids.helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
 
         if '.gz' in self.ecat_file and decompress is False:
             raise Exception("Nifti must be decompressed for reading of file headers")

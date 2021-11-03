@@ -15,7 +15,17 @@ build/
 dist/
 *.spec
 
+# Inherited cookiecutter files
+HISTORY.rst
+CONTRIBUTING.RST
+.travis.yml
+.editorconfig
+Makefile
+tox.ini
+README.rst
 
 # annoying pycharm files
 *.DS_STORE
+
+docs/
 
