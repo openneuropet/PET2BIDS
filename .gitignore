@@ -11,9 +11,11 @@
 .env
 
 # pyinstall files and folders
-code/python/build/
-code/python/dist/
+build/
+dist/
 *.spec
+
 
 # annoying pycharm files
 *.DS_STORE
+
