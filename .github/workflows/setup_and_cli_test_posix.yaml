@@ -36,7 +36,7 @@ jobs:
         run: "tar xvzf ecat_test && rm ecat_test"
 
       - name: Install Python Reqs
-        run: pip3 install -r pettobids/pyproject.toml
+        run: pip3 install -r pettobids/requirements.txt
 
       - name: Test CLI --help
         run: python3 pettobids/pettobids/cli.py --help
@@ -45,19 +45,19 @@ jobs:
         run: "python3 pettobids/pettobids/cli.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
       - name: Copy Test File(s) to tests/
-        run: cp ${{ env.SMALLER_ECAT_PATH }} src/src/tests/
+        run: cp ${{ env.SMALLER_ECAT_PATH }} pettobids/tests/
 
       - name: Test ecatread
-        run: "cd pettobids/pettobids/ && python3 -m tests.test_ecatread"
+        run: "cd pettobids/ && python3 -m tests.test_ecatread"
 
       - name: Test helper_functions
-        run: "cd pettobids/pettobids/ && python3 -m tests.test_helper_functions"
+        run: "cd pettobids/ && python3 -m tests.test_helper_functions"
 
       - name: Test nifti write
-        run: "cd pettobids/pettobids/ && python3 -m tests.test_nifti_write"
+        run: "cd pettobids/ && python3 -m tests.test_nifti_write"
 
       - name: Test bytes
-        run: "cd pettobids/pettobids/ && python3 -m tests.test_thisbytes"
+        run: "cd pettobids/ && python3 -m tests.test_thisbytes"
 
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
