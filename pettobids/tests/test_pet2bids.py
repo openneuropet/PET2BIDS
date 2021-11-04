@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-
+'''
 """Tests for `src` package."""
 
 
 import unittest
 
-from pet2bids import pet2bids
+from pettobids import pettobids
 
 
-class TestPet2bids(unittest.TestCase):
+class Testpettobids(unittest.TestCase):
     """Tests for `src` package."""
 
     def setUp(self):
@@ -19,3 +19,4 @@ class TestPet2bids(unittest.TestCase):
 
     def test_000_something(self):
         """Test something."""
+'''
