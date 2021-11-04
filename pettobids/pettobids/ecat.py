@@ -3,10 +3,12 @@ import re
 import nibabel
 import os
 import json
+import pandas
 import pettobids.helper_functions
+import tempfile
 from pettobids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from pettobids.read_ecat import read_ecat
+from pettobids.read_ecat import read_ecat, get_directory_table
 from pettobids.ecat2nii import ecat2nii
 
 
@@ -42,7 +44,8 @@ class Ecat:
         self.frame_durations = []       # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []         # stored here
         self.sidecar_template = sidecar_template_full  # bids approved sidecar file with ALL bids fields
-        self.sidecar_template_short = sidecar_template_short  # bids approved sidecar with only required bids fields
+        self.sidecar_template_short = sidecar_template_short # bids approved sidecar with only required bids fields
+        self.directory_table = None
         if os.path.isfile(ecat_file):
             self.ecat_file = ecat_file
         else:
@@ -60,6 +63,8 @@ class Ecat:
         except nibabel.filebasedimages.ImageFileError as err:
             print("\nFailed to load ecat image.\n")
             raise err
+
+        self.directory_table = get_directory_table(self.ecat_file, byte_start=512)
 
         # extract ecat info
         self.extract_affine()
@@ -109,6 +114,15 @@ class Ecat:
         """
         for row in self.affine:
             print(row)
+
+    def show_directory_table(self):
+        temporary_csv = tempfile.TemporaryFile()
+        print_as_csv = pandas.DataFrame(self.directory_table).to_csv(temporary_csv, header=None, index=None)
+        temporary_csv.seek(0)
+        lines = temporary_csv.readlines()
+        lines = [line.decode('UTF-8').replace('\n', '') for line in lines]
+        for line in lines:
+            print(line)
 
     def show_header(self):
         """

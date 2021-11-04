@@ -44,14 +44,17 @@ def cli():
                              "this cli will look for any scanner parameters file in the "
                              "directory with the name *parameters.txt from which this cli is "
                              "called.")
+    parser.add_argument("--directory_table", '-t', help="Collect table/array of ECAT frame byte location map",
+                        action="store_true", default=False)
     args = parser.parse_args()
     return args
 
 
 def main():
     cli_args = cli()
-    if cli_args.dump:
-        collect_pixel_data = False
+    collect_pixel_data = False
+    if cli_args.convert:
+        collect_pixel_data = True
     if cli_args.scannerparams is not None:
         # if no args are supplied to --scannerparams/-s
         if cli_args.scannerparams == []:
@@ -90,6 +93,9 @@ def main():
 
     if cli_args.dump:
         ecat.show_header()
+        sys.exit(0)
+    if cli_args.directory_table:
+        ecat.show_directory_table()
         sys.exit(0)
     if cli_args.affine:
         ecat.show_affine()
