@@ -3,7 +3,6 @@ import re
 import nibabel
 import os
 import json
-import pandas
 import pettobids.helper_functions
 import tempfile
 from pettobids.sidecar import sidecar_template_full, sidecar_template_short
@@ -116,13 +115,12 @@ class Ecat:
             print(row)
 
     def show_directory_table(self):
-        temporary_csv = tempfile.TemporaryFile()
-        print_as_csv = pandas.DataFrame(self.directory_table).to_csv(temporary_csv, header=None, index=None)
-        temporary_csv.seek(0)
-        lines = temporary_csv.readlines()
-        lines = [line.decode('UTF-8').replace('\n', '') for line in lines]
-        for line in lines:
-            print(line)
+        for row in range(self.directory_table.shape[0]):
+            for column in range(self.directory_table.shape[1]):
+                if column == self.directory_table.shape[1] - 1:
+                    print(self.directory_table[row][column])
+                else:
+                    print(self.directory_table[row][column], end=',', sep='')
 
     def show_header(self):
         """
