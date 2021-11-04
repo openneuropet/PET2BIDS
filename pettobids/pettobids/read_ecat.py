@@ -156,6 +156,58 @@ def get_header_data(header_data_map: dict = {}, ecat_file: str = '', byte_offset
 
     return header, read_head_position
 
+def get_directory_table(ecat_file, byte_start):
+    """
+    Collects directory tables and returns byte position after reading them
+    :param ecat_file: path to an ecat file
+    :param byte_start: byte to start reading at
+    :return:
+    """
+
+    read_to = byte_start
+    # Collecting First Part of File Directory/Index this Directory lies directly after the main header byte block
+    next_block = read_bytes(
+        path_to_bytes=ecat_file,
+        byte_start=read_to,
+        byte_stop=read_to + 512)
+
+    directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
+    while True:
+        # The exit conditions for this loop are below
+        # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
+        # if [2,1] of the directory is 2 break ???? up for interpretation as to the exact meaning but,
+        # observed to signal the end of an additional 512 byte block/buffer when the number of frames
+        # exceeds 31
+
+        read_byte_array = numpy.frombuffer(next_block, dtype=numpy.dtype('>i4'), count=-1)
+        # reshape 1d array into 2d, a 4 row by 32 column table is expected
+        reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
+        # chop off columns after 32, rows after 32 appear to be noise
+        reshaped = reshaped[:, 0:32]
+        # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
+        directory_size = reshaped[3, 0]
+        if directory_size == 0:
+            break
+        # on the first pass do this
+        if directory is None:
+            directory = reshaped[:, 1:directory_size + 1]
+        else:
+            directory = numpy.append(directory, reshaped[:, 1:directory_size + 1], axis=1)
+        # determine if this is the last directory by examining the 2nd row of the first column of the buffer
+        next_directory_position = reshaped[1, 0]
+        if next_directory_position == 2:
+            break
+        # looks like there is more directory to read, collect some more bytes
+        next_block = read_bytes(
+            path_to_bytes=ecat_file,
+            byte_start=(next_directory_position - 1) * 512,
+            byte_stop=next_directory_position * 512
+        )
+
+    # sort the directory contents as they're sometimes out of order
+    sorted_directory = directory[:, directory[0].argsort()]
+
+    return sorted_directory
 
 def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool = True):
     """
@@ -217,47 +269,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     row 3: ??? Number of frames contained in w/ in the byte blocks between row 1 and 2?
     """
 
-    # Collecting First Part of File Directory/Index this Directory lies directly after the main header byte block
-    next_block = read_bytes(
-        path_to_bytes=ecat_file,
-        byte_start=read_to,
-        byte_stop=read_to + 512)
-
-    directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
-    while True:
-        # The exit conditions for this loop are below
-        # if [4,1] of the directory is 0 break as there are 31 or less frames in this 512 byte buffer
-        # if [2,1] of the directory is 2 break ???? up for interpretation as to the exact meaning but,
-        # observed to signal the end of an additional 512 byte block/buffer when the number of frames
-        # exceeds 31
-
-        read_byte_array = numpy.frombuffer(next_block, dtype=numpy.dtype('>i4'), count=-1)
-        # reshape 1d array into 2d, a 4 row by 32 column table is expected
-        reshaped = numpy.transpose(numpy.reshape(read_byte_array, (-1, 4)))
-        # chop off columns after 32, rows after 32 appear to be noise
-        reshaped = reshaped[:, 0:32]
-        # get directory size/number of frames in dir from 1st column 4th row of the array in the buffer
-        directory_size = reshaped[3, 0]
-        if directory_size == 0:
-            break
-        # on the first pass do this
-        if directory is None:
-            directory = reshaped[:, 1:directory_size + 1]
-        else:
-            directory = numpy.append(directory, reshaped[:, 1:directory_size + 1], axis=1)
-        # determine if this is the last directory by examining the 2nd row of the first column of the buffer
-        next_directory_position = reshaped[1, 0]
-        if next_directory_position == 2:
-            break
-        # looks like there is more directory to read, collect some more bytes
-        next_block = read_bytes(
-            path_to_bytes=ecat_file,
-            byte_start=(next_directory_position-1) * 512,
-            byte_stop=next_directory_position * 512
-        )
-
-    # sort the directory contents as they're sometimes out of order
-    sorted_directory = directory[:, directory[0].argsort()]
+    sorted_directory = get_directory_table(ecat_file=ecat_file, byte_start=read_to)
 
     # determine subheader type by checking main header
     subheader_type_number = main_header['FILE_TYPE']
