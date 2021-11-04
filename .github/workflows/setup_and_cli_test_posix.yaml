@@ -60,7 +60,7 @@ jobs:
         run: "tar xvzf ecat_test && rm ecat_test"
 
       - name: Test CLI --help
-        run:
+        run: |
           cd pettobids
           source .venv/bin/activate
           python pettobids/cli.py --help
