@@ -3,11 +3,11 @@ import re
 import nibabel
 import os
 import json
-import helper_functions
-from sidecar import sidecar_template_full, sidecar_template_short
+import pettobids.helper_functions
+from pettobids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from read_ecat import read_ecat
-from ecat2nii import ecat2nii
+from pettobids.read_ecat import read_ecat
+from pettobids.ecat2nii import ecat2nii
 
 
 def parse_this_date(date_like_object):

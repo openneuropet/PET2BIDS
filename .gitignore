@@ -11,9 +11,23 @@
 .env
 
 # pyinstall files and folders
-code/python/build/
-code/python/dist/
+build/
+dist/
 *.spec
+
+# Inherited cookiecutter files
+HISTORY.rst
+CONTRIBUTING.RST
+.travis.yml
+.editorconfig
+Makefile
+tox.ini
+README.rst
 
 # annoying pycharm files
 *.DS_STORE
+
+docs/
+
+# test environment
+test_env/
