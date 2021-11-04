@@ -63,10 +63,10 @@ jobs:
         run: |
           cd pettobids/
           source .venv/bin/activate
-          python pettobids/cli.py --help
+          python -m pettobids.cli --help
 
       - name: Test CLI Ecat Dump
-        run: "python pettobids/cli.py ${{ env.REAL_TEST_ECAT_PATH }} --dump"
+        run: "python -m pettobids.cli ${{ env.REAL_TEST_ECAT_PATH }} --dump"
 
       - name: Copy Test File(s) to tests/
         run: cp ${{ env.SMALLER_ECAT_PATH }} pettobids/tests/
