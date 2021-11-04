@@ -69,7 +69,7 @@ jobs:
         run: |
           cd pettobids/
           source .venv/bin/activate
-          python -m pettobids.cli ${{ env.REAL_TEST_ECAT_PATH }} --dump
+          python -m pettobids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       - name: Copy Test File(s) to tests/
         run: cp ${{ env.SMALLER_ECAT_PATH }} pettobids/tests/
