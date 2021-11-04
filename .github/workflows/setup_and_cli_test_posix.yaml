@@ -53,6 +53,10 @@ jobs:
           cd pettobids
           poetry install --no-interaction --no-root
 
+      - name: Determine PWD after cd in previous action
+        run: |
+          pwd
+
       - name: Collect Ecat Dataset w/ curl
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
@@ -61,7 +65,6 @@ jobs:
 
       - name: Test CLI --help
         run: |
-          cd pettobids
           source .venv/bin/activate
           python pettobids/cli.py --help
 
