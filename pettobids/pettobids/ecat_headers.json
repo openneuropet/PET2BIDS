@@ -1,0 +1,4112 @@
+{
+    "__comments": {
+        "Note to reader": "The datastructures below are a direct translation of the pdf's included in this repository,\nwhich are assumed to be taken from official Siemens documentation at the time of this writing.\nFor that reason the values associated with byte, variable_name, type, and comment should be viewed as partly historical as they have been directly transposed from that official documentation.\nAdditional fields are all added for additional convenience to the user/author/developer and should be viewed from that lense",
+        "ecat_headers": "Entries in this dictionary are labeled <ecat version number ><mainheader or integer code type for subheader>\n the integer code types for each subheader correspond to FILE_TYPE field in the main header\n    ECAT 7.2 Only\n    Subheader types correspond to these enumerated types as defined below:\n    00 = unknown, \n    01 = Sinogram, \n    02 = Image - 16, \n    03 = Attenuation Correction, \n    04 = Normalization, \n    05 = PolarMap, \n    06 = Volume 8, \n    07 = Volume 16, \n    08 = Projection 8, \n    09 = Projection 16, \n    10 = Image 8, \n    11 = 3D Sinogram 16, \n    12 = 3D Sinogram 8, \n    13 = 3D Normalization, \n    14 = 3D Sinogram Fit)\n\n    Presently, only types 03, 05, 07, 11, and 13 correspond to known subheader types for 72. If the\n    value in FILE_TYPE is outside of this range the subheaders will not be read and this will\n    raise an exception.\n    \n    ECAT 7.3 Only\n    00 = unknown\n    01 = unknown\n    02 = unknown\n    03 = Attenuation Correction\n    04 = unknown\n    05 = unknown\n    06 = unknown\n    07 = Volume 16\n    08 = unknown\n    09 = unknown\n    10 = unknown\n    11 = 3D Sinogram 16",
+        "type": "refers to the type of data defined in the ECAT documentation; includes: Integer*2, Integer*4, Real*4, and Character*N",
+        "variable_name": "refers to the name of the variable as defined in the ECAT documentation, case sensitive",
+        "byte": "refers to the absolute byte position, data is organized in the same order as byte position such that list[0] -> the 0th byte",
+        "struct": "the c struct data type format of the variable, ",
+        "comment": "refers to the comment field from the ECAT documentation, some comments list enumerated types as type1, type2, etc., etc. at the time of this writing those et cetera are unknown, good luck.",
+        "enumerated_values": "Best guesses and translations of the possible enumerated types in the comments",
+        "units": "when possible the units corresponding to each byte/variable name are defined here"
+    },
+    "ecat_headers": {
+        "63": {
+            "mainheader": [
+                {
+                    "byte": 0,
+                    "variable_name": "%FILL(14)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (28 bytes)",
+                    "struct": "14H"
+                },
+                {
+                    "byte": 28,
+                    "variable_name": "ORIGINAL_FILE_NAME",
+                    "type": "Character*20",
+                    "comment": "Scan file's creation name",
+                    "struct": "20s"
+                },
+                {
+                    "byte": 48,
+                    "variable_name": "SW_VERSION",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (VER_PRE5, VER_5, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. Type (DTYPE_BYTES, DTYPE_12, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 52,
+                    "variable_name": "SYSTEM_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. Type (MODEL_911_01, _02, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "FILE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. Type (FTYPE_SCAN, _IMAGE, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 56,
+                    "variable_name": "NODE_ID",
+                    "type": "Character*10",
+                    "comment": "Unique ID of the ECAT system used",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "SCAN_START_DAY",
+                    "type": "Integer*2",
+                    "comment": "Day acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 68,
+                    "variable_name": "SCAN_START_MONTH",
+                    "type": "Integer*2",
+                    "comment": "Month acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 70,
+                    "variable_name": "SCAN_START_YEAR",
+                    "type": "Integer*2",
+                    "comment": "Year acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 72,
+                    "variable_name": "SCAN_START_HOUR",
+                    "type": "Integer*2",
+                    "comment": "Hour acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 74,
+                    "variable_name": "SCAN_START_MINUTE",
+                    "type": "Integer*2",
+                    "comment": "Minute acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 76,
+                    "variable_name": "SCAN_START_SECOND",
+                    "type": "Integer*2",
+                    "comment": "Second acquisition was started",
+                    "struct": "H"
+                },
+                {
+                    "byte": 78,
+                    "variable_name": "ISOTOPE_CODE",
+                    "type": "Character*8",
+                    "comment": "Isotope specifier",
+                    "struct": "8s"
+                },
+                {
+                    "byte": 86,
+                    "variable_name": "ISOTOPE_HALFLIFE",
+                    "type": "Real*4",
+                    "comment": "Half-life of isotope specified (in sec.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 90,
+                    "variable_name": "RADIOPHARMACUETICAL",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 122,
+                    "variable_name": "GANTRY_TILT",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 126,
+                    "variable_name": "GANTRY_ROTATION",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 130,
+                    "variable_name": "BED_ELEVATION",
+                    "type": "Real*4",
+                    "comment": "Bed height (in cm.) from lowest point",
+                    "struct": "f"
+                },
+                {
+                    "byte": 134,
+                    "variable_name": "ROT_SOURCE_SPEED",
+                    "type": "Integer*2",
+                    "comment": "Revolutions/minute (0 if not rotating)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 136,
+                    "variable_name": "WOBBLE_SPEED",
+                    "type": "Integer*2",
+                    "comment": "Revolutions/minute (0 if not wobbled)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "TRANSM_SOURCE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (SRC_NONE, _RRS, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "AXIAL_FOV",
+                    "type": "Real*4",
+                    "comment": "Distance (in cm.) from first to last plane",
+                    "struct": "f"
+                },
+                {
+                    "byte": 144,
+                    "variable_name": "TRANSAXIAL_FOV",
+                    "type": "Real*4",
+                    "comment": "Distance (in cm.) of transaxial view",
+                    "struct": "f"
+                },
+                {
+                    "byte": 148,
+                    "variable_name": "TRANSAXIAL_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (XSAMP_STAT, _3, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 150,
+                    "variable_name": "COIN_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "E. type (CSAMP_NET_TRUES, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "AXIAL_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "E. type (ASAMP_NORM, _2X, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 154,
+                    "variable_name": "CALIBRATION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor",
+                    "struct": "f"
+                },
+                {
+                    "byte": 158,
+                    "variable_name": "CALIBRATION_UNITS",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (UNIT_UCIML, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 160,
+                    "variable_name": "COMPRESSION_CODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerate type (COMP_NONE, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 162,
+                    "variable_name": "STUDY_NAME",
+                    "type": "Character*12",
+                    "comment": "Study descriptor",
+                    "struct": "12s"
+                },
+                {
+                    "byte": 174,
+                    "variable_name": "PATIENT_ID",
+                    "type": "Character*16",
+                    "comment": "Patient identification descriptor",
+                    "struct": "16s"
+                },
+                {
+                    "byte": 190,
+                    "variable_name": "PATIENT_NAME",
+                    "type": "Character*32",
+                    "comment": "Patient name (free format ASCII)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 222,
+                    "variable_name": "PATIENT_SEX",
+                    "type": "Character*1",
+                    "comment": "E. type (SEX_MALE, _FEMALE, etc.)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 223,
+                    "variable_name": "PATIENT_AGE",
+                    "type": "Character*10",
+                    "comment": "Patient age (free format)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 233,
+                    "variable_name": "PATIENT_HEIGHT",
+                    "type": "Character*10",
+                    "comment": "Patient height (free format)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 243,
+                    "variable_name": "PATIENT_WEIGHT",
+                    "type": "Character*10",
+                    "comment": "Patient weight (free format)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 253,
+                    "variable_name": "PATIENT_DEXTERITY",
+                    "type": "Character*1",
+                    "comment": "E. type (DEXT_RT, _LF, _AMB, etc.)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 254,
+                    "variable_name": "PHYSICIAN_NAME",
+                    "type": "Character*32",
+                    "comment": "Physician name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 286,
+                    "variable_name": "OPERATOR_NAME",
+                    "type": "Character*32",
+                    "comment": "Operator name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 318,
+                    "variable_name": "STUDY_DESCRIPTION",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 350,
+                    "variable_name": "ACQUISITION_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. type (ACQ_RECTTR, _DYEM, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 352,
+                    "variable_name": "BED_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. type (BED_CTI, BED_SIEMENS, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 354,
+                    "variable_name": "SEPTA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. type (SEPTA_NONE, 3MM, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 356,
+                    "variable_name": "FACILITY_NAME",
+                    "type": "Character*20",
+                    "comment": "Free format ASCII",
+                    "struct": "20s"
+                },
+                {
+                    "byte": 376,
+                    "variable_name": "NUM_PLANES",
+                    "type": "Integer*2",
+                    "comment": "Number of planes of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 378,
+                    "variable_name": "NUM_FRAMES",
+                    "type": "Integer*2",
+                    "comment": "Number of frames of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 380,
+                    "variable_name": "NUM_GATES",
+                    "type": "Integer*2",
+                    "comment": "Number of gates of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 382,
+                    "variable_name": "NUM_BED_POS",
+                    "type": "Integer*2",
+                    "comment": "Number of bed positions of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 384,
+                    "variable_name": "INIT_BED_POSITION",
+                    "type": "Real*4",
+                    "comment": "Absolute bed location of bed position 0 (cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 388,
+                    "variable_name": "BED_OFFSET(15)",
+                    "type": "Real*4",
+                    "comment": "Offset from INIT_BED_POSITION (in cm.)",
+                    "struct": "14f"
+                },
+                {
+                    "byte": 448,
+                    "variable_name": "PLANE_SEPARATION",
+                    "type": "Real*4",
+                    "comment": "Distance between adjacent planes (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 452,
+                    "variable_name": "LWR_SCTR_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lowest threshold setting for scatter (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 454,
+                    "variable_name": "LWR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lower threshold setting for trues (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 456,
+                    "variable_name": "UPR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Upper threshold setting for trues (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 458,
+                    "variable_name": "COLLIMATOR",
+                    "type": "Real*4",
+                    "comment": "Collimator position (if applicable--911's)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 462,
+                    "variable_name": "USER_PROCESS_CODE",
+                    "type": "Character*10",
+                    "comment": "Data processing code (defined by user)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 472,
+                    "variable_name": "%FILL(20)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (40 bytes)",
+                    "struct": "20H"
+                }
+            ],
+            "subheader_matrix_scan_files": [
+                {
+                    "byte": 0,
+                    "variable_name": "%FILL(63)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (126 bytes)",
+                    "struct": "63H"
+                },
+                {
+                    "byte": 126,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated file data type",
+                    "struct": "H"
+                },
+                {
+                    "byte": 128,
+                    "variable_name": "%FILL(2)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "2H"
+                },
+                {
+                    "byte": 132,
+                    "variable_name": "DIMENSION_1",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (y dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 134,
+                    "variable_name": "DIMENSION_2",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (x dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 136,
+                    "variable_name": "SMOOTHING",
+                    "type": "Integer*2",
+                    "comment": "0 = not smoothed, 1 = 9 x 9 smoothing",
+                    "struct": "H"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "PROCESSING_CODE",
+                    "type": "Integer*2",
+                    "comment": "Designates processing applied to scan data",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "%FILL(3)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "3H"
+                },
+                {
+                    "byte": 146,
+                    "variable_name": "SAMPLE_DISTANCE",
+                    "type": "Real*4",
+                    "comment": "Actual Distance of view sample (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 150,
+                    "variable_name": "%FILL(8)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "8H"
+                },
+                {
+                    "byte": 166,
+                    "variable_name": "ISOTOPE_HALFLIFE",
+                    "type": "Real*4",
+                    "comment": "Half-life of isotope (in sec.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 170,
+                    "variable_name": "FRAME_DURATION_SEC",
+                    "type": "Integer*2",
+                    "comment": "Frame duration (in sec.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 172,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Gating segment length (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 176,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "Time from start of first gate (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 180,
+                    "variable_name": "%FILL(1)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "H"
+                },
+                {
+                    "byte": 182,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Always set to 1",
+                    "struct": "f"
+                },
+                {
+                    "byte": 186,
+                    "variable_name": "%FILL(3)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "3H"
+                },
+                {
+                    "byte": 192,
+                    "variable_name": "SCAN_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minimum value in sinogram",
+                    "struct": "H"
+                },
+                {
+                    "byte": 194,
+                    "variable_name": "SCAN_MAX",
+                    "type": "Integer*2",
+                    "comment": "Maximum value in sinogram",
+                    "struct": "H"
+                },
+                {
+                    "byte": 196,
+                    "variable_name": "PROMPTS",
+                    "type": "Integer*4",
+                    "comment": "Total prompts collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 200,
+                    "variable_name": "DELAYED",
+                    "type": "Integer*4",
+                    "comment": "Total delays collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 204,
+                    "variable_name": "MULTIPLES",
+                    "type": "Integer*4",
+                    "comment": "Total multiples collected in thes frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "NET_TRUES",
+                    "type": "Integer*4",
+                    "comment": "Total net trues (prompts--randoms)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 212,
+                    "variable_name": "%FILL(52)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (104 bytes)",
+                    "struct": "52H"
+                },
+                {
+                    "byte": 316,
+                    "variable_name": "COR_SINGLES(16)",
+                    "type": "Real*4",
+                    "comment": "Total singles with loss correction factoring",
+                    "struct": "16f"
+                },
+                {
+                    "byte": 380,
+                    "variable_name": "UNCOR_SINGLES(16)",
+                    "type": "Real*4",
+                    "comment": "Total singles without loss correction factoring",
+                    "struct": "16f"
+                },
+                {
+                    "byte": 444,
+                    "variable_name": "TOT_AVG_COR",
+                    "type": "Real*4",
+                    "comment": "Mean value of loss-corrected singles",
+                    "struct": "f"
+                },
+                {
+                    "byte": 448,
+                    "variable_name": "TOTAL_AVG_UNCOR",
+                    "type": "Real*4",
+                    "comment": "Mean value of singles (not loss corrected)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 452,
+                    "variable_name": "TOTAL_COIN_RATE",
+                    "type": "Integer*4",
+                    "comment": "Measured coincidence rate (from IPCP)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 456,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Time offset from first frame time (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 460,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 464,
+                    "variable_name": "LOSS_CORRECTION_FCTR",
+                    "type": "Real*4",
+                    "comment": "Loss correction factor applied to the sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 468,
+                    "variable_name": "%FILL(22)",
+                    "type": "Integer*2",
+                    "comment": "Unused (44 bytes)",
+                    "struct": "22H"
+                }
+            ],
+            "subheader_matrix_image_files": [
+                {
+                    "byte": 0,
+                    "variable_name": "%FILL(63)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (126 bytes)",
+                    "struct": "63H"
+                },
+                {
+                    "byte": 126,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (DTYPE_BYTES, _I2, etc)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 128,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 130,
+                    "variable_name": "%FILL(1)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "H"
+                },
+                {
+                    "byte": 132,
+                    "variable_name": "DIMENSION_1",
+                    "type": "Integer*2",
+                    "comment": "Dimension along x axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 134,
+                    "variable_name": "DIMENSION_2",
+                    "type": "Integer*2",
+                    "comment": "Dimension along y axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 136,
+                    "variable_name": "%FILL(12)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "12H"
+                },
+                {
+                    "byte": 160,
+                    "variable_name": "X_ORIGIN",
+                    "type": "Real*4",
+                    "comment": "Offset in x axis for recon target (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 164,
+                    "variable_name": "Y_ORIGIN",
+                    "type": "Real*4",
+                    "comment": "Offset in y axis for recon target (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 168,
+                    "variable_name": "RECON_SCALE",
+                    "type": "Real*4",
+                    "comment": "Reconstruction magnification factor (zoom)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 172,
+                    "variable_name": "QUANT_SCALE",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor ( in Quant_units)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 176,
+                    "variable_name": "IMAGE_MIN",
+                    "type": "Integer*2",
+                    "comment": "Image minimum pixel value",
+                    "struct": "h"
+                },
+                {
+                    "byte": 178,
+                    "variable_name": "IMAGE_MAX",
+                    "type": "Integer*2",
+                    "comment": "Image maximum pixel value",
+                    "struct": "H"
+                },
+                {
+                    "byte": 180,
+                    "variable_name": "%FILL(2)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "2H"
+                },
+                {
+                    "byte": 184,
+                    "variable_name": "PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 188,
+                    "variable_name": "SLICE_WIDTH",
+                    "type": "Real*4",
+                    "comment": "Axial slice thickness (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 192,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 196,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Frame start time (offset from first frame)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 200,
+                    "variable_name": "SLICE_LOCATION",
+                    "type": "Integer*2",
+                    "comment": "Location offset from initial bed position (cm.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 202,
+                    "variable_name": "RECON_START_HOUR",
+                    "type": "Integer*2",
+                    "comment": "Hour reconstruction began",
+                    "struct": "H"
+                },
+                {
+                    "byte": 204,
+                    "variable_name": "RECON_START_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minute reconstruction began",
+                    "struct": "H"
+                },
+                {
+                    "byte": 206,
+                    "variable_name": "RECON_START_SEC",
+                    "type": "Integer*2",
+                    "comment": "Second reconstruction began",
+                    "struct": "H"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "RECON_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Duration of reconstruction (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 212,
+                    "variable_name": "%FILL(12)",
+                    "type": "Integer*2",
+                    "comment": "Unused (24 bytes)",
+                    "struct": "12H"
+                },
+                {
+                    "byte": 236,
+                    "variable_name": "FILTER_CODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (FILT_NONE, _RAMP, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 238,
+                    "variable_name": "SCAN_MATRIX_NUM",
+                    "type": "Integer*4",
+                    "comment": "File index to corresponding scan data",
+                    "struct": "l"
+                },
+                {
+                    "byte": 242,
+                    "variable_name": "NORM_MATRIX_NUM",
+                    "type": "Integer*4",
+                    "comment": "File index to corresponding normal data",
+                    "struct": "l"
+                },
+                {
+                    "byte": 246,
+                    "variable_name": "ATTEN_COR_MAT_NUM",
+                    "type": "Integer*4",
+                    "comment": "File index to attenuation correction data",
+                    "struct": "l"
+                },
+                {
+                    "byte": 250,
+                    "variable_name": "%FILL(23)",
+                    "type": "Integer*2",
+                    "comment": "Unused (46 bytes)",
+                    "struct": "23H"
+                },
+                {
+                    "byte": 296,
+                    "variable_name": "IMAGE_ROTATION",
+                    "type": "Real*4",
+                    "comment": "Angle image was rotated (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 300,
+                    "variable_name": "PLANE_EFF_CORR_FCTR",
+                    "type": "Real*4",
+                    "comment": "Plane efficiency factor applied",
+                    "struct": "f"
+                },
+                {
+                    "byte": 304,
+                    "variable_name": "DECAY_CORR_FCTR",
+                    "type": "Real*4",
+                    "comment": "Isotope deca compensation applied to data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 308,
+                    "variable_name": "LOSS_CORR_FCTR",
+                    "type": "Real*4",
+                    "comment": "Loss correction factor (dead time) applied",
+                    "struct": "f"
+                },
+                {
+                    "byte": 312,
+                    "variable_name": "%FILL(32)",
+                    "type": "Integer*2",
+                    "comment": "Unused (64 bytes)",
+                    "struct": "32H"
+                },
+                {
+                    "byte": 376,
+                    "variable_name": "PROCESSING_CODE",
+                    "type": "Integer*2",
+                    "comment": "Bit encoded (PROC_DECAY_MASK, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 378,
+                    "variable_name": "%FILL(1)",
+                    "type": "Integer*2",
+                    "comment": "Unused",
+                    "struct": "H"
+                },
+                {
+                    "byte": 380,
+                    "variable_name": "QUANT_UNITS",
+                    "type": "Integer*2",
+                    "comment": "E. type (UNIT_MCIML, _NONE, etc.)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 382,
+                    "variable_name": "RECON_START_DAY",
+                    "type": "Integer*2",
+                    "comment": "Day image was reconstructed",
+                    "struct": "H"
+                },
+                {
+                    "byte": 384,
+                    "variable_name": "RECON_START_MONTH",
+                    "type": "Integer*2",
+                    "comment": "Month image was reconstructed",
+                    "struct": "H"
+                },
+                {
+                    "byte": 386,
+                    "variable_name": "RECON_START_YEAR",
+                    "type": "Integer*2",
+                    "comment": "Year image was reconstructed.",
+                    "struct": "H"
+                },
+                {
+                    "byte": 388,
+                    "variable_name": "ECAT_CALIBRATION_FCTR",
+                    "type": "Real*4",
+                    "comment": "ECAT calibration factor",
+                    "struct": "f"
+                },
+                {
+                    "byte": 392,
+                    "variable_name": "WELL_COUNTER_CAL_FCTR",
+                    "type": "Real*4",
+                    "comment": "Well counter calibration factor",
+                    "struct": "f"
+                },
+                {
+                    "byte": 396,
+                    "variable_name": "FILTER_PARAMS(6)",
+                    "type": "Real*4",
+                    "comment": "Cutoff frequency, DC component, ramp slope",
+                    "struct": "6f"
+                },
+                {
+                    "byte": 420,
+                    "variable_name": "ANNOTATION",
+                    "type": "Character*40",
+                    "comment": "Free format ASCII",
+                    "struct": "40s"
+                },
+                {
+                    "byte": 460,
+                    "variable_name": "%FILL(26)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (52 bytes)",
+                    "struct": "26H"
+                }
+            ]
+        },
+        "72": {
+            "mainheader": [
+                {
+                    "byte": 0,
+                    "variable_name": "MAGIC_NUMBER",
+                    "type": "Character*14",
+                    "comment": "UNIX file type identification number (NOT PART OF THE MATRIX HEADER DATA)",
+                    "struct": "14s"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "ORIGINAL_FILE_NAME",
+                    "type": "Character*32",
+                    "comment": "Scan file\u2019s creation name",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "SW_VERSION",
+                    "type": "Integer*2",
+                    "comment": "Software version number",
+                    "struct": "H"
+                },
+                {
+                    "byte": 48,
+                    "variable_name": "SYSTEM TYPE",
+                    "type": "Integer*2",
+                    "comment": "Scanner model (i.e., 951, 951R, 953, 953B, 921, 922, 925, 961, 962, 966)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "FILE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (00=unknown, 01=Sinogram, 02=Image-16, 03=Attenuation Correction, 04=Normalization, 05=Polar Map, 06=Volume 8, 07=Volume 16, 08=Projection 8, 09=Projection 16, 10=Image 8, 11=3D Sinogram 16, 12=3D Sinogram 8, 13=3D Normalization, 14=3D Sinogram Fit)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 52,
+                    "variable_name": "SERIAL_NUMBER",
+                    "type": "Character*10",
+                    "comment": "The serial number of the gantry",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 62,
+                    "variable_name": "SCAN_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Date and time that acquisition was started (in secs from base time)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "ISOTOPE_NAME",
+                    "type": "Character*8",
+                    "comment": "Isotope",
+                    "struct": "8s"
+                },
+                {
+                    "byte": 74,
+                    "variable_name": "ISOTOPE_HALFLIFE",
+                    "type": "Real*4",
+                    "comment": "Half-life of isotope specified (in sec.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 78,
+                    "variable_name": "RADIOPHARMACEUTICAL",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 110,
+                    "variable_name": "GANTRY_TILT",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 114,
+                    "variable_name": "GANTRY_ROTATION",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 118,
+                    "variable_name": "BED_ELEVATION",
+                    "type": "Real*4",
+                    "comment": "Bed height (in cm.) from lowest point",
+                    "struct": "f"
+                },
+                {
+                    "byte": 122,
+                    "variable_name": "INTRINSIC_TILT",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees),Angle that the first detector of Bucket 0 is offset from top center (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 126,
+                    "variable_name": "WOBBLE_SPEED",
+                    "type": "Integer*2",
+                    "comment": "Revolutions/minute (0 if not wobbled)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 128,
+                    "variable_name": "TRANSM_SOURCE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (SRC_NONE, _RRING, _RING, _ROD, _RROD)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 130,
+                    "variable_name": "DISTANCE_SCANNED",
+                    "type": "Real*4",
+                    "comment": "Total distance scanned (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 134,
+                    "variable_name": "TRANSAXIAL_FOV",
+                    "type": "Real*4",
+                    "comment": "Diameter (in cm.) of transaxial view",
+                    "struct": "f"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "ANGULAR_COMPRESSION",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (0=no mash,1=mash of 2, 2=mash of 4)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "COIN_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Net Trues, 1=Prompts and Delayed, 3= Prompts, Delayed, and Multiples)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 142,
+                    "variable_name": "AXIAL_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Normal, 1=2X, 2=3X)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 144,
+                    "variable_name": "ECAT_CALIBRATION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor (to convert from ECAT counts to activity counts)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 148,
+                    "variable_name": "CALIBRATION_UNITS",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Uncalibrated, 1=Calibrated,)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 150,
+                    "variable_name": "CALIBRATION_UNITS_LABE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (BLOOD_FLOW, LMRGLU)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "COMPRESSION_CODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (COMP_NONE, (This is the only value))",
+                    "struct": "H"
+                },
+                {
+                    "byte": 154,
+                    "variable_name": "STUDY_TYPE",
+                    "type": "Character*12",
+                    "comment": "Study descriptor",
+                    "struct": "12s"
+                },
+                {
+                    "byte": 166,
+                    "variable_name": "PATIENT_ID",
+                    "type": "Character*16",
+                    "comment": "Patient identification descriptor",
+                    "struct": "16s"
+                },
+                {
+                    "byte": 182,
+                    "variable_name": "PATIENT_NAME",
+                    "type": "Character*32",
+                    "comment": "Patient name (free format ASCII)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 214,
+                    "variable_name": "PATIENT_SEX",
+                    "type": "Character*1",
+                    "comment": "Enumerated type (SEX_MALE, _FEMALE, _UNKNOWN)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 215,
+                    "variable_name": "PATIENT_DEXTERITY",
+                    "type": "Character*1",
+                    "comment": "Enumerated type (DEXT_RT, _LF, _UNKNOWN)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 216,
+                    "variable_name": "PATIENT_AGE",
+                    "type": "Real*4",
+                    "comment": "Patient age (years)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "PATIENT_HEIGHT",
+                    "type": "Real*4",
+                    "comment": "Patient height (cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 224,
+                    "variable_name": "PATIENT_WEIGHT",
+                    "type": "Real*4",
+                    "comment": "Patient weight (kg)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 228,
+                    "variable_name": "PATIENT_BIRTH_DATE",
+                    "type": "Integer*4",
+                    "comment": "Format is YYYYMMDD",
+                    "struct": "I"
+                },
+                {
+                    "byte": 232,
+                    "variable_name": "PHYSICIAN_NAME",
+                    "type": "Character*32",
+                    "comment": "Attending Physician name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 264,
+                    "variable_name": "OPERATOR_NAME",
+                    "type": "Character*32",
+                    "comment": "Operator name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 296,
+                    "variable_name": "STUDY_DESCRIPTION",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 328,
+                    "variable_name": "ACQUISITION_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Undefined, 1=Blank, 2=Transmission, 3=Static emission, 4=Dynamic emission, 5=Gated emission, 6=Transmission rectilinear, 7=Emission rectilinear)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 330,
+                    "variable_name": "PATIENT_ORIENTATION",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (Bit 0 clear - Feet first, Bit 0 set - Head first, Bit 1-2 00 - Prone, Bit 1-2 01 - Supine, Bit 1-2 10 - Decubitus Right, Bit 1-2 11 - Decubitus Left)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 332,
+                    "variable_name": "FACILITY_NAME",
+                    "type": "Character*20",
+                    "comment": "Free format ASCII",
+                    "struct": "20s"
+                },
+                {
+                    "byte": 352,
+                    "variable_name": "NUM_PLANES",
+                    "type": "Integer*2",
+                    "comment": "Number of planes of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 354,
+                    "variable_name": "NUM_FRAMES",
+                    "type": "Integer*2",
+                    "comment": "Number of frames of data collected OR Highest frame number (in partially reconstructed files)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 356,
+                    "variable_name": "NUM_GATES",
+                    "type": "Integer*2",
+                    "comment": "Number of gates of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 358,
+                    "variable_name": "NUM_BED_POS",
+                    "type": "Integer*2",
+                    "comment": "Number of bed positions of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 360,
+                    "variable_name": "INIT_BED_POSITION",
+                    "type": "Real*4",
+                    "comment": "Absolute location of initial bed position (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 364,
+                    "variable_name": "BED_POSITION(15)",
+                    "type": "Real*4",
+                    "comment": "Absolute bed location (in cm.)",
+                    "struct": "15f"
+                },
+                {
+                    "byte": 424,
+                    "variable_name": "PLANE_SEPARATION",
+                    "type": "Real*4",
+                    "comment": "Physical distance between adjacent planes (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 428,
+                    "variable_name": "LWR_SCTR_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lowest threshold setting for scatter (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 430,
+                    "variable_name": "LWR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lower threshold setting for trues in (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 432,
+                    "variable_name": "UPR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Upper threshold setting for trues (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 434,
+                    "variable_name": "USER_PROCESS_CODE",
+                    "type": "Character*10",
+                    "comment": "Data processing code (defined by user)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 444,
+                    "variable_name": "ACQUISITION_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (0=Normal, 1=Windowed, 2=Windowed & Nonwindowed, 3=Dual energy, 4=Upper energy, 5=Emission and Transmission)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 446,
+                    "variable_name": "BIN_SIZE",
+                    "type": "Real*4",
+                    "comment": "Width of view sample (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 450,
+                    "variable_name": "BRANCHING_FRACTION",
+                    "type": "Real*4",
+                    "comment": "Fraction of decay by positron emission",
+                    "struct": "f"
+                },
+                {
+                    "byte": 454,
+                    "variable_name": "DOSE_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Actual time radiopharmaceutical was injected or flow was started (in sec since base time)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 458,
+                    "variable_name": "DOSAGE",
+                    "type": "Real*4",
+                    "comment": "Radiopharmaceutical dosage (in bequerels/cc) at time of injection",
+                    "struct": "f"
+                },
+                {
+                    "byte": 462,
+                    "variable_name": "WELL_COUNTER_CORR_FACTOR",
+                    "type": "Real*4",
+                    "comment": "TBD",
+                    "struct": "f"
+                },
+                {
+                    "byte": 466,
+                    "variable_name": "DATA_UNITS",
+                    "type": "Character*32",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 498,
+                    "variable_name": "SEPTA_STATE",
+                    "type": "Integer*2",
+                    "comment": "Septa position during scan (0=septa extended, 1=septa retracted)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 500,
+                    "variable_name": "FILL(6)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (12 bytes)",
+                    "struct": "6H"
+                }
+            ],
+            "3": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (DTYPE_BYTES, _I2, _I4, _VAXR4, _SUNFL, _SUNIN)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "ATTENUATION_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. type (ATTEN_NONE, _MEAS, _CALC)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (x dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (y dimensions)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_Z_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (z dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 12,
+                    "variable_name": "RING_DIFFERENCE",
+                    "type": "Integer*2",
+                    "comment": "Maximum acceptance angle.",
+                    "struct": "H"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the x dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "Y_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the y dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 26,
+                    "variable_name": "W_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "TBD",
+                    "struct": "f"
+                },
+                {
+                    "byte": 30,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Attenuation Scale Factor",
+                    "struct": "f"
+                },
+                {
+                    "byte": 34,
+                    "variable_name": "X_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Ellipse offset in x axis from center (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 38,
+                    "variable_name": "Y_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Ellipse offset in y axis from center (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 42,
+                    "variable_name": "X_RADIUS",
+                    "type": "Real*4",
+                    "comment": "Ellipse radius in x axis (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "Y_RADIUS",
+                    "type": "Real*4",
+                    "comment": "Ellipse radius in y axis (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "TILT_ANGLE",
+                    "type": "Real*4",
+                    "comment": "Tilt angel of the ellipse (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "ATTENUATION_COEFF",
+                    "type": "Real*4",
+                    "comment": "M u-absorption coefficient (in cm^-1)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 58,
+                    "variable_name": "ATTENUATION_MIN",
+                    "type": "Real*4",
+                    "comment": "Minimum value in the attenuation data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 62,
+                    "variable_name": "ATTENUATION_MAX",
+                    "type": "Real*4",
+                    "comment": "Maximum value in the attentuation data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "SKULL_THICKNESS",
+                    "type": "Real*4",
+                    "comment": "Skull thickness in cm",
+                    "struct": "f"
+                },
+                {
+                    "byte": 70,
+                    "variable_name": "NUM_ADDITIONAL_ATTN_COEFF",
+                    "type": "Integer*2",
+                    "comment": "Number of attenuation coefficients other than the Mu absorption coefficient above (max 8)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 72,
+                    "variable_name": "ADDITIONAL_ATTEN_COEFF(8)",
+                    "type": "Real*4",
+                    "comment": "The additional attention coefficient values",
+                    "struct": "8f"
+                },
+                {
+                    "byte": 104,
+                    "variable_name": "EDGE_FINDING_THRESHOLD",
+                    "type": "Real*4",
+                    "comment": "The threshold value used by automatic edge-detection routine (fraction of maximum)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 108,
+                    "variable_name": "STORAGE_ORDER",
+                    "type": "Integer*2",
+                    "comment": "Data storage order (RThetaZD, RZThetaD)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 110,
+                    "variable_name": "SPAN",
+                    "type": "Integer*2",
+                    "comment": "Axial compression specifier (number of ring differences spanned by a segment)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 112,
+                    "variable_name": "Z_ELEMENTS(64)",
+                    "type": "Integer*2",
+                    "comment": "Number of 'planes' in z direction for each ring difference segment",
+                    "struct": "64H"
+                },
+                {
+                    "byte": 240,
+                    "variable_name": "FILL(86)",
+                    "type": "Integer*2",
+                    "comment": "Unused (172 bytes)",
+                    "struct": "86H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
+                    "struct": "50H"
+                }
+            ],
+            "7": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "X_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along x axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "Y_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along y axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "Z_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along z axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "X_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in x axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "Y_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in y axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "Z_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in z axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "RECON_ZOOM",
+                    "type": "Real*4",
+                    "comment": "Reconstruction magnification factor (zoom)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 26,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor (in Quant_units)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 30,
+                    "variable_name": "IMAGE_MIN",
+                    "type": "Integer*2",
+                    "comment": "Image minimum pixel value",
+                    "struct": "h"
+                },
+                {
+                    "byte": 32,
+                    "variable_name": "IMAGE_MAX",
+                    "type": "Integer*2",
+                    "comment": "Image maximum pixel value",
+                    "struct": "H"
+                },
+                {
+                    "byte": 34,
+                    "variable_name": "X_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "X dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 38,
+                    "variable_name": "Y_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Y dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 42,
+                    "variable_name": "Z_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Z dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "frame start time (offset from first frame, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "FILTER_CODE",
+                    "type": "Integer*2",
+                    "comment": "enumerated type (0=all pass, 1=ramp, 2=Butterworth, 3=Hanning, 4=Hamming, 5=Parzen, 6=shepp, 7=butterworth-order 2, 8=Gaussian, 9=Median, 10=Boxcar)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 56,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the x dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 60,
+                    "variable_name": "Y_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the y dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 64,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 68,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Real*4",
+                    "comment": "number r elements from sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 72,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Real*4",
+                    "comment": "number of angles from sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 76,
+                    "variable_name": "Z_ROTATION_ANGLE",
+                    "type": "Real*4",
+                    "comment": "rotation in the xy plane (in degrees). Use right-hand coordinate system for rotation angle sign.",
+                    "struct": "f"
+                },
+                {
+                    "byte": 80,
+                    "variable_name": "DECAY_CORR_FCTR",
+                    "type": "Real*4",
+                    "comment": "isotope decay compensation applied to data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 84,
+                    "variable_name": "PROCESSING_CODE",
+                    "type": "Integer*4",
+                    "comment": "bit mask (0=not processed, 1=normalized, 2=Measured Attenuation Correction, 4=Calculated attenuation correction, 8=x smoothing, 16=Y smoothing, 32=Z smoothing, 64=2d scatter correction, 128=3D scatter correction, 256=arc correction, 512=decay correction, 1024=Online compression)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 88,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "gate duration (in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 92,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "r wave offset (for phase sliced studies, average, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 96,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 100,
+                    "variable_name": "FILTER_CUTOFF_FREQUENCY",
+                    "type": "real*4",
+                    "comment": "cutoff frequency",
+                    "struct": ""
+                },
+                {
+                    "byte": 104,
+                    "variable_name": "FILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 108,
+                    "variable_name": "FILTER_RAMP_SLOPE",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 112,
+                    "variable_name": "FILTER_ORDER",
+                    "type": "Integer*2",
+                    "comment": "do not use",
+                    "struct": "H"
+                },
+                {
+                    "byte": 114,
+                    "variable_name": "FILTER_SCATTER_FRACTION",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 118,
+                    "variable_name": "FILTER_SCATTER_SLOPE",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 122,
+                    "variable_name": "ANNOTATION",
+                    "type": "Character*40",
+                    "comment": "free format ascii",
+                    "struct": "40s"
+                },
+                {
+                    "byte": 162,
+                    "variable_name": "MT_1_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 166,
+                    "variable_name": "MT_1_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 170,
+                    "variable_name": "MT_1_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 174,
+                    "variable_name": "MT_2_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 178,
+                    "variable_name": "MT_2_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 182,
+                    "variable_name": "MT_2_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 186,
+                    "variable_name": "MT_3_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 190,
+                    "variable_name": "MT_3_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 194,
+                    "variable_name": "MT_3_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 198,
+                    "variable_name": "RFILTER_CUTOFF",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 202,
+                    "variable_name": "RFILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 206,
+                    "variable_name": "RFILTER_CODE",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "RFILTER_ORDER",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 210,
+                    "variable_name": "ZFILTER_CUTOFF",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 214,
+                    "variable_name": "ZFILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 218,
+                    "variable_name": "ZFILTER_CODE",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "ZFILTER_ORDER",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 222,
+                    "variable_name": "MT_1_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (1,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 226,
+                    "variable_name": "MT_2_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (2,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 230,
+                    "variable_name": "MT_3_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (3,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 234,
+                    "variable_name": "SCATTER_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=None, 1=Deconvolution, 2=Simulated, 3=Dual Energy)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 236,
+                    "variable_name": "RECON_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Filtered backprojection, 1=Forward projection 3D (PROMIS), 2=Ramp 3D, 3=FAVOR 3D, 4=SSRB, 5=Multi-slice rebinning, 6=FORE)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 238,
+                    "variable_name": "RECON_VIEWS",
+                    "type": "Integer*2",
+                    "comment": "Number of views used to reconstruct the data",
+                    "struct": "H"
+                },
+                {
+                    "byte": 240,
+                    "variable_name": "FILL(87)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (174 bytes)",
+                    "struct": "87H"
+                },
+                {
+                    "byte": 414,
+                    "variable_name": "FILL(48)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
+                    "struct": "48H"
+                }
+            ],
+            "5": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (DTYPE_BYTES, _I2,_I4)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "POLAR_MAP_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (Always 0 for now; denotes the version of the PM structure)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "NUM_RINGS",
+                    "type": "Integer*2",
+                    "comment": "Number of rings in this polar map",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "SECTORS_PER_RING(32)",
+                    "type": "Integer*2",
+                    "comment": "Number of sectors in each ring for up to 32 rings (1, 9, 18, or 32 sectors normally)",
+                    "struct": "32H"
+                },
+                {
+                    "byte": 70,
+                    "variable_name": "RING_POSITION(32)",
+                    "type": "Real*4",
+                    "comment": "Fractional distance along the long axis from base to apex",
+                    "struct": "32f"
+                },
+                {
+                    "byte": 198,
+                    "variable_name": "RING_ANGLE(32)",
+                    "type": "Integer*2",
+                    "comment": "Ring angle relative to long axis(90 degrees along cylinder, decreasing to 0 at the apex)",
+                    "struct": "32H"
+                },
+                {
+                    "byte": 262,
+                    "variable_name": "START_ANGLE",
+                    "type": "Integer*2",
+                    "comment": "Start angle for rings (Always 258 degrees, defines Polar Map\u2019s 0)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 264,
+                    "variable_name": "LONG_AXIS_LEFT(3)",
+                    "type": "Integer*2",
+                    "comment": "x, y, z location of long axis base end (in pixels)",
+                    "struct": "3H"
+                },
+                {
+                    "byte": 270,
+                    "variable_name": "LONG_AXIS_RIGHT(3)",
+                    "type": "Integer*2",
+                    "comment": "x, y, z location of long axis apex end (in pixels)",
+                    "struct": "3H"
+                },
+                {
+                    "byte": 276,
+                    "variable_name": "POSITION_DATA",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0 - Not available, 1 - Present)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 278,
+                    "variable_name": "IMAGE_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minimum pixel value in this polar map",
+                    "struct": "h"
+                },
+                {
+                    "byte": 280,
+                    "variable_name": "IMAGE_MAX",
+                    "type": "Integer*2",
+                    "comment": "Maximum pixel value in this polar map",
+                    "struct": "H"
+                },
+                {
+                    "byte": 282,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Scale factor to restore integer values to float values",
+                    "struct": "f"
+                },
+                {
+                    "byte": 286,
+                    "variable_name": "PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Pixel size (in cubic cm, represents voxels)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 290,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 294,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Frame start time (offset from first frame, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 298,
+                    "variable_name": "PROCESSING_CODE",
+                    "type": "Integer*2",
+                    "comment": "Bit Encoded (1- Map type (0 = Sector Analysis, 1 = Volumetric), 2 - Threshold Applied, 3 - Summed Map, 4 - Subtracted Map, 5 - Product of two maps, 6 - Ratio of two maps, 7 - Bias, 8 - Multiplier, 9 - Transform, 10 - Polar Map calculational protocol used)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 300,
+                    "variable_name": "QUANT_UNITS",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (0 - Default (see main header), 1 - Normalized, 2 - Mean, 3 - Std. Deviation from Mean)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 302,
+                    "variable_name": "ANNOTATION",
+                    "type": "Character*40",
+                    "comment": "label for polar map display",
+                    "struct": "40s"
+                },
+                {
+                    "byte": 342,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Gate duration (in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 346,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "R wave offset (Average, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 350,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "Number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 354,
+                    "variable_name": "POLAR_MAP_PROTOCOL",
+                    "type": "Character*20",
+                    "comment": "Polar Map protocol used to generate this polar map",
+                    "struct": "20s"
+                },
+                {
+                    "byte": 374,
+                    "variable_name": "DATABASE_NAME",
+                    "type": "Character*30",
+                    "comment": "Database name used for polar map comparison",
+                    "struct": "30s"
+                },
+                {
+                    "byte": 404,
+                    "variable_name": "FILL(27)",
+                    "type": "Integer*2",
+                    "comment": "Reserved for future CTI use (54 bytes)",
+                    "struct": "27H"
+                },
+                {
+                    "byte": 464,
+                    "variable_name": "FILL(27)",
+                    "type": "Integer*2",
+                    "comment": "User reserved space (54 bytes) Note: Use highest bytes first",
+                    "struct": "27H"
+                }
+            ],
+            "11": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (ByteData, SunShortt)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of Dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (\u03b8 dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (\u03b8 dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "CORRECTIONS_APPLIED",
+                    "type": "Integer*2",
+                    "comment": "Designates processing applied to scan data (Bit encoded, Bit 0 - Norm, Bit 1 - Atten, Bit 2 - Smooth)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_Z_ELEMENTS(64)",
+                    "type": "Integer*2",
+                    "comment": "Number of elements in z dimension for each ring difference segment in 3D scans",
+                    "struct": "64H"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "RING_DIFFERENCE",
+                    "type": "Integer*2",
+                    "comment": "Max ring difference (d dimension) in this frame",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "STORAGE_ORDER",
+                    "type": "Integer*2",
+                    "comment": "Data storage order (r\u03b8zd or rz\u03b8d)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 142,
+                    "variable_name": "AXIAL_COMPRESSION",
+                    "type": "Integer*2",
+                    "comment": "Axial compression code or factor, generally referred to as SPAN",
+                    "struct": "H"
+                },
+                {
+                    "byte": 144,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the r dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 148,
+                    "variable_name": "V_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the \u03b8 dimension (in radians)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 156,
+                    "variable_name": "W_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Not Used",
+                    "struct": "f"
+                },
+                {
+                    "byte": 160,
+                    "variable_name": "FILL(6)",
+                    "type": "Integer*2",
+                    "comment": "RESERVED for gating",
+                    "struct": "6H"
+                },
+                {
+                    "byte": 172,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Gating segment length (msec, Average time if phased gates are used)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 176,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "Time from start of first gate (Average, in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 180,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "Number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 184,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "If data type is integer, this factor is used to convert to float values",
+                    "struct": "f"
+                },
+                {
+                    "byte": 188,
+                    "variable_name": "SCAN_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minimum value in sinogram if data is in integer form  (not currently filled in)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 190,
+                    "variable_name": "SCAN_MAX",
+                    "type": "Integer*2",
+                    "comment": "Maximum value in sinogram if data is in integer form  (not currently filled in)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 192,
+                    "variable_name": "PROMPTS",
+                    "type": "Integer*4",
+                    "comment": "Total prompts collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 196,
+                    "variable_name": "DELAYED",
+                    "type": "Integer*4",
+                    "comment": "Total delays collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 200,
+                    "variable_name": "MULTIPLES",
+                    "type": "Integer*4",
+                    "comment": "Total multiples collected in this frame/gate (notused)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 204,
+                    "variable_name": "NET_TRUES",
+                    "type": "Integer*4",
+                    "comment": "Total net trues (prompts\u2013-randoms)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "TOT_AVG_COR",
+                    "type": "Real*4",
+                    "comment": "Mean value of loss-corrected singles",
+                    "struct": "f"
+                },
+                {
+                    "byte": 212,
+                    "variable_name": "TOT_AVG_UNCOR",
+                    "type": "Real*4",
+                    "comment": "Mean value of singles (not loss corrected)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 216,
+                    "variable_name": "TOTAL_COIN_RATE",
+                    "type": "Integer*4",
+                    "comment": "Measured coincidence rate (from IPCP)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Time offset from first frame time (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 224,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 228,
+                    "variable_name": "DEADTIME_CORRECTION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Dead-time correction factor applied to the sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 232,
+                    "variable_name": "FILL(90)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (180 bytes)",
+                    "struct": "90H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
+                    "struct": "50H"
+                },
+                {
+                    "byte": 512,
+                    "variable_name": "UNCOR_SINGLES(128)",
+                    "type": "Real*4",
+                    "comment": "Total uncorrected singles from each bucket",
+                    "struct": "128f"
+                }
+            ],
+            "13": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (IeeeFloat)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (y dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "NUM_TRANSAXIAL_CRYSTALS",
+                    "type": "Integer*2",
+                    "comment": "Number of transaxial crystals per block",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_CRYSTAL_RINGS",
+                    "type": "Integer*2",
+                    "comment": "Number of crystal rings",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "CRYSTALS_PER_RING",
+                    "type": "Integer*2",
+                    "comment": "Number of crystals per ring",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_GEO_CORR_PLANES",
+                    "type": "Integer*2",
+                    "comment": "Number of rows in the Plane Geometric Correction array",
+                    "struct": "H"
+                },
+                {
+                    "byte": 12,
+                    "variable_name": "ULD",
+                    "type": "Integer*2",
+                    "comment": "Upper energy limit",
+                    "struct": "H"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "LLD",
+                    "type": "Integer*2",
+                    "comment": "Lower energy limit",
+                    "struct": "H"
+                },
+                {
+                    "byte": 16,
+                    "variable_name": "SCATTER_ENERGY",
+                    "type": "Integer*2",
+                    "comment": "Scatter energy threshold",
+                    "struct": "H"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "NORM_QUALITY_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Used by Daily Check to determine the quality of the scanner",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "NORM_QUALITY_FACTOR_CODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (TBD)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 24,
+                    "variable_name": "RING_DTCOR1(32)",
+                    "type": "Real*4",
+                    "comment": "First \u201cper ring\u201d dead time correction coefficient",
+                    "struct": "32f"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "RING_DTCOR2(32)",
+                    "type": "Real*4",
+                    "comment": "Second \u201cper ring\u201d dead time correction coefficient",
+                    "struct": "32f"
+                },
+                {
+                    "byte": 280,
+                    "variable_name": "CRYSTAL_DTCOR(8)",
+                    "type": "Real*4",
+                    "comment": "Dead time correction factors for transaxial crystals",
+                    "struct": "8f"
+                },
+                {
+                    "byte": 312,
+                    "variable_name": "SPAN",
+                    "type": "Integer*2",
+                    "comment": "Axial compression specifier (number of ring differences included in each segment)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 314,
+                    "variable_name": "MAX_RING_DIFF",
+                    "type": "Integer*2",
+                    "comment": "Maximum ring difference acquired",
+                    "struct": "H"
+                },
+                {
+                    "byte": 316,
+                    "variable_name": "FILL(48)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (96 bytes)",
+                    "struct": "48H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
+                    "struct": "50H"
+                }
+            ],
+            "subheader_imported_6.5_matrix_scan_files": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (DTYPE_BYTES, _I2, _I4, _VAXR4, _SUNFL, _SUNIN)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of Dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (x dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (y dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "CORRECTIONS_APPLIED",
+                    "type": "Integer*2",
+                    "comment": "Designates processing applied to scan data (Bit encoded, Bit 0 - Norm, Bit 1 - Atten, Bit 2 - Smooth)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_Z_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (z dimension) For 3D scans",
+                    "struct": "H"
+                },
+                {
+                    "byte": 12,
+                    "variable_name": "RING_DIFFERENCE",
+                    "type": "Integer*2",
+                    "comment": "Maximum acceptance angle",
+                    "struct": "H"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the x dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "Y_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the y dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 26,
+                    "variable_name": "W_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "TBD",
+                    "struct": "f"
+                },
+                {
+                    "byte": 30,
+                    "variable_name": "FILL(6)",
+                    "type": "Integer*2",
+                    "comment": "RESERVED for gating",
+                    "struct": "6H"
+                },
+                {
+                    "byte": 42,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Gating segment length (msec, Average time if phased gates are used)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "Time from start of first gate (Average, in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "Number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "If data type=integer, use this factor, convert to float values",
+                    "struct": "f"
+                },
+                {
+                    "byte": 58,
+                    "variable_name": "SCAN_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minimum value in sinogram if data is in integer form",
+                    "struct": "H"
+                },
+                {
+                    "byte": 60,
+                    "variable_name": "SCAN_MAX",
+                    "type": "Integer*2",
+                    "comment": "Maximum value in sinogram if data is in integer form",
+                    "struct": "H"
+                },
+                {
+                    "byte": 62,
+                    "variable_name": "PROMPTS",
+                    "type": "Integer*4",
+                    "comment": "Total prompts collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "DELAYED",
+                    "type": "Integer*4",
+                    "comment": "Total delays collected in thes frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 70,
+                    "variable_name": "MULTIPLES",
+                    "type": "Integer*4",
+                    "comment": "Total multiples collected in the frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 74,
+                    "variable_name": "NET_TRUES",
+                    "type": "Integer*4",
+                    "comment": "Total net trues (prompts--randoms)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 78,
+                    "variable_name": "COR_SINGLES(16)",
+                    "type": "Real*4",
+                    "comment": "Total singles with loss correction factoring",
+                    "struct": "16f"
+                },
+                {
+                    "byte": 142,
+                    "variable_name": "UNCOR_SINGLES(16)",
+                    "type": "Real*4",
+                    "comment": "Total singles without loss correction factoring",
+                    "struct": "16f"
+                },
+                {
+                    "byte": 206,
+                    "variable_name": "TOT_AVG_COR",
+                    "type": "Real*4",
+                    "comment": "Mean value of loss-corrected singles",
+                    "struct": "f"
+                },
+                {
+                    "byte": 210,
+                    "variable_name": "TOT_AVG_UNCOR",
+                    "type": "Real*4",
+                    "comment": "Mean value of singles (not loss corrected)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 214,
+                    "variable_name": "TOTAL_COIN_RATE",
+                    "type": "Integer*4",
+                    "comment": "Measured coincidence rate (from IPCP)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 218,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Time offset from first frame time (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 222,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 226,
+                    "variable_name": "DEADTIME_CORRECTION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Dead-time correction factor applied to the sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 230,
+                    "variable_name": "PHYSICAL_PLANES(8)",
+                    "type": "Integer*2",
+                    "comment": "Physical planes that make up this logical plane",
+                    "struct": "8H"
+                },
+                {
+                    "byte": 246,
+                    "variable_name": "FILL(83)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (166 bytes)",
+                    "struct": "83H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
+                    "struct": "50H"
+                }
+            ]
+        },
+        "73": {
+            "mainheader": [
+                {
+                    "byte": 0,
+                    "variable_name": "MAGIC_NUMBER",
+                    "type": "Character*14",
+                    "comment": "UNIX file type identification number (NOT PART OF THE MATRIX HEADER DATA)",
+                    "struct": "14s"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "ORIGINAL_FILE_NAME",
+                    "type": "Character*32",
+                    "comment": "Scan file's creation name",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "SW_VERSION",
+                    "type": "Integer*2",
+                    "comment": "Software version number",
+                    "struct": "H"
+                },
+                {
+                    "byte": 48,
+                    "variable_name": "SYSTEM TYPE",
+                    "type": "Integer*2",
+                    "comment": "Scanner model (i.e., 951, 951R, 953, 953B, 921, 922, 925, 961, 962, 966)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "FILE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (00=unknown, 01=Sinogram, 02=Image-16, 03=Attenuation Correction, 04=Normalization, 05=Polar Map, 06=Volume 8, 07=Volume 16, 08=Projection 8, 09=Projection 16, 10=Image 8, 11=3D Sinogram 16, 12=3D Sinogram 8, 13=3D Normalization, 14=3D Sinogram Fit)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 52,
+                    "variable_name": "SERIAL_NUMBER",
+                    "type": "Character*10",
+                    "comment": "The serial number of the gantry",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 62,
+                    "variable_name": "SCAN_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Date and time that acquisition was started (in secs from base time)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "ISOTOPE_NAME",
+                    "type": "Character*8",
+                    "comment": "Isotope",
+                    "struct": "8s"
+                },
+                {
+                    "byte": 74,
+                    "variable_name": "ISOTOPE_HALFLIFE",
+                    "type": "Real*4",
+                    "comment": "Half-life of isotope specified (in sec.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 78,
+                    "variable_name": "RADIOPHARMACEUTICAL",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 110,
+                    "variable_name": "GANTRY_TILT",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 114,
+                    "variable_name": "GANTRY_ROTATION",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 118,
+                    "variable_name": "BED_ELEVATION",
+                    "type": "Real*4",
+                    "comment": "Bed height (in cm.) from lowest point",
+                    "struct": "f"
+                },
+                {
+                    "byte": 122,
+                    "variable_name": "INTRINSIC_TILT",
+                    "type": "Real*4",
+                    "comment": "Angle (in degrees),Angle that the first detector of Bucket 0 is offset from top center (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 126,
+                    "variable_name": "WOBBLE_SPEED",
+                    "type": "Integer*2",
+                    "comment": "Revolutions/minute (0 if not wobbled)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 128,
+                    "variable_name": "TRANSM_SOURCE_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (SRC_NONE, _RRING, _RING, _ROD, _RROD)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 130,
+                    "variable_name": "DISTANCE_SCANNED",
+                    "type": "Real*4",
+                    "comment": "Total distance scanned (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 134,
+                    "variable_name": "TRANSAXIAL_FOV",
+                    "type": "Real*4",
+                    "comment": "Diameter (in cm.) of transaxial view",
+                    "struct": "f"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "ANGULAR_COMPRESSION",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (0=no mash,1=mash of 2, 2=mash of 4)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "COIN_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Net Trues, 1=Prompts and Delayed, 3= Prompts, Delayed, and Multiples)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 142,
+                    "variable_name": "AXIAL_SAMP_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Normal, 1=2X, 2=3X)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 144,
+                    "variable_name": "ECAT_CALIBRATION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor (to convert from ECAT counts to activity counts)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 148,
+                    "variable_name": "CALIBRATION_UNITS",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Uncalibrated, 1=Calibrated,)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 150,
+                    "variable_name": "CALIBRATION_UNITS_LABEL",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (BLOOD_FLOW, LMRGLU)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "COMPRESSION_CODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (COMP_NONE, (This is the only value))",
+                    "struct": "H"
+                },
+                {
+                    "byte": 154,
+                    "variable_name": "STUDY_TYPE",
+                    "type": "Character*12",
+                    "comment": "Study descriptor",
+                    "struct": "12s"
+                },
+                {
+                    "byte": 166,
+                    "variable_name": "PATIENT_ID",
+                    "type": "Character*16",
+                    "comment": "Patient identification descriptor",
+                    "struct": "16s"
+                },
+                {
+                    "byte": 182,
+                    "variable_name": "PATIENT_NAME",
+                    "type": "Character*32",
+                    "comment": "Patient name (free format ASCII)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 214,
+                    "variable_name": "PATIENT_SEX",
+                    "type": "Character*1",
+                    "comment": "Enumerated type (SEX_MALE, _FEMALE, _UNKNOWN)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 215,
+                    "variable_name": "PATIENT_DEXTERITY",
+                    "type": "Character*1",
+                    "comment": "Enumerated type (DEXT_RT, _LF, _UNKNOWN)",
+                    "struct": "1s"
+                },
+                {
+                    "byte": 216,
+                    "variable_name": "PATIENT_AGE",
+                    "type": "Real*4",
+                    "comment": "Patient age (years)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "PATIENT_HEIGHT",
+                    "type": "Real*4",
+                    "comment": "Patient height (cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 224,
+                    "variable_name": "PATIENT_WEIGHT",
+                    "type": "Real*4",
+                    "comment": "Patient weight (kg)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 228,
+                    "variable_name": "PATIENT_BIRTH_DATE",
+                    "type": "Integer*4",
+                    "comment": "Format is YYYYMMDD",
+                    "struct": "I"
+                },
+                {
+                    "byte": 232,
+                    "variable_name": "PHYSICIAN_NAME",
+                    "type": "Character*32",
+                    "comment": "Attending Physician name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 264,
+                    "variable_name": "OPERATOR_NAME",
+                    "type": "Character*32",
+                    "comment": "Operator name (free format)",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 296,
+                    "variable_name": "STUDY_DESCRIPTION",
+                    "type": "Character*32",
+                    "comment": "Free format ASCII",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 328,
+                    "variable_name": "ACQUISITION_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Undefined, 1=Blank, 2=Transmission, 3=Static emission, 4=Dynamic emission, 5=Gated emission, 6=Transmission rectilinear, 7=Emission rectilinear)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 330,
+                    "variable_name": "PATIENT_ORIENTATION",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (Bit 0 clear - Feet first, Bit 0 set - Head first, Bit 1-2 00 - Prone, Bit 1-2 01 - Supine, Bit 1-2 10 - Decubitus Right, Bit 1-2 11 - Decubitus Left)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 332,
+                    "variable_name": "FACILITY_NAME",
+                    "type": "Character*20",
+                    "comment": "Free format ASCII",
+                    "struct": "20s"
+                },
+                {
+                    "byte": 352,
+                    "variable_name": "NUM_PLANES",
+                    "type": "Integer*2",
+                    "comment": "Number of planes of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 354,
+                    "variable_name": "NUM_FRAMES",
+                    "type": "Integer*2",
+                    "comment": "Number of frames of data collected OR Highest frame number (in partially reconstructed files)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 356,
+                    "variable_name": "NUM_GATES",
+                    "type": "Integer*2",
+                    "comment": "Number of gates of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 358,
+                    "variable_name": "NUM_BED_POS",
+                    "type": "Integer*2",
+                    "comment": "Number of bed positions of data collected",
+                    "struct": "H"
+                },
+                {
+                    "byte": 360,
+                    "variable_name": "INIT_BED_POSITION",
+                    "type": "Real*4",
+                    "comment": "Absolute location of initial bed position (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 364,
+                    "variable_name": "BED_POSITION(15)",
+                    "type": "Real*4",
+                    "comment": "Absolute bed location (in cm.)",
+                    "struct": "15f"
+                },
+                {
+                    "byte": 424,
+                    "variable_name": "PLANE_SEPARATION",
+                    "type": "Real*4",
+                    "comment": "Physical distance between adjacent planes (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 428,
+                    "variable_name": "LWR_SCTR_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lowest threshold setting for scatter (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 430,
+                    "variable_name": "LWR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Lower threshold setting for trues in (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 432,
+                    "variable_name": "UPR_TRUE_THRES",
+                    "type": "Integer*2",
+                    "comment": "Upper threshold setting for trues (in KeV)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 434,
+                    "variable_name": "USER_PROCESS_CODE",
+                    "type": "Character*10",
+                    "comment": "Data processing code (defined by user)",
+                    "struct": "10s"
+                },
+                {
+                    "byte": 444,
+                    "variable_name": "ACQUISITION_MODE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated Type (0=Normal, 1=Windowed, 2=Windowed & Nonwindowed, 3=Dual energy, 4=Upper energy, 5=Emission and Transmission)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 446,
+                    "variable_name": "BIN_SIZE",
+                    "type": "Real*4",
+                    "comment": "Width of view sample (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 450,
+                    "variable_name": "BRANCHING_FRACTION",
+                    "type": "Real*4",
+                    "comment": "Fraction of decay by positron emission",
+                    "struct": "f"
+                },
+                {
+                    "byte": 454,
+                    "variable_name": "DOSE_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Actual time radiopharmaceutical was injected or flow was started (in sec since base time)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 458,
+                    "variable_name": "DOSAGE",
+                    "type": "Real*4",
+                    "comment": "Radiopharmaceutical dosage (in bequerels/cc) at time of injection",
+                    "struct": "f"
+                },
+                {
+                    "byte": 462,
+                    "variable_name": "WELL_COUNTER_CORR_FACTOR",
+                    "type": "Real*4",
+                    "comment": "TBD",
+                    "struct": "f"
+                },
+                {
+                    "byte": 466,
+                    "variable_name": "DATA_UNITS",
+                    "type": "Character*32",
+                    "struct": "32s"
+                },
+                {
+                    "byte": 498,
+                    "variable_name": "SEPTA_STATE",
+                    "type": "Integer*2",
+                    "comment": "Septa position during scan (0=septa extended, 1=septa retracted)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 500,
+                    "variable_name": "FILL(6)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (12 bytes)",
+                    "struct": "6H"
+                }
+            ],
+            "3": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (DTYPE_BYTES, _I2, _I4, _VAXR4, _SUNFL, _SUNIN)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "ATTENUATION_TYPE",
+                    "type": "Integer*2",
+                    "comment": "E. type (ATTEN_NONE, _MEAS, _CALC)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (x dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (y dimensions)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_Z_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total elements collected (z dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 12,
+                    "variable_name": "RING_DIFFERENCE",
+                    "type": "Integer*2",
+                    "comment": "Maximum acceptance angle.",
+                    "struct": "H"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the x dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "Y_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the y dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 26,
+                    "variable_name": "W_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "TBD",
+                    "struct": "f"
+                },
+                {
+                    "byte": 30,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Attenuation Scale Factor",
+                    "struct": "f"
+                },
+                {
+                    "byte": 34,
+                    "variable_name": "X_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Ellipse offset in x axis from center (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 38,
+                    "variable_name": "Y_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Ellipse offset in y axis from center (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 42,
+                    "variable_name": "X_RADIUS",
+                    "type": "Real*4",
+                    "comment": "Ellipse radius in x axis (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "Y_RADIUS",
+                    "type": "Real*4",
+                    "comment": "Ellipse radius in y axis (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "TILT_ANGLE",
+                    "type": "Real*4",
+                    "comment": "Tilt angel of the ellipse (in degrees)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "ATTENUATION_COEFF",
+                    "type": "Real*4",
+                    "comment": "M u-absorption coefficient (in cm^-1)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 58,
+                    "variable_name": "ATTENUATION_MIN",
+                    "type": "Real*4",
+                    "comment": "Minimum value in the attenuation data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 62,
+                    "variable_name": "ATTENUATION_MAX",
+                    "type": "Real*4",
+                    "comment": "Maximum value in the attentuation data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 66,
+                    "variable_name": "SKULL_THICKNESS",
+                    "type": "Real*4",
+                    "comment": "Skull thickness in cm",
+                    "struct": "f"
+                },
+                {
+                    "byte": 70,
+                    "variable_name": "NUM_ADDITIONAL_ATTN_COEFF",
+                    "type": "Integer*2",
+                    "comment": "Number of attenuation coefficients other than the Mu absorption coefficient above (max 8)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 72,
+                    "variable_name": "ADDITIONAL_ATTEN_COEFF(8)",
+                    "type": "Real*4",
+                    "comment": "The additional attention coefficient values",
+                    "struct": "8f"
+                },
+                {
+                    "byte": 104,
+                    "variable_name": "EDGE_FINDING_THRESHOLD",
+                    "type": "Real*4",
+                    "comment": "The threshold value used by automatic edge-detection routine (fraction of maximum)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 108,
+                    "variable_name": "STORAGE_ORDER",
+                    "type": "Integer*2",
+                    "comment": "Data storage order (RThetaZD, RZThetaD)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 110,
+                    "variable_name": "SPAN",
+                    "type": "Integer*2",
+                    "comment": "Axial compression specifier (number of ring differences spanned by a segment)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 112,
+                    "variable_name": "Z_ELEMENTS(64)",
+                    "type": "Integer*2",
+                    "comment": "Number of 'planes' in z direction for each ring difference segment",
+                    "struct": "64H"
+                },
+                {
+                    "byte": 240,
+                    "variable_name": "FILL(86)",
+                    "type": "Integer*2",
+                    "comment": "Unused (172 bytes)",
+                    "struct": "86H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: use highest bytes first",
+                    "struct": "50H"
+                }
+            ],
+            "7": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "X_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along x axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "Y_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along y axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "Z_DIMENSION",
+                    "type": "Integer*2",
+                    "comment": "Dimension along z axis",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "X_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in x axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 14,
+                    "variable_name": "Y_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in y axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 18,
+                    "variable_name": "Z_OFFSET",
+                    "type": "Real*4",
+                    "comment": "Offset in z axis for recon target (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 22,
+                    "variable_name": "RECON_ZOOM",
+                    "type": "Real*4",
+                    "comment": "Reconstruction magnification factor (zoom)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 26,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Quantification scale factor (in Quant_units)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 30,
+                    "variable_name": "IMAGE_MIN",
+                    "type": "Integer*2",
+                    "comment": "Image minimum pixel value",
+                    "struct": "h"
+                },
+                {
+                    "byte": 32,
+                    "variable_name": "IMAGE_MAX",
+                    "type": "Integer*2",
+                    "comment": "Image maximum pixel value",
+                    "struct": "H"
+                },
+                {
+                    "byte": 34,
+                    "variable_name": "X_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "X dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 38,
+                    "variable_name": "Y_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Y dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 42,
+                    "variable_name": "Z_PIXEL_SIZE",
+                    "type": "Real*4",
+                    "comment": "Z dimension pixel size (in cm.)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 46,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 50,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "frame start time (offset from first frame, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 54,
+                    "variable_name": "FILTER_CODE",
+                    "type": "Integer*2",
+                    "comment": "enumerated type (0=all pass, 1=ramp, 2=Butterworth, 3=Hanning, 4=Hamming, 5=Parzen, 6=shepp, 7=butterworth-order 2, 8=Gaussian, 9=Median, 10=Boxcar)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 56,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the x dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 60,
+                    "variable_name": "Y_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the y dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 64,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 68,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Real*4",
+                    "comment": "number r elements from sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 72,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Real*4",
+                    "comment": "number of angles from sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 76,
+                    "variable_name": "Z_ROTATION_ANGLE",
+                    "type": "Real*4",
+                    "comment": "rotation in the xy plane (in degrees). Use right-hand coordinate system for rotation angle sign.",
+                    "struct": "f"
+                },
+                {
+                    "byte": 80,
+                    "variable_name": "DECAY_CORR_FCTR",
+                    "type": "Real*4",
+                    "comment": "isotope decay compensation applied to data",
+                    "struct": "f"
+                },
+                {
+                    "byte": 84,
+                    "variable_name": "PROCESSING_CODE",
+                    "type": "Integer*4",
+                    "comment": "bit mask (0=not processed, 1=normalized, 2=Measured Attenuation Correction, 4=Calculated attenuation correction, 8=x smoothing, 16=Y smoothing, 32=Z smoothing, 64=2d scatter correction, 128=3D scatter correction, 256=arc correction, 512=decay correction, 1024=Online compression)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 88,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "gate duration (in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 92,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "r wave offset (for phase sliced studies, average, in msec)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 96,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 100,
+                    "variable_name": "FILTER_CUTOFF_FREQUENCY",
+                    "type": "Real*4",
+                    "comment": "cutoff frequency",
+                    "struct": "f"
+                },
+                {
+                    "byte": 104,
+                    "variable_name": "FILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 108,
+                    "variable_name": "FILTER_RAMP_SLOPE",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 112,
+                    "variable_name": "FILTER_ORDER",
+                    "type": "Integer*2",
+                    "comment": "do not use",
+                    "struct": "H"
+                },
+                {
+                    "byte": 114,
+                    "variable_name": "FILTER_SCATTER_FRACTION",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 118,
+                    "variable_name": "FILTER_SCATTER_SLOPE",
+                    "type": "Real*4",
+                    "comment": "do not use",
+                    "struct": "f"
+                },
+                {
+                    "byte": 122,
+                    "variable_name": "ANNOTATION",
+                    "type": "Character*40",
+                    "comment": "free format ascii",
+                    "struct": "40s"
+                },
+                {
+                    "byte": 162,
+                    "variable_name": "MT_1_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 166,
+                    "variable_name": "MT_1_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 170,
+                    "variable_name": "MT_1_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (1,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 174,
+                    "variable_name": "MT_2_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 178,
+                    "variable_name": "MT_2_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 182,
+                    "variable_name": "MT_2_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (2,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 186,
+                    "variable_name": "MT_3_1",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,1).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 190,
+                    "variable_name": "MT_3_2",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,2).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 194,
+                    "variable_name": "MT_3_3",
+                    "type": "Real*4",
+                    "comment": "matrix transformation element (3,3).",
+                    "struct": "f"
+                },
+                {
+                    "byte": 198,
+                    "variable_name": "RFILTER_CUTOFF",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 202,
+                    "variable_name": "RFILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 206,
+                    "variable_name": "RFILTER_CODE",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "RFILTER_ORDER",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 210,
+                    "variable_name": "ZFILTER_CUTOFF",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 214,
+                    "variable_name": "ZFILTER_RESOLUTION",
+                    "type": "Real*4",
+                    "struct": "f"
+                },
+                {
+                    "byte": 218,
+                    "variable_name": "ZFILTER_CODE",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "ZFILTER_ORDER",
+                    "type": "Integer*2",
+                    "struct": "H"
+                },
+                {
+                    "byte": 222,
+                    "variable_name": "MT_1_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (1,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 226,
+                    "variable_name": "MT_2_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (2,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 230,
+                    "variable_name": "MT_3_4",
+                    "type": "Real*4",
+                    "comment": "Matrix transformation element (3,4)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 234,
+                    "variable_name": "SCATTER_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=None, 1=Deconvolution, 2=Simulated, 3=Dual Energy)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 236,
+                    "variable_name": "RECON_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (0=Filtered backprojection, 1=Forward projection 3D (PROMIS), 2=Ramp 3D, 3=FAVOR 3D, 4=SSRB, 5=Multi-slice rebinning, 6=FORE)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 238,
+                    "variable_name": "RECON_VIEWS",
+                    "type": "Integer*2",
+                    "comment": "Number of views used to reconstruct the data",
+                    "struct": "H"
+                },
+                {
+                    "byte": 240,
+                    "variable_name": "PROMPT_RATE",
+                    "type": "Real*4",
+                    "comment": "counts/sec total_prompt = prompt_rate*frame_duration",
+                    "struct": "f"
+                },
+                {
+                    "byte": 244,
+                    "variable_name": "RANDOM_RATE",
+                    "type": "Real*4",
+                    "comment": "counts/sec total_random = random_rate*frame_duration",
+                    "struct": "f"
+                },
+                {
+                    "byte": 248,
+                    "variable_name": "SINGLES_RATE",
+                    "type": "Real*4",
+                    "comment": "counts/sec average bucket singles rate",
+                    "struct": "f"
+                },
+                {
+                    "byte": 252,
+                    "variable_name": "SCATTER_FRACTION",
+                    "type": "Real*4",
+                    "comment": "",
+                    "struct": "f"
+                },
+                {
+                    "byte": 256,
+                    "variable_name": "FILL(87)",
+                    "type": "Integer*2",
+                    "comment": "",
+                    "struct": "87H"
+                },
+                {
+                    "byte": 430,
+                    "variable_name": "FILL(41)",
+                    "type": "Integer*2",
+                    "comment": "",
+                    "struct": "41H"
+                }
+            ],
+            "11": [
+                {
+                    "byte": 0,
+                    "variable_name": "DATA_TYPE",
+                    "type": "Integer*2",
+                    "comment": "Enumerated type (ByteData, SunShortt)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 2,
+                    "variable_name": "NUM_DIMENSIONS",
+                    "type": "Integer*2",
+                    "comment": "Number of Dimensions",
+                    "struct": "H"
+                },
+                {
+                    "byte": 4,
+                    "variable_name": "NUM_R_ELEMENTS",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (\u03b8 dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 6,
+                    "variable_name": "NUM_ANGLES",
+                    "type": "Integer*2",
+                    "comment": "Total views collected (\u03b8 dimension)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 8,
+                    "variable_name": "CORRECTIONS_APPLIED",
+                    "type": "Integer*2",
+                    "comment": "Designates processing applied to scan data (Bit encoded, Bit 0 - Norm, Bit 1 - Atten, Bit 2 - Smooth)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 10,
+                    "variable_name": "NUM_Z_ELEMENTS(64)",
+                    "type": "Integer*2",
+                    "comment": "Number of elements in z dimension for each ring difference segment in 3D scans",
+                    "struct": "64H"
+                },
+                {
+                    "byte": 138,
+                    "variable_name": "RING_DIFFERENCE",
+                    "type": "Integer*2",
+                    "comment": "Max ring difference (d dimension) in this frame",
+                    "struct": "H"
+                },
+                {
+                    "byte": 140,
+                    "variable_name": "STORAGE_ORDER",
+                    "type": "Integer*2",
+                    "comment": "Data storage order (r\u03b8zd or rz\u03b8d)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 142,
+                    "variable_name": "AXIAL_COMPRESSION",
+                    "type": "Integer*2",
+                    "comment": "Axial compression code or factor, generally referred to as SPAN",
+                    "struct": "H"
+                },
+                {
+                    "byte": 144,
+                    "variable_name": "X_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the r dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 148,
+                    "variable_name": "V_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the \u03b8 dimension (in radians)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 152,
+                    "variable_name": "Z_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Resolution in the z dimension (in cm)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 156,
+                    "variable_name": "W_RESOLUTION",
+                    "type": "Real*4",
+                    "comment": "Not Used",
+                    "struct": "f"
+                },
+                {
+                    "byte": 160,
+                    "variable_name": "FILL(6)",
+                    "type": "Integer*2",
+                    "comment": "RESERVED for gating",
+                    "struct": "6H"
+                },
+                {
+                    "byte": 172,
+                    "variable_name": "GATE_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Gating segment length (msec, Average time if phased gates are used)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 176,
+                    "variable_name": "R_WAVE_OFFSET",
+                    "type": "Integer*4",
+                    "comment": "Time from start of first gate (Average, in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 180,
+                    "variable_name": "NUM_ACCEPTED_BEATS",
+                    "type": "Integer*4",
+                    "comment": "Number of accepted beats for this gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 184,
+                    "variable_name": "SCALE_FACTOR",
+                    "type": "Real*4",
+                    "comment": "If data type is integer, this factor is used to convert to float values",
+                    "struct": "f"
+                },
+                {
+                    "byte": 188,
+                    "variable_name": "SCAN_MIN",
+                    "type": "Integer*2",
+                    "comment": "Minimum value in sinogram if data is in integer form  (not currently filled in)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 190,
+                    "variable_name": "SCAN_MAX",
+                    "type": "Integer*2",
+                    "comment": "Maximum value in sinogram if data is in integer form  (not currently filled in)",
+                    "struct": "H"
+                },
+                {
+                    "byte": 192,
+                    "variable_name": "PROMPTS",
+                    "type": "Integer*4",
+                    "comment": "Total prompts collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 196,
+                    "variable_name": "DELAYED",
+                    "type": "Integer*4",
+                    "comment": "Total delays collected in this frame/gate",
+                    "struct": "l"
+                },
+                {
+                    "byte": 200,
+                    "variable_name": "MULTIPLES",
+                    "type": "Integer*4",
+                    "comment": "Total multiples collected in this frame/gate (notused)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 204,
+                    "variable_name": "NET_TRUES",
+                    "type": "Integer*4",
+                    "comment": "Total net trues (prompts\u2013-randoms)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 208,
+                    "variable_name": "TOT_AVG_COR",
+                    "type": "Real*4",
+                    "comment": "Mean value of loss-corrected singles",
+                    "struct": "f"
+                },
+                {
+                    "byte": 212,
+                    "variable_name": "TOT_AVG_UNCOR",
+                    "type": "Real*4",
+                    "comment": "Mean value of singles (not loss corrected)",
+                    "struct": "f"
+                },
+                {
+                    "byte": 216,
+                    "variable_name": "TOTAL_COIN_RATE",
+                    "type": "Integer*4",
+                    "comment": "Measured coincidence rate (from IPCP)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 220,
+                    "variable_name": "FRAME_START_TIME",
+                    "type": "Integer*4",
+                    "comment": "Time offset from first frame time (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 224,
+                    "variable_name": "FRAME_DURATION",
+                    "type": "Integer*4",
+                    "comment": "Total duration of current frame (in msec.)",
+                    "struct": "l"
+                },
+                {
+                    "byte": 228,
+                    "variable_name": "DEADTIME_CORRECTION_FACTOR",
+                    "type": "Real*4",
+                    "comment": "Dead-time correction factor applied to the sinogram",
+                    "struct": "f"
+                },
+                {
+                    "byte": 232,
+                    "variable_name": "FILL(90)",
+                    "type": "Integer*2",
+                    "comment": "CTI Reserved space (180 bytes)",
+                    "struct": "90H"
+                },
+                {
+                    "byte": 412,
+                    "variable_name": "FILL(50)",
+                    "type": "Integer*2",
+                    "comment": "User Reserved space (100 bytes) Note: Use highest bytes first",
+                    "struct": "58H"
+                },
+                {
+                    "byte": 512,
+                    "variable_name": "UNCOR_SINGLES(128)",
+                    "type": "Real*4",
+                    "comment": "Total uncorrected singles from each bucket",
+                    "struct": "128f"
+                }
+            ]
+        }
+    }
+}
