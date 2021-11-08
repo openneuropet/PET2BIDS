@@ -216,6 +216,7 @@ for folder = 1:size(FolderList,1)
     
     % update json
     newmetadata = dir(fullfile(outputdir{folder},'*.json'));
+    % filename = fullfile(newmetadata.folder,newmetadata.name);
     upatejsonpetfile(fullfile(newmetadata.folder,newmetadata.name),MetaList);
 end
 
