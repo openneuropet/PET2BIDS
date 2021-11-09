@@ -41,18 +41,18 @@ jobs:
           installer-parallel: true
           virtualenvs-path: ${{ github.workspace }}/pypet2bids/venv/
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/pypet2bids/venv/
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      #- name: Load cached venv
+      #  id: cached-poetry-dependencies
+      #  uses: actions/cache@v2
+      #  with:
+      #   path: ${{ github.workspace }}/pypet2bids/venv/
+      #    key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          cd pypet2bids
-          poetry install --no-interaction --no-root
+      #- name: Install dependencies
+      #  if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      #  run: |
+      #    cd pypet2bids
+      #    poetry install --no-interaction --no-root
 
       - name: Collect Ecat Dataset w/ curl
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
