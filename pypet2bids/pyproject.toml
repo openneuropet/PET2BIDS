@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "pettobids"
-version = "0.0.2"
+name = "pypet2bids"
+version = "0.0.3"
 description = "A python implementation of an ECAT to BIDS converter."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -19,7 +19,7 @@ pytest = "^6.2.5"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
-pettobids = 'pettobids.cli:main'
+pypet2bids = 'pypet2bids.cli:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

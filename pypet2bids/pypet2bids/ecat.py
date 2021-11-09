@@ -3,12 +3,12 @@ import re
 import nibabel
 import os
 import json
-import pettobids.helper_functions
+import pypet2bids.helper_functions
 import tempfile
-from pettobids.sidecar import sidecar_template_full, sidecar_template_short
+from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from pettobids.read_ecat import read_ecat, get_directory_table
-from pettobids.ecat2nii import ecat2nii
+from pypet2bids.read_ecat import read_ecat, get_directory_table
+from pypet2bids.ecat2nii import ecat2nii
 
 
 def parse_this_date(date_like_object):

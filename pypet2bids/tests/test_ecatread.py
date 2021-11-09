@@ -1,5 +1,5 @@
 import scipy.io.matlab.miobase
-from pettobids.read_ecat import read_ecat
+from pypet2bids.read_ecat import read_ecat
 from scipy.io import savemat
 import dotenv
 import os

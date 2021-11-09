@@ -1,6 +1,6 @@
 import collections
 import unittest
-import pettobids.helper_functions as helper_functions
+import pypet2bids.helper_functions as helper_functions
 from os import remove
 
 
