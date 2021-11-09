@@ -1,4 +1,4 @@
-from pettobids.read_ecat import *
+from pypet2bids.read_ecat import *
 from dotenv import load_dotenv
 
 parent_dir = pathlib.Path(__file__).parent.resolve()

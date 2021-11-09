@@ -5,10 +5,10 @@
 
 import unittest
 
-from pettobids import pettobids
+from pypet2bids import pypet2bids
 
 
-class Testpettobids(unittest.TestCase):
+class Testpypet2bids(unittest.TestCase):
     """Tests for `src` package."""
 
     def setUp(self):

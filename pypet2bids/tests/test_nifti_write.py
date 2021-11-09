@@ -1,10 +1,10 @@
 import pickle
 
-from pettobids.ecat import Ecat
+from pypet2bids.ecat import Ecat
 import dotenv
 import os
 from datetime import datetime
-from pettobids.ecat2nii import ecat2nii
+from pypet2bids.ecat2nii import ecat2nii
 from nibabel import load
 import numpy
 
