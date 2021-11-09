@@ -33,26 +33,11 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-          virtualenvs-path: ${{ github.workspace }}/pypet2bids/venv/
-
-      #- name: Load cached venv
-      #  id: cached-poetry-dependencies
-      #  uses: actions/cache@v2
-      #  with:
-      #   path: ${{ github.workspace }}/pypet2bids/venv/
-      #    key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-      #- name: Install dependencies
-      #  if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      #  run: |
-      #    cd pypet2bids
-      #    poetry install --no-interaction --no-root
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: |
+          cd pypet2bids
+          pip install pyproject.toml
 
       - name: Collect Ecat Dataset w/ curl
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
@@ -63,13 +48,11 @@ jobs:
       - name: Test CLI --help
         run: |
           cd pypet2bids/
-          source ${{ github.workspace }}/venv/bin/activate
           python -m pypet2bids.cli --help
 
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          source ${{ github.workspace }}/venv/bin/activate
           python -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       - name: Copy Test File(s) to tests/
@@ -78,7 +61,6 @@ jobs:
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          source ${{ github.workspace }}/venv/bin/activate
           pytest tests/
 
         # matlab not supported on MacOS!! at this time
