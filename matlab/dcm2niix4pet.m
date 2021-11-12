@@ -1,4 +1,4 @@
-function fileout = dcm2niix4pet(FolderList,MetaList,varargin)
+function dcm2niix4pet(FolderList,MetaList,varargin)
 
 % Converts dicom image file to nifti+json calling dcm2niix augmenting
 % the json file to be BIDS compliant
@@ -7,9 +7,10 @@ function fileout = dcm2niix4pet(FolderList,MetaList,varargin)
 %         fileout = dcm2bids4pet(FolderList,MetaList,options)
 %
 % INPUT:  FolderList - Cell array of char strings with filenames and paths
-%         MetaList - Cell array of structures for metadata
-%         options are those pertaining to dcm2niix and must be passed as
-%         key-pair values 
+%         MetaList   - Cell array of structures for metadata
+%         options:
+%                   'deletedcm' to be 'on' or 'off'
+%                    key-pair values pertaining to dcm2niix     
 %           o          the output directory or cell arrays of directories
 %           gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 %           a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
@@ -27,7 +28,7 @@ function fileout = dcm2niix4pet(FolderList,MetaList,varargin)
 %           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %           bigendian  = 'o';    % byte order (y/n/o, default o) [y=big-end, n=little-end, o=optimal/native]
 %
-% Example meta = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+% Example meta = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %        fileout = dcm2bids4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
 %        fileout = dcm2bids4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
@@ -41,6 +42,8 @@ function fileout = dcm2niix4pet(FolderList,MetaList,varargin)
 
 %% defaults
 % ---------
+
+deletedcm  = 'off';
 
 gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
@@ -104,7 +107,10 @@ end
 % check options
 outputdir = [];
 for var=1:length(varargin)
-    if strcmpi(varargin{var},'gz')
+    
+    if strcmpi(varargin{var},'deletedcm')
+        deletedcm = varargin{var+1};
+    elseif strcmpi(varargin{var},'gz')
         gz = varargin{var+1};
         if ~num(gz)
             error('invalid compression experession, not a numeric');
@@ -211,13 +217,26 @@ for folder = 1:size(FolderList,1)
         ' -z ' z ...
         ' -bigendian ' bigendian ...
         ' ' FolderList{folder}];
-    if ~exist(outputdir{folder},'dir'); mkdir(outputdir{folder}); end
+    if ~exist(outputdir{folder},'dir'); 
+        mkdir(outputdir{folder}); 
+    end
     system(command);
     
+    % deal with dcm files
+    dcmfiles = dir(fullfile(outputdir{folder},'*dcm'));
+    dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    if strcmpi(deletedcm,'on')
+        delete(fullfile(outputdir{folder},'*dcm'))
+    end
+    
     % update json
-    newmetadata = dir(fullfile(outputdir{folder},'*.json'));
-    % filename = fullfile(newmetadata.folder,newmetadata.name);
-    upatejsonpetfile(fullfile(newmetadata.folder,newmetadata.name),MetaList);
+    newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
+    if size(newmetadata,1)>1
+        warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
+        newmetadata = newmetadata(1);
+    end
+    jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
+    upatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
 
 
