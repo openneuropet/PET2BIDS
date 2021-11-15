@@ -105,8 +105,8 @@ class TestECATWrite(unittest.TestCase):
         # assert additional directory table was created at correct byte position
         if len(directory_table) > 1:
             directory_block = read_bytes(path_to_bytes=self.temp_file,
-                                         byte_start=1024,
-                                         #byte_start=(just_written_directory_table[0][1, 0] - 1) * 512,
+                                         #byte_start=1024,
+                                         byte_start=(just_written_directory_table[0][1, 0] - 1) * 512,
                                          byte_stop=512)
             additional_directory_table = numpy.frombuffer(directory_block, dtype=numpy.dtype('>i4'), count=-1)
             additional_directory_table = numpy.transpose(numpy.reshape(additional_directory_table, (-1, 4)))

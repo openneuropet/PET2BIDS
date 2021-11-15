@@ -148,7 +148,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
         for column in range(frames_to_iterate):
             if column != 0:
                 table_byte_position += 1
-            elif column == 0 and i == 0:
+            elif column == 0 and i == 1:
                 table_byte_position += 2
             table[0, column + 1] = directory_order.pop(0)
             table[1, column + 1] = table_byte_position
@@ -189,9 +189,9 @@ def write_directory_table(file, directory_tables: list, seek: bool = False):
             else:
                 pass
         # additional directory table positions are recorded in the previous directory table in row 1 column 0
-        #else:
-            #next_table_position = directory_tables[n - 1][1, 0] - 1
-            #file.seek(512 * next_table_position)
+        else:
+            next_table_position = directory_tables[n - 1][1, 0] - 1
+            file.seek(512 * next_table_position)
         transpose_table = numpy.transpose(table)
         flattened_transpose = numpy.reshape(transpose_table, (4, -1)).flatten()
 
