@@ -1,0 +1,34 @@
+{
+  "TimeZero": "10:08:33",
+  "info": "just running a test",
+  "ReconMethodParameterLabels": [
+    "iterations",
+    "subsets",
+    "lower_threshold",
+    "upper_threshold"
+  ],
+  "ReconMethodParameterUnits": [
+    "none",
+    "none",
+    "keV",
+    "keV"
+  ],
+  "ReconMethodParameterValues": [6,16,400,650],
+  "ScaleFactor": [1.126738435885954e-08,1.091468249114769e-08,7.958775860572587e-09],
+  "ScatterFraction": [0,0,0],
+  "DecayCorrectionFactor": [1.087348580360413,1.28869640827179,1.527328610420227],
+  "PromptRate": [0,0,0],
+  "RandomRate": [0,0,0],
+  "SinglesRate": [0,0,0],
+  "FrameDuration": [300,300,300],
+  "FrameTimesStart": [0,300,600],
+  "ScanStart": 0,
+  "InjectionStart": 0,
+  "DoseCalibrationFactor": 0.8902456451367011,
+  "Filename": "D:\\BIDS\\ONP\\BIDS-converter\\PETdata_in\\Siemens_ecat\\ECAT7_multiframe.nii.gz",
+  "Filemoddate": "30-Aug-2021 10:18:40",
+  "Version": "NIfTI1",
+  "Description": "Open NeuroPET ecat2nii.m conversion",
+  "ImageSize": [256,256,207,3],
+  "PixelDimensions": [1.218750029802322,1.218750029802322,1.218750029802322,0]
+}

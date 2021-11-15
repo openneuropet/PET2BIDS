@@ -14,10 +14,10 @@ jobs:
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
       SMALLER_ECAT_PATH: ${{ github.workspace }}/PETdata_in/Siemens_ecat/ECAT7_multiframe.v
-      TEST_ECAT_PATH: ${{ github.workspace }}/pettobids/tests/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pettobids/tests/ECAT7_multiframe.nii
-      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pettobids/tests/ECAT7_multiframe.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pettobids/tests/ECAT7_multiframe.nibabel.mat
+      TEST_ECAT_PATH: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.v
+      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
+      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
+      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
 
     strategy:
@@ -29,39 +29,23 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-<<<<<<< HEAD
       - name: Cache ECAT
         id: cache-ecat
         uses: actions/cache@v2
         with:
           path: cimbi36
           key: ${{ runner.os }}-ecats
-=======
+
       - name: Set up python
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
-          cd pettobids
-          poetry install --no-interaction --no-root
->>>>>>> main
+          cd pypet2bids
+          pip install pyproject.toml
 
       - name: Collect Ecat Dataset w/ curl
         if: steps.cache-ecat.outputs.cache-hit != 'true'
@@ -73,18 +57,15 @@ jobs:
 
       - name: Test CLI --help
         run: |
-          cd pettobids/
-          source .venv/bin/activate
-          python -m pettobids.cli --help
+          cd pypet2bids/
+          python -m pypet2bids.cli --help
 
       - name: Test CLI Ecat Dump
         run: |
-          cd pettobids/
-          source .venv/bin/activate
-          python -m pettobids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
+          cd pypet2bids/
+          python -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       - name: Copy Test File(s) to tests/
-<<<<<<< HEAD
         run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
 
       - name: Test ecatread
@@ -95,19 +76,11 @@ jobs:
           TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
         run: "cd python/ && python3 -m tests.test_write_ecat"
 
-      - name: Test helper_functions
-        run: "cd python/ && python3 -m tests.test_helper_functions"
-
-      - name: Test nifti write
-        run: "cd python/ && python3 -m tests.test_nifti_write"
-=======
-        run: cp ${{ env.SMALLER_ECAT_PATH }} pettobids/tests/
->>>>>>> main
+        run: cp ${{ env.SMALLER_ECAT_PATH }} pypet2bids/tests/
 
       - name: Run All Other Python Tests w/ Pytest
         run: |
-          cd pettobids
-          source .venv/bin/activate
+          cd pypet2bids
           pytest tests/
 
         # matlab not supported on MacOS!! at this time
