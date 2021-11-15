@@ -1,5 +1,6 @@
 # I think matlab generates these when you're running interactive files
 *.asv
+*.mat
 
 # pycharm nonsense
 *.idea
@@ -27,6 +28,9 @@ README.rst
 # annoying pycharm files
 *.DS_STORE
 
+# misc
+*scratch*
+*.b
 docs/
 
 # test environment

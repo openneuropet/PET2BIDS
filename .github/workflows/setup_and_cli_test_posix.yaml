@@ -23,10 +23,18 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
+        #python: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
+
+      - name: Cache ECAT
+        id: cache-ecat
+        uses: actions/cache@v2
+        with:
+          path: cimbi36
+          key: ${{ runner.os }}-ecats
 
       - name: Set up python
         uses: actions/setup-python@v2
@@ -40,9 +48,11 @@ jobs:
           pip install pyproject.toml
 
       - name: Collect Ecat Dataset w/ curl
+        if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
+        if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "tar xvzf ecat_test && rm ecat_test"
 
       - name: Test CLI --help
@@ -56,6 +66,16 @@ jobs:
           python -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       - name: Copy Test File(s) to tests/
+        run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
+
+      - name: Test ecatread
+        run: "cd python/ && python3 -m tests.test_ecatread"
+
+      - name: Test ecatwrite
+        env:
+          TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+        run: "cd python/ && python3 -m tests.test_write_ecat"
+
         run: cp ${{ env.SMALLER_ECAT_PATH }} pypet2bids/tests/
 
       - name: Run All Other Python Tests w/ Pytest
