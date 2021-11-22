@@ -6,11 +6,11 @@ function dataout = check_metaradioinputs(varargin)
 % FORMAT: dataout = check_metaradioinputs(varargin)
 %
 % INPUTS: arguments in are any of these key/value pairs
-%           - InjectedRadioactivity
-%           - InjectedMass
-%           - SpecificRadioactivity
-%           - MolarActivity
-%           - MolecularWeight
+%           - InjectedRadioactivity in MBq
+%           - InjectedMass in ug
+%           - SpecificRadioactivity in Bq/g or MBq/ug
+%           - MolarActivity in GBq/umol
+%           - MolecularWeight in g/mol
 %
 % OUTPUT: dataout is a structure with the original and updated field,
 %         including expected units
@@ -20,7 +20,7 @@ function dataout = check_metaradioinputs(varargin)
 % Copyright Open NeuroPET team
 
 %% check inputs
-for n=1:nargout
+for n=1:nargin
     if strcmpi(varargin{n},'InjectedRadioactivity')
         InjectedRadioactivity = varargin{n+1};
     elseif strcmpi(varargin{n},'InjectedMass')
