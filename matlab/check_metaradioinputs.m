@@ -20,7 +20,12 @@ function dataout = check_metaradioinputs(varargin)
 % Copyright Open NeuroPET team
 
 %% check inputs
-for n=1:nargin
+if all(size(varargin))
+    varargin = varargin{1};
+end
+
+
+for n=1:length(varargin)
     if strcmpi(varargin{n},'InjectedRadioactivity')
         InjectedRadioactivity = varargin{n+1};
     elseif strcmpi(varargin{n},'InjectedMass')
