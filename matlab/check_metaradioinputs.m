@@ -1,16 +1,17 @@
 function dataout = check_metaradioinputs(varargin)
 
 % routine to check input consistency, possibly generate new ones from PET
-% BIDS metadata
+% BIDS metadata - this only makes sense if you respect the input units as
+% indicated
 % 
 % FORMAT: dataout = check_metaradioinputs(varargin)
 %
 % INPUTS: arguments in are any of these key/value pairs
 %           - InjectedRadioactivity in MBq
-%           - InjectedMass in ug
+%           - InjectedMass          in ug
 %           - SpecificRadioactivity in Bq/g or MBq/ug
-%           - MolarActivity in GBq/umol
-%           - MolecularWeight in g/mol
+%           - MolarActivity         in GBq/umol
+%           - MolecularWeight       in g/mol
 %
 % OUTPUT: dataout is a structure with the original and updated field,
 %         including expected units
@@ -49,7 +50,7 @@ if exist('InjectedRadioactivity', 'var') && exist('InjectedMass', 'var')
     tmp = (InjectedRadioactivity*10^6) / (InjectedMass/10^6); % (MBq*10^6)/(ug/10^6) = Bq/g
     if exist('SpecificRadioactivity', 'var')
         if SpecificRadioactivity ~= tmp
-            warning('infered SpecificRadioactivity in Bq/g doesn''t mach InjectedRadioactivity and InjectedMass, could be a unit issue')
+            warning('infered SpecificRadioactivity in Bq/g doesn''t match InjectedRadioactivity and InjectedMass, could be a unit issue')
         end
         dataout.SpecificRadioactivity      = SpecificRadioactivity;
     else
@@ -64,7 +65,7 @@ if exist('InjectedRadioactivity', 'var') && exist('SpecificRadioactivity', 'var'
     tmp = ((InjectedRadioactivity*10^6)/SpecificRadioactivity)*10^6; % ((MBq*10^6)/(Bq/g))*10^6 = ug
     if exist('InjectedMass', 'var')
         if InjectedMass ~= tmp
-            warning('infered InjectedMass in ug doesn''t mach InjectedRadioactivity and InjectedMass, could be a unit issue')
+            warning('infered InjectedMass in ug doesn''t match InjectedRadioactivity and InjectedMass, could be a unit issue')
         end
         dataout.InjectedMass      = InjectedMass;
     else
@@ -79,7 +80,7 @@ if exist('InjectedMass', 'var') && exist('SpecificRadioactivity', 'var')
     tmp = ((InjectedMass/10^6) / SpecificRadioactivity) / 10^6; % ((ug/10^6) / Bq/g) / 10^6 = MBq
     if exist('InjectedRadioactivity', 'var')
         if InjectedRadioactivity ~= tmp
-            warning('infered InjectedRadioactivity in MBq doesn''t mach SpecificRadioactivity and InjectedMass, could be a unit issue')
+            warning('infered InjectedRadioactivity in MBq doesn''t match SpecificRadioactivity and InjectedMass, could be a unit issue')
         end
         dataout.InjectedRadioactivity = InjectedRadioactivity;
     else
@@ -91,45 +92,45 @@ end
 if exist('MolarActivity', 'var') && exist('MolecularWeight', 'var')
     dataout.MolarActivity                  = MolarActivity;
     dataout.MolecularWeight                = MolecularWeight;
-    tmp = (MolarActivity/MolecularWeight)*1000; % (GBq/umol) / (g/mol)
+    tmp = (MolarActivity*10^6) / (MolecularWeight/10^6); % (GBq/umol*10^6) / (g/mol/*10^6) = Bq/g
     if exist('SpecificRadioactivity', 'var')
         if SpecificRadioactivity ~= tmp
-            warning('infered SpecificRadioactivity in MBq/ug doesn''t mach Molar Activity and Molecular Weight, could be a unit issue')
+            warning('infered SpecificRadioactivity in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
         end
         dataout.SpecificRadioactivity      = SpecificRadioactivity;
     else
         dataout.SpecificRadioactivity      = tmp;
-        dataout.SpecificRadioactivityUnits = 'MBq/ug';
+        dataout.SpecificRadioactivityUnits = 'Bq/g';
     end
 end
 
 if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
     dataout.SpecificRadioactivity    = SpecificRadioactivity;
     dataout.MolecularWeight          = MolecularWeight;
-    tmp = (SpecificRadioactivity*1000) / MolarActivity; % (MBq/ug*1000) / (GBq/umol) = ug / umol
+    tmp = (SpecificRadioactivity/1000) / MolarActivity; % (MBq/ug/1000) / (GBq/umol) = g / mol
     if exist('MolecularWeight', 'var')
         if MolecularWeight ~= tmp
-            warning('infered MolecularWeight in MBq/ug doesn''t mach Molar Activity and Molecular Weight, could be a unit issue')
+            warning('infered MolecularWeight in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
         end
         dataout.MolecularWeight      = MolecularWeight;
     else
         dataout.MolecularWeight      = tmp;
-        dataout.MolecularWeightUnits = 'ug/umol';
+        dataout.MolecularWeightUnits = 'g/mol';
     end
 end
 
 if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
     dataout.SpecificRadioactivity    = SpecificRadioactivity;
     dataout.MolarActivity            = MolarActivity;
-    tmp = (SpecificRadioactivity*1000) / MolarActivity; % (MBq/ug*1000) / (GBq/umol) = ug / umol
+    tmp = (SpecificRadioactivity/1000) / MolarActivity; % (MBq/ug/1000) / (GBq/umol) = g / mol
     if exist('MolecularWeight', 'var')
         if MolecularWeight ~= tmp
-            warning('infered MolecularWeight in MBq/ug doesn''t mach Molar Activity and Molecular Weight, could be a unit issue')
+            warning('infered MolecularWeight in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
         end
         dataout.MolecularWeight      = MolecularWeight;
     else
         dataout.MolecularWeight      = tmp;
-        dataout.MolecularWeightUnits = 'ug/umol';
+        dataout.MolecularWeightUnits = 'g/mol';
     end
 end
 
