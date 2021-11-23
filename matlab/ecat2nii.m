@@ -19,8 +19,8 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % OUTPUT FileListOut is the name or a cell array of names of the nifti files created
 %        (should ne the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
-% Examples Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
-%                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+% Example Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+%                      'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %         FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
 %         FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
 %         FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));
