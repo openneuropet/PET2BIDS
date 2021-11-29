@@ -1,7 +1,7 @@
 function status = updatejsonpetfile(varargin)
 
 % generic function that updates PET json file with missing PET-BIDS
-% information
+% information, if only the jsonfile is provided, it only checks if valid
 %
 % FORMAT status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
@@ -17,6 +17,12 @@ function status = updatejsonpetfile(varargin)
 % OUTPUT status returns the state of the updating (includes warning messages
 %               returned if any)
 %
+% jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
+% metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
+%                        'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+% dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
+% status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
+%
 % Cyril Pernet Nov 2021
 % ----------------------------------------------
 % Copyright Open NeuroPET team
@@ -27,18 +33,22 @@ status_index = 1;
 %% check data in
 jsonfilename = varargin{1};
 if nargin >= 2
-    newfileds = varargin{2};
+    newfields = varargin{2};
     if nargin == 3
         dcminfo = varargin{3};
     end
 end
 
 % current file metadata
-if exist(jsonfilename,'file')
-    filemetadata = jsondecode(fileread(jsonfilename));
-    filemetadatafields = fieldnames(filemetadata);
+if isstruct(jsonfilename)
+    filemetadata = jsonfilename;
 else
-    error('looking for %s, but the file is missing',jsonfilename)
+    if exist(jsonfilename,'file')
+        filemetadata = jsondecode(fileread(jsonfilename));
+        filemetadatafields = fieldnames(filemetadata);
+    else
+        error('looking for %s, but the file is missing',jsonfilename)
+    end
 end
 
 % expected metadata from the BIDS specification
@@ -59,18 +69,17 @@ if nargin == 1
     
     if sum(test)~=length(petmetadata.mandatory)
         status.state    = 0;
-        status.messages = sprints('missing mandatory field %s\n',petmetadata.mandatory{test==0});
+        missing         = find(test==0);
+        for m=1:length(missing)
+            status.messages{m} = sprintf('missing mandatory field %s',petmetadata.mandatory{missing(m)});
+            warning(status.messages{m})
+        end
     else
         status.state    = 1;
     end
     
 else % -------------- update ---------------
-
-    % proposed metadata
-    if ~all(cellfun(@exist, newfileds))
-        error('One or more mandatory name/value pairs are missing')
-    end
-    
+   
     %% possible dcm fields to recover
     % - this part is truly empirical, going over different dcm files and
     % figuring out fields
@@ -85,28 +94,28 @@ else % -------------- update ---------------
         error('%s does not exist',dcminfo)
     end
     
-    Manufacturer
-    ManufacturerModelName
-    SoftwareVersion
-    ConvolutionKernel
-    ActualFrameDuration
-    R_Radiopharmaceutical: 'Solution'
-    R_RadiopharmaceuticalVolume: 0
-    R_RadiopharmaceuticalStartTime: '144000.000000'
-    R_RadionuclideTotalDose: 560000000 = InjectedRadioactivity
-    R_RadionuclideHalfLife: 1223
-    R_RadionuclidePositronFraction: 1
-    R_CodeValue: 'C-105A1'
-    R_CodingSchemeDesignator: 'SRT'
-    R_CodeMeaning: '^11^Carbon'
-    Units: 'BQML'
-    AttenuationCorrectionMethod: 'measured'
-    ReconstructionMethod: 'OP-OSEM3i21s'
-    DoseCalibrationFactor: 1
+%     Manufacturer
+%     ManufacturerModelName
+%     SoftwareVersion
+%     ConvolutionKernel
+%     ActualFrameDuration
+%     R_Radiopharmaceutical: 'Solution'
+%     R_RadiopharmaceuticalVolume: 0
+%     R_RadiopharmaceuticalStartTime: '144000.000000'
+%     R_RadionuclideTotalDose: 560000000 = InjectedRadioactivity
+%     R_RadionuclideHalfLife: 1223
+%     R_RadionuclidePositronFraction: 1
+%     R_CodeValue: 'C-105A1'
+%     R_CodingSchemeDesignator: 'SRT'
+%     R_CodeMeaning: '^11^Carbon'
+%     Units: 'BQML'
+%     AttenuationCorrectionMethod: 'measured'
+%     ReconstructionMethod: 'OP-OSEM3i21s'
+%     DoseCalibrationFactor: 1
     
     %% run the update
     
-    % some dcm2nixx fields can be updated (depends on dcm2nixx version)
+    % check Unit(s) (depends on dcm2nixx version)
     if isfield(filemetadata,'Unit')
         filemetadata.Units = filemetadata.Unit;
         filemetadata       = rmfield(filemetadata,'Unit');
@@ -115,21 +124,57 @@ else % -------------- update ---------------
         end
     end
     
+    % add input info
+    addfields = fields(newfields);
+    for f=1:length(addfields)
+        filemetadata.(addfields{f}) = newfields.(addfields{f});
+    end
+   
+    if isfield(filemetadata,'TimeZero')
+        if strcmpi(filemetadata.TimeZero,'ScanStart')
+            filemetadata.ScanStart      = 0;            
+            filemetadata.InjectionStart = 0;            
+        end
+    end
+    
+    % -----------------------
+    %         heuristics    
+    % -----------------------
     if isfield(filemetadata,'ReconstructionMethod')
         filemetadata.ReconMethodName = filemetadata.ReconstructionMethod;
         filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
-        istherenumbers               = regexp(filemetadata.ReconMethodName,'\di*','Match');
         
+        iterations                   = regexp(filemetadata.ReconMethodName,'\d\di','Match');
+        if isempty(iterations)
+            iterations               = regexp(filemetadata.ReconMethodName,'\di','Match');
+        end
+        
+        subsets                      = regexp(filemetadata.ReconMethodName,'\d\ds','Match');
+        if isempty(subsets)
+            subsets                  = regexp(filemetadata.ReconMethodName,'\ds','Match');
+        end
+
+        if ~isempty(iterations) && ~isempty(subsets)
+            index1 = strfind(filemetadata.ReconMethodName,iterations);
+            index2 = index1 + length(cell2mat(iterations))-1;
+            filemetadata.ReconMethodName(index1:index2) = [];
+            index1 = strfind(filemetadata.ReconMethodName,subsets);
+            index2 = index1 + length(cell2mat(subsets ))-1;
+            filemetadata.ReconMethodName(index1:index2) = [];
+            filemetadata.ReconMethodParameterLabels     = ["subsets","iterations"];
+            filemetadata.ReconMethodParameterUnits      = ["none","none"];
+            filemetadata.ReconMethodParameterValues     = [str2double(subsets{1}(1:end-1)),str2double(iterations{1}(1:end-1))];
+        end
     end
     
     if isfield(filemetadata,'ConvolutionKernel')
         if contains(filemetadata.ConvolutionKernel,'.00')
-            loc = findstr(filemetadata.ConvolutionKernel,'.00');
+            loc = strfind(filemetadata.ConvolutionKernel,'.00');
             filemetadata.ConvolutionKernel(loc:loc+2) = [];
             filtersize = regexp(filemetadata.ConvolutionKernel,'\d*','Match');
             if ~isempty(filtersize)
                 filemetadata.ReconFilterSize = cell2mat(filtersize);
-                loc = findstr(filemetadata.ConvolutionKernel,filtersize{1});
+                loc = strfind(filemetadata.ConvolutionKernel,filtersize{1});
                 filemetadata.ConvolutionKernel(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
                 filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
             else
@@ -137,41 +182,10 @@ else % -------------- update ---------------
             end
             filemetadata = rmfield(filemetadata,'ConvolutionKernel');
         end
-    end
+    end    
     
-    missing_index = 1;
-    for f=1:length(petmetadata.mandatory)
-        test = contains(filemetadatafields,petmetadata.mandatory{f},'IgnoreCase',true);
-        if any(test)
-            exactmatch = find(strcmpi(filemetadatafields(find(test)),petmetadata.mandatory{f}));
-            if exactmatch == 0
-                missing{missing_index} = petmetadata.mandatory{f};
-                missing_index = missing_index + 1;
-            end
-        else
-            missing{missing_index} = petmetadata.mandatory{f};
-            missing_index = missing_index + 1;
-        end
-    end
-    
-    if ~exist('missing','var')
-        warning('All mandatory fields were found in the json file before any updates')
-        status.messages{status_index} = 'All mandatory fields were found in the json file before any updates';
-        status_index = status_index+1;
-    end
-    
-    % check all fields
-    for m=length(petmetadata.mandatory):-1:1
-        test(m) = isfield(filemetadata,petmetadata.mandatory{m});
-    end
-    
-    if sum(test)~=length(petmetadata.mandatory)
-        error('missing mandatory field %s\n',petmetadata.mandatory{test==0});
-    else
-        
-    end
-    
-    % finish up
+    % recursive call to check status
+    status = updatejsonpetfile(filemetadata);
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
     end
