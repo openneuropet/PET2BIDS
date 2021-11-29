@@ -79,52 +79,9 @@ if nargin == 1
     end
     
 else % -------------- update ---------------
-   
-    %% possible dcm fields to recover
-    % - this part is truly empirical, going over different dcm files and
-    % figuring out fields
-    
-    if exist('dcminfo','var')
-        if ischar(dcminfo)
-            dcminfo = flattenstruct(dicominfo(dcminfo));
-        else
-            dcminfo = flattenstruct(dcminfo);
-        end
-    else
-        error('%s does not exist',dcminfo)
-    end
-    
-%     Manufacturer
-%     ManufacturerModelName
-%     SoftwareVersion
-%     ConvolutionKernel
-%     ActualFrameDuration
-%     R_Radiopharmaceutical: 'Solution'
-%     R_RadiopharmaceuticalVolume: 0
-%     R_RadiopharmaceuticalStartTime: '144000.000000'
-%     R_RadionuclideTotalDose: 560000000 = InjectedRadioactivity
-%     R_RadionuclideHalfLife: 1223
-%     R_RadionuclidePositronFraction: 1
-%     R_CodeValue: 'C-105A1'
-%     R_CodingSchemeDesignator: 'SRT'
-%     R_CodeMeaning: '^11^Carbon'
-%     Units: 'BQML'
-%     AttenuationCorrectionMethod: 'measured'
-%     ReconstructionMethod: 'OP-OSEM3i21s'
-%     DoseCalibrationFactor: 1
-    
+       
     %% run the update
-    
-    % check Unit(s) (depends on dcm2nixx version)
-    if isfield(filemetadata,'Unit')
-        filemetadata.Units = filemetadata.Unit;
-        filemetadata       = rmfield(filemetadata,'Unit');
-        if strcmpi(filemetadata.Units,'BQML')
-            filemetadata.Units = 'Bq/mL';
-        end
-    end
-    
-    % add input info
+       
     addfields = fields(newfields);
     for f=1:length(addfields)
         filemetadata.(addfields{f}) = newfields.(addfields{f});
@@ -136,10 +93,20 @@ else % -------------- update ---------------
             filemetadata.InjectionStart = 0;            
         end
     end
+  
+    % ----------------------------------------
+    %         dcm2nixx extracted data update   
+    % ----------------------------------------
     
-    % -----------------------
-    %         heuristics    
-    % -----------------------
+    % check Unit(s) (depends on dcm2nixx version)
+    if isfield(filemetadata,'Unit')
+        filemetadata.Units = filemetadata.Unit;
+        filemetadata       = rmfield(filemetadata,'Unit');
+        if strcmpi(filemetadata.Units,'BQML')
+            filemetadata.Units = 'Bq/mL';
+        end
+    end
+    
     if isfield(filemetadata,'ReconstructionMethod')
         filemetadata.ReconMethodName = filemetadata.ReconstructionMethod;
         filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
@@ -184,7 +151,45 @@ else % -------------- update ---------------
         end
     end    
     
-    % recursive call to check status
+    % -------------------------------------------------------------
+    % possible dcm fields to recover - this part is truly empirical
+    % going over different dcm files and figuring out fields
+    % ------------------------------------------------------------    
+    if exist('dcminfo','var')
+        if ischar(dcminfo)
+            dcminfo = flattenstruct(dicominfo(dcminfo));
+        else
+            dcminfo = flattenstruct(dcminfo);
+        end
+    else
+        error('%s does not exist',dcminfo)
+    end
+    
+    dcmfields  = {'Manufacturer','ManufacturerModelName' ,'ConvolutionKernel',...
+        'R_RadionuclideTotalDose','R_CodeMeaning'   ,'AttenuationCorrectionMethod',...
+        'ReconstructionMethod'};
+    jsonfields = {'Manufacturer','ManufacturersModelName','ReconFilterType'  ,...
+        'InjectedRadioactivity','TracerRadionuclide','AttenuationCorrection',...
+        'ReconMethodName'};
+    
+    for f=1:length(dcmfields)
+        if isfield(dcminfo,dcmfields{f})
+            if isfield(filemetadata,jsonfields{f})
+                if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
+                    if isnumeric(filemetadata.(jsonfields{f}))
+                        warning(['name mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                    else
+                        warning(['name mismatch between json ' jsonfields{f} ':' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                    end
+                else
+                    filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
+                end
+            end
+        end
+    end
+        
+
+    %% recursive call to check status
     status = updatejsonpetfile(filemetadata);
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
