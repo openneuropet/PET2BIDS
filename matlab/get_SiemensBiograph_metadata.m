@@ -120,7 +120,7 @@ else
             index = index + 2;
         end
     end
-    dataout = check_metaradioinputs(arguments);
+    dataout  = check_metaradioinputs(arguments);
     setval   = fieldnames(dataout);
     for r=1:length(setval)
         if isnumeric(dataout.(setval{r}))
@@ -192,20 +192,20 @@ metadata.InjectedRadioactivity          = InjectedRadioactivity;
 metadata.InjectedRadioactivityUnits     = 'MBq';
 metadata.InjectedMass                   = InjectedMass;
 metadata.InjectedMassUnits              = 'ug';
-metadata.MolarActivity                  = MolarActivity;
-metadata.MolarActivityUnits             = 'GBq/umol';
+metadata.SpecificRadioactivity          = SpecificRadioactivity;
+metadata.SpecificRadioactivityUnits     = SpecificRadioactivityUnits;
 
-if exist('molecular_weight', 'var')
+if exist('MolecularWeight', 'var')
     metadata.TracerMolecularWeight      = MolecularWeight;
     metadata.TracerMolecularWeightUnits = 'g/mol';
-    metadata.SpecificRadioactivity      = (metadata.MolarActivity/metadata.TracerMolecularWeight)*1000;
-    metadata.SpecificRadioactivityUnits = 'MBq/ug';
 end
 
-if exist('ModeOfAdministration','var')
-    metadata.ModeOfAdministration       = ModeOfAdministration;
+if exist('MolarActivity', 'var')
+    metadata.MolarActivity              = MolarActivity;
+    metadata.MolarActivityUnits         = 'GBq/umol';
 end
 
+metadata.ModeOfAdministration           = ModeOfAdministration;
 metadata.InstitutionName                = InstitutionName;
 metadata.AcquisitionMode                = AcquisitionMode;
 metadata.ImageDecayCorrected            = ImageDecayCorrected;
