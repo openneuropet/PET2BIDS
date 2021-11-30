@@ -9,7 +9,8 @@ The jsonwrite function is distributed here, taken from [json.io](https://github.
 
 ## Configuration
 
-Defaults parameters should be set in the .txt files to generate metadata easily (i.e. avoiding to pass all arguments in). 
+The entire repository or only the matlab subfolder (your choice) shold be in your matlab path.  
+Defaults parameters should be set in the .txt files to generate metadata easily (i.e. avoiding to pass all arguments in). At the moment, those parameters files are SiemensHRRTparameters.txt, SiemensBiograph.txt and GEAdvanceparameters.txt.
 
 ## Usage
 
