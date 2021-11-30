@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 from pypet2bids.write_ecat import create_directory_table, write_header, write_directory_table, write_pixel_data
 from pypet2bids.read_ecat import read_ecat, get_directory_data, read_bytes, ecat_header_maps
@@ -8,6 +9,10 @@ import shutil
 
 dotenv.load_dotenv(dotenv.load_dotenv())
 
+env_vars = os.environ
+if env_vars.get('GITHUB_ACTIONS', None):
+    print("Currently running in github actions; not running this test module")
+    sys.exit(0)
 
 class TestECATWrite(unittest.TestCase):
     @classmethod
@@ -150,5 +155,5 @@ class TestECATWrite(unittest.TestCase):
             pass
 
 
-if __name__ == '__main__' and os.environ['GITHUB_ACTIONS']:
+if __name__ == '__main__':
     unittest.main()
