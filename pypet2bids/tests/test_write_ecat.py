@@ -12,7 +12,7 @@ dotenv.load_dotenv(dotenv.load_dotenv())
 env_vars = os.environ
 if env_vars.get('GITHUB_ACTIONS', None):
     print("Currently running in github actions; not running this test module")
-    sys.exit(0)
+    os._exit(0)
 
 class TestECATWrite(unittest.TestCase):
     @classmethod
