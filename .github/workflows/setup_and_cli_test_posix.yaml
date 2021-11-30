@@ -13,7 +13,7 @@ jobs:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: ${{ github.workspace }}/PETdata_in/Siemens_ecat/ECAT7_multiframe.v
+      SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
       TEST_ECAT_PATH: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
       READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
@@ -65,8 +65,8 @@ jobs:
           cd pypet2bids/
           python3 -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
-     # - name: Copy Test File(s) to tests/
-     #   run: cp ${{ env.SMALLER_ECAT_PATH }} tests/
+      - name: Copy Test File(s) to tests/
+        run: cp ${{ env.SMALLER_ECAT_PATH }} tests/
 
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
@@ -75,8 +75,6 @@ jobs:
         env:
           TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
         run: "cd pypet2bids/ && python3 -m tests.test_write_ecat"
-
-      - run: cp ${{ env.SMALLER_ECAT_PATH }} pypet2bids/tests/
 
       - name: Run All Other Python Tests w/ Pytest
         run: |
