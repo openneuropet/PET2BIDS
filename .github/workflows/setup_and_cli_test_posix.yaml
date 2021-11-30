@@ -73,10 +73,6 @@ jobs:
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
 
-      # note: this test needs to be generalized to N frame number sized ecats
-      #- name: Test ecatwrite
-      #  run: "cd pypet2bids/ && python3 -m tests.test_write_ecat"
-
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
