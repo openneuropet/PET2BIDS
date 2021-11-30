@@ -9,10 +9,22 @@ This repository is hosting tools to curate PET brain data using the [Brain Imagi
 
 Matlab and Python codes are avaialble, providing the same output: a nifti file with a json file for the meta-data.
 
-## Data_in
+### matlab
 
-This folder contains examples of Siemens/Philips/GE PET scanner data.
+This is where the matlab code lives - to be added to your path. 
 
-## Metadata_in
+### pypet2bids
 
-This folder contains exemples of metadata collected through spearsheet and how one can reorganize and convert such metadata.
+This is where the python library lives.
+
+## spreadsheet_conversion
+
+This folder contains for metadata collected through spearsheet and how one can reorganize and convert such metadata.
+
+## metadata
+
+A small collection of json files for our metadata information. 
+
+## ecat_validation
+
+This folder contains exemple of Siemens HRRT scanner data using ecat file format.

@@ -3,14 +3,16 @@ function metadata = get_GEAdvance_metadata(varargin)
 % Routine that outputs the GE Advance PET scanner metadata following 
 % <https://bids.neuroimaging.io/ BIDS>
 %
-% Defaults parameters (acuisition and reconstruction parameters) should be 
+% Defaults parameters (aquisition and reconstruction parameters) should be 
 % stored in a GEAdvanceparameters.txt seating on disk next to this function
-% or passed as argument in. Here is an example of such defaults, used at NRU
+% or passed as argument in. Some of the metadata are already present in the
+% dcm file - but other info are needed. 
+%
+% Here is an example of such defaults, used at NRU
 %
 % InstitutionName                = 'Rigshospitalet, NRU, DK';
 % AcquisitionMode                = '3D sinogram';
 % ImageDecayCorrected            = true;
-% InstitutionName                = 'Rigshospitalet, NRU, DK',
 % ImageDecayCorrectionTime       = 0;
 % ReconMethodName                = 'Filtered Back Projection';
 % ReconMethodParameterLabels     = {'none','none'};
@@ -22,9 +24,6 @@ function metadata = get_GEAdvance_metadata(varargin)
 %
 % FORMAT:  metadata = get_GEAdvance_metadata(name,value)
 %
-% Example: metadata = get_GEAdvance_metadata('tracer','DASB','Radionuclide','C11', ...
-%                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
-%
 % INPUTS a series of name/value pairs are expected
 %        MANDATORY
 %                  TimeZero: when was the tracer injected    e.g. TimeZero,'11:05:01'
@@ -32,15 +31,16 @@ function metadata = get_GEAdvance_metadata(varargin)
 %                  Radionuclide: which nuclide was used      e.g. 'Radionuclide','C11'
 %                  Injected Radioactivity Dose: value in MBq e.g. 'Radioactivity', 605.3220
 %                  InjectedMass: Value in ug                 e.g. 'InjectedMass', 1.5934
-%                  MolarActivity: value in GBq/umol          e.g. 'MolarActivity', 107.66
+%                  + possibly any of
+%                  InjectedMass: Value in mol               e.g. 'InjectedMass', 1.5934 
+%                  MolarActivity: value in GBq/umol         e.g. 'MolarActivity', 107.66
+%                  SpecificRadioactivity in Bq/g or Bq/mol  e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 %        note the TimeZero can also be [] or 'ScanStart' indicating that
 %        the scanning time should be used as TimeZero, this will be filled
 %        out automatically by ecat2nii
 %
 %        OPTIONAL 
-%                  MolecularWeight: value in g/mol 
-%                  ModeOfAdministration e.g.'bolus'
 %                  AcquisitionMode             
 %                  ImageDecayCorrected           
 %                  ImageDecayCorrectionTime      
@@ -55,6 +55,9 @@ function metadata = get_GEAdvance_metadata(varargin)
 % OUTPUT metadata is a structure with BIDS fields filled
 %        (such structure is ready to be writen as json file using e.g.
 %        the bids matlab jsonwrite function, typically associated with the *_pet.nii file) 
+%
+% Example: metadata = get_GEAdvance_metadata('tracer','DASB','Radionuclide','C11', ...
+%                        'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %
 % Neuropbiology Research Unit, Rigshospitalet
 % Martin Nørgaard & Cyril Pernet - 2021
@@ -108,8 +111,32 @@ else
             AttenuationCorrection = varargin{n+1};
         end
     end
+       
+    % check input values and consistency given expected units in
+    % -----------------------------------------------------------   
+    radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
+        'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+    input_check = cellfun(@exist,radioinputs);
+    arguments   = cell(1,sum(input_check)*2);
+    index = 1;
+    for r=1:length(radioinputs)
+        if input_check(r)
+            arguments{index}   = radioinputs{r};
+            arguments{index+1} = eval(radioinputs{r});
+            index = index + 2;
+        end
+    end
+    dataout = check_metaradioinputs(arguments);
+    setval   = fieldnames(dataout);
+    for r=1:length(setval)
+        if isnumeric(dataout.(setval{r}))
+            eval([setval{r} '=' num2str(dataout.(setval{r}))])
+        else
+            eval([setval{r} '=''' dataout.(setval{r}) ''''])
+        end
+    end
     
-    mandatory = {'TimeZero','tracer','Radionuclide','InjectedRadioactivity','InjectedMass','MolarActivity'};
+    mandatory = {'TimeZero','tracer','ModeOfAdministration','Radionuclide','InjectedRadioactivity','InjectedMass'};
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs are missing')
     end
@@ -172,20 +199,20 @@ metadata.InjectedRadioactivity          = InjectedRadioactivity;
 metadata.InjectedRadioactivityUnits     = 'MBq';
 metadata.InjectedMass                   = InjectedMass;
 metadata.InjectedMassUnits              = 'ug';
-metadata.MolarActivity                  = MolarActivity;
-metadata.MolarActivityUnits             = 'GBq/umol';
+metadata.SpecificRadioactivity          = SpecificRadioactivity;
+metadata.SpecificRadioactivityUnits     = SpecificRadioactivityUnits;
+
+if exist('MolarActivity', 'var')
+    metadata.MolarActivity                  = MolarActivity;
+    metadata.MolarActivityUnits             = 'GBq/umol';
+end
 
 if exist('molecular_weight', 'var')
     metadata.TracerMolecularWeight      = MolecularWeight;
     metadata.TracerMolecularWeightUnits = 'g/mol';
-    metadata.SpecificRadioactivity      = (metadata.MolarActivity/metadata.TracerMolecularWeight)*1000;
-    metadata.SpecificRadioactivityUnits = 'MBq/ug';
 end
 
-if exist('ModeOfAdministration','var')
-    metadata.ModeOfAdministration       = ModeOfAdministration;
-end
-
+metadata.ModeOfAdministration           = ModeOfAdministration;
 metadata.InstitutionName                = InstitutionName;
 metadata.AcquisitionMode                = AcquisitionMode;
 metadata.ImageDecayCorrected            = ImageDecayCorrected;
