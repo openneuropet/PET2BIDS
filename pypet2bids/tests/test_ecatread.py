@@ -10,8 +10,7 @@ import pathlib
 
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
-code_dir = parent_dir.parent
-data_dir = code_dir.parent
+code_dir = os.path.join(parent_dir.parent, 'pypet2bids')
 
 # collect ecat header maps
 try:

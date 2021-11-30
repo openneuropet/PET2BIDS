@@ -13,7 +13,7 @@ jobs:
       ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: ${{ github.workspace }}/PETdata_in/Siemens_ecat/ECAT7_multiframe.v
+      SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
       TEST_ECAT_PATH: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
       READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
@@ -45,7 +45,7 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip install pyproject.toml
+          pip3 install -r requirements.txt
 
       - name: Collect Ecat Dataset w/ curl
         if: steps.cache-ecat.outputs.cache-hit != 'true'
@@ -58,25 +58,20 @@ jobs:
       - name: Test CLI --help
         run: |
           cd pypet2bids/
-          python -m pypet2bids.cli --help
+          python3 -m pypet2bids.cli --help
 
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          python -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
+          python3 -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
+      # the larger real data file uses too much ram for the github runner, we use the small file for
+      # heavy io operations instead
       - name: Copy Test File(s) to tests/
-        run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
+        run: cp ${{ env.SMALLER_ECAT_PATH }} ${{ env.TEST_ECAT_PATH }}
 
       - name: Test ecatread
-        run: "cd python/ && python3 -m tests.test_ecatread"
-
-      - name: Test ecatwrite
-        env:
-          TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-        run: "cd python/ && python3 -m tests.test_write_ecat"
-
-        run: cp ${{ env.SMALLER_ECAT_PATH }} pypet2bids/tests/
+        run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
 
       - name: Run All Other Python Tests w/ Pytest
         run: |

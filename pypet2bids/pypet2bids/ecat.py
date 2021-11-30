@@ -7,7 +7,7 @@ import pypet2bids.helper_functions
 import tempfile
 from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from pypet2bids.read_ecat import read_ecat, get_directory_table
+from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
 
 
@@ -52,7 +52,7 @@ class Ecat:
 
         if '.gz' in self.ecat_file and decompress is True:
             uncompressed_ecat_file = re.sub('.gz', '', self.ecat_file)
-            helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
+            pypet2bids.helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
 
         if '.gz' in self.ecat_file and decompress is False:
             raise Exception("Nifti must be decompressed for reading of file headers")
@@ -63,7 +63,12 @@ class Ecat:
             print("\nFailed to load ecat image.\n")
             raise err
 
-        self.directory_table = get_directory_table(self.ecat_file, byte_start=512)
+        directory_byte_block = read_bytes(
+            path_to_bytes=ecat_file,
+            byte_start=512,
+            byte_stop=1024)
+
+        self.directory_table = get_directory_data(directory_byte_block, self.ecat_file)
 
         # extract ecat info
         self.extract_affine()
