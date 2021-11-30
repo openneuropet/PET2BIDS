@@ -69,12 +69,12 @@ jobs:
      #   run: cp ${{ env.SMALLER_ECAT_PATH }} tests/
 
       - name: Test ecatread
-        run: "cd python/ && python3 -m tests.test_ecatread"
+        run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
 
       - name: Test ecatwrite
         env:
           TEST_ECAT_PATH: ${{ github.workspace }}/cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-        run: "cd python/ && python3 -m tests.test_write_ecat"
+        run: "cd pypet2bids/ && python3 -m tests.test_write_ecat"
 
       - run: cp ${{ env.SMALLER_ECAT_PATH }} pypet2bids/tests/
 
