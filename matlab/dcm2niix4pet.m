@@ -30,9 +30,9 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 % Example meta = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%        fileout = dcm2bids4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
-%        fileout = dcm2bids4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
-%        fileout = dcm2bids4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
+%        fileout = dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
+%        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
+%        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
 %
 % See also get_SiemensBiograph_metadata.m to generate the metadata structure
 %
