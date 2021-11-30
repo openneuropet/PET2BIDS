@@ -45,7 +45,7 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip install pyproject.toml
+          pip install -r requirements.txt
 
       - name: Collect Ecat Dataset w/ curl
         if: steps.cache-ecat.outputs.cache-hit != 'true'

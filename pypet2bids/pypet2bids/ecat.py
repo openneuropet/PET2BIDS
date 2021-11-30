@@ -7,7 +7,7 @@ import pypet2bids.helper_functions
 import tempfile
 from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from pypet2bids.read_ecat import read_ecat, get_directory_table
+from pypet2bids.read_ecat import read_ecat, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
 
 
