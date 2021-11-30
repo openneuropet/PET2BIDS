@@ -63,7 +63,7 @@ class Ecat:
             print("\nFailed to load ecat image.\n")
             raise err
 
-        self.directory_table = get_directory_table(self.ecat_file, byte_start=512)
+        self.directory_table = get_directory_data(self.ecat_file, byte_start=512)
 
         # extract ecat info
         self.extract_affine()
