@@ -65,8 +65,8 @@ jobs:
           cd pypet2bids/
           python3 -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
-      - name: Copy Test File(s) to tests/
-        run: cp ${{ env.SMALLER_ECAT_PATH }} python/tests/
+     # - name: Copy Test File(s) to tests/
+     #   run: cp ${{ env.SMALLER_ECAT_PATH }} tests/
 
       - name: Test ecatread
         run: "cd python/ && python3 -m tests.test_ecatread"
