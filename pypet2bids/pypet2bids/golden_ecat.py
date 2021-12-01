@@ -99,5 +99,3 @@ with open(golden_ecat_path, 'wb') as ecat_file:
 
 
 golden_ecat_main_header, golden_ecat_subheaders, golden_ecat_pixel_data = read_ecat(golden_ecat_path)
-
-print("debug")

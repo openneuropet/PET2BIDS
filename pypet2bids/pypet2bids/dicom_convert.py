@@ -22,14 +22,14 @@ if len(sys.argv) >= 2:
 
 class Convert:
     def __init__(self, image_folder, metadata_path=None, destination_path=None, subject_id=None, session_id=None,
-                 metadata_translation_script=None):
+                 metadata_translation_script_path=None):
         self.image_folder = image_folder
         self.metadata_path = metadata_path
         self.destination_path = None
         self.subject_id = subject_id
         self.session_id = session_id
         self.metadata_dataframe = None  # dataframe object of text file metadata
-        self.metadata_translation_script_path = None
+        self.metadata_translation_script_path = metadata_translation_script_path
         self.dicom_header_data = None  # extracted data from dicom header
         self.nifti_json_data = None  # extracted data from dcm2niix generated json file
 
@@ -62,7 +62,7 @@ class Convert:
             bespoke_data = self.bespoke()
 
             # assign output structures to class variables
-            self.future_json = bespoke_data['future_json']
+            self.future_json = bespoke_data['future_nifti_json']
             self.future_blood_tsv = bespoke_data['future_blood_tsv']
             self.future_blood_json = bespoke_data['future_blood_json']
             self.participant_info = bespoke_data['participants_info']
@@ -184,7 +184,7 @@ class Convert:
             'ManufacturersModelName': self.nifti_json_data.get('ManufacturersModelName'),
             'Units': 'Bq/mL',
             'TracerName': self.nifti_json_data.get('Radiopharmaceutical'),
-            'TracerRadionuclide': self.nifti_json_data.get('RadionuclideTotalDose', default=0) / 10 ** 6,
+            'TracerRadionuclide': self.nifti_json_data.get('RadionuclideTotalDose', 0) / 10 ** 6,
             'InjectedRadioactivityUnits': 'MBq',
             'FrameTimesStart':
                 [int(entry) for entry in ([0] +
@@ -203,7 +203,7 @@ class Convert:
         future_blood_tsv = {}
         text_file_data = {}
 
-        if self.metadata_translation_script:
+        if self.metadata_translation_script_path:
             try:
                 # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
                 # data from their particular spreadsheet wherever that file is located.
@@ -251,6 +251,8 @@ class Convert:
         # write out better json
         with open(identity_string + '_recording-manual-blood.json', 'w') as outfile:
             json.dump(self.future_blood_json, outfile, indent=4)
+
+        return identity_string
 
     def write_out_blood_tsv(self, manual_path=None):
         """

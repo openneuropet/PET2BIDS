@@ -14,6 +14,7 @@ if env_vars.get('GITHUB_ACTIONS', None):
     print("Currently running in github actions; not running this test module")
     os._exit(0)
 
+
 class TestECATWrite(unittest.TestCase):
     @classmethod
     def setUp(cls) -> None:
