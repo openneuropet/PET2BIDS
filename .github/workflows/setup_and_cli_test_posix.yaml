@@ -37,7 +37,9 @@ jobs:
           key: ${{ runner.os }}-ecats
 
       - name: Install gtk and build essential for gui madness
-        run: sudo apt-get install build-essential libgtk-3-dev -y
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install build-essential libgtk-3-dev -y
         if: matrix.os == 'ubuntu-latest'
 
       - name: Set up python
