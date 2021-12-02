@@ -5,7 +5,7 @@ import dotenv
 import ast
 
 
-def compress(file_like_object, output_path=None):
+def compress(file_like_object, output_path: str = None):
     """
     Compresses a file using gzip
     :param file_like_object: a file path to an uncompressed file
@@ -30,7 +30,7 @@ def compress(file_like_object, output_path=None):
     return output_path
 
 
-def decompress(file_like_object, output_path=None):
+def decompress(file_like_object, output_path: str = None):
     """
     Decompresses a gzip file
     :param file_like_object: a compressed gzip file
@@ -51,6 +51,11 @@ def decompress(file_like_object, output_path=None):
 
 
 def load_vars_from_config(path_to_config: str):
+    """
+    Loads values from a .env file given a path to said .env file.
+    :param path_to_config: path to .env file
+    :return: a dictionary containing the values stored in .env
+    """
     if os.path.isfile(path_to_config):
         parameters = dotenv.main.dotenv_values(path_to_config)
     else:
