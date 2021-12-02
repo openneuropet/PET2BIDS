@@ -1,4 +1,5 @@
 import os.path
+import importlib.util
 import subprocess
 import pandas
 import pandas as pd
@@ -20,13 +21,15 @@ if len(sys.argv) >= 2:
 
 
 class Convert:
-    def __init__(self, image_folder, metadata_path=None, destination_path=None, subject_id=None, session_id=None):
+    def __init__(self, image_folder, metadata_path=None, destination_path=None, subject_id=None, session_id=None,
+                 metadata_translation_script_path=None):
         self.image_folder = image_folder
         self.metadata_path = metadata_path
         self.destination_path = None
         self.subject_id = subject_id
         self.session_id = session_id
         self.metadata_dataframe = None  # dataframe object of text file metadata
+        self.metadata_translation_script_path = metadata_translation_script_path
         self.dicom_header_data = None  # extracted data from dicom header
         self.nifti_json_data = None  # extracted data from dcm2niix generated json file
 
@@ -59,7 +62,7 @@ class Convert:
             bespoke_data = self.bespoke()
 
             # assign output structures to class variables
-            self.future_json = bespoke_data['future_json']
+            self.future_json = bespoke_data['future_nifti_json']
             self.future_blood_tsv = bespoke_data['future_blood_tsv']
             self.future_blood_json = bespoke_data['future_blood_json']
             self.participant_info = bespoke_data['participants_info']
@@ -162,7 +165,6 @@ class Convert:
         Just passing some args to dcm2niix using the good ole shell
         :return:
         """
-
         convert = subprocess.run(f"dcm2niix -w 1 -z y -o {self.destination_path} {self.image_folder}", shell=True,
                                  capture_output=True)
         if convert.returncode != 0 and bytes("Skipping existing file named",
@@ -177,58 +179,45 @@ class Convert:
 
     def bespoke(self):
 
-        future_json = {
+        future_nifti_json = {
             'Manufacturer': self.nifti_json_data.get('Manufacturer'),
             'ManufacturersModelName': self.nifti_json_data.get('ManufacturersModelName'),
             'Units': 'Bq/mL',
-            'TracerName': self.nifti_json_data.get('Radiopharmaceutical'),  # need to grab part of this string
-            'TracerRadionuclide': self.nifti_json_data.get('RadionuclideTotalDose', default=0) / 10 ** 6,
+            'TracerName': self.nifti_json_data.get('Radiopharmaceutical'),
+            'TracerRadionuclide': self.nifti_json_data.get('RadionuclideTotalDose', 0) / 10 ** 6,
             'InjectedRadioactivityUnits': 'MBq',
-            'InjectedMass': self.metadata_dataframe.iloc[35, 10] * self.metadata_dataframe.iloc[38, 6],
-            # nmol/kg * weight
-            'InjectedMassUnits': 'nmol',
-            'MolarActivity': self.metadata_dataframe.iloc[0, 35] * 0.000037,  # uCi to GBq
-            'MolarActivityUnits': 'GBq/nmol',
-            'SpecificRadioactivity': 'n/a',
-            'SpecificRadioactivityUnits': 'n/a',
-            'ModeOfAdministration': 'bolus',
-            'TimeZero': '10:15:14',
-            'ScanStart': 61,
-            'InjectionStart': 0,
             'FrameTimesStart':
                 [int(entry) for entry in ([0] +
                                           list(cumsum(self.nifti_json_data['FrameDuration']))[
                                           0:len(self.nifti_json_data['FrameDuration']) - 1])],
             'FrameDuration': self.nifti_json_data['FrameDuration'],
-            'AcquisitionMode': 'list mode',
-            'ImageDecayCorrected': True,
-            'ImageDecayCorrectionTime': -61,
             'ReconMethodName': self.dicom_header_data.ReconstructionMethod,
-            'ReconMethodParameterLabels': ['iterations', 'subsets', 'lower energy threshold', 'upper energy threshold'],
-            'ReconMethodParameterUnits': ['none', 'none', 'keV', 'keV'],
-            'ReconMethodParameterValues': [
-                3,
-                21,
-                float(min(re.findall('\d+\.\d+', str(self.dicom_header_data.EnergyWindowRangeSequence).lower()))),
-                float(max(re.findall('\d+\.\d+', str(self.dicom_header_data.EnergyWindowRangeSequence).lower()))),
-            ],
             'ReconFilterType': self.dicom_header_data.ConvolutionKernel,
-            'ReconFilterSize': 0,
             'AttenuationCorrection': self.dicom_header_data.AttenuationCorrectionMethod,
             'DecayCorrectionFactor': self.nifti_json_data['DecayFactor']
 
         }
 
-        future_blood_json = {
+        # initializing empty dictionaries to catch possible additional data from a metadata spreadsheet
+        future_blood_json = {}
+        future_blood_tsv = {}
+        text_file_data = {}
 
-        }
+        if self.metadata_translation_script_path:
+            try:
+                # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
+                # data from their particular spreadsheet wherever that file is located.
+                spec = importlib.util.spec_from_file_location("metadata_translation_script",
+                                                              self.metadata_translation_script_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                text_file_data = module.translate_metadata(self.metadata_dataframe, self.dicom_header_data)
+            except AttributeError as err:
+                print(f"Unable to locate metadata_translation_script")
 
-        future_blood_tsv = {
-            'time': self.metadata_dataframe.iloc[2:7, 6] * 60,  # convert minutes to seconds,
-            'PlasmaRadioactivity': self.metadata_dataframe.iloc[2:7, 7] / 60,
-            'WholeBloodRadioactivity': self.metadata_dataframe.iloc[2:7, 9] / 60,
-            'MetaboliteParentFraction': self.metadata_dataframe.iloc[2:7, 8] / 60
-        }
+            future_blood_tsv.update(text_file_data.get('blood_tsv', {}))
+            future_blood_json.update(text_file_data.get('blood_json', {}))
+            future_nifti_json.update(text_file_data.get('nifti_json', {}))
 
         participants_tsv = {
             'sub_id': [self.subject_id],
@@ -237,7 +226,7 @@ class Convert:
         }
 
         return {
-            'future_json': future_json,
+            'future_nifti_json': future_nifti_json,
             'future_blood_json': future_blood_json,
             'future_blood_tsv': future_blood_tsv,
             'participants_info': participants_tsv
@@ -262,6 +251,8 @@ class Convert:
         # write out better json
         with open(identity_string + '_recording-manual-blood.json', 'w') as outfile:
             json.dump(self.future_blood_json, outfile, indent=4)
+
+        return identity_string
 
     def write_out_blood_tsv(self, manual_path=None):
         """
@@ -306,19 +297,6 @@ else:
     item_default = None
 
 
-''''@Gooey(
-    dump_build_config=True,
-    #program_name="Widget Demo",
-    advanced=True,
-    auto_start=False,
-    body_bg_color='#262626',
-    header_bg_color='#262626',
-    footer_bg_color='#262626',
-    sidebar_bg_color='#262626',
-)
-'''
-
-
 @Gooey
 def cli():
     # simple converter takes command line arguments <folder path> <destination path> <subject-id> <session-id>
@@ -328,6 +306,9 @@ def cli():
     parser.add_argument('-m', '--metadata-path', type=str,
                         help="Path to metadata file for scan", widget="FileChooser",
                         gooey_options=item_default)
+    parser.add_argument('-t', '--translation-script-path', widget='FileChooser', gooey_options=item_default,
+                        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +
+                        " compliant text files (tsv and json)")
     parser.add_argument('-d', '--destination-path', type=str, gooey_options=item_default,
                         help=
                         "Destination path to send converted imaging and metadata files to. If " +
@@ -355,7 +336,7 @@ def cli():
 
     # convert it all!
     converter.run_dcm2niix()
-    if args.metadata_path:
+    if args.metadata_path and args.translation_script_path:
         converter.bespoke()
         converter.write_out_jsons()
         converter.write_out_blood_tsv()

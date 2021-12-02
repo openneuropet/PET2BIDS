@@ -6,7 +6,7 @@ authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.7,<3.10"
+python = ">3.7.1,<3.10"
 nibabel = "^3.2.1"
 numpy = "^1.21.3"
 pyparsing = "^3.0.4"
@@ -15,6 +15,10 @@ python-dotenv = "^0.19.1"
 scipy = "^1.7.1"
 six = "^1.16.0"
 pytest = "^6.2.5"
+pydicom = "^2.2.2"
+Gooey = "^1.0.8"
+pandas = "^1.3.4"
+openpyxl = "^3.0.9"
 
 [tool.poetry.dev-dependencies]
 
