@@ -11,7 +11,12 @@ from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
 
 
-def parse_this_date(date_like_object):
+def parse_this_date(date_like_object) -> str:
+    """
+    Uses the dateutil.parser module to extract a date from a variety of differently formatted date strings
+    :param date_like_object: something that resembles a timestamp or a date time, could be integer, float, or string.
+    :return: an hour minute second datetime string.
+    """
     if type(date_like_object) is int:
         parsed_date = datetime.datetime.fromtimestamp(date_like_object)
     else:
@@ -25,6 +30,7 @@ class Ecat:
     This class reads an ecat file w/ nibabel.ecat.load and extracts header, subheader, and image matrices for
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
     """
+
     def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True):
         """
         Initialization of this class requires only a path to an ecat file
@@ -35,15 +41,15 @@ class Ecat:
         :param kwargs: used to manually override or insert information into the the nifti sidecare.json.
         Useful for including information that isn't w/ in an ECAT file.
         """
-        self.ecat_header = {}           # ecat header information is stored here
-        self.subheaders = []            # subheader information is placed here
+        self.ecat_header = {}  # ecat header information is stored here
+        self.subheaders = []  # subheader information is placed here
         self.ecat_info = {}
-        self.affine = {}                # affine matrix/information is stored here.
-        self.frame_start_times = []     # frame_start_times, frame_durations, and decay_factors are all
-        self.frame_durations = []       # extracted from ecat subheaders. They're pretty important and get
-        self.decay_factors = []         # stored here
+        self.affine = {}  # affine matrix/information is stored here.
+        self.frame_start_times = []  # frame_start_times, frame_durations, and decay_factors are all
+        self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
+        self.decay_factors = []  # stored here
         self.sidecar_template = sidecar_template_full  # bids approved sidecar file with ALL bids fields
-        self.sidecar_template_short = sidecar_template_short # bids approved sidecar with only required bids fields
+        self.sidecar_template_short = sidecar_template_short  # bids approved sidecar with only required bids fields
         self.directory_table = None
         if os.path.isfile(ecat_file):
             self.ecat_file = ecat_file
@@ -199,9 +205,9 @@ class Ecat:
         ]
 
         self.sidecar_template['PixelDimensions'] = [
-            self.subheaders[0]['X_PIXEL_SIZE']*10,
-            self.subheaders[0]['Y_PIXEL_SIZE']*10,
-            self.subheaders[0]['Z_PIXEL_SIZE']*10
+            self.subheaders[0]['X_PIXEL_SIZE'] * 10,
+            self.subheaders[0]['Y_PIXEL_SIZE'] * 10,
+            self.subheaders[0]['Z_PIXEL_SIZE'] * 10
         ]
 
         # include any additional values

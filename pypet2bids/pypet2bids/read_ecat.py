@@ -11,7 +11,8 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
 
-# collect ecat header maps
+# collect ecat header maps, this program will not work without these as ECAT data varies in the byte location of its
+# data depending on the version of ECAT it was formatted with.
 try:
     with open(join(parent_dir, 'ecat_headers.json'), 'r') as infile:
         ecat_header_maps = json.load(infile)
@@ -25,7 +26,7 @@ def get_ecat_bytes(path_to_ecat: str):
     Opens an ecat file and reads the entry file into memory to return a bytes object
     not terribly memory efficient for large or parallel reading of ecat files.
     :param path_to_ecat: path to an ecat file, however will literally open any file an read it
-    in as bytes. TODO Perhaps add some validation to this.
+    in as bytes.
     :return: a bytes object
     """
     # check if file exists
@@ -40,10 +41,11 @@ def get_ecat_bytes(path_to_ecat: str):
 
 def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
     """
-    :param path_to_bytes:
-    :param byte_start:
-    :param byte_stop:
-    :return:
+    Open a file at path to bytes and reads in the information byte by byte.
+    :param path_to_bytes: Path to file to read
+    :param byte_start: Position to place the seek head at before reading bytes
+    :param byte_stop: Position to stop reading bytes at
+    :return: the bytes located at the position sought when invoking this function.
     """
     if not os.path.isfile(path_to_bytes):
         raise Exception(f"{path_to_bytes} is not a valid file.")
@@ -62,7 +64,7 @@ def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
     return sought_bytes
 
 
-def collect_specific_bytes(bytes_object, start_position, width, relative_to=0):
+def collect_specific_bytes(bytes_object: bytes, start_position: int = 0, width: int = 0):
     """
     Collects specific bytes within a bytes object.
     :param bytes_object: an opened bytes object
@@ -77,7 +79,7 @@ def collect_specific_bytes(bytes_object, start_position, width, relative_to=0):
     return {"content": content, "new_position": start_position + width}
 
 
-def get_buffer_size(data_type, variable_name):
+def get_buffer_size(data_type: str, variable_name: str):
     """
     Determine the byte width of a variable as defined in the ecat_headers.json
     such that Fill(6) will return 6
@@ -95,7 +97,7 @@ def get_buffer_size(data_type, variable_name):
     return scalar
 
 
-def get_header_data(header_data_map, ecat_file: str = '', byte_offset: int = 0, clean=True):
+def get_header_data(header_data_map: dict, ecat_file: str = '', byte_offset: int = 0, clean=True):
     """
 
     :param header_data_map: schema for reading in header data, this is stored in dictionary that is read in from a
@@ -122,7 +124,7 @@ def get_header_data(header_data_map, ecat_file: str = '', byte_offset: int = 0, 
     return header, read_head_position
 
 
-def filter_bytes(unfiltered, struct_fmt):
+def filter_bytes(unfiltered: bytes, struct_fmt: str):
     """
     Cleans up byte strings and bytes types into python int, float, string, and list data types, additionally
     struct.unpack returns a tuple object even if only a single value is available, this function determines when to
@@ -142,7 +144,17 @@ def filter_bytes(unfiltered, struct_fmt):
     return filtered
 
 
-def get_directory_data(byte_block, ecat_file, return_raw=False):
+def get_directory_data(byte_block: bytes, ecat_file: str, return_raw: bool = False):
+    """
+    Collects the directory data within an ECAT file. The directory data refers to the 512 byte table that describes the
+    byte location of each frame, subheader, number of frames, and additional directory tables within the file.
+    :param byte_block: A block of file bytes to convert into a 2 dimensional numpy array.
+    :param ecat_file: the path to the ecat file
+    :param return_raw: return the directory tables as extracted, if left False this will return the directory tables
+    combined into a single table. The single table is all that is needed in order to read information in from an ECAT.
+    :return: Individual tables corresponding to up to 31 frames each or a combined directory table consisting of no
+    more columns than than are number of frames in the image/PET scan.
+    """
     directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
     raw = []
     while True:

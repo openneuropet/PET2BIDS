@@ -179,7 +179,6 @@ def write_directory_table(file, directory_tables: list, seek: bool = False):
     """
     # flatten the lists into byte strings
 
-    # file.seek(512)
     for n, table in enumerate(directory_tables):
         # first table lies directly after the main header byte block, which is 512 bytes from the start of the file
 
