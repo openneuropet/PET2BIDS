@@ -24,6 +24,7 @@ openpyxl = "^3.0.9"
 
 [tool.poetry.scripts]
 pypet2bids = 'pypet2bids.cli:main'
+dcm2petbids = 'pypet2bids.dicom_convert:cli'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
