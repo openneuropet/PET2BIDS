@@ -149,7 +149,7 @@ else
                             error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})
                         end
                     catch evalerr
-                        error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})
+                        error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})% --> error for optional metadata?
                     end
                 end
             end
