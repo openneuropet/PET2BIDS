@@ -52,8 +52,9 @@ else
 end
 
 % expected metadata from the BIDS specification
-jsontoload = fullfile(fileparts(fileparts(which('updatejsonpetfile.m'))),...
-    ['metadata' filesep 'PET_metadata.json']);
+current    = which('updatejsonpetfile.m');
+root       = current(1:strfind(current,'converter')+length('converter'));
+jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
 if exist(jsontoload,'file')
     petmetadata = jsondecode(fileread(jsontoload));
 else
