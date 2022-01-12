@@ -101,7 +101,7 @@ if nargin==2
 else
     [~,filename] = fileparts(filename);
 end
-jsonwrite(fullfile(pathname, [filename '.json']),info,'prettyprint','true');
+jsonwrite(fullfile(pathname, [filename '_pet.json']),info,'prettyprint','true');
 
 end
 
