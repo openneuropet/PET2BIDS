@@ -1,12 +1,12 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Anthony"
-  given-names: "Galassi"   
-- family-names: "Martin"
-  given-names: "Norgaard"   
-- family-names: "Gabriel"
-  given-names: "Gonzalez-Escamilla"   
+- family-names: "Galassi"
+  given-names: "Anthony"   
+- family-names: "Norgaard"
+  given-names: "Martin"   
+- family-names: "Gonzalez-Escamilla"
+  given-names: "Gabriel"   
 - family-names: "Svarer"
   given-names: "Claus"   
 - family-names: "Pernet"
