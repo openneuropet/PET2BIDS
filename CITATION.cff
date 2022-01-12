@@ -1,11 +1,17 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
+- family-names: "Anthony"
+  given-names: "Galassi"   
+- family-names: "Martin"
+  given-names: "Norgaard"   
+- family-names: "Gabriel"
+  given-names: "Gonzalez-Escamilla"   
+- family-names: "Svarer"
+  given-names: "Claus"   
 - family-names: "Pernet"
   given-names: "Cyril"
   orcid: "https://orcid.org/0000-0003-4010-4632"
-- family-names: "Svarer"
-  given-names: "Claus"   
 title: "PET2BIDS"
 version: 1.0.0
 url: "https://github.com/openneuropet/PET2BIDS"
