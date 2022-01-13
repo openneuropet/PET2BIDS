@@ -5,6 +5,7 @@ some icons needs to be added or your name is not listed, please add it.
 
 Anthony Galassi 💻 📖 🎨 💡 ⚠️  
 Martin Norgaard 💻 🤔 ⚠️ 👀  
+Adam G Thomas  🔍  🤔  
 Claus Svarer 💻 ⚠️  
 Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
 Cyril Pernet 💻 📖 🎨 💡 📋 🤔 ⚠️  
