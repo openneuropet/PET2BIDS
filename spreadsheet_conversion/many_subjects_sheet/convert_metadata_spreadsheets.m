@@ -67,9 +67,9 @@ else
     end
     
     if ~exist(varargin{2}, 'file')
-        error('%s not found', varargin{1});
+        error('%s not found', varargin{2});
     else
-        filein2 = varargin{1};
+        filein2 = varargin{2};
     end
 end
 
