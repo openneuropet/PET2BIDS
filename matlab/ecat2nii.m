@@ -17,9 +17,9 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %                'savemat' is true or false (default) to save the ecat data as .mat
 %
 % OUTPUT FileListOut is the name or a cell array of names of the nifti files created
-%        (should ne the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
+%        (should be the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
-% Example Meta = get_SiemensHRRT_metadata('TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+% Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                      'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %         FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
 %         FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
@@ -29,7 +29,7 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % and the numbers of observed events during each PET time frame.
 %
 % Uses: readECAT7.m (Raymond Muzic, 2002)
-% See also get_SiemensHRRT_metadata.m to generate the metadata structure
+% See also get_pet_metadata.m to generate the metadata structure
 %
 % Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
 %    (some of the code is based on code from Mark Lubbering
@@ -212,7 +212,7 @@ for j=1:length(FileListIn)
         end
         
         % write nifti format + json
-        img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
+        img_temp                                  = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
                 sub_iter                          = strsplit(sh{1,1}.annotation);
