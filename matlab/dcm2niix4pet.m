@@ -236,7 +236,7 @@ for folder = 1:size(FolderList,1)
         newmetadata = newmetadata(1);
     end
     jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
-    upatejsonpetfile(jsonfilename,MetaList,dcminfo);
+    updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
 
 
