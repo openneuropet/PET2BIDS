@@ -1,0 +1,122 @@
+{
+    "Manufacturer": "Siemens",
+    "ManufacturersModelName": "HRRT",
+    "Units": "",
+    "TracerName": "",
+    "TracerRadionuclide": "C-11",
+    "InjectedRadioactivity": "",
+    "InjectedRadioactivityUnits": "",
+    "InjectedMass": "",
+    "InjectedMassUnits": "",
+    "SpecificRadioactivity": "",
+    "SpecificRadioactivityUnits": "",
+    "ModeOfAdministration": "",
+    "PharmaceuticalDoseTime": "07:04:42",
+    "TimeZero": "",
+    "ScanStart": "07:04:42",
+    "InjectionStart": "",
+    "FrameTimesStart": [
+        0,
+        10000,
+        20000,
+        30000,
+        0,
+        10000,
+        20000,
+        30000
+    ],
+    "FrameDuration": [
+        10000,
+        10000,
+        10000,
+        10000,
+        10000,
+        10000,
+        10000,
+        10000
+    ],
+    "AcquisitionMode": "",
+    "ImageDecayCorrected": "",
+    "ImageDecayCorrectionTime": "",
+    "ReconMethodName": "",
+    "ReconMethodParameterLabels": [],
+    "ReconMethodParameterUnits": [],
+    "ReconMethodParameterValues": [],
+    "ReconFilterType": [],
+    "ReconFilterSize": [],
+    "AttenuationCorrection": "",
+    "ScaleFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "ScatterFraction": [
+        0.6063939929008484,
+        0.4493100047111511,
+        0.44741499423980713,
+        0.44377401471138,
+        0.6063939929008484,
+        0.4493100047111511,
+        0.44741499423980713,
+        0.44377401471138
+    ],
+    "DecayCorrectionFactor": [
+        1.0028342008590698,
+        1.0085293054580688,
+        1.0142567157745361,
+        1.0200167894363403,
+        1.0028342008590698,
+        1.0085293054580688,
+        1.0142567157745361,
+        1.0200167894363403
+    ],
+    "PromptRate": [
+        1124046.75,
+        1602414.375,
+        1439332.25,
+        1340125.75,
+        1124046.75,
+        1602414.375,
+        1439332.25,
+        1340125.75
+    ],
+    "RandomRate": [
+        964749.0,
+        1069295.0,
+        925221.8125,
+        837728.625,
+        964749.0,
+        1069295.0,
+        925221.8125,
+        837728.625
+    ],
+    "SinglesRate": [
+        24152.0,
+        34307.0,
+        31953.0,
+        30213.0,
+        24152.0,
+        34307.0,
+        31953.0,
+        30213.0
+    ],
+    "AcquisitionTime": "07:04:42",
+    "DoseCalibrationFactor": 63762796.06616413,
+    "Filename": "synthetic_ecat_integer_16x16x16x4_pypet2bids_python.nii",
+    "ImageSize": [
+        16,
+        16,
+        16,
+        4
+    ],
+    "PixelDimensions": [
+        1.2187500298023224,
+        1.2187500298023224,
+        1.2187500298023224
+    ]
+}
