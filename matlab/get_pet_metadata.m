@@ -1,11 +1,17 @@
-function metadata = get_SiemensBiograph_metadata(varargin)
+function metadata = get_pet_metadata(varargin)
 
-% Routine that outputs the Siemens HRRT PET scanner metadata following 
-% <https://bids.neuroimaging.io/ BIDS>
+% Routine that outputs PET scanner metadata following <https://bids.neuroimaging.io/ BIDS>
+% Such PET scanner metadata are passed along imaging data to the
+% converters, ecat2nii.m or dcm2niix4pet.m allowing to have fully compliant
+% json files alongside the .nii files
 %
 % Defaults parameters (aquisition and reconstruction parameters) should be 
-% stored in a SiemensBiograph_parameters.txt seating on disk next to this function
-% or passed as argument in. Here is an example of such defaults, used at NRU
+% stored in a *_parameters.txt seating on disk next to this function
+% or passed as argument in. Replace * by the name of your scanner - for now we
+% support 'SiemensBiograph' 'SiemensHRRT' and 'GEAdvance'. (see templates,
+% as some info can be recorvered from ecat or dcm - ie not necessarily needed)
+%
+% Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
 %
 % InstitutionName                = 'Rigshospitalet, NRU, DK';
 % AcquisitionMode                = 'list mode';
@@ -19,29 +25,31 @@ function metadata = get_SiemensBiograph_metadata(varargin)
 % ReconFilterSize                = 2;
 % AttenuationCorrection          = 'CT-based attenuation correction';
 %                   
-% FORMAT:  metadata = get_SiemensBiograph_metadata(name,value)
+% FORMAT:  metadata = get_SiemensBiograph_metadata(key,value)
 %
-% Example: metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
-%                        'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+% Example: metadata = get_SiemensBiograph_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
+%                        'tracer','AZ10416936','Radionuclide','C11', 'ModeOfAdministration','bolus',...
+%                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %
-% INPUTS a series of name/value pairs are expected
+% INPUTS a series of key/value pairs are expected
 %        MANDATORY
-%                  TimeZero: when was the tracer injected    e.g. TimeZero,'11:05:01'
-%                  ModeOfAdministration                      e.g.'bolus'
-%                  tracer: which tracer was used             e.g. 'tracer','DASB'
-%                  Radionuclide: which nuclide was used      e.g. 'Radionuclide','C11'
-%                  Injected Radioactivity Dose: value in MBq e.g. 'Radioactivity', 605.3220
-%                  InjectedMass: Value in ug                 e.g. 'InjectedMass', 1.5934
-%                  + 2 or more of those key/value arguments:
-%                  MolarActivity: value in GBq/umol          e.g. 'MolarActivity', 107.66
-%                  MolecularWeight: value in g/mol 
-%                  SpecificRadioactivity in Bq/g or Bq/mol   e.g. 'SpecificRadioactivity', 3.7989e+14
+%                  Scanner: name of scanner, map to a *parameters.txt file  e.g. 'Scanner', 'SiemensBiograph'
+%                  TimeZero: when was the tracer injected                   e.g. 'TimeZero','11:05:01'
+%                  ModeOfAdministration                                     e.g. 'ModeOfAdministration', 'bolus'
+%                  tracer: which tracer was used                            e.g. 'tracer','DASB'
+%                  Radionuclide: which nuclide was used                     e.g. 'Radionuclide','C11'
+%                  Injected Radioactivity Dose: value in MBq                e.g. 'Radioactivity', 605.3220
+%                  InjectedMass: Value in ug                                e.g. 'InjectedMass', 1.5934
+%                  + at least 2 of those key/value arguments:
+%                  MolarActivity: value in GBq/umol                         e.g. 'MolarActivity', 107.66
+%                  MolecularWeight: value in g/mol                          e.g. 'MolecularWeight', 15.02
+%                  SpecificRadioactivity in Bq/g or Bq/mol                  e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 %        note the TimeZero can also be [] or 'ScanStart' indicating that
 %        the scanning time should be used as TimeZero, this will be filled
 %        out automatically by ecat2nii
 %
-%        OPTIONAL 
+%        OPTIONAL INPUTS
 %                  AcquisitionMode             
 %                  ImageDecayCorrected           
 %                  ImageDecayCorrectionTime      
@@ -62,16 +70,18 @@ function metadata = get_SiemensBiograph_metadata(varargin)
 % ----------------------------------------------
 % Copyright Open NeuroPET team
 
-%% defaults are loaded via the SiemensBiographparameters.txt file
+%% defaults are loaded via the *_parameters.txt file
 
 %% check inputs
 
 if nargin == 0
-    help get_SiemensBiograph_metadata
+    help get_pet_metadata
     return
 else    
     for n=1:2:nargin
-        if any(strcmpi(varargin{n},{'TimeZero','Time Zero'}))
+        if strcmpi(varargin{n},'Scanner')
+            Scanner = varargin{n+1};
+        elseif any(strcmpi(varargin{n},{'TimeZero','Time Zero'}))
             TimeZero = varargin{n+1};
         elseif strcmpi(varargin{n},'tracer')
             tracer = varargin{n+1};
@@ -130,14 +140,14 @@ else
         end
     end
     
-    mandatory = {'TimeZero','tracer','ModeOfAdministration','Radionuclide','InjectedRadioactivity','InjectedMass'};
+    mandatory = {'Scanner','TimeZero','tracer','ModeOfAdministration','Radionuclide','InjectedRadioactivity','InjectedMass'};
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs are missing')
     end
     
     optional = {'InstitutionName','AcquisitionMode','ImageDecayCorrected','ImageDecayCorrectionTime',...
         'ReconMethodName','ReconFilterType','ReconFilterSize','AttenuationCorrection'};
-    parameter_file = fullfile(fileparts(which('get_SiemensBiograph_metadata.m')),'SiemensBiographparameters.txt');
+    parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
     if ~any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);
@@ -149,7 +159,7 @@ else
                             error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})
                         end
                     catch evalerr
-                        error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})% --> error for optional inputsmetadata?
+                        error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})% --> error for optional inputs
                     end
                 end
             end
@@ -167,15 +177,36 @@ else
                 'AttenuationCorrection      = '''';'}',...
                 'VariableNames',{'# Defaults'});
             writetable(T,parameter_file);
-            error('SiemensBiographparameters.txt to load default parameters is missing - a template file has been created, please fill missing information, or pass them as arguments in')
+            error([Scanner 'parameters.txt to load default parameters is missing - a template file has been created, please fill missing information, or pass them as arguments in'])
         end
     end
 end
 
 %% make the metadata structure
 
-metadata.Manufacturer                   = 'Siemens';
-metadata.ManufacturersModelName         = 'Biograph mMR';
+if contains(Scanner,'Siemens','IgnoreCase',true)
+    metadata.Manufacturer = 'Siemens';
+    if contains(Scanner,'Biograph','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Biograph mMR';
+    elseif contains(Scanner,'HRRT','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'High-Resolution Research Tomograph (HRRT, CTI/Siemens)';
+    else
+        error('the manufacturer model is not supported - contact us and we will fix it for you')
+    end
+elseif contains(Scanner,'GE','IgnoreCase',true)
+    metadata.Manufacturer = 'General Electric';
+    if contains(Scanner,'Advance','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Advance';
+    else
+        error('the manufacturer model is not supported - contact us and we will fix it for you')
+    end
+elseif contains(Scanner,'Phillips','IgnoreCase',true)
+    % metadata.Manufacturer = 'Phillips';
+    error('Sorry Phillips is not yet supported - contact us and we will fix it for you')
+else
+    error('the Scanner input does not include Siemens, GE or Phillips, unknown/unsupported make')
+end
+
 metadata.Units                          = 'Bq/mL';
 metadata.BodyPart                       = 'Brain';
 if isempty(TimeZero)

@@ -1,9 +1,9 @@
-function convert_spreadsheet_metadata(varargin)
+function convert_subject_metadata_spreadsheet(varargin)
 
 % routine the converts excel files stored following the metadata_excel_template.xlsx
-% (see also metadata_excel_example.xlsx)
+% (see also metadata_excel_example.xlsx) - works on a subject per subject basis
 %
-% FORMAT convert_spreadsheet_metadata(file2convert,outputname)
+% FORMAT convert_subject_metadata_spreadsheet(file2convert,outputname)
 %
 % INPUT file2convert is the .xlsx; .ods; .xls file to convert
 %       outputname (optional) is the name of the json file out (with or without full path)
@@ -13,26 +13,18 @@ function convert_spreadsheet_metadata(varargin)
 % Cyril Pernet - NRU
 
 %% PET BIDS parameters
-mandatory = {'Manufacturer','ManufacturersModelName','Units','TracerName',...
-    'TracerRadionuclide','InjectedRadioactivity','InjectedRadioactivityUnits',...
-    'InjectedMass','InjectedMassUnits','SpecificRadioactivity',...
-    'SpecificRadioactivityUnits','ModeOfAdministration','TimeZero',...
-    'ScanStart','InjectionStart','FrameTimesStart','FrameDuration',...
-    'AcquisitionMode','ImageDecayCorrected','ImageDecayCorrectionTime',...
-    'ReconMethodName','ReconMethodParameterLabels','ReconMethodParameterUnits',...
-    'ReconMethodParameterValues','ReconFilterType','ReconFilterSize','AttenuationCorrection'};
-
-recommended = {'InstitutionName','InstitutionAddress','InstitutionalDepartmentName',...
-    'BodyPart','TracerRadLex','TracerSNOMED','TracerMolecularWeight','TracerMolecularWeightUnits',...
-    'InjectedMassPerWeight','InjectedMassPerWeightUnits','SpecificRadioactivityMeasTime',...
-    'MolarActivity','MolarActivityUnits','MolarActivityMeasTime','InfusionRadioactivity',...
-    'InfusionStart','InfusionSpeed','InfusionSpeedUnits','InjectedVolume','DoseCalibrationFactor',...
-    'Purity','PharmaceuticalName','PharmaceuticalDoseAmount','PharmaceuticalDoseUnits',...
-    'PharmaceuticalDoseRegimen','PharmaceuticalDoseTime','ScanDate','InjectionEnd',...
-    'ReconMethodImplementationVersion','AttenuationCorrectionMethodReference','ScaleFactor',...
-    'ScatterFraction','DecayCorrectionFactor','PromptRate','RandomRate','SinglesRate'};
-
-optional = {'Anaesthesia'};
+current    = which('convert_subject_metadata_spreadsheet.m');
+root       = current(1:strfind(current,'converter')+length('converter'));
+jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
+if exist(jsontoload,'file')
+    petmetadata = jsondecode(fileread(jsontoload));
+    mandatory   = petmetadata.mandatory;
+    recommended = petmetadata.recommended;
+    optional    = petmetadata.optional;
+    clear petmetadata
+else
+    error('looking for %s, but the file is missing',jsontoload)
+end
 
 %% check library
 if ~exist('jsonwrite.m', 'file') 
@@ -63,7 +55,7 @@ end
 datain = detectImportOptions(filein, 'Sheet', 1);
 
 % check mandatory metadata
-for m=1:length(datain.VariableNames)
+for m=length(datain.VariableNames):-1:1
     testM(m)=any(strcmpi(datain.VariableNames{m},mandatory));
     testR(m)=any(strcmpi(datain.VariableNames{m},recommended));
     testO(m)=any(strcmpi(datain.VariableNames{m},optional));   
@@ -109,7 +101,7 @@ if nargin==2
 else
     [~,filename] = fileparts(filename);
 end
-jsonwrite(fullfile(pathname, [filename '.json']),info,'prettyprint','true');
+jsonwrite(fullfile(pathname, [filename '_pet.json']),info,'prettyprint','true');
 
 end
 

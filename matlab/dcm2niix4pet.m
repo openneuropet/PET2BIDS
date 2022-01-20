@@ -28,13 +28,13 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %           bigendian  = 'o';    % byte order (y/n/o, default o) [y=big-end, n=little-end, o=optimal/native]
 %
-% Example meta = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
+% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
 %                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %        fileout = dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
 %        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
 %        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
 %
-% See also get_SiemensBiograph_metadata.m to generate the metadata structure
+% See also get_pet_metadata.m to generate the metadata structure
 %
 % Cyril Pernet - 2021
 % ----------------------------------------------
@@ -236,7 +236,7 @@ for folder = 1:size(FolderList,1)
         newmetadata = newmetadata(1);
     end
     jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
-    upatejsonpetfile(jsonfilename,MetaList,dcminfo);
+    updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
 
 
