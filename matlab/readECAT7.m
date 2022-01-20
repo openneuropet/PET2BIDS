@@ -1,17 +1,14 @@
-% Copyright ? 2002 Raymond F. Muzic, Jr.
-% Not intended for clinical/diagnostic use.  User assumes all risk.
-
 function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 %  [mh,sh,data] = readECAT(fs, [matrix], ['Calibrated', 'on'])
-%  Read the main header, subheaders, and image/sinogram data from 
+%  Read the main header, subheaders, and image/sinogram data from
 %     ECAT v 7.x *.v, *.i, *.S, and *.a files.
 %
 %  mh - main header
 %  sh - cell array of subheaders.  sh{i} is subheader for matrix(i).
-%  data - cell array containing pixel data.  data{i} is a 
-%         [rows, cols, planes] or [proj, views, planes] array with the 
+%  data - cell array containing pixel data.  data{i} is a
+%         [rows, cols, planes] or [proj, views, planes] array with the
 %         data of matrix i.
-%         The data are stored in the file as 2 byte signed integers.  
+%         The data are stored in the file as 2 byte signed integers.
 %  fs (optional) - file specification (name/path) of file to read.  if
 %     file specification is not given, then user is prompted to select a file.
 %  matrix - (optional) vector of matrix numbers to read.  Default = all matrices in file.
@@ -19,16 +16,15 @@ function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 %    'Calibrated', 'on' : calibrate to pixel values in units given in mh.data_units.
 %                         When 'Calibrated' is 'on', pixel values are stored as doubles;
 %                         otherwise, pixels are int16.  Calibration is achieved
-%                         by multiplication of pixels by ecat_calibration_factor 
+%                         by multiplication of pixels by ecat_calibration_factor
 %                         (in mh) and the scale_factor (in sh).
-%                         The default is uncalibrated in which case pixels are int16. 
+%                         The default is uncalibrated in which case pixels are int16.
 %
 % NOTES:
 % To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
 % This could be helpful to convert a time-sequence of image volumes to something
 % that can be more easily manipulated.
 %
-
 %  This should work for the entire line of ECAT scanners running 7.x of the software.
 %  Original version written by BT Christian, 12/10/98
 %  Overhaul by RF Muzic, 20000726
@@ -37,110 +33,110 @@ function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 %  Revised by RF Muzic, 20021017 generalize support from multiple frames to multiple
 %                     matrices.  The distinction is that a matrix could correspond to
 %                     different bed position or different frame.
-%  Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.  
+%  Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.
 %                     It is actually 49 shorts (to make a 512 byte sh block) whereas CTI docs says 48.
 %                     Add support for .a files.
+% Copyright ? 2002 Raymond F. Muzic, Jr.
+% Not intended for clinical/diagnostic use.  User assumes all risk.
 
 persistent lastpath_
 
-if nargin == 0,
+if nargin == 0
     fs = [];
 end
 
-if length(fs) == 0,
-    origpwd = pwd;    
-    if length(lastpath_) > 0, cd(lastpath_); end;
+if length(fs) == 0
+    origpwd = pwd;
+    if length(lastpath_) > 0; cd(lastpath_); end
     [fn,pat]=uigetfile({'*.v;*.S;*.i;*.a', 'All ECAT 7 Files (*.v, *.S, *.i, *.a)'; '*.*',    'All Files (*.*)'}, 'Select a file');
     fs = [pat fn];
-    if isa(pat, 'uint8'), lastpath_ = pat; end;
+    if isa(pat, 'uint8'), lastpath_ = pat; end
     cd(origpwd);
 end
-
 
 matlabVersion=sscanf(version,'%f');
 
 % handle options
 calibrated = 0;
-if length(varargin) > 0,
+if length(varargin) > 0
     lvarargin = lower(varargin);
     idx = strmatch('calibrated', lvarargin{1});
-    if length(idx) > 0,
+    if length(idx) > 0
         calibrated = strcmp(lvarargin{idx+1}, 'on');
     end
 end
 
 % open file as ieee big-endian
 fid = fopen(fs,'r','ieee-be');
-if (fid < 0),
-    error(sprintf('readECAT: Problem opening file %s', fs));
+if (fid < 0)
+    error('readECAT: Problem opening file %s', fs);
 end
 
 
 %  Read in the main header info
 mh = readMainheader(fid);
 
-if (nargout == 1), 
+if (nargout == 1)
     return
 end
 
 
 %  Read in the directory list
-pos = 512;
-ndr = 0; % number of directory records
+pos   = 512;
+ndr   = 0; % number of directory records
 direc = [];
-while (1),
+while (1)
     fseek(fid,pos,-1);
     buff = fread(fid,[4 32],'int32');  % read directory
-    if (buff(4,1) == 0),
-        break;
+    if (buff(4,1) == 0)
+        break
     end
-    ndr = ndr + 1;
+    ndr   = ndr + 1;
     direc = [direc buff(:,2:(buff(4,1)+1))];
-    if (buff(2,1) == 2),
-        break;
+    if (buff(2,1) == 2)
+        break
     end
     pos = (buff(2,1)-1)*512;
-end;
+end
 
 % sort based on matrix number as occasionally they are stored out of order
-[d,idx]=sort(direc(1,:));
+[~,idx]  = sort(direc(1,:));
 dirtable = direc(:,idx);
 
 % when matrix is not specified or is [], default if to read all matrices
-if (nargin < 2),
+if (nargin < 2)
     matrix = 1:size(direc,2);  % default is all matrices
 end
-if (length(matrix) == 0),
+if (length(matrix) == 0)
     matrix = 1:size(direc,2);  % default is all matrices
 end
 
 nmat = length(matrix);  % number of matrices to return
 
-
-if any((matrix(1:nmat) > size(direc,2)) | (matrix(1:nmat) < 1)),
-    error(sprintf('readECAT7: Matrix numbers must be <= %d and >= %d', 1, nmat));
+if any((matrix(1:nmat) > size(direc,2)) | (matrix(1:nmat) < 1))
+    error('readECAT7: Matrix numbers must be <= %d and >= %d', 1, nmat);
 end
 
-sh = cell(nmat,1);
+sh   = cell(nmat,1);
 data = cell(nmat,1);
 
 % select proper sh routine
 switch mh.file_type
-case 3
-    readSubheader = 'readSubheaderAttenuation';
-case 7
-    readSubheader = 'readSubheaderImage';
-case 11
-    readSubheader = 'readSubheader3DScan';
-otherwise
-    warning('Do not know how to read this type of file.')
-    % Beware: in some file types pixels are stored as floats.
-    % To support reading them, fread will have to be called with 'float' format when appropriate.
+    case 3
+        readSubheader = 'readSubheaderAttenuation';
+    case 7
+        readSubheader = 'readSubheaderImage';
+    case 11
+        readSubheader = 'readSubheader3DScan';
+    otherwise
+        warning('Do not know how to read this type of file.')
+        % Beware: in some file types pixels are stored as floats.
+        % To support reading them, fread will have to be called with 'float' format when appropriate.
 end
 
 % Loop over matrices reading subheader and pixel data
 sh = cell([nmat 1]);
-for m = 1:nmat,
+for m = 1:nmat
     midx = matrix(m);
     
     % attempt to read all matrices irrespective of 'code' in
@@ -152,41 +148,41 @@ for m = 1:nmat,
     
     % jump to subheader
     fseek(fid,512*(dirtable(2,midx)-1),-1);   % especially needed if
-         % last block of previous dataset is not completely filled
+    % last block of previous dataset is not completely filled
     
     % read and parse subheader and advance file position to pixel data
     fp = ftell(fid);
     [sh{m}, sz] = feval(readSubheader, fid, dirtable(:,m));
-    if rem(ftell(fid)-fp, 512),
+    if rem(ftell(fid)-fp, 512)
         warning(['readECAT7: There is a problem in subheader read.'  ...
-                 'Subheader size should be a multiple of 512 bytes.']);
+            'Subheader size should be a multiple of 512 bytes.']);
     end
-     
-    if (nargout > 2),  % if user asked for pixel data
+    
+    if (nargout > 2)  % if user asked for pixel data
         
-        switch sh{m}.data_type 
-        case 5 % IEEE float (32 bit)
-            data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'float32');
-        case 6 % SUN int16
-            if (matlabVersion(1) < 6),
-                data{m} = int16(fread(fid, [sz(1)*sz(2) sz(3)],'int16'));
-            else
-                data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
-            end
-        otherwise
-            warning('readECAT7: unrecognized data type');
+        switch sh{m}.data_type
+            case 5 % IEEE float (32 bit)
+                data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'float32');
+            case 6 % SUN int16
+                if (matlabVersion(1) < 6)
+                    data{m} = int16(fread(fid, [sz(1)*sz(2) sz(3)],'int16'));
+                else
+                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
+                end
+            otherwise
+                warning('readECAT7: unrecognized data type');
         end
         % other sh{m}.data_type: 2 = VAX int16,  3 = VAX int32,  4 = VAX F-float (32 bit),  7 = SUN int32
         
         data{m} = reshape(data{m}, [sz(1) sz(2) sz(3)]);
         
-        if calibrated,  % convert to double pixels and scale to mh.data_units
+        if calibrated  % convert to double pixels and scale to mh.data_units
             cf = sh{m}.scale_factor*mh.ecat_calibration_factor;  % calibration factor for mh.data_units
             data{m} = cf*data{m};
-        end;
+        end
         
-    end; % if nargout > 2
-end;  % loop over matrices
+    end % if nargout > 2
+end  % loop over matrices
 
 fclose(fid);
 
@@ -316,8 +312,8 @@ function [sh, sz] = readSubheaderImage(fid, dirtable)
 sh.data_type                 = fread(fid,1,'int16');
 sh.num_dimensions            = fread(fid,1,'int16');
 pixel_dimensions             = fread(fid,3,'int16');
-sh.x_dimension               = pixel_dimensions(1); 
-sh.y_dimension               = pixel_dimensions(2); 
+sh.x_dimension               = pixel_dimensions(1);
+sh.y_dimension               = pixel_dimensions(2);
 sh.z_dimension               = pixel_dimensions(3);
 pixel_offsets                = fread(fid,3,'float32');
 sh.x_offset                  = pixel_offsets(1);
@@ -369,7 +365,7 @@ sh.recon_views               = fread(fid,1,'int16');
 sh.prompt_rate               = fread(fid,1,'float32');   % [counts/sec]   total_prompt = prompt_rate*frame_duration */
 sh.random_rate               = fread(fid,1,'float32');   % [counts/sec]   total_random = random_rate*frame_duration */
 sh.singles_rate              = fread(fid,1,'float32');   % [counts/sec]   average bucket singles rate */
-sh.scatter_fraction          = fread(fid,1,'float32');   
+sh.scatter_fraction          = fread(fid,1,'float32');
 sh.cti_fill                  = fread(fid,87+49-4*2,'int16'); % 20020627 btc (ray forgot to read this).  20021029 rfm2 change 48 to 49
 %sh.cti_fill                  = fread(fid,87+49,'int16'); % 20020627 btc (ray forgot to read this).  20021029 rfm2 change 48 to 49
 sz = [sh.x_dimension sh.y_dimension sh.z_dimension];
@@ -387,8 +383,8 @@ function [sh, sz] = readSubheaderAttenuation(fid, dirtable)
 sh.data_type                 = fread(fid,1,'int16');
 sh.num_dimensions            = fread(fid,1,'int16');
 sh.num_r_elements            = fread(fid,1,'int16');
-sh.num_angles                = fread(fid,1,'int16');   
-sh.num_z_elements            = fread(fid,1,'int16');   
+sh.num_angles                = fread(fid,1,'int16');
+sh.num_z_elements            = fread(fid,1,'int16');
 sh.corrections_applied       = fread(fid,1,'int16');
 sh.ring_difference           = fread(fid,1,'int16');
 pixel_resolutions            = fread(fid,4,'float32');
@@ -416,13 +412,13 @@ sh.span                      = fread(fid,1,'int16');
 sh.z_elements                = fread(fid,64,'int16');
 sh.fill                      = fread(fid,86+50,'int16');
 
-switch sh.data_type 
-case 5 % IEEE float (32 bit)
-    sz = [sh.num_z_elements sh.num_angles (dirtable(3)-dirtable(2))*512/sh.num_z_elements/sh.num_angles/4];
-case 6 % SUN int16
-    sz = [sh.num_z_elements sh.num_angles (dirtable(3)-dirtable(2))*512/sh.num_z_elements/sh.num_angles/2];
-otherwise
-    warning('readECAT7: unrecognized data type');
+switch sh.data_type
+    case 5 % IEEE float (32 bit)
+        sz = [sh.num_z_elements sh.num_angles (dirtable(3)-dirtable(2))*512/sh.num_z_elements/sh.num_angles/4];
+    case 6 % SUN int16
+        sz = [sh.num_z_elements sh.num_angles (dirtable(3)-dirtable(2))*512/sh.num_z_elements/sh.num_angles/2];
+    otherwise
+        warning('readECAT7: unrecognized data type');
 end
 
 return
