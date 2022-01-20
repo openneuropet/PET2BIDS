@@ -163,7 +163,7 @@ for j=1:length(FileListIn)
                 Randoms(i)    = 0;
             end
         end
-        
+     
         
         % rescale to 16 bits
         MaxImg       = max(img_temp(:));
