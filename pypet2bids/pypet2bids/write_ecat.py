@@ -2,6 +2,7 @@ import struct
 from math import ceil, floor
 from pypet2bids.read_ecat import  ecat_header_maps, get_buffer_size
 import numpy
+from pathlib import Path
 
 """
 This program will create an ecat file if provided an ecat schema and a dictionary of values to populate that schema
@@ -62,7 +63,7 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int 
         byte_position = ecat_file.tell()
 
     for entry in schema:
-        byte_position, variable_name, struct_fmt = entry['byte'] + byte_position, entry['variable_name'], entry[
+        byte_position, variable_name, struct_fmt = entry['byte'], entry['variable_name'], entry[
             'struct']
         struct_fmt = '>' + struct_fmt
         byte_width = struct.calcsize(struct_fmt)
@@ -91,8 +92,16 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int 
             try:
                 ecat_file.write(struct.pack(struct_fmt, *value_to_write))
             except struct.error as err:
-                print(f"Oh no {value_to_write} is out of range for {struct_fmt}, variable {variable_name}")
-                raise err
+                if values['DATA_TYPE'] == 5 and 'MAX' in variable_name:
+                    value_to_write = 32767
+                elif values['DATA_TYPE'] == 5 and 'MIN' in variable_name:
+                    value_to_write = -32767
+                    print('Uncertain how to handle min and max datatypes for float arrays when writing ecats.\n'
+                          'if you know more about what header min and max values should be in the case of an float32\n'
+                          'image matrix please consider making a pull request to this library or posting an issue.')
+                else:
+                    print(f"Oh no {value_to_write} is out of range for {struct_fmt}, variable {variable_name}")
+                    raise err
     return byte_width + byte_position
 
 
@@ -123,7 +132,10 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
     # create entries for the directory table
     directory_order = [i + 1 for i in range(num_frames)]
 
-    table_byte_position = 1 + required_directory_blocks
+    # why is the initial table byte position equal to 3? Because the first header and pixel data lies
+    # after the main header byte block at position 0 to 1 and the directory table itself occupies byte blocks
+    # 1 to 2, thus the first frame (header and pixel data) will land at byte block number 3! Whoopee!
+    table_byte_position = 3 #1 + required_directory_blocks
     for i in range(required_directory_blocks):
         # initialize empty 4 x 32 array
         table = numpy.ndarray((4, 32), dtype='>i4')
@@ -200,13 +212,60 @@ def write_directory_table(file, directory_tables: list, seek: bool = False):
     return file.tell()
 
 
-def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int = 0, seek: bool = False):
+def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int=None, seek: bool=None):
     if seek and byte_position:
         ecat_file.seek(byte_position)
-    elif (seek and not byte_position) or (byte_position and not seek):
-        raise Exception("Must provide seek boolean and byte position")
+    #elif (seek and not byte_position) or (byte_position and not seek):
+        #raise Exception("Must provide seek boolean and byte position")
     else:
         pass
     flattened_pixels = pixel_data.flatten(order='F').tobytes()
     ecat_file.write(flattened_pixels)
     return 0
+
+
+def write_ecat(ecat_file: Path,
+               mainheader_schema: dict,
+               mainheader_values: dict,
+               subheaders_values: list,
+               subheader_schema: dict,
+               number_of_frames: int,
+               pixel_x_dimension: int,
+               pixel_y_dimension: int,
+               pixel_z_dimension: int,
+               pixel_byte_size: int,
+               pixel_data: list=[]):
+
+    # open the ecat file!
+    with open(ecat_file, 'w+b') as outfile:
+
+        # first things first, write the main header with supplied information
+        write_header(ecat_file=outfile,
+                     schema=mainheader_schema,
+                     values=mainheader_values)
+        position_post_header_write = outfile.tell()
+        # create the directory table
+        directory_table = create_directory_table(num_frames=number_of_frames,
+                                                 pixel_dimensions={'x':pixel_x_dimension,
+                                                                   'y':pixel_y_dimension,
+                                                                   'z':pixel_z_dimension},
+                                                 pixel_byte_size=pixel_byte_size)
+        # write the directory tabel to the file
+        write_directory_table(file=outfile,
+                              directory_tables=directory_table)
+
+        position_post_table_write = outfile.tell()
+        # write subheaders followed by pixel data
+        for index, subheader in enumerate(subheaders_values):
+            position = outfile.tell()
+            table_position = directory_table[0][1 ,index + 1] * 512
+            write_header(ecat_file=outfile,
+                         schema=subheader_schema,
+                         values=subheader,
+                         byte_position=outfile.tell())
+            position_post_subheader_write = outfile.tell()
+            write_pixel_data(ecat_file=outfile,
+                             pixel_data=pixel_data[index])
+            position_post_subheader_pixel_data_write = outfile.tell()
+
+    return ecat_file
