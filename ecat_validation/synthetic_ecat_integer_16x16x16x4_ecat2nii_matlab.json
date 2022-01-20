@@ -1,0 +1,34 @@
+{
+  "info": "just a test",
+  "TimeZero": "12:01:47",
+  "ReconMethodParameterLabels": [
+    "iterations",
+    "subsets",
+    "lower_threshold",
+    "upper_threshold"
+  ],
+  "ReconMethodParameterUnits": [
+    "none",
+    "none",
+    "keV",
+    "keV"
+  ],
+  "ReconMethodParameterValues": [null,null,400,650],
+  "ScaleFactor": [1,1,1,1],
+  "ScatterFraction": [0.6063939929008484,0.4493100047111511,0.4474149942398071,0.44377401471138],
+  "DecayCorrectionFactor": [1.00283420085907,1.008529305458069,1.014256715774536,1.02001678943634],
+  "PromptRate": [1124046.75,1602414.375,1439332.25,1340125.75],
+  "RandomRate": [964749,1069295,925221.8125,837728.625],
+  "SinglesRate": [24152,34307,31953,30213],
+  "FrameDuration": [10,10,10,10],
+  "FrameTimesStart": [0,10,20,30],
+  "ScanStart": 0,
+  "InjectionStart": 0,
+  "DoseCalibrationFactor": 64518900,
+  "Filemoddate": "20-Jan-2022 12:56:33",
+  "Version": "NIfTI1",
+  "ConversionSoftware": "ecat2nii.m",
+  "Description": "Open NeuroPET ecat7+ matlab based conversion",
+  "ImageSize": [16,16,16,4],
+  "PixelDimensions": [1.218750029802322,1.218750029802322,1.218750029802322,0]
+}
