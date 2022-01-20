@@ -67,6 +67,13 @@ temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
 for i in range(number_of_frames):
     frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
 
+# reshape pixel data into 3-d arrays
+pixels_to_collect = one_dimension ** 3
+frames = []
+temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
+for i in range(number_of_frames):
+    frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
+
 # edit the header to suit the new file
 header_to_write = skeleton_main_header
 header_to_write['NUM_FRAMES'] = 4

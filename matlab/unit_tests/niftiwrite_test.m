@@ -1,6 +1,6 @@
 function niftiwrite_test
 
-% simple routine testing the error in nifti wrtite as done in ecat2nii 
+% simple routine testing the error in nifti write as done in ecat2nii 
 % Claus Svarer & Cyril Pernet
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
