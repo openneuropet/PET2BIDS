@@ -54,7 +54,7 @@ image_min = 0
 image_max = 32767
 spacing = round((image_max - image_min) / number_of_array_elements)
 
-integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.int16, step=spacing)
+integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.uint16, step=spacing)
 
 # now we write the integer pixel data to a file for testing
 integer_data_save_path = Path(int_golden_ecat_path)
@@ -112,3 +112,4 @@ write_ecat(ecat_file=int_golden_ecat_path,
 
 # now read it just to make sure what was created is a real file and not error riddled.
 int_golden_ecat_main_header, int_golden_ecat_subheaders, int_golden_ecat_pixel_data = read_ecat(int_golden_ecat_path)
+print("debug")
