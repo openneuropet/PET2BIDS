@@ -1,0 +1,20 @@
+{
+    "dcmfields": [
+        "Manufacturer",
+        "ManufacturerModelName",
+        "ConvolutionKernel",
+        "R_RadionuclideTotalDose",
+        "R_CodeMeaning",
+        "AttenuationCorrectionMethod",
+        "ReconstructionMethod"
+    ],
+    "jsonfields": [
+        "Manufacturer",
+        "ManufacturersModelName",
+        "ReconFilterType",
+        "InjectedRadioactivity",
+        "TracerRadionuclide",
+        "AttenuationCorrection",
+        "ReconMethodName"
+    ]
+}
