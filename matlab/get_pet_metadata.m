@@ -142,7 +142,7 @@ else
     
     mandatory = {'Scanner','TimeZero','tracer','ModeOfAdministration','Radionuclide','InjectedRadioactivity','InjectedMass'};
     if ~all(cellfun(@exist, mandatory))
-        error('One or more mandatory name/value pairs are missing')
+        error('One or more mandatory name/value pairs are missing \n%s',mandatory{find(cellfun(@exist, mandatory)==0)})
     end
     
     optional = {'InstitutionName','AcquisitionMode','ImageDecayCorrected','ImageDecayCorrectionTime',...
