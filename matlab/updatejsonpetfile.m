@@ -28,7 +28,6 @@ function status = updatejsonpetfile(varargin)
 % Copyright Open NeuroPET team
 
 status = struct('state',[],'messages',{''});
-status_index = 1;
 
 %% check data in
 jsonfilename = varargin{1};
@@ -189,7 +188,6 @@ else % -------------- update ---------------
         end
     end
         
-
     %% recursive call to check status
     status = updatejsonpetfile(filemetadata);
     if isfield(filemetadata,'ConversionSoftware')

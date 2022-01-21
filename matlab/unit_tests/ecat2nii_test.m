@@ -27,8 +27,9 @@ if exist('groundtruth','var')
     [filepath,filename] = fileparts(ecatfile);
     img                 = load(groundtruth);
     img_reread          = niftiread(fullfile(filepath,[filename '.nii']));
-    Diff_ecat_nifti     = img(:) - img_reread(:);
-    table(min(Diff_ecat_nifti),mean(min(Diff_ecat_nifti)),max(Diff_ecat_nifti),...
+    Diff_ecat_nifti     = sort(img(:)) - sort(img_reread(:));
+    meandiff            = mean(Diff_ecat_nifti);
+    table(min(Diff_ecat_nifti),meandiff,max(Diff_ecat_nifti),...
         'VariableNames',{'min','mean','max'}) % analyze diff
 
 else
