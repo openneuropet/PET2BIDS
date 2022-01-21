@@ -146,7 +146,7 @@ for j=1:length(FileListIn)
         end
         Nframes  = mh.num_frames;
         
-        % Create data reading 1 frame at a time
+        % Create data reading 1 frame at a time - APLYING THE SCALE FACTOR
         img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
         for i=Nframes:-1:1
             fprintf('Working at frame: %i\n',i);
@@ -164,7 +164,6 @@ for j=1:length(FileListIn)
             end
         end
      
-        
         % rescale to 16 bits
         MaxImg       = max(img_temp(:));
         img_temp     = img_temp/MaxImg*32767;
@@ -233,7 +232,7 @@ for j=1:length(FileListIn)
         end
         
         for idx = 1:numel(sh)
-            info.ScaleFactor(idx,1)           = sh{idx}.scale_factor;
+            info.ScaleFactor(idx,1)           = 1; % because we apply sh{idx}.scale_factor;
             info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
             info.DecayCorrectionFactor(idx,1) = sh{idx}.decay_corr_fctr;
             info.PromptRate(idx,1)            = sh{idx}.prompt_rate;
