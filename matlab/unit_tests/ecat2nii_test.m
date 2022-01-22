@@ -9,6 +9,7 @@ function ecat2nii_test(varargin)
 %         /ecat_validation)
 %
 % e.g. ecat2nii_test(fullfile(pwd,'myfile.v'));
+% ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v')
 % Claus Svarer & Cyril Pernet
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
@@ -17,6 +18,8 @@ if nargin ==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
         ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v']);
     groundtruth = [ecatfile(1:end-2) '.txt'];
+else
+    ecatfile = varargin{1};
 end
 
 meta.info = 'just running a test';
