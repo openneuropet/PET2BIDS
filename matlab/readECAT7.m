@@ -165,9 +165,12 @@ for m = 1:nmat
                 data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'float32');
             case 6 % SUN int16
                 if (matlabVersion(1) < 6)
+                    warning('old matlab version, using int16 to read')
                     data{m} = int16(fread(fid, [sz(1)*sz(2) sz(3)],'int16'));
                 else
-                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
+                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)]);
+                    % loosing int16 as this centers data? giving negative PET count
+                    % data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
                 end
             otherwise
                 warning('readECAT7: unrecognized data type');
