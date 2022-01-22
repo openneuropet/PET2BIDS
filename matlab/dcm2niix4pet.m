@@ -227,7 +227,13 @@ for folder = 1:size(FolderList,1)
    
     % deal with dcm files
     dcmfiles = dir(fullfile(outputdir{folder},'*dcm'));
-    dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    if isempty(dcmfiles) % since sometimes they have no ext :-(
+        dcmfiles = dir(outputdir{folder}); % pick in the middle to avoid other files
+        dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
+    else
+        dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    end
+    
     if strcmpi(deletedcm,'on')
         delete(fullfile(outputdir{folder},'*dcm'))
     end
