@@ -1,15 +1,18 @@
 function metadata = get_pet_metadata(varargin)
 
-% Routine that outputs PET scanner metadata following <https://bids.neuroimaging.io/ BIDS>
+% Routine that outputs PET scanner metadata following 
+% <https://bids.neuroimaging.io/ BIDS>
+%
 % Such PET scanner metadata are passed along imaging data to the
-% converters, ecat2nii.m or dcm2niix4pet.m allowing to have fully compliant
-% json files alongside the .nii files
+% converters, ecat2nii.m or dcm2niix4pet.m allowing to have fully 
+% compliant json files alongside the .nii files
 %
 % Defaults parameters (aquisition and reconstruction parameters) should be 
 % stored in a *_parameters.txt seating on disk next to this function
 % or passed as argument in. Replace * by the name of your scanner - for now we
-% support 'SiemensBiograph' 'SiemensHRRT' and 'GEAdvance'. (see templates,
-% as some info can be recorvered from ecat or dcm - ie not necessarily needed)
+% support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance' and 'PhillipsVereos'. 
+% (see templates, as some info can be recovered from ecat or dcm - ie not 
+% all info is necessarily needed)
 %
 % Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
 %
@@ -25,9 +28,9 @@ function metadata = get_pet_metadata(varargin)
 % ReconFilterSize                = 2;
 % AttenuationCorrection          = 'CT-based attenuation correction';
 %                   
-% FORMAT:  metadata = get_SiemensBiograph_metadata(key,value)
+% FORMAT:  metadata = get_pet_metadata(key,value)
 %
-% Example: metadata = get_SiemensBiograph_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
+% Example: metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
 %                        'tracer','AZ10416936','Radionuclide','C11', 'ModeOfAdministration','bolus',...
 %                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %
@@ -140,6 +143,7 @@ else
         end
     end
     
+    % check mandatory/optional fileds of this function (not the BIDS fields)
     mandatory = {'Scanner','TimeZero','tracer','ModeOfAdministration','Radionuclide','InjectedRadioactivity','InjectedMass'};
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs are missing \n%s',mandatory{find(cellfun(@exist, mandatory)==0)})
@@ -191,20 +195,35 @@ if contains(Scanner,'Siemens','IgnoreCase',true)
     elseif contains(Scanner,'HRRT','IgnoreCase',true)
         metadata.ManufacturersModelName = 'High-Resolution Research Tomograph (HRRT, CTI/Siemens)';
     else
-        error('the manufacturer model is not supported - contact us and we will fix it for you')
+        loc = find([strfind(Scanner,{'Siemens'}) strfind(Scanner,{'siemens'})]);
+        Scanner(loc:loc+length('Siemens')-1) = [];
+        metadata.ManufacturersModelName = Scanner;
+        warning('while the conversion code should run, the manufacturer model is not supported (ie dcm check uncertain) - contact us and we will fix it for you')
     end
 elseif contains(Scanner,'GE','IgnoreCase',true)
     metadata.Manufacturer = 'General Electric';
     if contains(Scanner,'Advance','IgnoreCase',true)
         metadata.ManufacturersModelName = 'Advance';
     else
-        error('the manufacturer model is not supported - contact us and we will fix it for you')
+        loc = find([strfind(Scanner,{'GE'}) strfind(Scanner,{'ge'})]);
+        Scanner(loc:loc+length('GE')-1) = [];
+        metadata.ManufacturersModelName = Scanner;
+        warning('while the conversion code should run, the manufacturer model is not supported (ie dcm check uncertain) - contact us and we will fix it for you')
     end
-elseif contains(Scanner,'Phillips','IgnoreCase',true)
-    % metadata.Manufacturer = 'Phillips';
-    error('Sorry Phillips is not yet supported - contact us and we will fix it for you')
+elseif contains(Scanner,'Philips','IgnoreCase',true)
+    metadata.Manufacturer = 'Philips';
+    if contains(Scanner,'Vereos','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Vereos PET/CT'; 
+    elseif contains(Scanner,'Ingenuity','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Ingenuity TF PET/CT'; 
+    else
+        loc = find([strfind(Scanner,{'Philips'}) strfind(Scanner,{'philips'})]);
+        Scanner(loc:loc+length('Philips')-1) = [];
+        metadata.ManufacturersModelName = Scanner;
+        warning('while the conversion code should run, the manufacturer model is not supported (ie dcm check uncertain) - contact us and we will fix it for you')
+    end
 else
-    error('the Scanner input does not include Siemens, GE or Phillips, unknown/unsupported make')
+    error('the Scanner input does not include Siemens, GE or Philips, unknown/unsupported make')
 end
 
 metadata.Units                          = 'Bq/mL';

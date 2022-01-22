@@ -2,19 +2,27 @@
     "dcmfields": [
         "Manufacturer",
         "ManufacturerModelName",
+        "InstitutionName",
         "ConvolutionKernel",
         "R_RadionuclideTotalDose",
         "R_CodeMeaning",
         "AttenuationCorrectionMethod",
-        "ReconstructionMethod"
+        "ReconstructionMethod",
+        "ProcessingFunction",
+        "RadiopharmaceuticalInformationSequence.RadiopharmaceuticalRoute",
+        "R_RadiopharmaceuticalRoute"
     ],
     "jsonfields": [
         "Manufacturer",
         "ManufacturersModelName",
+        "InstitutionName",
         "ReconFilterType",
         "InjectedRadioactivity",
         "TracerRadionuclide",
         "AttenuationCorrection",
-        "ReconMethodName"
+        "ReconMethodName",
+        "ReconMethodName",
+        "ModeOfAdministration",
+        "ModeOfAdministration"
     ]
 }
