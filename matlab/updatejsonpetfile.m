@@ -33,6 +33,10 @@ status = struct('state',[],'messages',{''});
 jsonfilename = varargin{1};
 if nargin >= 2
     newfields = varargin{2};
+    if iscell(newfields)
+        newfields = cell2mat(newfields);
+    end
+    
     if nargin == 3
         dcminfo = varargin{3};
     end
