@@ -169,13 +169,15 @@ else % -------------- update ---------------
         error('%s does not exist',dcminfo)
     end
     
-    dcmfields  = {'Manufacturer','ManufacturerModelName' ,'ConvolutionKernel',...
-        'R_RadionuclideTotalDose','R_CodeMeaning'   ,'AttenuationCorrectionMethod',...
-        'ReconstructionMethod'};
-    jsonfields = {'Manufacturer','ManufacturersModelName','ReconFilterType'  ,...
-        'InjectedRadioactivity','TracerRadionuclide','AttenuationCorrection',...
-        'ReconMethodName'};
-    
+    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids_heuristics.json']);
+    if exist(jsontoload,'file')
+        heuristics = jsondecode(fileread(jsontoload));
+        dcmfields  = heuristics.dcmfields;
+        jsonfields = heuristics.jsonfields;
+    else
+        error('looking for %s, but the file is missing',jsontoload)
+    end
+        
     for f=1:length(dcmfields)
         if isfield(dcminfo,dcmfields{f})
             if isfield(filemetadata,jsonfields{f})
