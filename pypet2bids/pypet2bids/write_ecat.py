@@ -219,7 +219,7 @@ def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int=No
         #raise Exception("Must provide seek boolean and byte position")
     else:
         pass
-    flattened_pixels = pixel_data.flatten(order='F').tobytes()
+    flattened_pixels = pixel_data.flatten().tobytes()
     ecat_file.write(flattened_pixels)
     return 0
 

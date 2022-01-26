@@ -54,11 +54,13 @@ image_min = 0
 image_max = 32767
 spacing = round((image_max - image_min) / number_of_array_elements)
 
-integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.uint16, step=spacing)
+#integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
+integer_pixel_data = numpy.arange(image_min, image_max, dtype=">H", step=spacing)
 
 # now we write the integer pixel data to a file for testing
+project_to_2_d = numpy.reshape(integer_pixel_data, (-1, one_dimension))
 integer_data_save_path = Path(int_golden_ecat_path)
-numpy.savetxt(integer_data_save_path.with_suffix('.txt'), integer_pixel_data, fmt='%d')
+numpy.savetxt(integer_data_save_path.with_suffix('.txt'), project_to_2_d, fmt='%d')
 
 # reshape pixel data into 3-d arrays
 pixels_to_collect = one_dimension ** 3
@@ -67,12 +69,6 @@ temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
 for i in range(number_of_frames):
     frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
 
-# reshape pixel data into 3-d arrays
-pixels_to_collect = one_dimension ** 3
-frames = []
-temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
-for i in range(number_of_frames):
-    frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
 
 # edit the header to suit the new file
 header_to_write = skeleton_main_header
@@ -112,4 +108,3 @@ write_ecat(ecat_file=int_golden_ecat_path,
 
 # now read it just to make sure what was created is a real file and not error riddled.
 int_golden_ecat_main_header, int_golden_ecat_subheaders, int_golden_ecat_pixel_data = read_ecat(int_golden_ecat_path)
-print("debug")
