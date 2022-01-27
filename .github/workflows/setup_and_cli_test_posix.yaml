@@ -95,7 +95,6 @@ jobs:
         uses: matlab-actions/run-command@v1
         with:
           command: |
-            cp 
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
