@@ -33,6 +33,10 @@ status = struct('state',[],'messages',{''});
 jsonfilename = varargin{1};
 if nargin >= 2
     newfields = varargin{2};
+    if iscell(newfields)
+        newfields = cell2mat(newfields);
+    end
+    
     if nargin == 3
         dcminfo = varargin{3};
     end
@@ -94,9 +98,9 @@ else % -------------- update ---------------
         end
     end
   
-    % ----------------------------------------
-    %         dcm2nixx extracted data update   
-    % ----------------------------------------
+    % -------------------------------------------------------------------
+    %         dcm2nixx extracted data to update with BIDS name if needed  
+    % -------------------------------------------------------------------
     
     % check Unit(s) (depends on dcm2nixx version)
     if isfield(filemetadata,'Unit')
@@ -108,46 +112,52 @@ else % -------------- update ---------------
     end
     
     if isfield(filemetadata,'ReconstructionMethod')
-        filemetadata.ReconMethodName = filemetadata.ReconstructionMethod;
-        filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
-        
-        iterations                   = regexp(filemetadata.ReconMethodName,'\d\di','Match');
-        if isempty(iterations)
-            iterations               = regexp(filemetadata.ReconMethodName,'\di','Match');
-        end
-        
-        subsets                      = regexp(filemetadata.ReconMethodName,'\d\ds','Match');
-        if isempty(subsets)
-            subsets                  = regexp(filemetadata.ReconMethodName,'\ds','Match');
-        end
-
-        if ~isempty(iterations) && ~isempty(subsets)
-            index1 = strfind(filemetadata.ReconMethodName,iterations);
-            index2 = index1 + length(cell2mat(iterations))-1;
-            filemetadata.ReconMethodName(index1:index2) = [];
-            index1 = strfind(filemetadata.ReconMethodName,subsets);
-            index2 = index1 + length(cell2mat(subsets ))-1;
-            filemetadata.ReconMethodName(index1:index2) = [];
-            filemetadata.ReconMethodParameterLabels     = ["subsets","iterations"];
-            filemetadata.ReconMethodParameterUnits      = ["none","none"];
-            filemetadata.ReconMethodParameterValues     = [str2double(subsets{1}(1:end-1)),str2double(iterations{1}(1:end-1))];
+        if isfield(filemetadata.ReconMethodName) % if already there remove dcm2niix info
+            filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
+        else % try to fill in info
+            filemetadata.ReconMethodName = filemetadata.ReconstructionMethod;
+            filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
+            iterations                   = regexp(filemetadata.ReconMethodName,'\d\di','Match');
+            if isempty(iterations)
+                iterations               = regexp(filemetadata.ReconMethodName,'\di','Match');
+            end
+            subsets                      = regexp(filemetadata.ReconMethodName,'\d\ds','Match');
+            if isempty(subsets)
+                subsets                  = regexp(filemetadata.ReconMethodName,'\ds','Match');
+            end
+            
+            if ~isempty(iterations) && ~isempty(subsets)
+                index1 = strfind(filemetadata.ReconMethodName,iterations);
+                index2 = index1 + length(cell2mat(iterations))-1;
+                filemetadata.ReconMethodName(index1:index2) = [];
+                index1 = strfind(filemetadata.ReconMethodName,subsets);
+                index2 = index1 + length(cell2mat(subsets ))-1;
+                filemetadata.ReconMethodName(index1:index2) = [];
+                filemetadata.ReconMethodParameterLabels     = ["subsets","iterations"];
+                filemetadata.ReconMethodParameterUnits      = ["none","none"];
+                filemetadata.ReconMethodParameterValues     = [str2double(subsets{1}(1:end-1)),str2double(iterations{1}(1:end-1))];
+            end
         end
     end
     
     if isfield(filemetadata,'ConvolutionKernel')
-        if contains(filemetadata.ConvolutionKernel,'.00')
-            loc = strfind(filemetadata.ConvolutionKernel,'.00');
-            filemetadata.ConvolutionKernel(loc:loc+2) = [];
-            filtersize = regexp(filemetadata.ConvolutionKernel,'\d*','Match');
-            if ~isempty(filtersize)
-                filemetadata.ReconFilterSize = cell2mat(filtersize);
-                loc = strfind(filemetadata.ConvolutionKernel,filtersize{1});
-                filemetadata.ConvolutionKernel(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
-                filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
-            else
-                filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
+        if isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+            filemetadata = rmfield(filemetadata,'ConvolutionKernel'); % already there, remove
+        else % attempt to fill
+            if contains(filemetadata.ConvolutionKernel,'.00')
+                loc = strfind(filemetadata.ConvolutionKernel,'.00');
+                filemetadata.ConvolutionKernel(loc:loc+2) = [];
+                filtersize = regexp(filemetadata.ConvolutionKernel,'\d*','Match');
+                if ~isempty(filtersize)
+                    filemetadata.ReconFilterSize = cell2mat(filtersize);
+                    loc = strfind(filemetadata.ConvolutionKernel,filtersize{1});
+                    filemetadata.ConvolutionKernel(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
+                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
+                else
+                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
+                end
+                filemetadata = rmfield(filemetadata,'ConvolutionKernel');
             end
-            filemetadata = rmfield(filemetadata,'ConvolutionKernel');
         end
     end    
     
@@ -165,13 +175,15 @@ else % -------------- update ---------------
         error('%s does not exist',dcminfo)
     end
     
-    dcmfields  = {'Manufacturer','ManufacturerModelName' ,'ConvolutionKernel',...
-        'R_RadionuclideTotalDose','R_CodeMeaning'   ,'AttenuationCorrectionMethod',...
-        'ReconstructionMethod'};
-    jsonfields = {'Manufacturer','ManufacturersModelName','ReconFilterType'  ,...
-        'InjectedRadioactivity','TracerRadionuclide','AttenuationCorrection',...
-        'ReconMethodName'};
-    
+    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids_heuristics.json']);
+    if exist(jsontoload,'file')
+        heuristics = jsondecode(fileread(jsontoload));
+        dcmfields  = heuristics.dcmfields;
+        jsonfields = heuristics.jsonfields;
+    else
+        error('looking for %s, but the file is missing',jsontoload)
+    end
+        
     for f=1:length(dcmfields)
         if isfield(dcminfo,dcmfields{f})
             if isfield(filemetadata,jsonfields{f})

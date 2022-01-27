@@ -76,7 +76,7 @@ jobs:
       - name: Unzip Test File(s)
         run: |
           gzip -d ${{ env.SMALLER_ECAT_PATH }}
-
+      
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
 
