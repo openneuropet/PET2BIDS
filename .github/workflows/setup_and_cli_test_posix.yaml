@@ -14,7 +14,7 @@ jobs:
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
       SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
-      TEST_ECAT_PATH: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.v
+      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
       READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
       NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
@@ -73,10 +73,9 @@ jobs:
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
-      - name: Copy Test File(s) to tests/
+      - name: Unzip Test File(s)
         run: |
-          cp ${{ env.SMALLER_ECAT_PATH }} ${{ env.TEST_ECAT_PATH }}.gz
-          gzip -d ${{ env.TEST_ECAT_PATH }}
+          gzip -d ${{ env.SMALLER_ECAT_PATH }}
 
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
@@ -96,9 +95,10 @@ jobs:
         uses: matlab-actions/run-command@v1
         with:
           command: |
+            cp 
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.TEST_ECAT_PATH }}');
-            ecat2nii_test('${{ env.TEST_ECAT_PATH }}.gz')
+            addpath('${{ env.SMALLER_ECAT_PATH }}');
+            ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
