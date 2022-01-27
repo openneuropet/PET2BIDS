@@ -5,6 +5,8 @@ from read_ecat import read_ecat, ecat_header_maps
 import os
 from math import e
 from pathlib import Path
+from scipy.io import savemat
+
 '''
 This script exists solely to create an ecat with pixel values ranging from 0 to 32767 with a minimum number of frames.
 This evenly pixel spaced ecat that has a small number of frames will be used to evaluate the accuracy and precision
@@ -33,12 +35,16 @@ Anthony Galassi - 2022
 Copyright Open NeuroPET team
 '''
 
+script_path = Path(__file__).absolute()
+ecat_validation_folder = os.path.join(script_path.parent.parent.parent, 'ecat_validation/')
+
 # Path to a reference/skeleton ecat as well as output paths for saving the created ecats to are stored in
 # environment variables or a .env file
 dotenv.load_dotenv(dotenv.find_dotenv())
 
 # collect path to golden ecat file
 int_golden_ecat_path = os.environ['GOLDEN_ECAT_INTEGER']
+int_golden_ecat_path_stem = Path(int_golden_ecat_path).stem
 
 # collect skeleton header and subheaders.
 skeleton_main_header, skeleton_subheader, _ = read_ecat(os.environ['GOLDEN_ECAT_TEMPLATE_ECAT'],
@@ -57,10 +63,8 @@ spacing = round((image_max - image_min) / number_of_array_elements)
 #integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
 integer_pixel_data = numpy.arange(image_min, image_max, dtype=">H", step=spacing)
 
-# now we write the integer pixel data to a file for testing
-project_to_2_d = numpy.reshape(integer_pixel_data, (-1, one_dimension))
-integer_data_save_path = Path(int_golden_ecat_path)
-numpy.savetxt(integer_data_save_path.with_suffix('.txt'), project_to_2_d, fmt='%d')
+# save data for analysis in matlab
+matlab_struct = {}
 
 # reshape pixel data into 3-d arrays
 pixels_to_collect = one_dimension ** 3
@@ -68,7 +72,7 @@ frames = []
 temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
 for i in range(number_of_frames):
     frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
-
+    matlab_struct[f"frame_{i + 1}_pixel_data"] = frames[i]
 
 # edit the header to suit the new file
 header_to_write = skeleton_main_header
@@ -92,6 +96,8 @@ for subheader in subheaders_to_write:
         subheader['SCALE_FACTOR'] = 1
 
 
+matlab_struct['subheaders'] = subheaders_to_write
+matlab_struct['mainheder'] = header_to_write
 
 write_ecat(ecat_file=int_golden_ecat_path,
            mainheader_schema=ecat_header_maps['ecat_headers']['73']['mainheader'],
@@ -105,6 +111,9 @@ write_ecat(ecat_file=int_golden_ecat_path,
            pixel_byte_size=2,
            pixel_data=frames
            )
+
+savemat(os.path.join(ecat_validation_folder, (int_golden_ecat_path_stem + '.mat'))
+        , matlab_struct)
 
 # now read it just to make sure what was created is a real file and not error riddled.
 int_golden_ecat_main_header, int_golden_ecat_subheaders, int_golden_ecat_pixel_data = read_ecat(int_golden_ecat_path)

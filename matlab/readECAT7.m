@@ -167,7 +167,8 @@ for m = 1:nmat
                 if (matlabVersion(1) < 6)
                     data{m} = int16(fread(fid, [sz(1)*sz(2) sz(3)],'int16'));
                 else
-                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
+                    % REALLY MAKE IT A UINT16
+                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)], 'uint16');
                 end
             otherwise
                 warning('readECAT7: unrecognized data type');

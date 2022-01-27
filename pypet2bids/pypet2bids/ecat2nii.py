@@ -83,32 +83,20 @@ def ecat2nii(ecat_main_header=None,
         # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
             data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
-        start.append(sub_headers[index]['FRAME_START_TIME'] * 0.001)  # scale to per minute
-        delta.append(sub_headers[index]['FRAME_DURATION'] * 0.001)  # scale to per minute
+        start.append(sub_headers[index]['FRAME_START_TIME'] * 60)  # scale to per minute
+        delta.append(sub_headers[index]['FRAME_DURATION'] * 60)  # scale to per minute
 
         if main_header.get('SW_VERSION', 0) >= 73:
             # scale both to per minute
-            prompts.append(sub_headers[index]['PROMPT_RATE'] * sub_headers[index]['FRAME_DURATION'] * 0.001)
-            randoms.append(sub_headers[index]['RANDOM_RATE'] * sub_headers[index]['FRAME_DURATION'] * 0.001)
+            prompts.append(sub_headers[index]['PROMPT_RATE'] * sub_headers[index]['FRAME_DURATION'] * 60)
+            randoms.append(sub_headers[index]['RANDOM_RATE'] * sub_headers[index]['FRAME_DURATION'] * 60)
         else:
             # this field is not available in ecat 7.2
             prompts.append(0)
             randoms.append(0)
 
-    # rescale for quantitative PET
-    max_image = img_temp.max()
-    img_temp = img_temp / (max_image * 32767)
-    sca = max_image / 32767
-    min_image = img_temp.min()
-    if min_image < -32768:
-        img_temp = img_temp / (min_image * (-32768))
-        sca = sca * min_image / (-32768)
+    final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
 
-    properly_scaled = img_temp * sca * main_header['ECAT_CALIBRATION_FACTOR']
-
-    final_image = numpy.around(properly_scaled)
-
-    # calculate qoffset to build  affine TODO add this to ecat read
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
             'X_PIXEL_SIZE'] * 5))

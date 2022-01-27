@@ -342,8 +342,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                     formatting = '>f4'
                     pixel_data_type = numpy.dtype(formatting)
                 elif dt_val == 6:
-                    pixel_data_type = numpy.uint16
-                    #pixel_data_type = '>H'
+                    pixel_data_type = '>H'
                 else:
                     raise ValueError(
                         f"Unable to determine pixel data type from value: {dt_val} extracted from {subheader}")
