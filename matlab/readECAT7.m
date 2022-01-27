@@ -168,9 +168,8 @@ for m = 1:nmat
                     warning('old matlab version, using int16 to read')
                     data{m} = int16(fread(fid, [sz(1)*sz(2) sz(3)],'int16'));
                 else
-                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)]);
-                    % loosing int16 as this centers data? giving negative PET count
-                    % data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'int16=>int16');
+                    % REALLY MAKE IT A UINT16
+                    data{m} = fread(fid, [sz(1)*sz(2) sz(3)], 'uint16');
                 end
             otherwise
                 warning('readECAT7: unrecognized data type');
