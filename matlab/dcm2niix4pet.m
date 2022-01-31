@@ -41,7 +41,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 
 dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
-    error('for windows machine please edit the function line 43 and indicate the dcm2niix path')
+    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
 
 if ~ispc % overwrite if not windowns (as it should be in the computer path)
@@ -51,7 +51,7 @@ end
 %% defaults
 % ---------
 
-deletedcm    = 'off';
+deletedcm  = 'off';
 
 gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
