@@ -28,6 +28,9 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
 %
+% Dev: if the meta structure as a field (key) 'info' with a value containing 'test'
+%      the json validation is skipped -- allows e.g. unit testing
+%
 % Uses: readECAT7.m (Raymond Muzic, 2002)
 % See also get_pet_metadata.m to generate the metadata structure
 %
@@ -35,7 +38,6 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %    (some of the code is based on code from Mark Lubbering
 % ----------------------------------------------
 % Copyright Open NeuroPET team
-
 
 %% defaults
 % ---------
@@ -113,7 +115,6 @@ if exist('FileListOut','var')
         error('The number of files in (FileListIn) does not match the number of file names to create')
     end
 end
-
 
 %% Read and write data
 % --------------------
@@ -259,6 +260,8 @@ for j=1:length(FileListIn)
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         jsonwrite([filenameout '.json'],info)
+ 
+        % skip validation if testing
         if isfield(info,'info')
             if ~contains(info.info,'test')
                 status = updatejsonpetfile([filenameout '.json']); % validate
