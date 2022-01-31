@@ -187,13 +187,14 @@ else % -------------- update ---------------
     for f=1:length(dcmfields)
         if isfield(dcminfo,dcmfields{f})
             if isfield(filemetadata,jsonfields{f})
+                % if the json field exist, just compare and inform if different
                 if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                     if isnumeric(filemetadata.(jsonfields{f}))
                         warning(['name mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
                     else
                         warning(['name mismatch between json ' jsonfields{f} ':' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                     end
-                else
+                else % otherwise just set the field
                     filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
