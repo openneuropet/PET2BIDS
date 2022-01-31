@@ -157,13 +157,16 @@ else
             setmetadata = importdata(parameter_file);
             for opt = 1:length(optional)
                 if ~exist(optional{opt},'var')
-                    try
-                        eval(setmetadata{find(contains(setmetadata,optional{opt}))}); % shoul evaluate the = sign, creating name/value pairs                end
-                        if isempty(eval(optional{opt}))
-                            error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})
+                    option_index = find(contains(setmetadata,optional{opt}));
+                    if ~isempty(option_index)
+                        try
+                            eval(setmetadata{option_index}); % shoul evaluate the = sign, creating name/value pairs                end
+                            if isempty(eval(optional{opt}))
+                                error('''%s'' from %sparameters.txt is empty\n',optional{opt},Scanner)
+                            end
+                        catch evalerr
+                            error('''%s'' from %sparameters.txt is empty\n',optional{opt},Scanner)% --> error for optional inputs
                         end
-                    catch evalerr
-                        error('''%s'' from SiemensBiographparameters.txt is empty\n',optional{opt})% --> error for optional inputs
                     end
                 end
             end
@@ -236,6 +239,7 @@ else
     metadata.TimeZero                   = TimeZero;   
 end
 metadata.TimeZero                       = TimeZero;
+metadata.ModeOfAdministration           = ModeOfAdministration;
 metadata.TracerName                     = tracer;
 metadata.TracerRadionuclide             = Radionuclide;
 metadata.InjectedRadioactivity          = InjectedRadioactivity;
@@ -255,13 +259,27 @@ if exist('MolarActivity', 'var')
     metadata.MolarActivityUnits         = 'GBq/umol';
 end
 
-metadata.ModeOfAdministration           = ModeOfAdministration;
-metadata.InstitutionName                = InstitutionName;
-metadata.AcquisitionMode                = AcquisitionMode;
-metadata.ImageDecayCorrected            = ImageDecayCorrected;
-metadata.ImageDecayCorrectionTime       = ImageDecayCorrectionTime;
-metadata.ReconMethodName                = ReconMethodName ;
-metadata.ReconFilterType                = ReconFilterType ;
-metadata.ReconFilterSize                = ReconFilterSize;
-metadata.AttenuationCorrection          = AttenuationCorrection;
-
+if exist('InstitutionName','var')
+    metadata.InstitutionName            = InstitutionName;
+end
+if exist('AcquisitionMode','var')
+    metadata.AcquisitionMode            = AcquisitionMode;
+end
+if exist('ImageDecayCorrected','var')
+    metadata.ImageDecayCorrected        = ImageDecayCorrected;
+end
+if exist('ImageDecayCorrectionTime','var')
+    metadata.ImageDecayCorrectionTime   = ImageDecayCorrectionTime;
+end
+if exist('ReconMethodName','var')
+    metadata.ReconMethodName            = ReconMethodName;
+end
+if exist('ReconFilterType','var')
+    metadata.ReconFilterType            = ReconFilterType;
+end
+if exist('ReconFilterSize','var')
+    metadata.ReconFilterSize            = ReconFilterSize;
+end
+if exist('','var')
+    metadata.AttenuationCorrection      = AttenuationCorrection;
+end
