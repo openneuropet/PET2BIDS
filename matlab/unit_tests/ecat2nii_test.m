@@ -25,6 +25,7 @@ end
 meta.info = 'just running a test';
 meta.TimeZero = datestr(now,'hh:mm:ss');
 ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
+cd(fileparts(ecatfile))
 
 if exist('groundtruth','var')
     [filepath,filename] = fileparts(ecatfile);
