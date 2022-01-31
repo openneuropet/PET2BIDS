@@ -149,9 +149,18 @@ else
         error('One or more mandatory name/value pairs are missing \n%s',mandatory{find(cellfun(@exist, mandatory)==0)})
     end
     
-    optional = {'InstitutionName','AcquisitionMode','ImageDecayCorrected','ImageDecayCorrectionTime',...
-        'ReconMethodName','ReconFilterType','ReconFilterSize','AttenuationCorrection'};
-    parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
+    optional = {'InstitutionName',...
+                'AcquisitionMode',...
+                'ImageDecayCorrected',...
+                'ImageDecayCorrectionTime',...
+                'ReconMethodName',...
+                'ReconMethodParameterLabels',...
+                'ReconMethodParameterUnits',...
+                'ReconMethodParameterValues',...
+                'ReconFilterType',...
+                'ReconFilterSize',...
+                'AttenuationCorrection'};
+            parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
     if ~any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);
@@ -262,24 +271,43 @@ end
 if exist('InstitutionName','var')
     metadata.InstitutionName            = InstitutionName;
 end
+
 if exist('AcquisitionMode','var')
     metadata.AcquisitionMode            = AcquisitionMode;
 end
+
 if exist('ImageDecayCorrected','var')
     metadata.ImageDecayCorrected        = ImageDecayCorrected;
 end
 if exist('ImageDecayCorrectionTime','var')
     metadata.ImageDecayCorrectionTime   = ImageDecayCorrectionTime;
 end
+
 if exist('ReconMethodName','var')
     metadata.ReconMethodName            = ReconMethodName;
 end
+
+ if exist('ReconMethodParameterLabels','var')
+    metadata.ReconMethodParameterLabels = ReconMethodParameterLabels;
+ end
+ 
+ if exist('ReconMethodParameterUnits','var')
+    metadata.ReconMethodParameterUnits  = ReconMethodParameterUnits;
+ end
+ 
+ if exist('ReconMethodParameterValues','var')
+    metadata.ReconMethodParameterValues = ReconMethodParameterValues;
+end
+
 if exist('ReconFilterType','var')
     metadata.ReconFilterType            = ReconFilterType;
 end
+
 if exist('ReconFilterSize','var')
     metadata.ReconFilterSize            = ReconFilterSize;
 end
-if exist('','var')
+
+if exist('AttenuationCorrection','var')
     metadata.AttenuationCorrection      = AttenuationCorrection;
 end
+
