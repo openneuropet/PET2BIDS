@@ -91,7 +91,7 @@ class Convert:
         self.run_dcm2niix()
 
         # extract all metadata
-        self.extract_nifti_json()
+        self.extract_nifti_json() # this will extract the data from the dcm2niix sidecar and store it in self.nifti_json_data
         if self.metadata_path:
             self.extract_metadata()
             # build output structures for metadata
@@ -242,7 +242,6 @@ class Convert:
             for old_file_path, new_file_path in move_dictionary.items():
                 subprocess.run(f'mv {old_file_path} {new_file_path}', shell=True)
 
-
     def bespoke(self):
         """
         This function attempts to collect and organize imaging metadata from PET text and imaging files into BIDS
@@ -267,7 +266,6 @@ class Convert:
             'ReconFilterType': self.dicom_header_data.ConvolutionKernel,
             'AttenuationCorrection': self.dicom_header_data.AttenuationCorrectionMethod,
             'DecayCorrectionFactor': self.nifti_json_data.get('DecayFactor', '')
-
         }
 
         # initializing empty dictionaries to catch possible additional data from a metadata spreadsheet
@@ -405,6 +403,7 @@ def cli():
         image_folder=args.folder,
         metadata_path=args.metadata_path,
         destination_path=args.destination_path,
+        metadata_translation_script_path=args.translation_script_path,
         subject_id=args.subject_id,
         session_id=args.session_id)
 
