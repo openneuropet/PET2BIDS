@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "0.0.5"
+version = "0.0.6"
 description = "A python implementation of an ECAT to BIDS converter."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -19,6 +19,7 @@ pydicom = "^2.2.2"
 Gooey = "^1.0.8"
 pandas = "^1.3.4"
 openpyxl = "^3.0.9"
+xlrd = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 
