@@ -10,7 +10,8 @@ function metadata = get_pet_metadata(varargin)
 % Defaults parameters (aquisition and reconstruction parameters) should be
 % stored in a *_parameters.txt seating on disk next to this function
 % or passed as argument in. Replace * by the name of your scanner - for now we
-% support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance' and 'PhillipsVereos'.
+% support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos', 
+% 'PhillipsIngenuityPETMR','PhillipsIngenuityPETCT'.
 % (see templates, as some info can be recovered from ecat or dcm - ie not
 % all info is necessarily needed)
 %
@@ -236,7 +237,13 @@ elseif contains(Scanner,'Philips','IgnoreCase',true)
     if contains(Scanner,'Vereos','IgnoreCase',true)
         metadata.ManufacturersModelName = 'Vereos PET/CT';
     elseif contains(Scanner,'Ingenuity','IgnoreCase',true)
-        metadata.ManufacturersModelName = 'Ingenuity TF PET/CT';
+        if contains(Scanner,'CT','IgnoreCase',true)
+            metadata.ManufacturersModelName = 'Ingenuity TF PET/CT';
+        elseif contains(Scanner,'MR','IgnoreCase',true)
+            metadata.ManufacturersModelName = 'Ingenuity TF PET/MR';
+        else
+            metadata.ManufacturersModelName = 'Ingenuity';
+        end
     else
         loc = find([strfind(Scanner,{'Philips'}) strfind(Scanner,{'philips'})]);
         Scanner(loc:loc+length('Philips')-1) = [];
