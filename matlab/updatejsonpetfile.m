@@ -48,7 +48,6 @@ if isstruct(jsonfilename)
 else
     if exist(jsonfilename,'file')
         filemetadata = jsondecode(fileread(jsonfilename));
-        filemetadatafields = fieldnames(filemetadata);
     else
         error('looking for %s, but the file is missing',jsonfilename)
     end
@@ -92,12 +91,28 @@ else % -------------- update ---------------
     end
    
     if isfield(filemetadata,'TimeZero')
-        if strcmpi(filemetadata.TimeZero,'ScanStart')
-            filemetadata.ScanStart      = 0;            
-            filemetadata.InjectionStart = 0;            
+        if strcmpi(filemetadata.TimeZero,'ScanStart') || isempty(filemetadata.TimeZero)
+            filemetadata.TimeZero   = filemetadata.AcquisitionTime;
+            filemetadata            = rmfield(filemetadata,'AcquisitionTime');
+            filemetadata.ScanStart  = 0;     
+            
+            if ~isfield(filemetadata,'InjectionStart')
+                filemetadata.InjectionStart = 0;
+            end
         end
+    else
+        warning('TimeZero is not defined, which is not compliant with PET BIDS')
     end
   
+    % recheck those fields, assume 0 is not specified
+    if ~isfield(filemetadata,'ScanStart')
+        filemetadata.ScanStart     = 0;
+    end
+    
+    if ~isfield(filemetadata,'InjectionStart')
+        filemetadata.InjectionStart = 0;
+    end
+    
     % -------------------------------------------------------------------
     %         dcm2nixx extracted data to update with BIDS name if needed  
     % -------------------------------------------------------------------
@@ -174,7 +189,8 @@ else % -------------- update ---------------
     else
         error('%s does not exist',dcminfo)
     end
-    
+       
+    %% run the heuristic
     jsontoload = fullfile(root,['metadata' filesep 'dicom2bids_heuristics.json']);
     if exist(jsontoload,'file')
         heuristics = jsondecode(fileread(jsontoload));

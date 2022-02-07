@@ -243,6 +243,8 @@ for j=1:length(FileListIn)
         info.FrameDuration                    = DeltaTime';
         info.FrameTimesStart                  = zeros(size(info.FrameDuration));
         info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
+        
+        % Time stuff, time zero is kinda required [] or 'ScanStart' or actual value
         if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
             offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
             info.TimeZero                     = datestr((datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset),'hh.mm.ss');
@@ -250,8 +252,16 @@ for j=1:length(FileListIn)
                 warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
             end
         end
-        info.ScanStart                        = 0;
-        info.InjectionStart                   = 0;
+        
+        % if not specified we infer that injection and scan are together the time zero
+        if ~isfield(info,'ScanStart')
+            info.ScanStart                    = 0;
+        end
+        
+        if ~isfield(indo,'InjectionStart')
+            info.InjectionStart               = 0;
+        end
+        
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
