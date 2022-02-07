@@ -48,8 +48,9 @@ class Convert:
         self.session_id = session_id
         self.metadata_dataframe = None  # dataframe object of text file metadata
         self.metadata_translation_script_path = metadata_translation_script_path
-        self.dicom_header_data = None  # extracted data from dicom header
-        self.nifti_json_data = None  # extracted data from dcm2niix generated json file
+        self.dicom_header_data = {}  # extracted data from dicom header
+        self.nifti_json_data = {} # extracted data from dcm2niix generated json file
+        self.blood_json_data = {}
 
         # if no destination path is supplied plop nifti into the same folder as the dicom images
         if not destination_path:
@@ -102,6 +103,7 @@ class Convert:
             self.future_blood_tsv = bespoke_data['future_blood_tsv']
             self.future_blood_json = bespoke_data['future_blood_json']
             self.participant_info = bespoke_data['participants_info']
+
 
 
     @staticmethod
@@ -271,7 +273,6 @@ class Convert:
         # initializing empty dictionaries to catch possible additional data from a metadata spreadsheet
         future_blood_json = {}
         future_blood_tsv = {}
-        text_file_data = {}
 
         if self.metadata_translation_script_path:
             try:
@@ -285,9 +286,9 @@ class Convert:
             except AttributeError as err:
                 print(f"Unable to locate metadata_translation_script")
 
-            future_blood_tsv.update(text_file_data.get('blood_tsv', {}))
-            future_blood_json.update(text_file_data.get('blood_json', {}))
-            future_nifti_json.update(text_file_data.get('nifti_json', {}))
+            self.future_blood_tsv = text_file_data.get('blood_tsv',{})
+            self.future_blood_json = text_file_data.get('blood_json',{})
+            self.future_nifti_json = text_file_data.get('nifti_json', {})
 
         participants_tsv = {
             'sub_id': [self.subject_id],
@@ -316,11 +317,13 @@ class Convert:
             identity_string = os.path.join(manual_path, self.subject_string + self.session_string)
 
         with open(identity_string + '_pet.json', 'w') as outfile:
-            json.dump(self.future_json, outfile, indent=4)
+            self.nifti_json_data.update(self.future_nifti_json)
+            json.dump(self.nifti_json_data, outfile, indent=4)
 
         # write out better json
         with open(identity_string + '_recording-manual-blood.json', 'w') as outfile:
-            json.dump(self.future_blood_json, outfile, indent=4)
+            self.blood_json_data.update(self.future_blood_json)
+            json.dump(self.blood_json_data, outfile, indent=4)
 
         return identity_string
 
