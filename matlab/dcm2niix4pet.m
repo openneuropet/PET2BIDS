@@ -27,8 +27,8 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %           x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
 %           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
-% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
-%                'ModeOfAdministration','infusion','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+%                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %        dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
 %        dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
 %        dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info

@@ -31,9 +31,8 @@ function metadata = get_pet_metadata(varargin)
 %
 % FORMAT:  metadata = get_pet_metadata(key,value)
 %
-% Example: metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
-%                        'TracerName','AZ10416936','TracerRadionuclide','C11', 'ModeOfAdministration','bolus',...
-%                        'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+%                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %
 % INPUTS a series of key/value pairs are expected
 %        MANDATORY
@@ -50,10 +49,11 @@ function metadata = get_pet_metadata(varargin)
 %                  SpecificRadioactivity in Bq/g or Bq/mol                  e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 %        note the TimeZero can also be [] or 'ScanStart' indicating that
-%        the scanning time should be used as TimeZero, this will be filled
-%        out automatically by ecat2nii
+%        the scanning time should be used as TimeZero
 %
 %        OPTIONAL INPUTS ARE ALL OTHER BIDS FIELDS
+%        If TimeZero is not the scan time, we strongly advice to input 
+%        ScanStart and InjectionStart making sure timing is correct
 %
 % OUTPUT metadata is a structure with BIDS fields filled
 %        (such structure is ready to be writen as json file using e.g.
@@ -140,7 +140,7 @@ else
     % check mandatory/optional fields of this function
     % (same fields but different status as BIDS)
     if ~all(cellfun(@exist, mandatory))
-        error('One or more mandatory name/value pairs are missing \n%s',mandatory{find(cellfun(@exist, mandatory)==0)})
+        error('One or more mandatory name/value pairs is missing: %s\n',mandatory{find(cellfun(@exist, mandatory)==0)})
     end
     
     current    = which('get_pet_metadata.m');
