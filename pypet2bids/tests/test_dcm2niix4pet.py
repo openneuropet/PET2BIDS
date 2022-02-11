@@ -1,4 +1,4 @@
-from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json
+from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name
 import pytest
 import dotenv
 import os
@@ -28,8 +28,6 @@ for root, folders, files in os.walk(test_dicom_image_folder):
         except pydicom.errors.InvalidDicomError:
             pass
 
-print(representative_dicoms)
-
 
 def test_check_json(capsys):
     with TemporaryDirectory() as tempdir:
@@ -44,27 +42,55 @@ def test_check_json(capsys):
 
         assert f'WARNING!!!! Manufacturer is not present in {bad_json_path}' in check_output.out
 
+def test_extract_dicom_headers():
+    converter = Dcm2niix4PET(test_dicom_image_folder, test_dicom_convert_nifti_output_path)
+    converter.extract_dicom_headers()
+    for key, value in converter.dicom_headers.items():
+        assert os.path.isfile(os.path.join(test_dicom_image_folder, key))
+        assert type(value) is pydicom.dataset.FileDataset
+
+
 def test_dicom_datetime_to_dcm2niix_time():
     # given the test_time, and test_date below the result of dicom_datetime_to_dcm2niix_time should output
     # the correct_answer as written below
-    test_time = "170934.102500"
+
+    # The filename's %t refers to the time of study (from 0008,0020 and 0008,0030) - Chris Rorden 2022
+    test_time = "163940"
     test_date = "20211206"
-    correct_answer = "20211206163940"
-    result = dicom_datetime_to_dcm2niix_time(test_date, test_time)
-    assert result == correct_answer
+    dcm2niix_output = "20211206163940"
+    result = dicom_datetime_to_dcm2niix_time(date=test_date, time=test_time)
+    assert result == dcm2niix_output
+
 
 def test_match_dicom_header_to_file():
     # given a list of paths match_dicom_header_to_file will correctly match the a specific dicom header to
     # each file path and return that grouping in the form of a series_description + time entry in a dictionary with
     # the following keys { 'dicom_header': ..., associated_files: [ ...nii.gz, ...json, ...tsv, ...json]
-    pass
+    assert 'up' == 'down'
+
 
 def test_collect_date_from_file_name():
     # given a file output from dcm2niix, this function will extract the AcquistionDate and AcquisitionTime
-    pass
+    with TemporaryDirectory() as tempdir:
+        tempdir_path = Path(tempdir)
+        converter = Dcm2niix4PET(test_dicom_image_folder, tempdir_path)
+        converter.extract_dicom_headers()
 
-def test_extract_dicom_header():
-    assert 0 == 1
+        first_dicom_header = converter.dicom_headers[next(iter(converter.dicom_headers))]
+        StudyDate = first_dicom_header.StudyDate
+        StudyTime = str(round(float(first_dicom_header.StudyTime)))
+
+        # run dcm2niix to convert these dicoms
+        converter.run_dcm2niix()
+
+        # collect filenames
+        dcm2niix_output = os.listdir(tempdir)
+
+        for file in dcm2niix_output:
+            collected_date = collect_date_time_from_file_name(file)
+            assert collected_date[0] == StudyDate
+            assert collected_date[1] == StudyTime
+
 
 def test_run_dcm2niix():
     converter = Dcm2niix4PET(test_dicom_image_folder, test_dicom_convert_nifti_output_path, file_format = '%p_%i_%t_%s')
@@ -95,5 +121,4 @@ def test_run_dcm2niix():
     print("DonE!")
 
 if __name__ == '__main__':
-    test_run_dcm2niix()
-
+    test_collect_date_from_file_name()

@@ -16,6 +16,7 @@ import shutil
 from dateutil import parser
 from termcolor import colored
 
+
 """
 This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
 bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
@@ -44,7 +45,6 @@ for metadata_json in metadata_jsons:
     except FileNotFoundError as err:
         raise err(f"Missing pet metadata files in {metadata_folder}, unable to validate metadata.")
 
-print('debug')
 
 def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.json']):
     """
@@ -87,23 +87,45 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
                               f"post conversion.", color))
 
 
-
-
-
-def dicom_datetime_to_dcm2niix_time(date, time):
+def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
     conversion if '%t' is provided following the '-f' flag. The result is the addition of a date time string of the
     format:
-    :param date:
-    :param time:
-    :return:
+    :param dicom: pydicom.dataset.FileDataset object or a path to a dicom
+    :param time_field: 
+    :param date_field: 
+    :return: 
     """
-    parsed_date = parser.parse(date)
-    parsed_time = parser.parse(time)
-    print(f"date: {parsed_date}\ntime: {parsed_time}")
-    return parsed_date.strftime("%Y%m%d") + parsed_time
+    if dicom:
+        if type(dicom) is pydicom.dataset.FileDataset:
+            # do nothing
+            pass
+        elif type(dicom) is str:
+            try:
+                dicom_path = Path(dicom)
+                dicom = pydicom.dcmread(dicom_path)
+            except TypeError as err:
+                raise err(f"dicom must be either a pydicom.dataset.FileDataSet object or a valid path to a dicom file")
 
+
+        parsed_date = dicom.StudyDate
+        parsed_time = str(round(float(dicom.StudyTime)))
+    elif date and time:
+        parsed_date = date
+        parsed_time = str(round(float(time)))
+
+    return parsed_date + parsed_time
+
+def collect_date_time_from_file_name(file_name):
+    date_time_string = re.search(r"(?!\_)[0-9]{14}(?=\_)", file_name)
+    if date_time_string:
+        date = date_time_string[0][0:8]
+        time = date_time_string[0][8:]
+    else:
+        raise Exception(f"Unable to parse date_time string from filename: {file_name}")
+
+    return date, time
 
 class Dcm2niix4PET:
     def __init__(self, image_folder, destination_path, metadata_path=None,
@@ -122,8 +144,10 @@ class Dcm2niix4PET:
         if metadata_path is not None and metadata_translation_path is not None:
             self.metadata_path =  Path(metadata_path)
             self.metadata_translation_script = Path(metadata_path)
+        self.subject_id = None
         self.file_format = file_format
         self.dicom_headers = {}
+
 
     @staticmethod
     def check_for_dcm2niix():
@@ -141,26 +165,30 @@ class Dcm2niix4PET:
 
         return check.returncode
 
-    def extract_dicom_header(self, additional_fields=[]):
+    def extract_dicom_headers(self, additional_fields=[], depth=1):
         """
         Opening up files till a dicom is located, then extracting any header information
         to be used during and after the conversion process. This includes patient/subject id,
         as well any additional frame or metadata that's required for conversion.
         :return: dicom header information to self.subject_id and/or self.dicom_header_data
         """
-        for root, dirs, files in os.walk(self.image_folder):
+        n = 0
+        for root, dirs, files in walk(self.image_folder):
             for f in files:
+                if n >= depth:
+                    break
                 try:
-                    dicom_header = pydicom.dcmread(os.path.join(root, f))
+                    dicom_path = Path(join(root, f))
+                    dicom_header = pydicom.dcmread(dicom_path, stop_before_pixels=True)
                     # collect subject/patient id if none is supplied
                     if self.subject_id is None:
                         self.subject_id = dicom_header.PatientID
 
-                    self.dicom_header_data = dicom_header
-                    break
+                    self.dicom_headers[dicom_path.name] = dicom_header
 
                 except pydicom.errors.InvalidDicomError:
                     pass
+                n += 1
 
     def run_dcm2niix(self):
         if self.file_format:
