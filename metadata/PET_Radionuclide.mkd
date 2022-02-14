@@ -1,0 +1,42 @@
+# CID 4020 PET Radionuclide
+
+Table taken from https://dicom.nema.org/medical/Dicom/2016b/output/chtml/part16/sect_CID_4020.html
+
+| Code Value |  Code Meaning   |
+|:----------:|:---------------:|
+| C-105A1    | ^11^Carbon      |
+| C-107A1    | ^13^Nitrogen    |  
+| C-1018C    | ^14^Oxygen      | 
+| C-B1038    | ^15^Oxygen      |
+| C-111A1    | ^18^Fluorine    |
+| C-155A1    | ^22^Sodium      |
+| C-135A4    | ^38^Potassium   |
+| 126605     | ^43^Scandium    |
+| 126600     | ^44^Scandium    |
+| C-166A2    | ^45^Titanium    |
+| 126601     | ^51^Manganese   |
+| C-130A1    | ^52^Iron        |
+| C-149A1    | ^52^Manganese   |
+| 126607     | ^52m^Manganese  |
+| C-127A4    | ^60^Copper      |
+| C-127A1    | ^61^Copper      |
+| C-127A5    | ^62^Copper      |
+| C-141A1    | ^62^Zinc        |
+| C-127A     | ^64^Copper      |
+| C-131A1    | ^66^Gallium     |
+| C-131A3    | ^68^Gallium     |
+| C-128A2    | ^68^Germanium   |
+| 126602     | ^70^Arsenic     |
+| C-115A2    | ^72^Arsenic     |
+| C-116A2    | ^73^Selenium    |
+| C-113A1    | ^75^Bromine     |
+| C-113A2    | ^76^Bromine     |
+| C-113A3    | ^77^Bromine     |
+| C-159A2    | ^82^Rubidium    |
+| C-162A3    | ^86^Yttrium     |
+| C-168A4    | ^89^Zirconium   |
+| 126603     | ^90^Niobium     |
+| C-162A7    | ^90^Yttrium     |
+| C-163AA    | ^94m^Technetium |
+| C-114A5    | ^124^Iodine     |
+| 126606     | ^152^Terbium    |
