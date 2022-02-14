@@ -200,17 +200,17 @@ else % -------------- update ---------------
         error('looking for %s, but the file is missing',jsontoload)
     end
         
-    for f=1:length(dcmfields)
-        if isfield(dcminfo,dcmfields{f})
-            if isfield(filemetadata,jsonfields{f})
-                % if the json field exist, just compare and inform if different
+    for f=1:length(dcmfields) % check each field from dicom image
+        if isfield(dcminfo,dcmfields{f}) % if it matches our list of dicom tags
+            if isfield(filemetadata,jsonfields{f}) % and  the json field exist, 
+                % then compare and inform the user if different
                 if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                     if isnumeric(filemetadata.(jsonfields{f}))
                         warning(['name mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
                     else
                         warning(['name mismatch between json ' jsonfields{f} ':' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                     end
-                else % otherwise just set the field
+                else % otherwise set the field in the json file
                     filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
