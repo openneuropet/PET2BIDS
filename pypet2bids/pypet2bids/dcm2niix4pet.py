@@ -3,7 +3,7 @@ import importlib.util
 import subprocess
 import pandas as pd
 import sys
-from os.path import isdir, isfile, join
+from os.path import isdir, isfile, join, commonprefix
 from os import listdir, walk, makedirs
 from pathlib import Path
 import json
@@ -86,7 +86,6 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
                 print(colored(f"WARNING!!!! {item} is not present in {path_to_json}. This will have to be corrected "
                               f"post conversion.", color))
 
-
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
@@ -127,9 +126,10 @@ def collect_date_time_from_file_name(file_name):
 
     return date, time
 
+
 class Dcm2niix4PET:
     def __init__(self, image_folder, destination_path, metadata_path=None,
-                 metadata_translation_script=None, additional_arguments=None, file_format=''):
+                 metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s'):
         """
         :param image_folder:
         :param destination_path:
@@ -219,6 +219,25 @@ class Dcm2niix4PET:
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
 
+    def match_dicom_header_to_file(self):
+        # first collect all of the files in the output directory
+        output_files = [join(self.destination_path, output_file) for output_file in listdir(self.destination_path)]
+
+        # create empty dictionary to store pairings
+        headers_to_files = {}
+
+        # collect study date and time from header
+        for each in self.dicom_headers:
+            header_study_date = each.study_date
+            header_acquisition_time = each.acquisition_time
+
+            header_date_time = dicom_datetime_to_dcm2niix_time(date=header_study_date, time=header_acquisition_time)
+
+            for output_file in output_files:
+                if header_date_time in output_file:
+                    headers_to_files[each].append(output_file)
+
+        return headers_to_files
 
 
 

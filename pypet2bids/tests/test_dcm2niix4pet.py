@@ -63,9 +63,20 @@ def test_dicom_datetime_to_dcm2niix_time():
 
 
 def test_match_dicom_header_to_file():
-    # given a list of paths match_dicom_header_to_file will correctly match the a specific dicom header to
+    # given a list of paths match_dicom_header_to_file will correctly match the a specific dicom header(s) to
     # each file path and return that grouping in the form of a series_description + time entry in a dictionary with
     # the following keys { 'dicom_header': ..., associated_files: [ ...nii.gz, ...json, ...tsv, ...json]
+    with TemporaryDirectory() as tempdir:
+        tempdir_path = Path(tempdir)
+        converter = Dcm2niix4PET(test_dicom_image_folder, tempdir_path)
+        dicom_headers = converter.extract_dicom_headers()
+
+        converter.run_dcm2niix()
+
+        output_files = converter.match_dicom_header_to_file()
+
+        print("DEBUG!")
+
     assert 'up' == 'down'
 
 
@@ -121,4 +132,4 @@ def test_run_dcm2niix():
     print("DonE!")
 
 if __name__ == '__main__':
-    test_collect_date_from_file_name()
+    test_match_dicom_header_to_file()
