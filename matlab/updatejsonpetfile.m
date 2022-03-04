@@ -126,6 +126,7 @@ else % -------------- update ---------------
         end
     end
     
+    % run some heuristic - from names we know
     if isfield(filemetadata,'ReconstructionMethod')
         if isfield(filemetadata.ReconMethodName) % if already there remove dcm2niix info
             filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
@@ -186,12 +187,22 @@ else % -------------- update ---------------
         else
             dcminfo = flattenstruct(dcminfo);
         end
+        % here we keep only the last dcm subfield (flattenstrct add '_' with
+        % leading subfields initial to make things more tracktable but we 
+        % don't need it to match dcm names)
+        fn = fieldnames(dcminfo);
+        for f=1:length(fn)
+            if contains(fn{f},'_') && ~contains(fn{f},{'Private','Unknown'})
+                dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                dcminfo = rmfield(dcminfo,fn{f});
+            end
+        end
     else
         error('%s does not exist',dcminfo)
     end
        
-    %% run the heuristic
-    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids_heuristics.json']);
+    %% run dmc check
+    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids.json']);
     if exist(jsontoload,'file')
         heuristics = jsondecode(fileread(jsontoload));
         dcmfields  = heuristics.dcmfields;
@@ -206,11 +217,12 @@ else % -------------- update ---------------
                 % then compare and inform the user if different
                 if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                     if isnumeric(filemetadata.(jsonfields{f}))
-                        warning(['name mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                        warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
                     else
-                        warning(['name mismatch between json ' jsonfields{f} ':' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                        warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                     end
                 else % otherwise set the field in the json file
+                    warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
                     filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
