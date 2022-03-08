@@ -73,11 +73,23 @@ def test_match_dicom_header_to_file():
 
         converter.run_dcm2niix()
 
-        output_files = converter.match_dicom_header_to_file()
+        headers_to_files = converter.match_dicom_header_to_file()
 
-        print("DEBUG!")
+        for keys, output_files in headers_to_files.items():
+            dicom_header = converter.dicom_headers[keys]
+            dicom_study_time = dicom_datetime_to_dcm2niix_time(dicom_header)
+            for output_file in output_files:
+                # first check nifti json
+                if '.json' in output_file:
+                    # assert json filename follows our standard conventions
+                    assert dicom_study_time in output_file
+                    with open(output_file) as nifti_json:
+                        nifti_dict = json.load(nifti_json)
+                        assert dicom_header.SeriesNumber == nifti_dict['SeriesNumber']
 
-    assert 'up' == 'down'
+                # check .nii as well
+                if '.nii' in output_file or '.nii.gz' in output_file:
+                    assert dicom_study_time in output_file
 
 
 def test_collect_date_from_file_name():
@@ -104,7 +116,8 @@ def test_collect_date_from_file_name():
 
 
 def test_run_dcm2niix():
-    converter = Dcm2niix4PET(test_dicom_image_folder, test_dicom_convert_nifti_output_path, file_format = '%p_%i_%t_%s')
+    converter = Dcm2niix4PET(test_dicom_image_folder, test_dicom_convert_nifti_output_path, file_format = '%p_%i_%t_%s',
+                             silent=True)
     converter.run_dcm2niix()
     contents_output = os.listdir(test_dicom_convert_nifti_output_path)
     created_jsons = [file for file in contents_output if '.json' in file]
@@ -129,7 +142,7 @@ def test_run_dcm2niix():
             dcm2niix_output[output_file_stem]  = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
 
-    print("DonE!")
 
 if __name__ == '__main__':
-    test_match_dicom_header_to_file()
+    #test_match_dicom_header_to_file()
+    test_run_dcm2niix()
