@@ -190,10 +190,27 @@ else % -------------- update ---------------
         % here we keep only the last dcm subfield (flattenstrct add '_' with
         % leading subfields initial to make things more tracktable but we 
         % don't need it to match dcm names)
+        
+        dicom_nucleotides = { '^11^Carbon', '^13^Nitrogen', '^14^Oxygen', ...
+            '^15^Oxygen','^18^Fluorine', '^22^Sodium', '^38^Potassium', ...
+            '^43^Scandium','^44^Scandium','^45^Titanium','^51^Manganese',...
+            '^52^Iron','^52^Manganese','^52m^Manganese','^60^Copper',...
+            '^61^Copper','^62^Copper','^62^Zinc','^64^Copper','^66^Gallium',...
+            '^68^Gallium','^68^Germanium','^70^Arsenic','^72^Arsenic',...
+            '^73^Selenium','^75^Bromine','^76^Bromine','^77^Bromine',...
+            '^82^Rubidium','^86^Yttrium','^89^Zirconium','^90^Niobium',...
+            '^90^Yttrium','^94m^Technetium','^124^Iodine','^152^Terbium'};
+        
         fn = fieldnames(dcminfo);
         for f=1:length(fn)
             if contains(fn{f},'_') && ~contains(fn{f},{'Private','Unknown'})
-                dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                if contains(fn{f},'CodeMeaning') % appears in other places so we need to ensure it's for the tracer
+                    if contains(dcminfo.(fn{f}),dicom_nucleotides)
+                        dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                    end
+                else
+                    dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                end
                 dcminfo = rmfield(dcminfo,fn{f});
             end
         end
