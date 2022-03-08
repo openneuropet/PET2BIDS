@@ -46,7 +46,7 @@ for metadata_json in metadata_jsons:
         raise err(f"Missing pet metadata files in {metadata_folder}, unable to validate metadata.")
 
 
-def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.json']):
+def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.json'], silent=False):
     """
     this method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommened key value pairs. If fields are not present a warning is raised to the user.
@@ -69,7 +69,8 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
     with open(path_to_json, 'r') as infile:
         json_to_check = json.load(infile)
 
-
+    # initalize warning colors and warning storage dictionary
+    storage = {}
     warning_color = {'mandatory': 'red',
                      'recommended': 'yellow',
                      'optional:': 'blue'}
@@ -81,10 +82,16 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
                 # this json has both the key and a non blank value
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
-                print(colored(f"WARNING {item} present but has null value.", "yellow"))
+                if not silent:
+                    print(colored(f"WARNING {item} present but has null value.", "yellow"))
+                storage[item] = {'key': True, 'value': False}
             else:
-                print(colored(f"WARNING!!!! {item} is not present in {path_to_json}. This will have to be corrected "
-                              f"post conversion.", color))
+                if not silent:
+                    print(colored(f"WARNING!!!! {item} is not present in {path_to_json}. This will have to be corrected "
+                                f"post conversion.", color))
+                storage[item]  = {'key': False, 'value': False}
+
+    return storage
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
@@ -129,7 +136,8 @@ def collect_date_time_from_file_name(file_name):
 
 class Dcm2niix4PET:
     def __init__(self, image_folder, destination_path, metadata_path=None,
-                 metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s'):
+                 metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s',
+                 silent=False):
         """
         :param image_folder:
         :param destination_path:
@@ -147,6 +155,13 @@ class Dcm2niix4PET:
         self.subject_id = None
         self.file_format = file_format
         self.dicom_headers = {}
+        # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
+        # this variable stores the mapping between output files and a single dicom header used to generate those files
+        # to access the dicom header information use the key in self.headers_to_files to access that specific header
+        # in self.dicom_headers
+        self.headers_to_files = {}
+        # if silent is set to True output warnings aren't displayed to stdout/stderr
+        self.silent = silent
 
 
     @staticmethod
@@ -216,8 +231,12 @@ class Dcm2niix4PET:
 
             for created in files_created_by_dcm2niix:
                 created_path = Path(created)
+                if created_path.suffix == '.json':
+                    check_json(created_path, silent=self.silent)
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
+
+
 
     def match_dicom_header_to_file(self):
         # first collect all of the files in the output directory
@@ -228,18 +247,18 @@ class Dcm2niix4PET:
 
         # collect study date and time from header
         for each in self.dicom_headers:
-            header_study_date = each.study_date
-            header_acquisition_time = each.acquisition_time
+            header_study_date = self.dicom_headers[each].StudyDate
+            header_acquisition_time = self.dicom_headers[each].StudyTime
 
             header_date_time = dicom_datetime_to_dcm2niix_time(date=header_study_date, time=header_acquisition_time)
 
             for output_file in output_files:
                 if header_date_time in output_file:
-                    headers_to_files[each].append(output_file)
-
+                    try:
+                        headers_to_files[each].append(output_file)
+                    except KeyError:
+                        headers_to_files[each] = [output_file]
         return headers_to_files
 
-
-
 if __name__ == "__main__":
-    print("hello")
+    pass
