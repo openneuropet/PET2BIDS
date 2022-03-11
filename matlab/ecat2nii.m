@@ -269,6 +269,7 @@ for j=1:length(FileListIn)
         info.Description                      = 'Open NeuroPET ecat7+ matlab based conversion';
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
+        info                                  = orderfields(info);
         jsonwrite([filenameout '.json'],info)
  
         % skip validation if testing

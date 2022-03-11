@@ -251,6 +251,7 @@ else % -------------- update ---------------
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
     end
+    filemetadata = orderfields(filemetadata);
     jsonwrite(jsonfilename,filemetadata)
 end
 
