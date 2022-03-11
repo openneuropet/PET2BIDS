@@ -126,6 +126,7 @@ else % -------------- update ---------------
         end
     end
     
+    % run some heuristic - from names we know
     if isfield(filemetadata,'ReconstructionMethod')
         if isfield(filemetadata.ReconMethodName) % if already there remove dcm2niix info
             filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
@@ -186,12 +187,39 @@ else % -------------- update ---------------
         else
             dcminfo = flattenstruct(dcminfo);
         end
+        % here we keep only the last dcm subfield (flattenstrct add '_' with
+        % leading subfields initial to make things more tracktable but we 
+        % don't need it to match dcm names)
+        
+        dicom_nucleotides = { '^11^Carbon', '^13^Nitrogen', '^14^Oxygen', ...
+            '^15^Oxygen','^18^Fluorine', '^22^Sodium', '^38^Potassium', ...
+            '^43^Scandium','^44^Scandium','^45^Titanium','^51^Manganese',...
+            '^52^Iron','^52^Manganese','^52m^Manganese','^60^Copper',...
+            '^61^Copper','^62^Copper','^62^Zinc','^64^Copper','^66^Gallium',...
+            '^68^Gallium','^68^Germanium','^70^Arsenic','^72^Arsenic',...
+            '^73^Selenium','^75^Bromine','^76^Bromine','^77^Bromine',...
+            '^82^Rubidium','^86^Yttrium','^89^Zirconium','^90^Niobium',...
+            '^90^Yttrium','^94m^Technetium','^124^Iodine','^152^Terbium'};
+        
+        fn = fieldnames(dcminfo);
+        for f=1:length(fn)
+            if contains(fn{f},'_') && ~contains(fn{f},{'Private','Unknown'})
+                if contains(fn{f},'CodeMeaning') % appears in other places so we need to ensure it's for the tracer
+                    if contains(dcminfo.(fn{f}),dicom_nucleotides)
+                        dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                    end
+                else
+                    dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
+                end
+                dcminfo = rmfield(dcminfo,fn{f});
+            end
+        end
     else
         error('%s does not exist',dcminfo)
     end
        
-    %% run the heuristic
-    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids_heuristics.json']);
+    %% run dmc check
+    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids.json']);
     if exist(jsontoload,'file')
         heuristics = jsondecode(fileread(jsontoload));
         dcmfields  = heuristics.dcmfields;
@@ -200,17 +228,18 @@ else % -------------- update ---------------
         error('looking for %s, but the file is missing',jsontoload)
     end
         
-    for f=1:length(dcmfields)
-        if isfield(dcminfo,dcmfields{f})
-            if isfield(filemetadata,jsonfields{f})
-                % if the json field exist, just compare and inform if different
+    for f=1:length(dcmfields) % check each field from dicom image
+        if isfield(dcminfo,dcmfields{f}) % if it matches our list of dicom tags
+            if isfield(filemetadata,jsonfields{f}) % and  the json field exist, 
+                % then compare and inform the user if different
                 if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                     if isnumeric(filemetadata.(jsonfields{f}))
-                        warning(['name mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                        warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
                     else
-                        warning(['name mismatch between json ' jsonfields{f} ':' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                        warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                     end
-                else % otherwise just set the field
+                else % otherwise set the field in the json file
+                    warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
                     filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
@@ -222,6 +251,7 @@ else % -------------- update ---------------
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
     end
+    filemetadata = orderfields(filemetadata);
     jsonwrite(jsonfilename,filemetadata)
 end
 
