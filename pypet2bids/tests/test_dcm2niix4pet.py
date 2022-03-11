@@ -6,6 +6,15 @@ from pathlib import Path
 import pydicom
 from tempfile import TemporaryDirectory
 import json
+from os.path import join
+
+# collect config files
+# fields to check for
+module_folder = Path(__file__).parent.resolve()
+python_folder = module_folder.parent
+pet2bids_folder = python_folder.parent
+metadata_folder = join(pet2bids_folder, 'metadata')
+
 
 # collect paths to test files/folders
 dotenv.load_dotenv(dotenv.find_dotenv())
@@ -37,7 +46,7 @@ def test_check_json(capsys):
         with open(bad_json_path, 'w') as outfile:
             json.dump(bad_json, outfile)
 
-        check_json(bad_json_path)
+        check_results = check_json(bad_json_path)
         check_output = capsys.readouterr()
 
         assert f'WARNING!!!! Manufacturer is not present in {bad_json_path}' in check_output.out
@@ -126,6 +135,7 @@ def test_run_dcm2niix():
     dcm2niix_output = {}
     for file in created_jsons:
         path_object = Path(file)
+        checks = check_json(join(test_dicom_convert_nifti_output_path, path_object), silent=True)
         output_file_stem = os.path.join(*path_object.parents, path_object.stem)
         if dcm2niix_output.get(output_file_stem, None):
             dcm2niix_output[output_file_stem] = dcm2niix_output[output_file_stem].append(path_object.resolve())
@@ -144,5 +154,5 @@ def test_run_dcm2niix():
 
 
 if __name__ == '__main__':
-    #test_match_dicom_header_to_file()
+    test_match_dicom_header_to_file()
     test_run_dcm2niix()

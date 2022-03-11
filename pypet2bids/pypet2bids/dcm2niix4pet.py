@@ -58,7 +58,14 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
     >>>items_to_check = {"mandatory": ["AttenuationCorrection"],
     >>>                  "recommended": ["SinglesRate"],
     >>>                  "optional": ["Anaesthesia"]}
-    :return: None
+    :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
+    corresponding entry in the json the same can be said of value.
+    {
+        'Units': {'key': False, 'value': False},
+        'TracerName': {'key': False, 'value': False},
+        'TracerRadionuclide': {'key': False, 'value': False},
+        'InjectedRadioactivity': {'key': False, 'value': False}
+    }
     """
     # check if path exists
     path_to_json = Path(path_to_json)
@@ -79,7 +86,7 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
         color = warning_color.get(requirement, 'yellow')
         for item in items_to_check[requirement]:
             if item in json_to_check.keys() and json_to_check.get(item, None):
-                # this json has both the key and a non blank value
+                # this json has both the key and a non blank value do nothing
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
                 if not silent:
@@ -145,6 +152,7 @@ class Dcm2niix4PET:
         :param metadata_translation_script:
         :param file_format:
         :param additional_arguments:
+        :param silent: silence missing sidecar metadata messages, default is False and very verbose
         """
 
         self.image_folder = Path(image_folder)
@@ -229,13 +237,28 @@ class Dcm2niix4PET:
             else:
                 makedirs(self.destination_path)
 
+            # iterate through created files to supplement sidecar jsons
             for created in files_created_by_dcm2niix:
                 created_path = Path(created)
                 if created_path.suffix == '.json':
-                    check_json(created_path, silent=self.silent)
+                    # we want to pair up the headers to the files created in the output directory in case
+                    # dcm2niix has created files from multiple sessions
+                    matched_dicoms_and_headers = self.match_dicom_header_to_file()
+
+                    # we check to see what's missing from our recommended and required jsons by gathering the
+                    # output of check_json silently
+                    check_for_missing = check_json(created_path, silent=True)
+
+                    # we do our best to extrat information from the dicom header and insert theses values
+                    # into the sidecar json
+
+
+                    # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
+                    # any of the missing tags in our sidecars
+
+
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
-
 
 
     def match_dicom_header_to_file(self):
