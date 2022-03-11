@@ -271,15 +271,9 @@ for j=1:length(FileListIn)
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         info                                  = orderfields(info);
         jsonwrite([filenameout '.json'],info)
- 
-        % skip validation if testing
-        if isfield(info,'info')
-            if ~contains(info.info,'test')
-                status = updatejsonpetfile([filenameout '.json']); % validate
-                if status.state ~= 1
-                    error('the json file appears invalid: %s',status.messages)
-                end
-            end
+        status = updatejsonpetfile([filenameout '.json']); % validate
+        if status.state ~= 1
+            warning('the json file appears invalid: %s',status.messages)
         end
         
         info.Datatype                         = 'single';
