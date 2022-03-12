@@ -1,4 +1,4 @@
-from json_maj import main
+from json_maj.main import JsonMAJ, load_json_or_dict
 import importlib.util
 import subprocess
 import pandas as pd
@@ -34,6 +34,7 @@ metadata_folder = join(pet2bids_folder, 'metadata')
 # collect metadata jsons
 metadata_jsons = [Path(join(metadata_folder, metadata_json)) for metadata_json in listdir(metadata_folder) if '.json' in metadata_json]
 
+# create a dictionary to house the PET metadata files
 metadata_dictionaries = {}
 
 for metadata_json in metadata_jsons:
@@ -100,6 +101,63 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
 
     return storage
 
+def update_json_with_dicom_value(
+        path_to_json,
+        missing_values,
+        dicom_header,
+        dicom2bids_json=metadata_dictionaries['dicom2bids.json']):
+    """
+    We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
+    missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
+    simply is what it is, hate the game not the player.
+    :param path_to_json: path to the sidecar json to check
+    :param missing_values: dictionary output from check_json indicating missing fields and/or values
+    :param dicom: the dicom or dicoms that may contain information not picked up by dcm2niix
+    :return: a dictionary of sucessfully updated (written to the json file) fields and values
+    """
+    # Units gets written as Unit in older versions of dcm2niix here we check for missing Units and present Unit entity
+    units = missing_values.get('Units', None)
+    if units:
+        # Units is missing, check to see if Unit is present
+        sidecar_json = load_json_or_dict(path_to_json)
+        if sidecar_json.get('Unit', None):
+            temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')})
+            temp.remove('Unit')
+        else: # we source the Units value from the dicom header and update the json
+            JsonMAJ(path_to_json, {'Units': dicom_header.Units})
+
+    # pair up dicom fields with bids sidecar json field, we do this in a separate json file
+    # it's loaded when this script is run and stored in metadata dictionaries
+    dcmfields = metadata_dictionaries['dicom2bids.json']['dcmfields']
+    jsonfields = metadata_dictionaries['dicom2bids.json']['jsonfields']
+
+    special_cases = ["ReconstructionMethod", "ConvolutionKernel"]
+
+    # strip excess characters from dcmfields
+    dcmfields = [re.sub('[^0-9a-zA-Z]+', '', field) for field in dcmfields]
+    paired_fields = {}
+    for index, field in enumerate(jsonfields):
+        paired_fields[field] = dcmfields[index]
+
+    # go through missing fields and reach into dicom to pull out values
+    for key, value in paired_fields.items():
+        missing_bids_field = missing_values.get(key, None)
+        # if field is missing look into dicom
+        if missing_bids_field:
+            # there are a few special cases that require regex splitting of the dicom entries
+            # into several bids sidecar entities
+            try:
+                dicom_field = getattr(dicom_header, value)
+            except AttributeError:
+                dicom_field = None
+
+        if dicom_field and value in special_cases:
+                pass # do regex magic
+        elif dicom_field:
+            # update json
+            JsonMAJ(path_to_json, {key, dicom_field})
+
+
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
@@ -120,7 +178,6 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_fie
                 dicom = pydicom.dcmread(dicom_path)
             except TypeError as err:
                 raise err(f"dicom must be either a pydicom.dataset.FileDataSet object or a valid path to a dicom file")
-
 
         parsed_date = dicom.StudyDate
         parsed_time = str(round(float(dicom.StudyTime)))
