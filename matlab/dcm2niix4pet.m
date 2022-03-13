@@ -26,19 +26,27 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %           w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %           x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
 %           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
-%           bigendian  = 'o';    % byte order (y/n/o, default o) [y=big-end, n=little-end, o=optimal/native]
 %
-% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','tracer','CB36','Radionuclide','C11', ...
-%                'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%        fileout = dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
-%        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
-%        fileout = dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
+% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+%                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+%        dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
+%        dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
+%        dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
 %
 % See also get_pet_metadata.m to generate the metadata structure
 %
 % Cyril Pernet - 2021
 % ----------------------------------------------
 % Copyright Open NeuroPET team
+
+dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+if ispc && ~exist('dcm2niixpath','var')
+    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
+end
+
+if ~ispc % overwrite if not windowns (as it should be in the computer path)
+    dcm2niixpath = 'dcm2niix';
+end
 
 %% defaults
 % ---------
@@ -59,7 +67,6 @@ v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
 z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
-bigendian  = 'o';    % byte order (y/n/o, default o) [y=big-end, n=little-end, o=optimal/native]
 
 %% check dcm2nii inputs
 % --------------------
@@ -176,9 +183,6 @@ for var=1:length(varargin)
         else
             if ~contains(m,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
         end
-    elseif strcmpi(varargin{var},'big-endian')
-        bigendian = varargin{var+1};
-        if ~contains(bigendian,{'y','n','o'}); error('endianess error,''y/n/o'''); end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
     end
@@ -201,7 +205,7 @@ end
 % ----------
 for folder = 1:size(FolderList,1)
     % dcm2niix
-    command = ['dcm2niix -o ' outputdir{folder} ' ' num2str(gz) ...
+    command = [dcm2niixpath ' -o ' outputdir{folder} ' ' num2str(gz) ...
         ' -a ' a ...
         ' -ba ' ba ...
         ' -d ' num2str(d) ...
@@ -215,16 +219,21 @@ for folder = 1:size(FolderList,1)
         ' -w ' num2str(w) ...
         ' -x ' x ...
         ' -z ' z ...
-        ' -bigendian ' bigendian ...
         ' ' FolderList{folder}];
-    if ~exist(outputdir{folder},'dir'); 
+    if ~exist(outputdir{folder},'dir')
         mkdir(outputdir{folder}); 
     end
     system(command);
-    
+   
     % deal with dcm files
     dcmfiles = dir(fullfile(outputdir{folder},'*dcm'));
-    dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    if isempty(dcmfiles) % since sometimes they have no ext :-(
+        dcmfiles = dir(outputdir{folder}); % pick in the middle to avoid other files
+        dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
+    else
+        dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    end
+    
     if strcmpi(deletedcm,'on')
         delete(fullfile(outputdir{folder},'*dcm'))
     end

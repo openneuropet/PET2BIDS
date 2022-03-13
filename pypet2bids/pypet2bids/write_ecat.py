@@ -145,7 +145,7 @@ def create_directory_table(num_frames: int = 0, pixel_dimensions: dict = {}, pix
         # 31 frames. Behavior or values for frames numbering above 45 (or more specifically 62) is unknown.
         if i == (required_directory_blocks - 1):
             frames_to_iterate = num_frames % 31
-            table[0, 0] = 17
+            table[0, 0] = 31 - frames_to_iterate # number of un-used columns in the directory table
             table[1, 0] = 2  # stop value
             table[2, 0] = 2  # stop value
             table[3, 0] = frames_to_iterate  # number of frames referenced in this table
@@ -219,7 +219,7 @@ def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int=No
         #raise Exception("Must provide seek boolean and byte position")
     else:
         pass
-    flattened_pixels = pixel_data.flatten(order='F').tobytes()
+    flattened_pixels = pixel_data.flatten().tobytes()
     ecat_file.write(flattened_pixels)
     return 0
 

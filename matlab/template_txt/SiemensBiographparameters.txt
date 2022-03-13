@@ -10,3 +10,5 @@ ReconMethodParameterValues     = [21, 3];,
 ReconFilterType                = 'XYZGAUSSIAN';
 ReconFilterSize                = 2;
 AttenuationCorrection          = 'CT-based attenuation correction';
+FrameDuration                  = [];
+FrameTimesStart                = [];

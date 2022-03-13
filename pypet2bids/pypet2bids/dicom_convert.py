@@ -13,6 +13,9 @@ import re
 import platform
 from numpy import cumsum
 from gooey import Gooey, GooeyParser
+from tempfile import TemporaryDirectory
+from pathlib import Path
+import shutil
 
 # determine whether to run as gui or not, if additional arguments are supplied when invoking this program it runs
 # using the CLI and not it's GUI
@@ -34,8 +37,8 @@ class Convert:
     def __init__(self, image_folder: str,
                  metadata_path: str = None,
                  destination_path: str = None,
-                 subject_id: str = None,
-                 session_id: str = None,
+                 subject_id: str = '',
+                 session_id: str = '',
                  metadata_translation_script_path: str = None):
 
         self.image_folder = image_folder
@@ -45,8 +48,9 @@ class Convert:
         self.session_id = session_id
         self.metadata_dataframe = None  # dataframe object of text file metadata
         self.metadata_translation_script_path = metadata_translation_script_path
-        self.dicom_header_data = None  # extracted data from dicom header
-        self.nifti_json_data = None  # extracted data from dcm2niix generated json file
+        self.dicom_header_data = {}  # extracted data from dicom header
+        self.nifti_json_data = {} # extracted data from dcm2niix generated json file
+        self.blood_json_data = {}
 
         # if no destination path is supplied plop nifti into the same folder as the dicom images
         if not destination_path:
@@ -65,12 +69,30 @@ class Convert:
                             "The converter relies on dcm2niix.\n" +
                             "dcm2niix was not found in path, try installing or adding to path variable.")
 
+        self.extract_dicom_header()
+        # create strings for output files
+        if self.session_id:
+            self.session_string = '_ses-' + self.session_id
+        elif self.session_id == 'autogeneratesessionid':
+            # if no session is supplied create a datestring from the dicom header
+            self.session_string =  '_ses-' + self.dicom_header_data.SeriesDate + self.dicom_header_data.SeriesTime
+        else:
+            self.session_string = ''
+
+        # now for subject id
+        if subject_id:
+            self.subject_id = subject_id
+        else:
+            self.subject_id = str(self.dicom_header_data.PatientID)
+            # check for non-bids values
+            self.subject_id = re.sub("[^a-zA-Z0-9\d\s:]", '', self.subject_id)
+
+        self.subject_string = 'sub-' + self.subject_id
         # no reason not to convert the image files immediately if dcm2niix is there
         self.run_dcm2niix()
 
         # extract all metadata
-        self.extract_dicom_header()
-        self.extract_nifti_json()
+        self.extract_nifti_json() # this will extract the data from the dcm2niix sidecar and store it in self.nifti_json_data
         if self.metadata_path:
             self.extract_metadata()
             # build output structures for metadata
@@ -82,21 +104,7 @@ class Convert:
             self.future_blood_json = bespoke_data['future_blood_json']
             self.participant_info = bespoke_data['participants_info']
 
-        # create strings for output files
-        if self.session_id:
-            self.session_string = '_ses-' + self.session_id
-        else:
-            self.session_string = ''
 
-        # now for subject id
-        if subject_id:
-            self.subject_id = subject_id
-        else:
-            self.subject_id = str(self.dicom_header_data.PatientName)
-            # check for non-bids values
-            self.subject_id = re.sub("[^a-zA-Z\d\s:]", '', self.subject_id)
-
-        self.subject_string = 'sub-' + self.subject_id
 
     @staticmethod
     def check_for_dcm2niix():
@@ -193,17 +201,48 @@ class Convert:
         Just passing some args to dcm2niix using the good ole shell
         :return: N/A
         """
-        convert = subprocess.run(f"dcm2niix -w 1 -z y -o {self.destination_path} {self.image_folder}", shell=True,
-                                 capture_output=True)
-        if convert.returncode != 0 and bytes("Skipping existing file named",
-                                             'utf-8') not in convert.stdout or convert.stderr:
-            print(convert.stderr)
-            raise Exception("Error during image conversion from dcm to nii!")
+        with TemporaryDirectory() as tempdir:
+            tempdir_pathlike = Path(tempdir)
 
-        # note dcm2niix will go through folder and look for dicoms, it will then create a nifti with a filename
-        # of the folder dcm2niix was pointed at with a .nii extension. In other words it will place a .nii file with
-        # the parent folder's name in the parent folder. We need to keep track of this path and possibly (most likely)
-        # rename it
+            convert = subprocess.run(f"dcm2niix -w 1 -z y -o {tempdir_pathlike} {self.image_folder}", shell=True,
+                                 capture_output=True)
+            if convert.returncode != 0 and bytes("Skipping existing file named",
+                                                 'utf-8') not in convert.stdout or convert.stderr:
+                print(convert.stderr)
+                raise Exception("Error during image conversion from dcm to nii!")
+
+            # collect contents of the tempdir
+            files_created_by_dcm2niix = [os.path.join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)]
+
+            # split files by json and nifti
+            niftis = [Path(nifti) for nifti in files_created_by_dcm2niix if 'nii.gz' in nifti]
+            sidecars = [Path(sidecar) for sidecar in files_created_by_dcm2niix if '.json' in sidecar]
+
+            # order lists
+            niftis.sort()
+            sidecars.sort()
+
+            move_dictionary = {}
+            # loop through and rename files, if there is more than one nifti or json per session add the run label
+            nifti_run_number, sidecar_run_number = '',''
+            for index, nifti in enumerate(niftis):
+                if len(niftis) > 1:
+                    nifti_run_number = str(index + 1)
+                    nifti_run_number = '_' + nifti_run_number.zfill(len(nifti_run_number) + 1)
+            new_nifti_name = self.subject_string + self.session_string + nifti_run_number + '_pet.nii.gz'
+            move_dictionary[str(nifti)] = os.path.join(self.destination_path, new_nifti_name)
+
+            for index, sidecar in enumerate(sidecars):
+                if len(sidecars) > 1:
+                    sidecar_run_number = str(index + 1)
+                    sidecar_run_number = '_' + zfill(len(sidecar_run_number) + 1)
+            new_sidecar_name = self.subject_string + self.session_string + sidecar_run_number + '_pet.json'
+            move_dictionary[str(sidecar)] = os.path.join(self.destination_path, new_sidecar_name)
+
+
+            # move files to actual destination
+            for old_file_path, new_file_path in move_dictionary.items():
+                subprocess.run(f'mv {old_file_path} {new_file_path}', shell=True)
 
     def bespoke(self):
         """
@@ -228,14 +267,12 @@ class Convert:
             'ReconMethodName': self.dicom_header_data.ReconstructionMethod,
             'ReconFilterType': self.dicom_header_data.ConvolutionKernel,
             'AttenuationCorrection': self.dicom_header_data.AttenuationCorrectionMethod,
-            'DecayCorrectionFactor': self.nifti_json_data['DecayFactor']
-
+            'DecayCorrectionFactor': self.nifti_json_data.get('DecayFactor', '')
         }
 
         # initializing empty dictionaries to catch possible additional data from a metadata spreadsheet
         future_blood_json = {}
         future_blood_tsv = {}
-        text_file_data = {}
 
         if self.metadata_translation_script_path:
             try:
@@ -249,9 +286,9 @@ class Convert:
             except AttributeError as err:
                 print(f"Unable to locate metadata_translation_script")
 
-            future_blood_tsv.update(text_file_data.get('blood_tsv', {}))
-            future_blood_json.update(text_file_data.get('blood_json', {}))
-            future_nifti_json.update(text_file_data.get('nifti_json', {}))
+            self.future_blood_tsv = text_file_data.get('blood_tsv',{})
+            self.future_blood_json = text_file_data.get('blood_json',{})
+            self.future_nifti_json = text_file_data.get('nifti_json', {})
 
         participants_tsv = {
             'sub_id': [self.subject_id],
@@ -280,11 +317,13 @@ class Convert:
             identity_string = os.path.join(manual_path, self.subject_string + self.session_string)
 
         with open(identity_string + '_pet.json', 'w') as outfile:
-            json.dump(self.future_json, outfile, indent=4)
+            self.nifti_json_data.update(self.future_nifti_json)
+            json.dump(self.nifti_json_data, outfile, indent=4)
 
         # write out better json
         with open(identity_string + '_recording-manual-blood.json', 'w') as outfile:
-            json.dump(self.future_blood_json, outfile, indent=4)
+            self.blood_json_data.update(self.future_blood_json)
+            json.dump(self.blood_json_data, outfile, indent=4)
 
         return identity_string
 
@@ -305,8 +344,8 @@ class Convert:
         blood_data_df.to_csv(identity_string + '_recording-manual_blood.tsv', sep='\t', index=False)
 
         # make a small dataframe for the participants
-        participants_df = pandas.DataFrame.from_dict(self.participant_info)
-        participants_df.to_csv('participants.tsv', sep='\t', index=False)
+        #participants_df = pandas.DataFrame.from_dict(self.participant_info)
+        #participants_df.to_csv(os.path.join(self.destination_path, 'participants.tsv'), sep='\t', index=False)
 
         return identity_string
 
@@ -367,6 +406,7 @@ def cli():
         image_folder=args.folder,
         metadata_path=args.metadata_path,
         destination_path=args.destination_path,
+        metadata_translation_script_path=args.translation_script_path,
         subject_id=args.subject_id,
         session_id=args.session_id)
 

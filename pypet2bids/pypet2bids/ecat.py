@@ -193,7 +193,7 @@ class Ecat:
             self.sidecar_template['ImageDecayCorrected'] = "true"
 
         # calculate scaling factor
-        sca = self.data.image_max() / 32767
+        sca = self.data.max() / 32767
 
         self.sidecar_template['DoseCalibrationFactor'] = sca * self.ecat_header.get('ECAT_CALIBRATION_FACTOR')
         self.sidecar_template['Filename'] = os.path.basename(self.nifti_file)

@@ -1,4 +1,4 @@
-# Defaults
+# Defaults not found as such in the ecat.v file
 InstitutionName                = 'Rigshospitalet, NRU, DK';
 AcquisitionMode                = 'list mode';
 ImageDecayCorrected            = true;

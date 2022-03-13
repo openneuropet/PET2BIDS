@@ -339,15 +339,16 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                 # check subheader for pixel datatype
                 dt_val = subheader['DATA_TYPE']
                 if dt_val == 5:
-                    pixel_data_type = '>f4'
+                    formatting = '>f4'
+                    pixel_data_type = numpy.dtype(formatting)
                 elif dt_val == 6:
-                    pixel_data_type = '>i2'
+                    pixel_data_type = '>H'
                 else:
                     raise ValueError(
                         f"Unable to determine pixel data type from value: {dt_val} extracted from {subheader}")
                 # read it into a one dimensional matrix
                 pixel_data_matrix_3d = numpy.frombuffer(pixel_data,
-                                                        dtype=numpy.dtype(pixel_data_type),
+                                                        dtype=pixel_data_type,
                                                         count=image_size[0] * image_size[1] * image_size[2]).reshape(
                     *image_size, order='F')
             else:

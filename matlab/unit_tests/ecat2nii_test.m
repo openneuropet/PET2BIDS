@@ -9,6 +9,7 @@ function ecat2nii_test(varargin)
 %         /ecat_validation)
 %
 % e.g. ecat2nii_test(fullfile(pwd,'myfile.v'));
+% ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v')
 % Claus Svarer & Cyril Pernet
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
@@ -17,18 +18,22 @@ if nargin ==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
         ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v']);
     groundtruth = [ecatfile(1:end-2) '.txt'];
+else
+    ecatfile = varargin{1};
 end
 
 meta.info = 'just running a test';
 meta.TimeZero = datestr(now,'hh:mm:ss');
 ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
+cd(fileparts(ecatfile))
 
 if exist('groundtruth','var')
     [filepath,filename] = fileparts(ecatfile);
     img                 = load(groundtruth);
     img_reread          = niftiread(fullfile(filepath,[filename '.nii']));
-    Diff_ecat_nifti     = img(:) - img_reread(:);
-    table(min(Diff_ecat_nifti),mean(min(Diff_ecat_nifti)),max(Diff_ecat_nifti),...
+    Diff_ecat_nifti     = sort(img(:)) - sort(img_reread(:));
+    meandiff            = mean(Diff_ecat_nifti);
+    table(min(Diff_ecat_nifti),meandiff,max(Diff_ecat_nifti),...
         'VariableNames',{'min','mean','max'}) % analyze diff
 
 else

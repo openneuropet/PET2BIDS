@@ -3,7 +3,7 @@ function dataout = check_metaradioinputs(varargin)
 % routine to check input consistency, possibly generate new ones from PET
 % BIDS metadata - this only makes sense if you respect the input units as
 % indicated
-% 
+%
 % FORMAT: dataout = check_metaradioinputs(varargin)
 %
 % INPUTS: arguments in are any of these key/value pairs
@@ -25,7 +25,6 @@ if all(size(varargin))
     varargin = varargin{1};
 end
 
-
 for n=1:length(varargin)
     if strcmpi(varargin{n},'InjectedRadioactivity')
         InjectedRadioactivity = varargin{n+1};
@@ -46,11 +45,13 @@ dataout = [];
 
 if exist('InjectedRadioactivity', 'var') && exist('InjectedMass', 'var')
     dataout.InjectedRadioactivity          = InjectedRadioactivity;
+    dataout.InjectedRadioactivityUnits     = 'MBq';
     dataout.InjectedMass                   = InjectedMass;
+    dataout.InjectedMassUnits              = 'ug';
     if any(ischar([InjectedRadioactivity,InjectedMass]))
         dataout.SpecificRadioactivity      = 'n/a';
         dataout.SpecificRadioactivityUnits = 'n/a';
-    else 
+    else
         tmp = (InjectedRadioactivity*10^6) / (InjectedMass/10^6); % (MBq*10^6)/(ug/10^6) = Bq/g
         if exist('SpecificRadioactivity', 'var')
             if SpecificRadioactivity ~= tmp
@@ -65,10 +66,13 @@ if exist('InjectedRadioactivity', 'var') && exist('InjectedMass', 'var')
 end
 
 if exist('InjectedRadioactivity', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.InjectedRadioactivity = InjectedRadioactivity;
-    dataout.SpecificRadioactivity = SpecificRadioactivity;
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.InjectedMassUnits     = 'n/a';
+    dataout.InjectedRadioactivity      = InjectedRadioactivity;
+    dataout.InjectedRadioactivityUnits = 'MBq';
+    dataout.SpecificRadioactivity      = SpecificRadioactivity;
+    dataout.SpecificRadioactivityUnits = 'Bq/g';
+    if any(ischar([InjectedRadioactivity,SpecificRadioactivity]))
+        dataout.InjectedMass           = 'n/a';
+        dataout.InjectedMassUnits      = 'n/a';
     else
         tmp = ((InjectedRadioactivity*10^6)/SpecificRadioactivity)*10^6; % ((MBq*10^6)/(Bq/g))*10^6 = ug
         if exist('InjectedMass', 'var')
@@ -84,30 +88,35 @@ if exist('InjectedRadioactivity', 'var') && exist('SpecificRadioactivity', 'var'
 end
 
 if exist('InjectedMass', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.InjectedMass              = InjectedMass;
-    dataout.SpecificRadioactivity     = SpecificRadioactivity;
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.InjectedRadioactivity = 'n/a';
+    dataout.InjectedMass                   = InjectedMass;
+    dataout.InjectedMassUnits              = 'ug';
+    dataout.SpecificRadioactivity          = SpecificRadioactivity;
+    dataout.SpecificRadioactivityUnits     = 'Bq/g';
+    if any(ischar([SpecificRadioactivity,InjectedMass]))
+        dataout.InjectedRadioactivity      = 'n/a';
+        dataout.InjectedRadioactivityUnits = 'n/a';
     else
         tmp = ((InjectedMass/10^6) / SpecificRadioactivity) / 10^6; % ((ug/10^6) / Bq/g) / 10^6 = MBq
         if exist('InjectedRadioactivity', 'var')
             if InjectedRadioactivity ~= tmp
                 warning('infered InjectedRadioactivity in MBq doesn''t match SpecificRadioactivity and InjectedMass, could be a unit issue')
             end
-            dataout.InjectedRadioactivity = InjectedRadioactivity;
+            dataout.InjectedRadioactivity      = InjectedRadioactivity;
         else
-            dataout.InjectedRadioactivity = tmp;
-            dataout.InjectedRadioactivity = 'MBq';
+            dataout.InjectedRadioactivity      = tmp;
+            dataout.InjectedRadioactivityUnits = 'MBq';
         end
-   end
+    end
 end
 
 if exist('MolarActivity', 'var') && exist('MolecularWeight', 'var')
     dataout.MolarActivity                  = MolarActivity;
+    dataout.MolarActivityUnits             = 'GBq/umol';
     dataout.MolecularWeight                = MolecularWeight;
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.SpecificRadioactivity = 'n/a';
-        dataout.InjectedRadioactivityUnits = 'n/a';
+    dataout.MolecularWeightUnits           = 'g/mol';
+    if any(ischar([MolarActivity,MolecularWeight]))
+        dataout.SpecificRadioactivity      = 'n/a';
+        dataout.SpecificRadioactivityUnits = 'n/a';
     else
         tmp = (MolarActivity*10^6) / (MolecularWeight/10^6); % (GBq/umol*10^6) / (g/mol/*10^6) = Bq/g
         if exist('SpecificRadioactivity', 'var')
@@ -123,10 +132,13 @@ if exist('MolarActivity', 'var') && exist('MolecularWeight', 'var')
 end
 
 if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.SpecificRadioactivity    = SpecificRadioactivity;
-    dataout.MolecularWeight          = MolecularWeight;
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.MolecularWeightUnits = 'n/a';
+    dataout.SpecificRadioactivity      = SpecificRadioactivity;
+    dataout.SpecificRadioactivityUnits = 'MBq/ug';
+    dataout.MolarActivity              = MolarActivity;
+    dataout.MolarActivityUnits         = 'GBq/umol';
+    if any(ischar([SpecificRadioactivity,MolarActivity]))
+        dataout.MolecularWeight        = 'n/a';
+        dataout.MolecularWeightUnits  = 'n/a';
     else
         tmp = (SpecificRadioactivity/1000) / MolarActivity; % (MBq/ug/1000) / (GBq/umol) = g / mol
         if exist('MolecularWeight', 'var')
@@ -141,21 +153,24 @@ if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
     end
 end
 
-if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.SpecificRadioactivity    = SpecificRadioactivity;
-    dataout.MolarActivity            = MolarActivity;
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.MolecularWeightUnits = 'n/a';
+if exist('MolecularWeight', 'var') && exist('SpecificRadioactivity', 'var')
+    dataout.SpecificRadioactivity      = SpecificRadioactivity;
+    dataout.SpecificRadioactivityUnits = 'MBq/ug';
+    dataout.MolecularWeight            = MolarActivity;
+    dataout.MolecularWeightUnits       = 'g/mol';
+    if any(ischar([SpecificRadioactivity,MolecularWeight]))
+        dataout.MolarActivity         = 'n/a';
+        dataout.MolarActivityUnits    = 'n/a';
     else
-        tmp = (SpecificRadioactivity/1000) / MolarActivity; % (MBq/ug/1000) / (GBq/umol) = g / mol
-        if exist('MolecularWeight', 'var')
-            if MolecularWeight ~= tmp
-                warning('infered MolecularWeight in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
+        tmp =  MolecularWeight * (SpecificRadioactivity/1000); % g/mol * (MBq/ug/1000) = GBq/umol
+        if exist('MolarActivity', 'var')
+            if MolarActivity ~= tmp
+                warning('infered MolarActivity in GBq/umol doesn''t match Specific Radioactivity and Molecular Weight, could be a unit issue')
             end
-            dataout.MolecularWeight      = MolecularWeight;
+            dataout.MolarActivity       = MolarActivity;
         else
-            dataout.MolecularWeight      = tmp;
-            dataout.MolecularWeightUnits = 'g/mol';
+            dataout.MolarActivity       = tmp;
+            dataout.MolarActivityUnits  = 'GBq/umol';
         end
     end
 end

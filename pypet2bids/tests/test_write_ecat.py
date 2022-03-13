@@ -131,9 +131,7 @@ class TestECATWrite(unittest.TestCase):
         frame_one_stop = self.known_directory_table[2, 0] * 512
         frame_one = self.known_pixel_data[:, :, :, 0]
 
-        replacement_frame = numpy.full(frame_one.shape,
-                                       1234,
-                                       dtype=numpy.dtype('>i2'))
+        replacement_frame = numpy.random.randint(32767, size=frame_one.shape, dtype=numpy.dtype(numpy.uint16) )
 
         with open(self.temp_file, 'r+b') as outfile:
             write_pixel_data(ecat_file=outfile,

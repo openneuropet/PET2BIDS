@@ -5,7 +5,7 @@ function structout = flattenstruct(structin)
 %
 % FORMAT structout = flattendcm(filein)
 %
-% IǸPUT  structin is a structure with nested fields
+% INPUT  structin is a structure with nested fields
 % OUTPUT structout is a flat sructure with all the dcm fields
 %                  fields that are flattened is empty [] and their
 %                  subfileds start with the 1st letter of the parent 

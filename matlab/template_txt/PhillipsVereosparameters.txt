@@ -1,0 +1,14 @@
+# Defaults
+InstitutionName            = 'AmsterdamUMC, Locatie VUmc';
+AcquisitionMode            = '';
+ImageDecayCorrected        = true;
+ImageDecayCorrectionTime   = 1;
+ReconMethodName            = 'OSEM';
+ReconMethodParameterLabels = {'subsets','iterations'};
+ReconMethodParameterUnits  = {'none','none'};
+ReconMethodParameterValues = [15,3];
+ReconFilterType            = '';
+ReconFilterSize            = ;
+AttenuationCorrection      = 'CTAC-SG';
+FrameDuration                  = [];
+FrameTimesStart                = [];

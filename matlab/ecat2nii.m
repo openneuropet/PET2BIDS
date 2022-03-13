@@ -28,6 +28,9 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
 %
+% Dev: if the meta structure as a field (key) 'info' with a value containing 'test'
+%      the json validation is skipped -- allows e.g. unit testing
+%
 % Uses: readECAT7.m (Raymond Muzic, 2002)
 % See also get_pet_metadata.m to generate the metadata structure
 %
@@ -35,7 +38,6 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %    (some of the code is based on code from Mark Lubbering
 % ----------------------------------------------
 % Copyright Open NeuroPET team
-
 
 %% defaults
 % ---------
@@ -114,7 +116,6 @@ if exist('FileListOut','var')
     end
 end
 
-
 %% Read and write data
 % --------------------
 for j=1:length(FileListIn)
@@ -146,7 +147,7 @@ for j=1:length(FileListIn)
         end
         Nframes  = mh.num_frames;
         
-        % Create data reading 1 frame at a time
+        % Create data reading 1 frame at a time - APLYING THE SCALE FACTOR
         img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
         for i=Nframes:-1:1
             fprintf('Working at frame: %i\n',i);
@@ -163,8 +164,7 @@ for j=1:length(FileListIn)
                 Randoms(i)    = 0;
             end
         end
-        
-        
+     
         % rescale to 16 bits
         MaxImg       = max(img_temp(:));
         img_temp     = img_temp/MaxImg*32767;
@@ -233,7 +233,7 @@ for j=1:length(FileListIn)
         end
         
         for idx = 1:numel(sh)
-            info.ScaleFactor(idx,1)           = sh{idx}.scale_factor;
+            info.ScaleFactor(idx,1)           = 1; % because we apply sh{idx}.scale_factor;
             info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
             info.DecayCorrectionFactor(idx,1) = sh{idx}.decay_corr_fctr;
             info.PromptRate(idx,1)            = sh{idx}.prompt_rate;
@@ -243,6 +243,8 @@ for j=1:length(FileListIn)
         info.FrameDuration                    = DeltaTime';
         info.FrameTimesStart                  = zeros(size(info.FrameDuration));
         info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
+        
+        % Time stuff, time zero is kinda required [] or 'ScanStart' or actual value
         if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
             offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
             info.TimeZero                     = datestr((datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset),'hh.mm.ss');
@@ -250,8 +252,16 @@ for j=1:length(FileListIn)
                 warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
             end
         end
-        info.ScanStart                        = 0;
-        info.InjectionStart                   = 0;
+        
+        % if not specified we infer that injection and scan are together the time zero
+        if ~isfield(info,'ScanStart')
+            info.ScanStart                    = 0;
+        end
+        
+        if ~isfield(indo,'InjectionStart')
+            info.InjectionStart               = 0;
+        end
+        
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
@@ -259,14 +269,11 @@ for j=1:length(FileListIn)
         info.Description                      = 'Open NeuroPET ecat7+ matlab based conversion';
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
+        info                                  = orderfields(info);
         jsonwrite([filenameout '.json'],info)
-        if isfield(info,'info')
-            if ~contains(info.info,'test')
-                status = updatejsonpetfile([filenameout '.json']); % validate
-                if status.state ~= 1
-                    error('the json file appears invalid: %s',status.messages)
-                end
-            end
+        status = updatejsonpetfile([filenameout '.json']); % validate
+        if status.state ~= 1
+            warning('the json file appears invalid: %s',status.messages)
         end
         
         info.Datatype                         = 'single';
