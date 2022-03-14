@@ -94,8 +94,8 @@ for m=length(datain1.VariableNames)+1:length(testM)
     testO(m)=any(strcmpi(datain2.VariableNames{m-length(datain1.VariableNames)},optional));   
 end
 
-if sum(testM) ~= length(mandatory)
-    error('One or more mandatory name/value pairs are missing')
+if sum(testM) < length(mandatory) % can be bigger if repeats
+    error('One or more mandatory name/value pairs are missing: %s\n',mandatory{~testM})
 end
 
 if any(~testR)
@@ -166,6 +166,7 @@ for subject = 1:size(subject_data,1)
     if ~exist(subject_path,'dir')
         mkdir(subject_path)
     end
+    subject_info = orderfields(subject_info);
     jsonwrite(fullfile(subject_path, [subject_name '_pet.json']),subject_info,'prettyprint','true');
 end
 
@@ -185,7 +186,23 @@ end
 
 tabledata   = Data.(cell2mat(datain.VariableNames(varlocation)));
 if subject ~= 0
-    info.(cell2mat(datain.VariableNames(varlocation))) = tabledata(subject,:);
+    if isnumeric(tabledata)
+        if ~isempty(tabledata(subject,:))
+            info.(cell2mat(datain.VariableNames(varlocation))) = tabledata(subject,:);
+        end
+    elseif iscell(tabledata(subject,:))
+        value = tabledata(subject,:);
+        if ~isempty(value{1})
+            if isfield(info,datain.VariableNames(varlocation))
+                fprintf('subject %g, %s overwritten\n',subject,cell2mat(datain.VariableNames(varlocation)))
+            end
+            
+            value = strsplit(value{1},',');
+            for v=1:length(value)
+                info.(cell2mat(datain.VariableNames(varlocation)))(v) = str2double(cell2mat(value(v)));
+            end
+        end
+    end
 else % find all values
     if iscell(tabledata) % char
         dataindex = cellfun(@(x) ~isempty(x),Data.(cell2mat(datain.VariableNames(varlocation))));
