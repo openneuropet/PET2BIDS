@@ -21,7 +21,7 @@ function dataout = check_metaradioinputs(varargin)
 % Copyright Open NeuroPET team
 
 %% check inputs
-if all(size(varargin))
+if size(varargin,2)==1
     varargin = varargin{1};
 end
 
