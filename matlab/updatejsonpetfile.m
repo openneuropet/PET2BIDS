@@ -5,7 +5,7 @@ function status = updatejsonpetfile(varargin)
 %
 % FORMAT status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
-% INPUT - jsonfilename: jspon file to check or update update
+% INPUT - jsonfilename: json file to check or update update
 %       optional
 %       - newfields: a structure with the newfields to go into the json file
 %       - dcminfo:   a dcmfile or the dicominfo structure from a representative
@@ -180,7 +180,7 @@ else % -------------- update ---------------
     % -------------------------------------------------------------
     % possible dcm fields to recover - this part is truly empirical
     % going over different dcm files and figuring out fields
-    % ------------------------------------------------------------    
+    % ------------------------------------------------------------
     if exist('dcminfo','var')
         if ischar(dcminfo)
             dcminfo = flattenstruct(dicominfo(dcminfo));
@@ -188,7 +188,7 @@ else % -------------- update ---------------
             dcminfo = flattenstruct(dcminfo);
         end
         % here we keep only the last dcm subfield (flattenstrct add '_' with
-        % leading subfields initial to make things more tracktable but we 
+        % leading subfields initial to make things more tracktable but we
         % don't need it to match dcm names)
         
         dicom_nucleotides = { '^11^Carbon', '^13^Nitrogen', '^14^Oxygen', ...
@@ -214,33 +214,31 @@ else % -------------- update ---------------
                 dcminfo = rmfield(dcminfo,fn{f});
             end
         end
-    else
-        error('%s does not exist',dcminfo)
-    end
-       
-    %% run dmc check
-    jsontoload = fullfile(root,['metadata' filesep 'dicom2bids.json']);
-    if exist(jsontoload,'file')
-        heuristics = jsondecode(fileread(jsontoload));
-        dcmfields  = heuristics.dcmfields;
-        jsonfields = heuristics.jsonfields;
-    else
-        error('looking for %s, but the file is missing',jsontoload)
-    end
         
-    for f=1:length(dcmfields) % check each field from dicom image
-        if isfield(dcminfo,dcmfields{f}) % if it matches our list of dicom tags
-            if isfield(filemetadata,jsonfields{f}) % and  the json field exist, 
-                % then compare and inform the user if different
-                if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
-                    if isnumeric(filemetadata.(jsonfields{f}))
-                        warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
-                    else
-                        warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+        % run dicom check check
+        jsontoload = fullfile(root,['metadata' filesep 'dicom2bids.json']);
+        if exist(jsontoload,'file')
+            heuristics = jsondecode(fileread(jsontoload));
+            dcmfields  = heuristics.dcmfields;
+            jsonfields = heuristics.jsonfields;
+        else
+            error('looking for %s, but the file is missing',jsontoload)
+        end
+        
+        for f=1:length(dcmfields) % check each field from dicom image
+            if isfield(dcminfo,dcmfields{f}) % if it matches our list of dicom tags
+                if isfield(filemetadata,jsonfields{f}) % and  the json field exist,
+                    % then compare and inform the user if different
+                    if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
+                        if isnumeric(filemetadata.(jsonfields{f}))
+                            warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                        else
+                            warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                        end
+                    else % otherwise set the field in the json file
+                        warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                        filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                     end
-                else % otherwise set the field in the json file
-                    warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
-                    filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
         end
