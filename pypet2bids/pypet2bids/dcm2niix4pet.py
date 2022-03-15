@@ -118,14 +118,16 @@ def update_json_with_dicom_value(
     # Units gets written as Unit in older versions of dcm2niix here we check for missing Units and present Unit entity
     units = missing_values.get('Units', None)
     if units:
-        # Units is missing, check to see if Unit is present
-        sidecar_json = load_json_or_dict(path_to_json)
-        if sidecar_json.get('Unit', None):
-            temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')})
-            temp.remove('Unit')
-        else: # we source the Units value from the dicom header and update the json
-            JsonMAJ(path_to_json, {'Units': dicom_header.Units})
-
+        try:
+            # Units is missing, check to see if Unit is present
+            sidecar_json = load_json_or_dict(str(path_to_json))
+            if sidecar_json.get('Unit', None):
+                temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')})
+                temp.remove('Unit')
+            else: # we source the Units value from the dicom header and update the json
+                JsonMAJ(path_to_json, {'Units': dicom_header.Units})
+        except AttributeError:
+            print(f"Dicom is missing Unit(s) field, are you sure this is a PET dicom?")
     # pair up dicom fields with bids sidecar json field, we do this in a separate json file
     # it's loaded when this script is run and stored in metadata dictionaries
     dcmfields = metadata_dictionaries['dicom2bids.json']['dcmfields']
@@ -151,11 +153,12 @@ def update_json_with_dicom_value(
             except AttributeError:
                 dicom_field = None
 
-        if dicom_field and value in special_cases:
-                pass # do regex magic
-        elif dicom_field:
-            # update json
-            JsonMAJ(path_to_json, {key, dicom_field})
+            if dicom_field and value in special_cases:
+                    pass # do regex magic
+            elif dicom_field:
+                # update json
+                JsonMAJ(path_to_json, {key, dicom_field})
+
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
@@ -300,7 +303,7 @@ class Dcm2niix4PET:
                 if created_path.suffix == '.json':
                     # we want to pair up the headers to the files created in the output directory in case
                     # dcm2niix has created files from multiple sessions
-                    matched_dicoms_and_headers = self.match_dicom_header_to_file()
+                    matched_dicoms_and_headers = self.match_dicom_header_to_file(destination_path=tempdir_pathlike)
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
@@ -309,18 +312,30 @@ class Dcm2niix4PET:
                     # we do our best to extrat information from the dicom header and insert theses values
                     # into the sidecar json
 
+                    # first do a reverse lookup of the key the json corresponds to
+                    lookup = [key for key, value in matched_dicoms_and_headers.items() if str(created_path) in value]
+                    if lookup:
+                        dicom_header = self.dicom_headers[lookup[0]]
+
+                    update_json_with_dicom_value(
+                        created_path,
+                        check_for_missing,
+                        dicom_header,
+                        dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
 
 
-                new_path = Path(join(self.destination_path, created_path.name))
-                shutil.move(src=created, dst=new_path)
+                    new_path = Path(join(self.destination_path, created_path.name))
+                    shutil.move(src=created, dst=new_path)
 
 
-    def match_dicom_header_to_file(self):
+    def match_dicom_header_to_file(self, destination_path=None):
+        if not destination_path:
+            destination_path = self.destination_path
         # first collect all of the files in the output directory
-        output_files = [join(self.destination_path, output_file) for output_file in listdir(self.destination_path)]
+        output_files = [join(destination_path, output_file) for output_file in listdir(destination_path)]
 
         # create empty dictionary to store pairings
         headers_to_files = {}

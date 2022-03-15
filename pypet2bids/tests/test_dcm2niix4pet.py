@@ -155,4 +155,4 @@ def test_run_dcm2niix():
 
 if __name__ == '__main__':
     test_match_dicom_header_to_file()
-    test_run_dcm2niix()
+    #test_run_dcm2niix()
