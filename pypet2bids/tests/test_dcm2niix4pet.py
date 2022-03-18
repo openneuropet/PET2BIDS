@@ -7,6 +7,7 @@ import pydicom
 from tempfile import TemporaryDirectory
 import json
 from os.path import join
+import re
 
 # collect config files
 # fields to check for
@@ -152,7 +153,33 @@ def test_run_dcm2niix():
             dcm2niix_output[output_file_stem]  = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
 
+def test_manufacturers():
+    # As far as we know there are these three manufacturers
+    manufacturers = ['phillips', 'siemens', 'ge']
+
+    # make sure paths are attached with vendor/manufacturer specific dicoms
+    manufacturer_paths = {}
+    for manu in manufacturers:
+        dicom_folder_path = os.environ[f"TEST_DICOM_IMAGE_FOLDER_{manu.upper()}"]
+
+        if dicom_folder_path != "":
+            dicom_folder_path = Path(dicom_folder_path)
+            if dicom_folder_path.exists():
+                manufacturer_paths[manu] = {'dicom_path': dicom_folder_path}
+
+    # open a temporary directory to write output to
+    with TemporaryDirectory() as tempdir:
+        tempdir_path = Path(tempdir)
+        # create output path for every existing manufacturer
+        manus = manufacturer_paths.keys()
+        for manu in manus:
+            nifti_path = os.path.join(tempdir_path, f"{manu}_nifti_output")
+            os.mkdir(nifti_path)
+            manufacturer_paths[manu]['nifti_path'] = nifti_path
+
+    print(manufacturer_paths)
 
 if __name__ == '__main__':
-    test_match_dicom_header_to_file()
+    #test_match_dicom_header_to_file()
     #test_run_dcm2niix()
+    test_manufacturers()
