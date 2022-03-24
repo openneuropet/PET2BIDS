@@ -1,4 +1,4 @@
-from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name
+from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
 import pytest
 import dotenv
 import os
@@ -237,11 +237,18 @@ def test_update_json_with_dicom_value():
 
             # now that we have dicom headers we can use our insert method to insert missing metadata
             # into a json
+            update_json_with_dicom_value(test_json_path, missing_fields, dicom_headers[0])
 
-            #TODO finish test
+            # load json to make assertions
+            with open(test_json_path, 'r') as infile:
+                test_json = json.load(infile)
 
+            # only checking a handful of fields as every dicom varies, but our test data has the following fields
+            # filled in
+            check_fields = ['Manufacturer', 'InstitutionName', 'Units', 'InstitutionalDepartmentName']
+            for field in check_fields:
+                assert test_json.get(field, "") != ""
 
-        assert True == True
 
 if __name__ == '__main__':
     #test_match_dicom_header_to_file()

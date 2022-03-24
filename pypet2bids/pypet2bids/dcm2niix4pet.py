@@ -142,6 +142,7 @@ def update_json_with_dicom_value(
     for index, field in enumerate(jsonfields):
         paired_fields[field] = dcmfields[index]
 
+    print("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
@@ -151,15 +152,17 @@ def update_json_with_dicom_value(
             # into several bids sidecar entities
             try:
                 dicom_field = getattr(dicom_header, value)
+                print(f"FOUND {value} corresponding to BIDS {key}: {dicom_field}")
             except AttributeError:
                 dicom_field = None
+                print(f"NOT FOUND {value} corresponding to BIDS {key} in dicom header.")
 
             if dicom_field and value in special_cases:
                     pass # do regex magic
             elif dicom_field:
                 # update json
-                JsonMAJ(path_to_json, {key, dicom_field})
-
+                temp = JsonMAJ(json_path=path_to_json, update_values={key: dicom_field})
+                temp.update()
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
