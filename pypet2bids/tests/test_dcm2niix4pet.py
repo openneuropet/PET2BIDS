@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 import json
 from os.path import join
 import re
+import pydicom
 
 # collect config files
 # fields to check for
@@ -177,9 +178,73 @@ def test_manufacturers():
             os.mkdir(nifti_path)
             manufacturer_paths[manu]['nifti_path'] = nifti_path
 
-    print(manufacturer_paths)
+            # convert these things
+            input_path = manufacturer_paths[manu]['dicom_path']
+            output_path = manufacturer_paths[manu]['nifti_path']
+            converter = Dcm2niix4PET(input_path, output_path)
+
+
+            converter.run_dcm2niix()
+            print(f"running converson on images at {input_path}")
+            # add jsons to the manufacturer_paths
+            output_path_files = os.listdir(output_path)
+            jsons = [os.path.join(output_path, output_json) for output_json in output_path_files if
+                         '.json' in output_json]
+
+            manufacturer_paths[manu]['json_path'] = jsons
+
+        # now check the output of the jsons, see if the fields are all there
+        for key, value in manufacturer_paths.items():
+            print(key, value)
+
+def test_update_json_with_dicom_value():
+    """
+    b/c dicom we don't run this test using github actions
+    first checks to see if this is running in github actions, and if so does nothing.
+    else it runs on a set of test dicoms and checks to see fields from the dicom header
+    get inserted into the sidecar.json produced by dcm2niix during the conversion from dicom to nii
+    :return: None
+    """
+    # check to see if this is running in github actions
+    running_in_github = os.getenv("CI", "false")
+    if running_in_github.lower() != "true":
+        # open temporary directory b/c manual cleanup is a bother
+        with TemporaryDirectory() as tempdir:
+            test_json_path = Path(os.path.join(tempdir, 'test.json'))
+            with open(test_json_path, 'w') as outfile:
+                json.dump({}, outfile)
+
+            # now check json, we should be missing everything from it as it's an empty set
+            missing_fields = check_json(test_json_path)
+
+            # now we collect a dicom header
+            dicom_headers = []
+
+            dicom_folder = os.getenv("TEST_DICOM_IMAGE_FOLDER_SIEMENS", "")
+
+            # possible dicoms
+            possible_dicoms = [os.path.join(dicom_folder, d) for d in os.listdir(dicom_folder)]
+            # we don't need all of the dicom 10% should be good
+            for i in range(int(0.2*len(possible_dicoms))):
+                # 100 is plenty
+                if len(dicom_headers) >= 100:
+                    break
+                try:
+                    dicom = pydicom.dcmread(possible_dicoms[i])
+                    dicom_headers.append(dicom)
+                except TypeError:
+                    pass
+
+            # now that we have dicom headers we can use our insert method to insert missing metadata
+            # into a json
+
+            #TODO finish test
+
+
+        assert True == True
 
 if __name__ == '__main__':
     #test_match_dicom_header_to_file()
     #test_run_dcm2niix()
-    test_manufacturers()
+    #test_manufacturers()
+    test_update_json_with_dicom_value()

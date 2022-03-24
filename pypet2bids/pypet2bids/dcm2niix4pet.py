@@ -32,7 +32,8 @@ pet2bids_folder = python_folder.parent
 metadata_folder = join(pet2bids_folder, 'metadata')
 
 # collect metadata jsons
-metadata_jsons = [Path(join(metadata_folder, metadata_json)) for metadata_json in listdir(metadata_folder) if '.json' in metadata_json]
+metadata_jsons = \
+    [Path(join(metadata_folder, metadata_json)) for metadata_json in listdir(metadata_folder) if '.json' in metadata_json]
 
 # create a dictionary to house the PET metadata files
 metadata_dictionaries = {}
@@ -191,6 +192,14 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_fie
     return parsed_date + parsed_time
 
 def collect_date_time_from_file_name(file_name):
+    """
+    Collects the date and time from a nifti or a json produced by dcm2niix when dcm2niix is run with the options
+    %p_%i_%t_%s. This datetime us used to match a dicom header object to the resultant file. E.G. if there are missing
+    BIDS fields in the json produced by dcm2niix it's hopeful that the dicom header may contain the missing info.
+    :param file_name: name of the file to extract the date time info from, this should be a json ouput file from
+    dcm2niix
+    :return: a date and time object
+    """
     date_time_string = re.search(r"(?!\_)[0-9]{14}(?=\_)", file_name)
     if date_time_string:
         date = date_time_string[0][0:8]
@@ -206,14 +215,40 @@ class Dcm2niix4PET:
                  metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s',
                  silent=False):
         """
-        :param image_folder:
-        :param destination_path:
-        :param metadata_path:
-        :param metadata_translation_script:
-        :param file_format:
-        :param additional_arguments:
+        This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
+            - Convert a set of dicoms into .nii and .json sidecar files
+            - Inspect the .json sidecar files for any missing BIDS PET fields or values
+            - If there are missing BIDS PET fields or values this class will attempt to extract them from the dicom
+            header, a metadata file using a metadata translation script, and lastly from user supplied key pair
+            arguments.
+
+        # class is instantiated:
+        converter = Dcm2niix4PET(...)
+        # then conversion is run by calling run_dcm2niix
+        converter.run_dcm2niix()
+
+        Conversion is performed in a temporary directory to make matching dicom headers to dcm2niix output files easier
+        (and to avoid leaving intermediary files persisting on disc). After which, these files are then moved the
+        destination directory.
+
+        :param image_folder: folder containing a single series/session of dicoms
+        :param destination_path: destination path for dcm2niix output nii and json files
+        :param metadata_path: path to excel, csv, or text file with PET metadata (radioligand, blood, etc etc)
+        :param metadata_translation_script: python file to extract and transform data contained in the metadata_path
+        :param file_format: the file format that we want dcm2niix to use, by default %p_%i_%t_%s
+        %p ->
+        %i ->
+        %t ->
+        %s ->
+        :param additional_arguments: user supplied key value pairs, E.g. TimeZero=12:12:12, InjectedRadioactivity=1
+        this key value pair will overwrite any fields in the dcm2niix produced nifti sidecar.json as it is assumed that
+        the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
+        dicom header
         :param silent: silence missing sidecar metadata messages, default is False and very verbose
         """
+
+        # check to see if dcm2niix is installed
+        self.check_for_dcm2niix()
 
         self.image_folder = Path(image_folder)
         self.destination_path =  Path(destination_path)
@@ -284,9 +319,14 @@ class Dcm2niix4PET:
             convert = subprocess.run(f"dcm2niix -w 1 -z y {file_format_args} -o {tempdir_pathlike} {self.image_folder}", shell=True,
                                      capture_output=True)
 
-            if convert.returncode != 0 and bytes("Skipping existing file name", "utf-8") not in convert.stdout or convert.stderr:
-                print(convert.stderr)
-                raise Exception("Error during image conversion from dcm to nii!")
+            if convert.returncode != 0:
+                print("Check output .nii files, dcm2iix returned these errors during conversion:")
+                if bytes("Skipping existing file name", "utf-8") not in convert.stdout or convert.stderr:
+                    print(convert.stderr)
+                elif convert.returncode != 0 and bytes("Error: Check sorted order", "utf-8") in convert.stdout or convert.stderr:
+                    print("Possible error with frame order, is this a phillips dicom set?")
+                    print(convert.stdout)
+                    print(convert.sterr)
 
             # collect contents of the tempdir
             files_created_by_dcm2niix = [join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)]
@@ -317,18 +357,18 @@ class Dcm2niix4PET:
                     if lookup:
                         dicom_header = self.dicom_headers[lookup[0]]
 
-                    update_json_with_dicom_value(
-                        created_path,
-                        check_for_missing,
-                        dicom_header,
-                        dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
+                        update_json_with_dicom_value(
+                            created_path,
+                            check_for_missing,
+                            dicom_header,
+                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
 
 
-                    new_path = Path(join(self.destination_path, created_path.name))
-                    shutil.move(src=created, dst=new_path)
+                new_path = Path(join(self.destination_path, created_path.name))
+                shutil.move(src=created, dst=new_path)
 
 
     def match_dicom_header_to_file(self, destination_path=None):
