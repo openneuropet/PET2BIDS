@@ -164,6 +164,10 @@ def update_json_with_dicom_value(
                 temp = JsonMAJ(json_path=path_to_json, update_values={key: dicom_field})
                 temp.update()
 
+def update_json_with_additional_arguments(path_to_json, **kwargs):
+    for key, value in kwargs.items():
+        json_updater = JsonMAJ(json_path=path_to_json, )
+
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
@@ -258,6 +262,7 @@ class Dcm2niix4PET:
         if metadata_path is not None and metadata_translation_path is not None:
             self.metadata_path =  Path(metadata_path)
             self.metadata_translation_script = Path(metadata_path)
+        self.additional_arguments = additional_arguments
         self.subject_id = None
         self.file_format = file_format
         self.dicom_headers = {}
@@ -368,7 +373,10 @@ class Dcm2niix4PET:
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
-
+                    if self.additional_arguments:
+                        update_json = JsonMAJ(json_path=str(created),
+                                              update_values=self.additional_arguments)
+                        update_json.update()
 
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)

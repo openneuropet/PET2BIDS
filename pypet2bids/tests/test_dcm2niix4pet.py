@@ -249,9 +249,24 @@ def test_update_json_with_dicom_value():
             for field in check_fields:
                 assert test_json.get(field, "") != ""
 
+def test_additional_arguments():
+    additional_args = {'additional1': 1, 'additional2': 2}
+    with TemporaryDirectory() as tempdir:
+        converter = Dcm2niix4PET(test_dicom_image_folder, tempdir,
+                                 file_format='%p_%i_%t_%s',
+                                 silent=True,
+                                 additional_arguments=additional_args)
+        converter.run_dcm2niix()
+        contents_output = os.listdir(tempdir)
+        created_jsons = [os.path.join(tempdir, file) for file in contents_output if '.json' in file]
+
+        # load in json, make sure fields are there
+        with open(created_jsons[0], 'r') as infile:
+            json_contents = json.load(infile)
+
+        for key, value in additional_args.items():
+            assert json_contents.get(key, "") == value
+
 
 if __name__ == '__main__':
-    #test_match_dicom_header_to_file()
-    #test_run_dcm2niix()
-    #test_manufacturers()
-    test_update_json_with_dicom_value()
+    test_additional_arguments()
