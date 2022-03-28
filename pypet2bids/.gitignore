@@ -128,3 +128,7 @@ dist/
 *.DS_STORE
 
 docs/
+
+# temp test files
+test.json
+tests/test_tempfile.v

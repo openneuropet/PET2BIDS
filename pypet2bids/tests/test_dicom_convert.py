@@ -6,12 +6,12 @@ from pypet2bids.dicom_convert import Convert
 # collect test data test will fail to run without it
 dotenv.load_dotenv(dotenv.load_dotenv())
 
-
+"""
 class DicomConvert(unittest.TestCase):
     @classmethod
     def setUp(cls) -> None:
-        cls.image_folder = os.environ['TEST_DICOM_IMAGE_FOLDER']
-        cls.metadata_path = os.environ['TEST_DICOM_CONVERT_METADATA_FROM_TEMPLATE_PATH']
+        cls.image_folder = os.getenv['TEST_DICOM_IMAGE_FOLDER']
+        cls.metadata_path = os.getenv['TEST_DICOM_CONVERT_METADATA_FROM_TEMPLATE_PATH']
         cls.metadata_translation_script_path = 'metadata_excel_example_reader.py'
         cls.subject_id = 'dicomconverttestsubject'
         cls.dicom_convert = Convert(image_folder=cls.image_folder,
@@ -25,3 +25,4 @@ class DicomConvert(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""
