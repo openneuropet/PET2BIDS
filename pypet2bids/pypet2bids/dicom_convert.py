@@ -85,7 +85,7 @@ class Convert:
         else:
             self.subject_id = str(self.dicom_header_data.PatientID)
             # check for non-bids values
-            self.subject_id = re.sub("[^a-zA-Z0-9\d\s:]", '', self.subject_id)
+            self.subject_id = re.sub(r"[^a-zA-Z0-9\d\s:]", '', self.subject_id)
 
         self.subject_string = 'sub-' + self.subject_id
         # no reason not to convert the image files immediately if dcm2niix is there

@@ -83,7 +83,7 @@ jobs:
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          pytest tests/
+          pytest -k 'not write_pixel_data tests/
 
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab

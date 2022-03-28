@@ -14,7 +14,7 @@ if env_vars.get('GITHUB_ACTIONS', None):
     print("Currently running in github actions; not running this test module")
     os._exit(0)
 
-test_ecat_path = env_vars.get('GOLDEN_ECAT_INTEGER')
+test_ecat_path = env_vars.get('TEST_ECAT_PATH')
 
 
 class TestECATWrite(unittest.TestCase):
@@ -133,7 +133,7 @@ class TestECATWrite(unittest.TestCase):
         frame_one_stop = self.known_directory_table[2, 0] * 512
         frame_one = self.known_pixel_data[:, :, :, 0]
 
-        replacement_frame = numpy.random.randint(32767, size=frame_one.shape, dtype=numpy.dtype(numpy.uint16) )
+        replacement_frame = numpy.random.randint(32767, size=frame_one.shape, dtype=numpy.uint16)
 
         with open(self.temp_file, 'r+b') as outfile:
             write_pixel_data(ecat_file=outfile,
