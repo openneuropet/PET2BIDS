@@ -1,8 +1,6 @@
 # PET to BIDS is a set of BIDS converter for your Brain PET data
 
-[![Python PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml)
-
-[![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml)
+[![Python PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml) [![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml)
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). The work to create these tools is funded by [Novo Nordisk fonden](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the [BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
 
