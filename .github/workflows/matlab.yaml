@@ -1,4 +1,4 @@
-name: Python PET2BIDS Tests
+name: Matlab PET2BIDS Tests
 on:
   push:
   pull_request:
@@ -36,23 +36,6 @@ jobs:
           path: cimbi36
           key: ${{ runner.os }}-ecats
 
-      - name: Install gtk and build essential for gui madness
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install build-essential libgtk-3-dev gzip -y
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: Set up python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          cd pypet2bids
-          pip3 install -r requirements.txt
-
       - name: Collect Ecat Dataset w/ curl
         if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "curl -o ecat_test ${{ env.ECAT_URL }}"
@@ -61,26 +44,25 @@ jobs:
         if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "tar xvzf ecat_test && rm ecat_test"
 
-      - name: Test CLI --help
-        run: |
-          cd pypet2bids/
-          python3 -m pypet2bids.cli --help
-
-      - name: Test CLI Ecat Dump
-        run: |
-          cd pypet2bids/
-          python3 -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
-
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
       - name: Unzip Test File(s)
         run: |
           gzip -d ${{ env.SMALLER_ECAT_PATH }}
       
-      - name: Test ecatread
-        run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
+        # matlab not supported on MacOS!! at this time
+      - name: Perform setup-matlab
+        uses: matlab-actions/setup-matlab@v1
+        if: matrix.os == 'ubuntu-latest'
 
-      - name: Run All Other Python Tests w/ Pytest
-        run: |
-          cd pypet2bids
-          pytest -k 'not write_pixel_data' tests/
+        # Again only running this on ubuntu
+      - name: Add Matlab Code Folder to Path and Run Tests
+        uses: matlab-actions/run-command@v1
+        with:
+          command: |
+            addpath('${{ env.MATLAB_CODE_PATH }}');
+            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
+            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
+            addpath('${{ env.SMALLER_ECAT_PATH }}');
+            ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
+        if: matrix.os == 'ubuntu-latest'

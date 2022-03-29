@@ -59,6 +59,7 @@ class Ecat:
         if '.gz' in self.ecat_file and decompress is True:
             uncompressed_ecat_file = re.sub('.gz', '', self.ecat_file)
             pypet2bids.helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
+            self.ecat_file = uncompressed_ecat_file
 
         if '.gz' in self.ecat_file and decompress is False:
             raise Exception("Nifti must be decompressed for reading of file headers")

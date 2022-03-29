@@ -14,19 +14,21 @@ if env_vars.get('GITHUB_ACTIONS', None):
     print("Currently running in github actions; not running this test module")
     os._exit(0)
 
+test_ecat_path = env_vars.get('TEST_ECAT_PATH')
+
 
 class TestECATWrite(unittest.TestCase):
     @classmethod
     def setUp(cls) -> None:
-        cls.known_main_header, cls.known_subheaders, cls.known_pixel_data = read_ecat(os.environ['TEST_ECAT_PATH'],
+        cls.known_main_header, cls.known_subheaders, cls.known_pixel_data = read_ecat(test_ecat_path,
                                                                                       collect_pixel_data=False)
         # collect directory table from ecat
-        directory_block = read_bytes(path_to_bytes=os.environ['TEST_ECAT_PATH'],
+        directory_block = read_bytes(path_to_bytes=test_ecat_path,
                                      byte_start=512,
                                      byte_stop=512)
-        cls.known_directory_table = get_directory_data(directory_block, os.environ['TEST_ECAT_PATH'])
+        cls.known_directory_table = get_directory_data(directory_block, test_ecat_path)
         cls.known_directory_table_raw = get_directory_data(directory_block,
-                                                           os.environ['TEST_ECAT_PATH'],
+                                                           test_ecat_path,
                                                            return_raw=True)
         cls.pixel_byte_size_int = 2
         cls.temp_file = 'test_tempfile.v'
@@ -57,7 +59,7 @@ class TestECATWrite(unittest.TestCase):
 
     def test_write_header(self):
         temp_file = self.temp_file
-        shutil.copy(os.environ['TEST_ECAT_PATH'], temp_file)
+        shutil.copy(test_ecat_path, temp_file)
         with open(temp_file, 'r+b') as outfile:
             schema = ecat_header_maps['ecat_headers']['73']['mainheader']
             write_header(
@@ -73,7 +75,7 @@ class TestECATWrite(unittest.TestCase):
             self.assertEqual(self.known_main_header[key], check_header[key])
 
     def test_write_directory_table(self):
-        shutil.copy(os.environ['TEST_ECAT_PATH'], self.temp_file)
+        shutil.copy(test_ecat_path, self.temp_file)
         with open(self.temp_file, 'r+b') as outfile:
             # write header
             schema = ecat_header_maps['ecat_headers']['73']['mainheader']
@@ -123,15 +125,15 @@ class TestECATWrite(unittest.TestCase):
                                                                      collect_pixel_data=True)
 
     def test_write_pixel_data(self):
-        self.known_main_header, self.known_subheaders, self.known_pixel_data = read_ecat(os.environ['TEST_ECAT_PATH'],
+        self.known_main_header, self.known_subheaders, self.known_pixel_data = read_ecat(test_ecat_path,
                                                                                          collect_pixel_data=True)
-        shutil.copy(os.environ['TEST_ECAT_PATH'], self.temp_file)
+        shutil.copy(test_ecat_path, self.temp_file)
         # locate the first frame in the test file
         frame_one_start = self.known_directory_table[1, 0] * 512
         frame_one_stop = self.known_directory_table[2, 0] * 512
         frame_one = self.known_pixel_data[:, :, :, 0]
 
-        replacement_frame = numpy.random.randint(32767, size=frame_one.shape, dtype=numpy.dtype(numpy.uint16) )
+        replacement_frame = numpy.random.randint(32767, size=frame_one.shape, dtype=numpy.uint16)
 
         with open(self.temp_file, 'r+b') as outfile:
             write_pixel_data(ecat_file=outfile,
