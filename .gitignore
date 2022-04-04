@@ -31,7 +31,6 @@ README.rst
 # misc
 *scratch*
 *.b
-docs/
 
 # test environment
 test_env/

@@ -16,6 +16,19 @@ import sphinx_rtd_theme
 import os
 import sys
 
+
+# some comments about path setup
+# getting make html, etc to work locally is as simple as inserting the python project path into the system path
+# variable using the following two lines of code:
+# >>>python_project_path = os.path.abspath('../pypet2bids')
+# >>>sys.path.insert(0, python_project_path)
+# However, when readthedocs.io attempts to build the site within their system we get a bunch of import errors
+# and no html gets built from our docstrings in our python code.
+# some 'possibly' helpful links on changing/adjusting the path to make RTD.io work are:
+# https://github.com/readthedocs/readthedocs.org/issues/7883
+# https://github.com/python/python-docs-es/blob/c79c770adf608d2cf9ac707792c6c54b9fb01f89/conf.py#L112-L113
+
+
 # get absolute path to python project files
 python_project_path = os.path.abspath('../pypet2bids')
 sys.path.insert(0, python_project_path)
