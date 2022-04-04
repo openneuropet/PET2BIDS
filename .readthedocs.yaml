@@ -5,6 +5,13 @@
 # Required
 version: 2
 
+# some modules are better than other modules, those that are worst are listed here
+submodules:
+  exclude:
+    - golden_ecat.py
+    - tests
+
+
 # Set the version of Python and other tools you might need
 build:
   os: ubuntu-20.04
