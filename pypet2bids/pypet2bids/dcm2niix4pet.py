@@ -57,17 +57,19 @@ def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.
     such there are keys describing the pertinance of the required items corresponding with a list of fields of those
     items. See below:
 
+    #{
+    #    'Units': {'key': False, 'value': False},
+    #    'TracerName': {'key': False, 'value': False},
+    #    'TracerRadionuclide': {'key': False, 'value': False},
+    #    'InjectedRadioactivity': {'key': False, 'value': False}
+    #}
+
     >>>items_to_check = {"mandatory": ["AttenuationCorrection"],
     >>>                  "recommended": ["SinglesRate"],
     >>>                  "optional": ["Anaesthesia"]}
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
     corresponding entry in the json the same can be said of value.
-    {
-        'Units': {'key': False, 'value': False},
-        'TracerName': {'key': False, 'value': False},
-        'TracerRadionuclide': {'key': False, 'value': False},
-        'InjectedRadioactivity': {'key': False, 'value': False}
-    }
+
     """
     # check if path exists
     path_to_json = Path(path_to_json)
