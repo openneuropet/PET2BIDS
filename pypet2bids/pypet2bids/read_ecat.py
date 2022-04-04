@@ -99,14 +99,19 @@ def get_buffer_size(data_type: str, variable_name: str):
 
 def get_header_data(header_data_map: dict, ecat_file: str = '', byte_offset: int = 0, clean=True):
     """
+    ECAT header data is contained in json files translated from ECAT documentation provided via the Turku PET Inst.
+    For machine and human readability the original Siemens PDF/Scanned ECAT file documentation has been rewritten into
+    json to provide easy access to byte position, byte width, variable name, and byte data type. Json's including this
+    header information are sub-divided into ECAT versions with sub-dictionaries corresponding to each imaging type as
+    mentioned in the original ECAT spec.
 
     :param header_data_map: schema for reading in header data, this is stored in dictionary that is read in from a
-    json file.
+           json file.
     :param ecat_file: path to an ecat file, file is opened and byte blocks containing header data are then extracted,
-    read, and cleaned into python float, int, or list data types
+           read, and cleaned into python float, int, or list data types
     :param byte_offset: off set from the head of the file to read from
     :param clean: Whether to remove byte padding or not, if not provided strings will include padding w/ \0x bytes and
-    lists/arrays of data will be returned as tuples instead of lists. Uncleaned data will be of format b''.
+           lists/arrays of data will be returned as tuples instead of lists. Uncleaned data will be of format b''.
     :return: a dictionary with variable names of header fields as keys and cleaned/uncleaned header fields as values
     """
     header = {}
@@ -148,12 +153,14 @@ def get_directory_data(byte_block: bytes, ecat_file: str, return_raw: bool = Fal
     """
     Collects the directory data within an ECAT file. The directory data refers to the 512 byte table that describes the
     byte location of each frame, subheader, number of frames, and additional directory tables within the file.
+
     :param byte_block: A block of file bytes to convert into a 2 dimensional numpy array.
     :param ecat_file: the path to the ecat file
     :param return_raw: return the directory tables as extracted, if left False this will return the directory tables
-    combined into a single table. The single table is all that is needed in order to read information in from an ECAT.
+           combined into a single table. The single table is all that is needed in order to read information in from an
+           ECAT.
     :return: Individual tables corresponding to up to 31 frames each or a combined directory table consisting of no
-    more columns than than are number of frames in the image/PET scan.
+             more columns than than are number of frames in the image/PET scan.
     """
     directory = None  # used to keep track of state in the event of a directory spanning more than one 512 byte block
     raw = []
@@ -208,7 +215,8 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
     :param collect_pixel_data: By default collects the entire ecat, can be passed false to only return headers
-    CALIBRATION_FACTOR in the main header
+           CALIBRATION_FACTOR in the main header
+
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
     """
     # try to determine what type of ecat this is

@@ -249,8 +249,9 @@ class Convert:
         This function attempts to collect and organize imaging metadata from PET text and imaging files into BIDS
         compliant text files. At a minimum this function extracts additional dicom header data that is not included
         into the nifti sidecar after the conversion from dicom to nifti.
-        :return: a dictionary containing the BIDS nifti sidecar data, blood data tsv, blood json, and participants list
-        tsv
+
+        :return: dictionary containing BIDS nifti sidecar data, blood data tsv, blood json, and participants list tsv
+
         """
         future_nifti_json = {
             'Manufacturer': self.nifti_json_data.get('Manufacturer'),
@@ -305,9 +306,12 @@ class Convert:
 
     def write_out_jsons(self, manual_path=None):
         """
-        Writes out blood and modified *_pet.json file at destination path
-        manual_path: a folder path specified at function cal by user, defaults none
+        Writes out blood and modified `*_pet.json` file at destination path
+
+        :param manual_path: user supplied path to write out jsons to, if None writes the json to the ouput directory supplied to Convert class object destination_path.
+
         :return: The name of the json file written to.
+
         """
 
         if manual_path is None:
@@ -330,7 +334,7 @@ class Convert:
     def write_out_blood_tsv(self, manual_path=None):
         """
         Creates a blood.tsv
-        manual_path:  a folder path specified at function call by user, defaults none
+        :param manual_path:  a folder path specified at function call by user, defaults none
         :return: The name of the tsv file written to.
         """
         if manual_path is None:
