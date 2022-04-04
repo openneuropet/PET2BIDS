@@ -15,13 +15,7 @@ from numpy import cumsum
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import shutil
-
-# determine whether to run as gui or not, if additional arguments are supplied when invoking this program it runs
-# using the CLI and not it's GUI
-if len(sys.argv) >= 2:
-    if '--ignore-gooey' not in sys.argv:
-        sys.argv.append('--ignore-gooey')
-
+from argparse import ArgumentParser
 
 class Convert:
     """
@@ -376,7 +370,7 @@ else:
 
 def cli():
     # simple converter takes command line arguments <folder path> <destination path> <subject-id> <session-id>
-    parser = Parser()
+    parser = ArgumentParser()
     parser.add_argument('folder', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('-m', '--metadata-path', type=str,
