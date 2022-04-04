@@ -30,7 +30,7 @@ import sys
 
 
 # get absolute path to python project files
-python_project_path = os.path.abspath('../pypet2bids/pypet2bids')
+python_project_path = os.path.abspath('../pypet2bids')
 sys.path.insert(0, python_project_path)
 print(f"python_project_path: {python_project_path}")
 
