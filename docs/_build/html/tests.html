@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tests package &mdash; PET2BIDS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pypet2bids package" href="pypet2bids.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PET2BIDS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">pypet2bids</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pypet2bids.html">pypet2bids package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">tests package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.metadata_excel_example_reader">tests.metadata_excel_example_reader module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_dcm2niix4pet">tests.test_dcm2niix4pet module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_dicom_convert">tests.test_dicom_convert module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_ecatread">tests.test_ecatread module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_helper_functions">tests.test_helper_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_json_updater">tests.test_json_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_nifti_write">tests.test_nifti_write module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_pet2bids">tests.test_pet2bids module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_thisbytes">tests.test_thisbytes module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_write_ecat">tests.test_write_ecat module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PET2BIDS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">pypet2bids</a> &raquo;</li>
+      <li>tests package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tests.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tests-package">
+<h1>tests package<a class="headerlink" href="#tests-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.metadata_excel_example_reader">
+<span id="tests-metadata-excel-example-reader-module"></span><h2>tests.metadata_excel_example_reader module<a class="headerlink" href="#module-tests.metadata_excel_example_reader" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.metadata_excel_example_reader.flatten_series">
+<span class="sig-prename descclassname"><span class="pre">tests.metadata_excel_example_reader.</span></span><span class="sig-name descname"><span class="pre">flatten_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.metadata_excel_example_reader.flatten_series" title="Permalink to this definition"></a></dt>
+<dd><p>This function retrieves either a list or a single value from a pandas series object thus converting a complex
+data type to a simple datatype or list of simple types. If the length of the series is one or less this returns that
+single value, else this object returns all values within the series that are not Null/nan in the form of a list
+:param series: input series of type pandas.Series object, typically extracted as a column/row from a
+pandas.Dataframe object
+:return: a simplified single value or list of values</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.metadata_excel_example_reader.translate_metadata">
+<span class="sig-prename descclassname"><span class="pre">tests.metadata_excel_example_reader.</span></span><span class="sig-name descname"><span class="pre">translate_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NotImplemented</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.metadata_excel_example_reader.translate_metadata" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_dcm2niix4pet">
+<span id="tests-test-dcm2niix4pet-module"></span><h2>tests.test_dcm2niix4pet module<a class="headerlink" href="#module-tests.test_dcm2niix4pet" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_additional_arguments">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_additional_arguments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_additional_arguments" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_check_json">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_check_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capsys</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_check_json" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_collect_date_from_file_name">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_collect_date_from_file_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_collect_date_from_file_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_dicom_datetime_to_dcm2niix_time">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_dicom_datetime_to_dcm2niix_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_dicom_datetime_to_dcm2niix_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_extract_dicom_headers">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_extract_dicom_headers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_extract_dicom_headers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_manufacturers">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_manufacturers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_manufacturers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_match_dicom_header_to_file">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_match_dicom_header_to_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_match_dicom_header_to_file" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_run_dcm2niix">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_run_dcm2niix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_run_dcm2niix" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dcm2niix4pet.test_update_json_with_dicom_value">
+<span class="sig-prename descclassname"><span class="pre">tests.test_dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">test_update_json_with_dicom_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_dcm2niix4pet.test_update_json_with_dicom_value" title="Permalink to this definition"></a></dt>
+<dd><p>b/c dicom we don’t run this test using github actions
+first checks to see if this is running in github actions, and if so does nothing.
+else it runs on a set of test dicoms and checks to see fields from the dicom header
+get inserted into the sidecar.json produced by dcm2niix during the conversion from dicom to nii
+:return: None</p>
+</dd></dl>
+
+</section>
+<section id="module-tests.test_dicom_convert">
+<span id="tests-test-dicom-convert-module"></span><h2>tests.test_dicom_convert module<a class="headerlink" href="#module-tests.test_dicom_convert" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.test_ecatread">
+<span id="tests-test-ecatread-module"></span><h2>tests.test_ecatread module<a class="headerlink" href="#module-tests.test_ecatread" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.test_helper_functions">
+<span id="tests-test-helper-functions-module"></span><h2>tests.test_helper_functions module<a class="headerlink" href="#module-tests.test_helper_functions" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tests.test_helper_functions.</span></span><span class="sig-name descname"><span class="pre">TestHelperFunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.setUp">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.tearDown">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tearDown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.tearDown" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for deconstructing the test fixture after testing it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_float">
+<span class="sig-name descname"><span class="pre">test_float</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_float" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_float_list">
+<span class="sig-name descname"><span class="pre">test_float_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_float_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_int">
+<span class="sig-name descname"><span class="pre">test_int</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_int" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_int_list">
+<span class="sig-name descname"><span class="pre">test_int_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_int_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_load_vars_from_config">
+<span class="sig-name descname"><span class="pre">test_load_vars_from_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_load_vars_from_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_mixed_list">
+<span class="sig-name descname"><span class="pre">test_mixed_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_mixed_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_string">
+<span class="sig-name descname"><span class="pre">test_string</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_string" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_helper_functions.TestHelperFunctions.test_string_list">
+<span class="sig-name descname"><span class="pre">test_string_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_helper_functions.TestHelperFunctions.test_string_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tests.test_json_updater">
+<span id="tests-test-json-updater-module"></span><h2>tests.test_json_updater module<a class="headerlink" href="#module-tests.test_json_updater" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.test_nifti_write">
+<span id="tests-test-nifti-write-module"></span><h2>tests.test_nifti_write module<a class="headerlink" href="#module-tests.test_nifti_write" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.test_pet2bids">
+<span id="tests-test-pet2bids-module"></span><h2>tests.test_pet2bids module<a class="headerlink" href="#module-tests.test_pet2bids" title="Permalink to this headline"></a></h2>
+<p>“””Tests for <cite>src</cite> package.”””</p>
+<p>import unittest</p>
+<p>from pypet2bids import pypet2bids</p>
+<dl>
+<dt>class Testpypet2bids(unittest.TestCase):</dt><dd><p>“””Tests for <cite>src</cite> package.”””</p>
+<dl class="simple">
+<dt>def setUp(self):</dt><dd><p>“””Set up test fixtures, if any.”””</p>
+</dd>
+<dt>def tearDown(self):</dt><dd><p>“””Tear down test fixtures, if any.”””</p>
+</dd>
+<dt>def test_000_something(self):</dt><dd><p>“””Test something.”””</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+<section id="module-tests.test_thisbytes">
+<span id="tests-test-thisbytes-module"></span><h2>tests.test_thisbytes module<a class="headerlink" href="#module-tests.test_thisbytes" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-tests.test_write_ecat">
+<span id="tests-test-write-ecat-module"></span><h2>tests.test_write_ecat module<a class="headerlink" href="#module-tests.test_write_ecat" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tests.test_write_ecat.</span></span><span class="sig-name descname"><span class="pre">TestECATWrite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.setUp">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.tearDown">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tearDown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.tearDown" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for deconstructing the test fixture after testing it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.test_create_directory_table">
+<span class="sig-name descname"><span class="pre">test_create_directory_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.test_create_directory_table" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.test_write_directory_table">
+<span class="sig-name descname"><span class="pre">test_write_directory_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.test_write_directory_table" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.test_write_header">
+<span class="sig-name descname"><span class="pre">test_write_header</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.test_write_header" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.test_write_ecat.TestECATWrite.test_write_pixel_data">
+<span class="sig-name descname"><span class="pre">test_write_pixel_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_write_ecat.TestECATWrite.test_write_pixel_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tests" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pypet2bids.html" class="btn btn-neutral float-left" title="pypet2bids package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, OpenNeuroPET.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
