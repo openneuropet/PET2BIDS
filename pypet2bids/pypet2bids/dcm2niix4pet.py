@@ -48,33 +48,28 @@ for metadata_json in metadata_jsons:
         raise err(f"Missing pet metadata files in {metadata_folder}, unable to validate metadata.")
 
 
-def check_json(path_to_json, items_to_check=metadata_dictionaries['PET_metadata.json'], silent=False):
+def check_json(path_to_json, items_to_check=None, silent=False):
     """
-    this method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
+    This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommened key value pairs. If fields are not present a warning is raised to the user.
+
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
-    :param items_to_check: a dictionary with items to check for within that json. Items to check should be structured
-    such there are keys describing the pertinance of the required items corresponding with a list of fields of those
-    items. See below:
+    :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the PET_metadata.json contained in this repository.
+    :param silent=False: Raises warnings or errors to stdout if this flag is set to True.
 
-    #{
-    #    'Units': {'key': False, 'value': False},
-    #    'TracerName': {'key': False, 'value': False},
-    #    'TracerRadionuclide': {'key': False, 'value': False},
-    #    'InjectedRadioactivity': {'key': False, 'value': False}
-    #}
-
-    >>>items_to_check = {"mandatory": ["AttenuationCorrection"],
-    >>>                  "recommended": ["SinglesRate"],
-    >>>                  "optional": ["Anaesthesia"]}
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
     corresponding entry in the json the same can be said of value.
 
     """
+
     # check if path exists
     path_to_json = Path(path_to_json)
     if not path_to_json.exists():
         raise FileNotFoundError(path_to_json)
+
+    # check for default argument for dictionary of items to check
+    if items_to_check is None:
+        items_to_check = metada_dictionaries['PET_metadata.json']
 
     # open the json
     with open(path_to_json, 'r') as infile:
@@ -113,6 +108,7 @@ def update_json_with_dicom_value(
     We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
     missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
     simply is what it is, hate the game not the player.
+
     :param path_to_json: path to the sidecar json to check
     :param missing_values: dictionary output from check_json indicating missing fields and/or values
     :param dicom: the dicom or dicoms that may contain information not picked up by dcm2niix
@@ -176,6 +172,7 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_fie
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
     conversion if '%t' is provided following the '-f' flag. The result is the addition of a date time string of the
     format:
+
     :param dicom: pydicom.dataset.FileDataset object or a path to a dicom
     :param time_field: 
     :param date_field: 
