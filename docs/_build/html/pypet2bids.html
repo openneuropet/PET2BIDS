@@ -145,24 +145,22 @@ as well any additional frame or metadata that’s required for conversion.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.check_json">
-<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">check_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items_to_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'mandatory':</span> <span class="pre">['Manufacturer',</span> <span class="pre">'ManufacturersModelName',</span> <span class="pre">'Units',</span> <span class="pre">'TracerName',</span> <span class="pre">'TracerRadionuclide',</span> <span class="pre">'InjectedRadioactivity',</span> <span class="pre">'InjectedRadioactivityUnits',</span> <span class="pre">'InjectedMass',</span> <span class="pre">'InjectedMassUnits',</span> <span class="pre">'SpecificRadioactivity',</span> <span class="pre">'SpecificRadioactivityUnits',</span> <span class="pre">'ModeOfAdministration',</span> <span class="pre">'TimeZero',</span> <span class="pre">'ScanStart',</span> <span class="pre">'InjectionStart',</span> <span class="pre">'FrameTimesStart',</span> <span class="pre">'FrameDuration',</span> <span class="pre">'AcquisitionMode',</span> <span class="pre">'ImageDecayCorrected',</span> <span class="pre">'ImageDecayCorrectionTime',</span> <span class="pre">'ReconMethodName',</span> <span class="pre">'ReconMethodParameterLabels',</span> <span class="pre">'ReconMethodParameterUnits',</span> <span class="pre">'ReconMethodParameterValues',</span> <span class="pre">'ReconFilterType',</span> <span class="pre">'ReconFilterSize',</span> <span class="pre">'AttenuationCorrection'],</span> <span class="pre">'optional':</span> <span class="pre">['Anaesthesia'],</span> <span class="pre">'recommended':</span> <span class="pre">['InstitutionName',</span> <span class="pre">'InstitutionAddress',</span> <span class="pre">'InstitutionalDepartmentName',</span> <span class="pre">'BodyPart',</span> <span class="pre">'TracerRadLex',</span> <span class="pre">'TracerSNOMED',</span> <span class="pre">'TracerMolecularWeight',</span> <span class="pre">'TracerMolecularWeightUnits',</span> <span class="pre">'InjectedMassPerWeight',</span> <span class="pre">'InjectedMassPerWeightUnits',</span> <span class="pre">'SpecificRadioactivityMeasTime',</span> <span class="pre">'MolarActivity',</span> <span class="pre">'MolarActivityUnits',</span> <span class="pre">'MolarActivityMeasTime',</span> <span class="pre">'InfusionRadioactivity',</span> <span class="pre">'InfusionStart',</span> <span class="pre">'InfusionSpeed',</span> <span class="pre">'InfusionSpeedUnits',</span> <span class="pre">'InjectedVolume',</span> <span class="pre">'DoseCalibrationFactor',</span> <span class="pre">'Purity',</span> <span class="pre">'PharmaceuticalName',</span> <span class="pre">'PharmaceuticalDoseAmount',</span> <span class="pre">'PharmaceuticalDoseUnits',</span> <span class="pre">'PharmaceuticalDoseRegimen',</span> <span class="pre">'PharmaceuticalDoseTime',</span> <span class="pre">'ScanDate',</span> <span class="pre">'InjectionEnd',</span> <span class="pre">'ReconMethodImplementationVersion',</span> <span class="pre">'AttenuationCorrectionMethodReference',</span> <span class="pre">'ScaleFactor',</span> <span class="pre">'ScatterFraction',</span> <span class="pre">'DecayCorrectionFactor',</span> <span class="pre">'PromptRate',</span> <span class="pre">'RandomRate',</span> <span class="pre">'SinglesRate']}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.check_json" title="Permalink to this definition"></a></dt>
-<dd><p>this method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
-also checks for recommened key value pairs. If fields are not present a warning is raised to the user.
-:param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
-:param items_to_check: a dictionary with items to check for within that json. Items to check should be structured
-such there are keys describing the pertinance of the required items corresponding with a list of fields of those
-items. See below:</p>
-<p>#{
-#    ‘Units’: {‘key’: False, ‘value’: False},
-#    ‘TracerName’: {‘key’: False, ‘value’: False},
-#    ‘TracerRadionuclide’: {‘key’: False, ‘value’: False},
-#    ‘InjectedRadioactivity’: {‘key’: False, ‘value’: False}
-#}</p>
-<p>&gt;&gt;&gt;items_to_check = {“mandatory”: [“AttenuationCorrection”],
-&gt;&gt;&gt;                  “recommended”: [“SinglesRate”],
-&gt;&gt;&gt;                  “optional”: [“Anaesthesia”]}
-:return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
-corresponding entry in the json the same can be said of value.</p>
+<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">check_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items_to_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.check_json" title="Permalink to this definition"></a></dt>
+<dd><p>This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
+also checks for recommened key value pairs. If fields are not present a warning is raised to the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_json</strong> – path to a json file e.g. a BIDS sidecar file created after running dcm2niix</p></li>
+<li><p><strong>items_to_check</strong> – a dictionary with items to check for within that json. If None is supplied defaults to the PET_metadata.json contained in this repository.</p></li>
+<li><p><strong>silent=False</strong> – Raises warnings or errors to stdout if this flag is set to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionary of items existence and value state, if key is True/False there exists/(does not exist) a</p>
+</dd>
+</dl>
+<p>corresponding entry in the json the same can be said of value.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -181,11 +179,19 @@ dcm2niix
 <span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">dicom_datetime_to_dcm2niix_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'StudyTime'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'StudyDate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.dicom_datetime_to_dcm2niix_time" title="Permalink to this definition"></a></dt>
 <dd><p>Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
 conversion if ‘%t’ is provided following the ‘-f’ flag. The result is the addition of a date time string of the
-format:
-:param dicom: pydicom.dataset.FileDataset object or a path to a dicom
-:param time_field: 
-:param date_field: 
-:return:</p>
+format:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom</strong> – pydicom.dataset.FileDataset object or a path to a dicom</p></li>
+<li><p><strong>time_field</strong> – </p></li>
+<li><p><strong>date_field</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -198,11 +204,19 @@ format:
 <span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">update_json_with_dicom_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom2bids_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'RadionuclideCodes':</span> <span class="pre">{'126600':</span> <span class="pre">'^44^Scandium',</span> <span class="pre">'126601':</span> <span class="pre">'^51^Manganese',</span> <span class="pre">'126602':</span> <span class="pre">'^70^Arsenic',</span> <span class="pre">'126603':</span> <span class="pre">'^90^Niobium',</span> <span class="pre">'126605':</span> <span class="pre">'^43^Scandium',</span> <span class="pre">'126606':</span> <span class="pre">'^152^Terbium',</span> <span class="pre">'126607':</span> <span class="pre">'^52m^Manganese',</span> <span class="pre">'C-1018C':</span> <span class="pre">'^14^Oxygen',</span> <span class="pre">'C-105A':</span> <span class="pre">'^11^Carbon',</span> <span class="pre">'C-107A1':</span> <span class="pre">'^13^Nitrogen',</span> <span class="pre">'C-111A1':</span> <span class="pre">'^18^Fluorine',</span> <span class="pre">'C-113A1':</span> <span class="pre">'^75^Bromine',</span> <span class="pre">'C-113A2':</span> <span class="pre">'^76^Bromine',</span> <span class="pre">'C-113A3':</span> <span class="pre">'^77^Bromine',</span> <span class="pre">'C-114A5':</span> <span class="pre">'^124^Iodine',</span> <span class="pre">'C-115A2':</span> <span class="pre">'^72^Arsenic',</span> <span class="pre">'C-116A2':</span> <span class="pre">'^73^Selenium',</span> <span class="pre">'C-127A':</span> <span class="pre">'^64^Copper</span> <span class="pre">',</span> <span class="pre">'C-127A1':</span> <span class="pre">'^61^Copper',</span> <span class="pre">'C-127A4':</span> <span class="pre">'^60^Copper',</span> <span class="pre">'C-127A5':</span> <span class="pre">'^62^Copper',</span> <span class="pre">'C-128A2':</span> <span class="pre">'^68^Germanium',</span> <span class="pre">'C-130A1':</span> <span class="pre">'^52^Iron',</span> <span class="pre">'C-131A1':</span> <span class="pre">'^66^Gallium',</span> <span class="pre">'C-131A3':</span> <span class="pre">'^68^Gallium',</span> <span class="pre">'C-135A4':</span> <span class="pre">'^38^Potassium',</span> <span class="pre">'C-141A1':</span> <span class="pre">'^62^Zinc',</span> <span class="pre">'C-149A1':</span> <span class="pre">'^52^Manganese',</span> <span class="pre">'C-155A1':</span> <span class="pre">'^22^Sodium',</span> <span class="pre">'C-159A2':</span> <span class="pre">'^82^Rubidium',</span> <span class="pre">'C-162A3':</span> <span class="pre">'^86^Yttrium',</span> <span class="pre">'C-162A7':</span> <span class="pre">'^90^Yttrium',</span> <span class="pre">'C-163AA':</span> <span class="pre">'^94m^Technetium',</span> <span class="pre">'C-166A2':</span> <span class="pre">'^45^Titanium',</span> <span class="pre">'C-168A4':</span> <span class="pre">'^89^Zirconium',</span> <span class="pre">'C-B1038':</span> <span class="pre">'^15^Oxygen'},</span> <span class="pre">'dcmfields':</span> <span class="pre">['Manufacturer',</span> <span class="pre">&quot;Manufacturer's</span> <span class="pre">Model</span> <span class="pre">Name&quot;,</span> <span class="pre">'Units',</span> <span class="pre">'InstitutionName',</span> <span class="pre">'InstitutionAddress',</span> <span class="pre">'Institutional</span> <span class="pre">Department</span> <span class="pre">Name',</span> <span class="pre">'Body</span> <span class="pre">Part</span> <span class="pre">Examined',</span> <span class="pre">'Mapping</span> <span class="pre">Resource',</span> <span class="pre">'Mapping</span> <span class="pre">Resource</span> <span class="pre">Name',</span> <span class="pre">'CodeMeaning',</span> <span class="pre">'Radionuclide</span> <span class="pre">Total</span> <span class="pre">Dose',</span> <span class="pre">'Radiopharmaceutical</span> <span class="pre">Specific</span> <span class="pre">Activity',</span> <span class="pre">'Radiopharmaceutical</span> <span class="pre">Volume',</span> <span class="pre">'Intervention</span> <span class="pre">Drug</span> <span class="pre">Name',</span> <span class="pre">'Intervention</span> <span class="pre">Drug</span> <span class="pre">Dose',</span> <span class="pre">'Radiopharmaceutical</span> <span class="pre">Start</span> <span class="pre">Time',</span> <span class="pre">'Actual</span> <span class="pre">Frame</span> <span class="pre">Duration',</span> <span class="pre">'Acquisition</span> <span class="pre">Date',</span> <span class="pre">'Radiopharmaceutical</span> <span class="pre">Stop</span> <span class="pre">Time',</span> <span class="pre">'Reconstruction</span> <span class="pre">Method',</span> <span class="pre">'Reconstruction</span> <span class="pre">Method',</span> <span class="pre">'Reconstruction</span> <span class="pre">Method',</span> <span class="pre">'Reconstruction</span> <span class="pre">Method',</span> <span class="pre">'Convolution</span> <span class="pre">Kernel',</span> <span class="pre">'Convolution</span> <span class="pre">Kernel',</span> <span class="pre">'Attenuation</span> <span class="pre">Correction</span> <span class="pre">Method',</span> <span class="pre">'Scatter</span> <span class="pre">Fraction</span> <span class="pre">Factor',</span> <span class="pre">'Dose</span> <span class="pre">Calibration</span> <span class="pre">Factor',</span> <span class="pre">'Decay</span> <span class="pre">Factor'],</span> <span class="pre">'jsonfields':</span> <span class="pre">['Manufacturer',</span> <span class="pre">'ManufacturersModelName',</span> <span class="pre">'Units',</span> <span class="pre">'InstitutionName',</span> <span class="pre">'InstitutionAddress',</span> <span class="pre">'InstitutionalDepartmentName',</span> <span class="pre">'BodyPart',</span> <span class="pre">'TracerName',</span> <span class="pre">'TracerName',</span> <span class="pre">'TracerRadionuclide',</span> <span class="pre">'InjectedRadioactivity',</span> <span class="pre">'MolarActivity',</span> <span class="pre">'InjectedVolume',</span> <span class="pre">'PharmaceuticalName',</span> <span class="pre">'PharmaceuticalDoseAmount',</span> <span class="pre">'InjectionStart',</span> <span class="pre">'FrameDuration',</span> <span class="pre">'ScanDate',</span> <span class="pre">'InjectionEnd',</span> <span class="pre">'ReconMethodName',</span> <span class="pre">'ReconMethodParameterLabels',</span> <span class="pre">'ReconMethodParameterUnits',</span> <span class="pre">'ReconMethodParameterValues',</span> <span class="pre">'ReconFilterType',</span> <span class="pre">'ReconFilterSize',</span> <span class="pre">'AttenuationCorrection',</span> <span class="pre">'ScatterFraction',</span> <span class="pre">'DoseCalibrationFactor',</span> <span class="pre">'DecayCorrectionFactor']}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.update_json_with_dicom_value" title="Permalink to this definition"></a></dt>
 <dd><p>We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
 missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
-simply is what it is, hate the game not the player.
-:param path_to_json: path to the sidecar json to check
-:param missing_values: dictionary output from check_json indicating missing fields and/or values
-:param dicom: the dicom or dicoms that may contain information not picked up by dcm2niix
-:return: a dictionary of sucessfully updated (written to the json file) fields and values</p>
+simply is what it is, hate the game not the player.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_json</strong> – path to the sidecar json to check</p></li>
+<li><p><strong>missing_values</strong> – dictionary output from check_json indicating missing fields and/or values</p></li>
+<li><p><strong>dicom</strong> – the dicom or dicoms that may contain information not picked up by dcm2niix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary of sucessfully updated (written to the json file) fields and values</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -299,6 +313,11 @@ file’s extension.
 </dd></dl>
 
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pypet2bids.dicom_convert.cli">
+<span class="sig-prename descclassname"><span class="pre">pypet2bids.dicom_convert.</span></span><span class="sig-name descname"><span class="pre">cli</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dicom_convert.cli" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </section>
 <section id="module-pypet2bids.ecat">

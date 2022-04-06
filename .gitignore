@@ -34,3 +34,8 @@ README.rst
 
 # test environment
 test_env/
+
+# sphinx
+docs/_build/*/*.pickle
+docs/_build/html/_static
+docs/_build/html/_sources

@@ -32,6 +32,7 @@ import sys
 # get absolute path to python project files
 python_project_path = os.path.abspath('../pypet2bids')
 sys.path.insert(0, python_project_path)
+print(f"python_project_path: {python_project_path}")
 
 # -- Project information -----------------------------------------------------
 
@@ -54,6 +55,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
 ]
+
+#autodoc_mock_imports = ['pypet2bids']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
