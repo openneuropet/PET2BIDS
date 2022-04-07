@@ -54,12 +54,11 @@ def check_json(path_to_json, items_to_check=None, silent=False):
     also checks for recommened key value pairs. If fields are not present a warning is raised to the user.
 
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
-    :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the PET_metadata.json contained in this repository.
-    :param silent=False: Raises warnings or errors to stdout if this flag is set to True.
-
+    :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
+           PET_metadata.json contained in this repository
+    :param silent: Raises warnings or errors to stdout if this flag is set to True
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
-    corresponding entry in the json the same can be said of value.
-
+            corresponding entry in the json the same can be said of value
     """
 
     # check if path exists
@@ -103,7 +102,8 @@ def update_json_with_dicom_value(
         path_to_json,
         missing_values,
         dicom_header,
-        dicom2bids_json=metadata_dictionaries['dicom2bids.json']):
+        dicom2bids_json=None
+        ):
     """
     We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
     missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
@@ -111,9 +111,16 @@ def update_json_with_dicom_value(
 
     :param path_to_json: path to the sidecar json to check
     :param missing_values: dictionary output from check_json indicating missing fields and/or values
-    :param dicom: the dicom or dicoms that may contain information not picked up by dcm2niix
+    :param dicom_header: the dicom or dicoms that may contain information not picked up by dcm2niix
+    :param dicom2bids_json: a json file that maps dicom header entities to their corresponding BIDS entities
     :return: a dictionary of sucessfully updated (written to the json file) fields and values
     """
+
+    # purely to clean up the generated read the docs page from sphinx, otherwise the entire json appears in the
+    # read the docs page.
+    if dicom2bids_json is None:
+        dicom2bids_json = metadata_dictionaries['dicom2bids.json']
+
     # Units gets written as Unit in older versions of dcm2niix here we check for missing Units and present Unit entity
     units = missing_values.get('Units', None)
     if units:
@@ -162,21 +169,16 @@ def update_json_with_dicom_value(
                 temp = JsonMAJ(json_path=path_to_json, update_values={key: dicom_field})
                 temp.update()
 
-def update_json_with_additional_arguments(path_to_json, **kwargs):
-    for key, value in kwargs.items():
-        json_updater = JsonMAJ(json_path=path_to_json, )
-
-
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
     conversion if '%t' is provided following the '-f' flag. The result is the addition of a date time string of the
-    format:
+    format. This function similarly generates the same datetime string from a dicom header.
 
     :param dicom: pydicom.dataset.FileDataset object or a path to a dicom
-    :param time_field: 
-    :param date_field: 
-    :return: 
+    :param time_field: The field to check in the dicom for the time, default is StudyTime
+    :param date_field: the field to check in the dicom for the date, default is StudyDate
+    :return: a datetime string that corresponds to the converted filenames from dcm2niix when used with the `-f %t` flag
     """
     if dicom:
         if type(dicom) is pydicom.dataset.FileDataset:
@@ -278,7 +280,8 @@ class Dcm2niix4PET:
     def check_for_dcm2niix():
         """
         Just checks for dcm2niix using the system shell, returns 0 if dcm2niix is present.
-        :return: status code of the command dcm2niix
+
+        :return: status code of the command dcm2niix -h
         """
         check = subprocess.run("dcm2niix -h", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
@@ -290,11 +293,14 @@ class Dcm2niix4PET:
 
         return check.returncode
 
-    def extract_dicom_headers(self, additional_fields=[], depth=1):
+    def extract_dicom_headers(self, depth=1):
         """
         Opening up files till a dicom is located, then extracting any header information
         to be used during and after the conversion process. This includes patient/subject id,
         as well any additional frame or metadata that's required for conversion.
+
+        :param depth: the number of dicoms to collect per folder, defaults to 1 as it assumes a single sessions worth of
+                     dicoms is included per folder.
         :return: dicom header information to self.subject_id and/or self.dicom_header_data
         """
         n = 0
@@ -315,7 +321,15 @@ class Dcm2niix4PET:
                     pass
                 n += 1
 
+        return self.dicom_headers
+
     def run_dcm2niix(self):
+        """
+        This runs dcm2niix and uses the other methods within this class to supplement the sidecar json's produced as
+        dcm2niix output.
+
+        :return: the path to the output of dcm2niix and the modified sidecar jsons
+        """
         if self.file_format:
             file_format_args = f"-f {self.file_format}"
         else:
@@ -380,8 +394,18 @@ class Dcm2niix4PET:
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
 
+            return self.destination_path
+
 
     def match_dicom_header_to_file(self, destination_path=None):
+        """
+        Matches a dicom header to a nifti or json file produced by dcm2niix, this is run after dcm2niix converts the
+        input dicoms into nifti's and json's.
+
+        :param destination_path: the path dcm2niix generated files are placed at, collected during class instantiation
+
+        :return: a dictionary of headers matched to nifti and json file names
+        """
         if not destination_path:
             destination_path = self.destination_path
         # first collect all of the files in the output directory

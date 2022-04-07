@@ -15,6 +15,7 @@ import sphinx_rtd_theme
 #
 import os
 import sys
+import pathlib
 
 
 # some comments about path setup
@@ -30,9 +31,10 @@ import sys
 
 
 # get absolute path to python project files
-python_project_path = os.path.abspath('../pypet2bids')
-sys.path.insert(0, python_project_path)
-print(f"python_project_path: {python_project_path}")
+python_project_path = pathlib.Path(os.path.abspath('../pypet2bids'))
+matlab_project_path = os.path.join(python_project_path.parent, 'matlab')
+sys.path.insert(0, str(python_project_path))
+sys.path.insert(0, matlab_project_path)
 
 # -- Project information -----------------------------------------------------
 
@@ -43,8 +45,10 @@ author = 'OpenNeuroPET'
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
 
-
 # -- General configuration ---------------------------------------------------
+
+# set variable to matlab path
+matlab_src_dir = matlab_project_path
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -54,8 +58,8 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
+    'sphinxcontrib.matlab',
 ]
-
 #autodoc_mock_imports = ['pypet2bids']
 
 # Add any paths that contain templates here, relative to this directory.

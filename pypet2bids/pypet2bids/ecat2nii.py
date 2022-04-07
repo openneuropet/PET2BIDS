@@ -16,8 +16,22 @@ def ecat2nii(ecat_main_header=None,
              sif_out=False,
              affine=None,
              save_binary=False,
-             load_scanner_parameters=False,
              **kwargs):
+    """
+    Converts an ECAT file into a nifti and a sidecar json, used in conjunction with read_ecat from pypet2bids.read_ecat.
+
+    :param ecat_main_header: the main header of an ECAT file
+    :param ecat_subheaders: the subheaders for each frame of the ECAT file
+    :param ecat_pixel_data: the imaging/pixel data from the ECAT file
+    :param ecat_file: the path to the ECAT file, required and used to create .nii and .json output files
+    :param nifti_file: the desired output path of the nifti file
+    :param sif_out: outputs a .sif file containing the images pixel data
+    :param affine: a user supplied affine, this is gathered from the ECAT if not supplied.
+    :param save_binary: dumps a pickled ECAT object, you probably shouldn't be using this.
+    :param kwargs: additional key value pairs that one wishes to add to the sidecar json accompanying a converted ECAT
+        nii image
+    :return: a nibabel nifti object if one wishes to muddle with the object in python and not in a .nii file
+    """
     # if a nifti file/path is not included write a nifti next to the ecat file
     if not nifti_file:
         nifti_file = os.path.splitext(ecat_file)[0] + ".nii"
