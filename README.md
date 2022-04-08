@@ -12,15 +12,15 @@ Simply download the repository - follow the specific Matlab or Python explanatio
 
 ### matlab
 
-This is where the matlab code lives - simply add the folder your Matlab path to start using the different functions.
+Under the /matlab folder, you will find the source code to use - simply add that folder your Matlab(R) path to start using the different functions.
 
 ### pypet2bids
 
-This is where the python library lives.
+Under the /pypet2bids folder,  you will find the source code to use - follow the installation instruction in /pypet2bids/pypet2bids/README.md.
 
 ### spreadsheet_conversion
 
-This folder contains spreadsheets templates and examples of metedata and matlab and python code to convert tehm to json files.
+This folder contains spreadsheets templates and examples of metadata and matlab and python code to convert them to json files. Often, metadata such as Frame durations, InjectedRadioactivity, etc are stored in spreadsheets and we have made those function to create json files automatically for 1 or many subjects at once to go with the nifti imaging data. Note, we also have conversion for pmod files (also spreadsheets) allowing to export to blood.tsv files.
 
 ### metadata
 
@@ -28,7 +28,7 @@ A small collection of json files for our metadata information.
 
 ### ecat_validation
 
-This folder contains exemple of Siemens HRRT scanner data using ecat file format.
+This folder contains code generating Siemens HRRT scanner data using ecat file format and validating the matlab and python conversion tools (i.e. giving the data generated as ecat, do our nifti images reflect acurately the data).
 
 ## Citation 
 
