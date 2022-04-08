@@ -8,41 +8,47 @@ function ecat2nii_test(varargin)
 %         the known values in the coresponding txt file -- see
 %         /ecat_validation)
 %
-% e.g. ecat2nii_test(fullfile(pwd,'myfile.v'));
-% ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v')
+% USAGE
+% ecat2nii_test
+% ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v.gz')
+%
 % Claus Svarer & Cyril Pernet
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
 
 if nargin ==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
-        ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v']);
-    groundtruth = [ecatfile(1:end-2) '.txt'];
+        ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v.gz']);
+    groundtruth = [ecatfile(1:end-5) '.mat'];
 else
     ecatfile = varargin{1};
 end
 
 meta.info = 'just running a test';
 meta.TimeZero = datestr(now,'hh:mm:ss');
-ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
 cd(fileparts(ecatfile))
 
 if exist('groundtruth','var')
-    [filepath,filename] = fileparts(ecatfile);
+    ecat2nii(ecatfile,{meta},'gz',false)
     img                 = load(groundtruth);
-    img_reread          = niftiread(fullfile(filepath,[filename '.nii']));
-    Diff_ecat_nifti     = sort(img(:)) - sort(img_reread(:));
-    meandiff            = mean(Diff_ecat_nifti);
-    table(min(Diff_ecat_nifti),meandiff,max(Diff_ecat_nifti),...
+    img                 = sort(single([img.frame_1_pixel_data(:);img.frame_2_pixel_data(:);...
+        img.frame_3_pixel_data(:);img.frame_4_pixel_data(:)]));
+    meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
+    niftiout            = ecat2nii(ecatfile,meta);
+    img_reread          = niftiread(niftiout{1});
+    delete(niftiout{1}); delete([niftiout{1}(1:end-6) 'json']);
+    Diff_ecat_nifti     = img-sort(img_reread(:)); % ground truth vs write (ie 2 errors cumulated)
+    meandiff            = mean(Diff_ecat_nifti(:));
+    table(min(Diff_ecat_nifti(:)),meandiff,max(Diff_ecat_nifti(:)),...
         'VariableNames',{'min','mean','max'}) % analyze diff
-
 else
+    ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
     [filepath,filename] = fileparts(ecatfile);
-    img                 = load(fullfile(filepath,[filename '.ecat.mat']));
+    img                 = load(fullfile(filepath,[filename(1:end-2) '.ecat.mat']));
     img                 = img.(cell2mat(fieldnames(img)));
-    img_reread          = niftiread(fullfile(filepath,[filename '.nii']));
+    img_reread          = niftiread(fullfile(filepath,[filename(1:end-2) '.nii']));
     
-    Diff_ecat_nifti     = img - img_reread;
+    Diff_ecat_nifti     = img - img_reread; % read vs write
     meandiff            = mean(img(:)-img_reread(:));
     for f=size(img,4):-1:1
         tmp               = squeeze(img(:,:,:,f)); tmp(tmp==0)=NaN;
@@ -52,7 +58,8 @@ else
     end
     table(summary_diff(:,1),summary_diff(:,2),summary_diff(:,3),...
         'VariableNames',{'min','mean','max'}) % analyze diff
-    
+    delete(fullfile(filepath,[filename(1:end-2) '.nii']))
+    delete(fullfile(filepath,[filename(1:end-2) '.ecat.mat']))
 end
 
 figure
@@ -60,13 +67,19 @@ A = min(Diff_ecat_nifti(:));
 B = max(Diff_ecat_nifti(:));
 if exist('groundtruth','var')
     subplot(1,3,1);
+    plot(img,sort(img_reread(:)),'*');
+    M = max(max([img(:) img_reread(:)]));
+    axis([0 numel(img(:))*2 0 M]); hold on;
+    plot([0 numel(img(:))*2],[0 M],'r','LineWidth',1); 
 else
     subplot(2,2,1);
+    plot(img(:),img_reread(:),'*');
+    M = max(max([img(:) img_reread(:)])); 
+    axis([0 M 0 M]); hold on;
+    plot([0 M],[0 M],'r','LineWidth',1); 
 end
-plot(img(:),img_reread(:),'*'); hold on;
-M = max(max([img(:) img_reread(:)])); axis([0 M 0 M])
-plot([0 M],[0 M],'r','LineWidth',1); grid on
-xlabel('Original'); ylabel('Nifti'); title('Read vs Written');
+xlabel('Original'); ylabel('Nifti'); 
+grid on; title('Read vs Written');
 
 [simg,index] = sort(img(:)); 
 if exist('groundtruth','var')
@@ -74,7 +87,7 @@ if exist('groundtruth','var')
 else
     subplot(2,2,3);
 end
-plot(img(:),(simg-img_reread(index)),'*')
+plot(img(:),(simg-img_reread(index)),'*'); grid on
 xlabel('Original'); ylabel('Difference'); 
 title(sprintf('Average error: %f\n',meandiff));
 
@@ -83,7 +96,7 @@ if exist('groundtruth','var')
 else
     subplot(2,2,4);
 end
-histogram(Diff_ecat_nifti(:));
+histogram(Diff_ecat_nifti(:)); grid on
 axis([A B 0 10000]); xlabel('error'); 
 title('Distribution of all errors')
 
@@ -91,7 +104,8 @@ if ~exist('groundtruth','var')
     
     subplot(2,2,2); plot(summary_diff(:,2),'LineWidth',2); grid on; xlabel('frames');
     ylabel('Difference'); title('Avg error per frame')
-    
+    saveas(gcf, [filename '.jpg'],'jpg');
+
     vidObj = VideoWriter([filename '_error']);
     open(vidObj); figure('Name','error per frames');
     set(gcf,'Color','w','InvertHardCopy','off', 'units','normalized', 'outerposition',[0 0 1 1]);
