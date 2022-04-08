@@ -258,7 +258,7 @@ for j=1:length(FileListIn)
             info.ScanStart                    = 0;
         end
         
-        if ~isfield(indo,'InjectionStart')
+        if ~isfield(info,'InjectionStart')
             info.InjectionStart               = 0;
         end
         
@@ -273,7 +273,7 @@ for j=1:length(FileListIn)
         jsonwrite([filenameout '.json'],info)
         status = updatejsonpetfile([filenameout '.json']); % validate
         if status.state ~= 1
-            warning('the json file appears invalid: %s',status.messages)
+            warning('the json file is BIDS invalid')
         end
         
         info.Datatype                         = 'single';
@@ -343,5 +343,9 @@ for j=1:length(FileListIn)
         
     catch conversionerr
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
+    end
+    
+    if exist('newfile','var') % i.e. decompresed .ii.gz
+        delete(newfile{1});
     end
 end
