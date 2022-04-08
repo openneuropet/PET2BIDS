@@ -26,7 +26,8 @@ The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET
 _Note for windows user_: edit the dcm2niix4pet.m line 42 to indicate where is the function located
 
 ```matlab
-meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
 ```  
 Alternatively, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
