@@ -101,16 +101,9 @@ ENV/
 # mypy
 .mypy_cache/
 
-# IDE settings
-.vscode/
-.idea/
-
 # project specific ignores
 # I think matlab generates these when you're running interactive files
 *.asv
-
-# pycharm nonsense
-*.idea
 
 # python nonsense
 *__pycache__*
@@ -123,9 +116,6 @@ build/
 dist/
 *.spec
 
-
-# annoying pycharm files
-*.DS_STORE
 
 docs/
 *.pickle

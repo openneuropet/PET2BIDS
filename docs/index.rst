@@ -8,6 +8,7 @@ Welcome to PET2BIDS's documentation!
 
 .. toctree::
    modules
+   matlab
    :maxdepth: 2
    :caption: Contents:
 

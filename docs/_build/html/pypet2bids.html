@@ -43,11 +43,11 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">pypet2bids package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.cli">pypet2bids.cli module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.dcm2niix4pet">pypet2bids.dcm2niix4pet module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pypet2bids-dcm2niix4pet-module">pypet2bids.dcm2niix4pet module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.dicom_convert">pypet2bids.dicom_convert module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.ecat">pypet2bids.ecat module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.ecat2nii">pypet2bids.ecat2nii module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.golden_ecat">pypet2bids.golden_ecat module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pypet2bids-golden-ecat-module">pypet2bids.golden_ecat module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.helper_functions">pypet2bids.helper_functions module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.read_ecat">pypet2bids.read_ecat module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pypet2bids.sidecar">pypet2bids.sidecar module</a></li>
@@ -58,6 +58,7 @@
 <li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="matlab.html">matlab</a></li>
 </ul>
 
         </div>
@@ -125,142 +126,8 @@ This class is used during the construction of the ArgumentParser class via the a
 </dd></dl>
 
 </section>
-<section id="module-pypet2bids.dcm2niix4pet">
-<span id="pypet2bids-dcm2niix4pet-module"></span><h2>pypet2bids.dcm2niix4pet module<a class="headerlink" href="#module-pypet2bids.dcm2niix4pet" title="Permalink to this headline"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.Dcm2niix4PET">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">Dcm2niix4PET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_translation_script</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_arguments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%p_%i_%t_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.Dcm2niix4PET" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.Dcm2niix4PET.check_for_dcm2niix">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_for_dcm2niix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.Dcm2niix4PET.check_for_dcm2niix" title="Permalink to this definition"></a></dt>
-<dd><p>Just checks for dcm2niix using the system shell, returns 0 if dcm2niix is present.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>status code of the command dcm2niix -h</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.Dcm2niix4PET.extract_dicom_headers">
-<span class="sig-name descname"><span class="pre">extract_dicom_headers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.Dcm2niix4PET.extract_dicom_headers" title="Permalink to this definition"></a></dt>
-<dd><p>Opening up files till a dicom is located, then extracting any header information
-to be used during and after the conversion process. This includes patient/subject id,
-as well any additional frame or metadata that’s required for conversion.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>depth</strong> – the number of dicoms to collect per folder, defaults to 1 as it assumes a single sessions worth of
-dicoms is included per folder.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>dicom header information to self.subject_id and/or self.dicom_header_data</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.Dcm2niix4PET.match_dicom_header_to_file">
-<span class="sig-name descname"><span class="pre">match_dicom_header_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">destination_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.Dcm2niix4PET.match_dicom_header_to_file" title="Permalink to this definition"></a></dt>
-<dd><p>Matches a dicom header to a nifti or json file produced by dcm2niix, this is run after dcm2niix converts the
-input dicoms into nifti’s and json’s.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>destination_path</strong> – the path dcm2niix generated files are placed at, collected during class instantiation</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dictionary of headers matched to nifti and json file names</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.Dcm2niix4PET.run_dcm2niix">
-<span class="sig-name descname"><span class="pre">run_dcm2niix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.Dcm2niix4PET.run_dcm2niix" title="Permalink to this definition"></a></dt>
-<dd><p>This runs dcm2niix and uses the other methods within this class to supplement the sidecar json’s produced as
-dcm2niix output.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the path to the output of dcm2niix and the modified sidecar jsons</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.check_json">
-<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">check_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items_to_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.check_json" title="Permalink to this definition"></a></dt>
-<dd><p>This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
-also checks for recommened key value pairs. If fields are not present a warning is raised to the user.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>path_to_json</strong> – path to a json file e.g. a BIDS sidecar file created after running dcm2niix</p></li>
-<li><p><strong>items_to_check</strong> – a dictionary with items to check for within that json. If None is supplied defaults to the
-PET_metadata.json contained in this repository</p></li>
-<li><p><strong>silent</strong> – Raises warnings or errors to stdout if this flag is set to True</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
-corresponding entry in the json the same can be said of value</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.collect_date_time_from_file_name">
-<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">collect_date_time_from_file_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.collect_date_time_from_file_name" title="Permalink to this definition"></a></dt>
-<dd><p>Collects the date and time from a nifti or a json produced by dcm2niix when dcm2niix is run with the options
-%p_%i_%t_%s. This datetime us used to match a dicom header object to the resultant file. E.G. if there are missing
-BIDS fields in the json produced by dcm2niix it’s hopeful that the dicom header may contain the missing info.
-:param file_name: name of the file to extract the date time info from, this should be a json ouput file from
-dcm2niix
-:return: a date and time object</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.dicom_datetime_to_dcm2niix_time">
-<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">dicom_datetime_to_dcm2niix_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'StudyTime'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'StudyDate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.dicom_datetime_to_dcm2niix_time" title="Permalink to this definition"></a></dt>
-<dd><p>Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
-conversion if ‘%t’ is provided following the ‘-f’ flag. The result is the addition of a date time string of the
-format. This function similarly generates the same datetime string from a dicom header.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dicom</strong> – pydicom.dataset.FileDataset object or a path to a dicom</p></li>
-<li><p><strong>time_field</strong> – The field to check in the dicom for the time, default is StudyTime</p></li>
-<li><p><strong>date_field</strong> – the field to check in the dicom for the date, default is StudyDate</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a datetime string that corresponds to the converted filenames from dcm2niix when used with the <cite>-f %t</cite> flag</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pypet2bids.dcm2niix4pet.update_json_with_dicom_value">
-<span class="sig-prename descclassname"><span class="pre">pypet2bids.dcm2niix4pet.</span></span><span class="sig-name descname"><span class="pre">update_json_with_dicom_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom2bids_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypet2bids.dcm2niix4pet.update_json_with_dicom_value" title="Permalink to this definition"></a></dt>
-<dd><p>We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
-missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
-simply is what it is, hate the game not the player.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>path_to_json</strong> – path to the sidecar json to check</p></li>
-<li><p><strong>missing_values</strong> – dictionary output from check_json indicating missing fields and/or values</p></li>
-<li><p><strong>dicom_header</strong> – the dicom or dicoms that may contain information not picked up by dcm2niix</p></li>
-<li><p><strong>dicom2bids_json</strong> – a json file that maps dicom header entities to their corresponding BIDS entities</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dictionary of sucessfully updated (written to the json file) fields and values</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="pypet2bids-dcm2niix4pet-module">
+<h2>pypet2bids.dcm2niix4pet module<a class="headerlink" href="#pypet2bids-dcm2niix4pet-module" title="Permalink to this headline"></a></h2>
 </section>
 <section id="module-pypet2bids.dicom_convert">
 <span id="pypet2bids-dicom-convert-module"></span><h2>pypet2bids.dicom_convert module<a class="headerlink" href="#module-pypet2bids.dicom_convert" title="Permalink to this headline"></a></h2>
@@ -514,8 +381,8 @@ nii image</p></li>
 </dd></dl>
 
 </section>
-<section id="module-pypet2bids.golden_ecat">
-<span id="pypet2bids-golden-ecat-module"></span><h2>pypet2bids.golden_ecat module<a class="headerlink" href="#module-pypet2bids.golden_ecat" title="Permalink to this headline"></a></h2>
+<section id="pypet2bids-golden-ecat-module">
+<h2>pypet2bids.golden_ecat module<a class="headerlink" href="#pypet2bids-golden-ecat-module" title="Permalink to this headline"></a></h2>
 </section>
 <section id="module-pypet2bids.helper_functions">
 <span id="pypet2bids-helper-functions-module"></span><h2>pypet2bids.helper_functions module<a class="headerlink" href="#module-pypet2bids.helper_functions" title="Permalink to this headline"></a></h2>
