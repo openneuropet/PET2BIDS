@@ -3,41 +3,43 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
 %
-% FORMAT: fileout = ecat2nii(FileListIn,MetaList)
-%         fileout = ecat2nii(FileListIn,MetaList,options)
+% :format: - fileout = ecat2nii(FileListIn,MetaList)
+%          - fileout = ecat2nii(FileListIn,MetaList,options)
 %
-% INPUT: FileListIn - a name or a Cell array of characters with paths and filenames 
-%        MetaList - a structure or Cell array of structures for metadata
-%        (a single structure can be use other many FileListIn - see examples)
-%        options are name/value pairs
-%                'FileListOut' a name or cell array of characters with filenames
-%                              (with path if the path out is different)
-%                'sifout' is true or false (default) to output a sif file
-%                'gz' is true (default) or false to output .nii.gz or .nii
-%                'savemat' is true or false (default) to save the ecat data as .mat
+% :param FileListIn: a name or a Cell array of characters with paths and filenames
+% :param MetaList: a structure or Cell array of structures for metadata
+%                  (a single structure can be use other many FileListIn - see examples)
+%                  options are name/value pairs
+% :param FileListOut: a name or cell array of characters with filenames
+%                     (with path if the path out is different)
+% :param sifout: is true or false (default) to output a sif file, default = false, 0/1 to indicate
+% :param gz: is true (default) or false to output .nii.gz or .nii
+% :param savemat: is true or false (default) to save the ecat data as .mat
 %
-% OUTPUT FileListOut is the name or a cell array of names of the nifti files created
+% :returns: FileListOut is the name or a cell array of names of the nifti files created
 %        (should be the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
-% Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+%
+% .. code-block::
+%
+%   Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                      'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
-%         FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
-%         FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
-%         FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));
+%   FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
+%   FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
+%   FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));``
 %
-% SIF is a simple ascii file that contains the PET frame start and end times,
-% and the numbers of observed events during each PET time frame.
+% .. note:: SIF is a simple ascii file that contains the PET frame start and end times,
+%       and the numbers of observed events during each PET time frame.
 %
-% Dev: if the meta structure as a field (key) 'info' with a value containing 'test'
-%      the json validation is skipped -- allows e.g. unit testing
+%       Devs, if the meta structure as a field (key) 'info' with a value containing 'test'
+%       the json validation is skipped -- allows e.g. unit testing
 %
-% Uses: readECAT7.m (Raymond Muzic, 2002)
-% See also get_pet_metadata.m to generate the metadata structure
+%       Uses readECAT7.m (Raymond Muzic, 2002)
+%       See also get_pet_metadata.m to generate the metadata structure
 %
-% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
-%    (some of the code is based on code from Mark Lubbering
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+%       Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021 (some of the code is based on code from Mark Lubbering)
+%
+%       Copyright Open NeuroPET team
 
 %% defaults
 % ---------
