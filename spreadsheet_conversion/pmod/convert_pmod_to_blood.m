@@ -3,15 +3,18 @@ function convert_pmod_to_blood(varargin)
 % routine the converts bld files (i.e. pmod ready tab or comma separated values)
 % works on a subject per subject basis
 %
-% FORMAT convert_pmod_to_blood(ParentFraction,Plasma2WholebloodRatio,WholebloodActivity,outputname,addjson,'on')
+% FORMAT convert_pmod_to_blood(filesin,'type','both','outputname',name,addjson,'on')
 %
-% INPUT ParentFraction,Plasma2WholebloodRatio,WholebloodActivity are the pmod files to convert
-%       outputname (optional) is the name of the json file out (with or without full path)
+% INPUT filesin a cell array of files e.g. ParentFraction,Plasma2WholebloodRatio,WholebloodActivity pmod files
+%       whole blood and parent file must be present, Plasma2WholebloodRatio is optional
+%       'type' should be 'manual' 'autosampler' or 'both'
+%       optional
+%       'outputname' for the name of file(s) to export
+%       'addjson' to also create a json file 
 %
 % OUTPUT tsv files files for BIDS
 %        if 'addjson' is on, also create an associated json file
 %
-% whole blood, whole plasma always and parent often manual (for metabolite)
 % Cyril Pernet - NRU
 
 %% PET BIDS parameters
@@ -49,8 +52,8 @@ if nargin == 0
         disp('Selection cancelled');
         return
     else
-        for i=length(filenames):-1:1
-            filein{i} = fullfile(pathnames, filenames{1});
+        for i = length(filenames):-1:1
+            filein{i} = fullfile(pathnames, filenames{i});
             fprintf('files selected:\n%s\n', filein{i});
         end
     end
@@ -71,7 +74,7 @@ end
 % garbage)
 
 for i=length(filein):-1:1
-    movefile(filein1,[filein{i}(1:end-3) 'xlsx']); % fool matlab
+    movefile(filein{i},[filein{i}(1:end-3) 'xlsx']); % fool matlab
     try
         datain{i} = readtable([filein{i}(1:end-3) 'xlsx'],'FileType','spreadsheet','VariableNamingRule','preserve');
         movefile([filein{i}(1:end-3) 'xlsx'],filein{i}); % back to normal
@@ -83,40 +86,51 @@ for i=length(filein):-1:1
 end
 
 for i=length(filein):-1:1
-    if any(contains(datain{i}.Properties.VariableNames,'parent-fraction','IgnoreCase',true))
+    if any(contains(datain{i}.Properties.VariableNames,'parent','IgnoreCase',true))
         ParentFraction = datain{i};
     elseif any(contains(datain{i}.Properties.VariableNames,'value','IgnoreCase',true))
         Plasma2WholebloodRatio = datain{i}; 
-    elseif any(contains(datain{i}.Properties.VariableNames,'whole-blood','IgnoreCase',true))
+    elseif any(contains(datain{i}.Properties.VariableNames,{'whole-blood','whole blood'},'IgnoreCase',true))
         WholebloodActivity = datain{i}; 
     end
 end
 clear filename datain
 
 if any([~exist('ParentFraction','var') ...
-        ~exist('Plasma2WholebloodRatio','var') ...
         ~exist('WholebloodActivity','var')])
-    error('at least one pmod file did not return expected header')
+    error('ParentFraction and/or WholebloodActivity files did not load successfully')
 end
-        
+      
 % fix the time info to the right format
-if any(contains(ParentFraction.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
-    ParentFraction.("time[minutes]") = seconds(minutes(ParentFraction.("time[minutes]"))); % transform to seconds
-end
-
-if any(contains(Plasma2WholebloodRatio.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
-    Plasma2WholebloodRatio.("time[minutes]") = seconds(minutes(Plasma2WholebloodRatio.("time[minutes]"))); 
-end
-
 if any(contains(WholebloodActivity.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
     WholebloodActivity.("time[minutes]") = seconds(minutes(WholebloodActivity.("time[minutes]"))); 
 end
 
+if any(contains(ParentFraction.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
+    ParentFraction.("time[minutes]") = seconds(minutes(ParentFraction.("time[minutes]"))); % transform to seconds
+end
+
+if exist('Plasma2WholebloodRatio','var')
+    if any(contains(Plasma2WholebloodRatio.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
+        Plasma2WholebloodRatio.("time[minutes]") = seconds(minutes(Plasma2WholebloodRatio.("time[minutes]")));
+    end
+end
+
 % make _recording-autosampler_blood.tsv
-% any match between WholebloodActivity and the others? if so, should
-% reflect the autosampled part
-WholebloodActivity.("time[minutes]") ==  Plasma2WholebloodRatio.("time[minutes]")
-WholebloodActivity.("time[minutes]") ==  ParentFraction.("time[minutes]")
+
+
+same_blood_plasma_sampling = 0;
+if length(WholebloodActivity.("time[minutes]")) == length(Plasma2WholebloodRatio.("time[minutes]"))
+    same_blood_plasma_sampling = ...
+        sum(WholebloodActivity.("time[minutes]") == Plasma2WholebloodRatio.("time[minutes]")) == length(Plasma2WholebloodRatio.("time[minutes]"));
+end
+
+if same_blood_plasma_sampling == 0
+    testdiff = length(Plasma2WholebloodRatio.("time[minutes]")) - sum(WholebloodActivity.("time[minutes]") == Plasma2WholebloodRatio.("time[minutes]"));
+    if length(ParentFraction.("time[minutes]")) == testdiff
+        parent_sampling = 'manual';
+    end
+end
 
 % make _recording-manual_blood.tsv
 
