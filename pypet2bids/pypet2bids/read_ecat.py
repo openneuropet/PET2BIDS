@@ -25,8 +25,9 @@ def get_ecat_bytes(path_to_ecat: str):
     """
     Opens an ecat file and reads the entry file into memory to return a bytes object
     not terribly memory efficient for large or parallel reading of ecat files.
+
     :param path_to_ecat: path to an ecat file, however will literally open any file an read it
-    in as bytes.
+        in as bytes.
     :return: a bytes object
     """
     # check if file exists
@@ -42,6 +43,7 @@ def get_ecat_bytes(path_to_ecat: str):
 def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
     """
     Open a file at path to bytes and reads in the information byte by byte.
+
     :param path_to_bytes: Path to file to read
     :param byte_start: Position to place the seek head at before reading bytes
     :param byte_stop: Position to stop reading bytes at
@@ -67,11 +69,12 @@ def read_bytes(path_to_bytes: str, byte_start: int, byte_stop: int = -1):
 def collect_specific_bytes(bytes_object: bytes, start_position: int = 0, width: int = 0):
     """
     Collects specific bytes within a bytes object.
+
     :param bytes_object: an opened bytes object
     :param start_position: the position to start to read at
     :param width: how far to read from the start position
     :param relative_to: position relative to 0 -> start of file/object, 1 -> current position of seek head,
-    2 -> end of file/object
+        2 -> end of file/object
     :return: the bytes starting at position
     """
     # navigate to byte position
@@ -83,6 +86,7 @@ def get_buffer_size(data_type: str, variable_name: str):
     """
     Determine the byte width of a variable as defined in the ecat_headers.json
     such that Fill(6) will return 6
+
     :param data_type:
     :param variable_name:
     :return: the number of bytes to expand a buffer to
@@ -134,6 +138,7 @@ def filter_bytes(unfiltered: bytes, struct_fmt: str):
     Cleans up byte strings and bytes types into python int, float, string, and list data types, additionally
     struct.unpack returns a tuple object even if only a single value is available, this function determines when to
     return a single value or a list of values based on the contents of the unfiltered object.
+
     :param unfiltered: a raw bytes type object
     :param struct_fmt: the c struct type of the object
     :return: a cleaned python int, float, string, or list

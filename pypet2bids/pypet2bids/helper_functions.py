@@ -7,10 +7,11 @@ import ast
 
 def compress(file_like_object, output_path: str = None):
     """
-    Compresses a file using gzip
+    Compresses a file using gzip.
+
     :param file_like_object: a file path to an uncompressed file
     :param output_path: an output path to compress the file to, if omitted simply appends .gz to
-    file_like_object path
+        file_like_object path
     :return: output_path on successful completion of compression
     """
     if os.path.isfile(file_like_object) and not output_path:
@@ -32,10 +33,11 @@ def compress(file_like_object, output_path: str = None):
 
 def decompress(file_like_object, output_path: str = None):
     """
-    Decompresses a gzip file
+    Decompresses a gzip file.
+
     :param file_like_object: a compressed gzip file
     :param output_path: optional output path, if not supplied this function simply trims '.gz' off of
-    the input file and writes to that amended path
+        the input file and writes to that amended path
     :return: output_path on successful decompression
     """
     if not output_path and '.gz' in file_like_object:
@@ -53,6 +55,7 @@ def decompress(file_like_object, output_path: str = None):
 def load_vars_from_config(path_to_config: str):
     """
     Loads values from a .env file given a path to said .env file.
+
     :param path_to_config: path to .env file
     :return: a dictionary containing the values stored in .env
     """

@@ -27,19 +27,20 @@ def parse_this_date(date_like_object) -> str:
 
 class Ecat:
     """
-    This class reads an ecat file w/ nibabel.ecat.load and extracts header, subheader, and image matrices for
+    This class reads an ecat file -> extracts header, subheader, and image matrices for
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
     """
 
     def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True):
         """
-        Initialization of this class requires only a path to an ecat file
+        Initialization of this class requires only a path to an ecat file.
+
         :param ecat_file: path to a valid ecat file
         :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
-        to output the nevly generated nifti
+            to output the nevly generated nifti
         :param decompress: attempt to decompress the ecat file, should probably be set to false
         :param kwargs: used to manually override or insert information into the the nifti sidecare.json.
-        Useful for including information that isn't w/ in an ECAT file.
+            Useful for including information that isn't w/ in an ECAT file.
         """
         self.ecat_header = {}  # ecat header information is stored here
         self.subheaders = []  # subheader information is placed here
@@ -97,7 +98,8 @@ class Ecat:
 
     def make_nifti(self, output_path=None):
         """
-        Outputs a nifti from the read in ECAT file
+        Outputs a nifti from the read in ECAT file.
+
         :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
         """
@@ -127,6 +129,11 @@ class Ecat:
             print(row)
 
     def show_directory_table(self):
+        """
+        Prints the directory table for the ECAT file to stdout.
+
+        :return: None
+        """
         for row in range(self.directory_table.shape[0]):
             for column in range(self.directory_table.shape[1]):
                 if column == self.directory_table.shape[1] - 1:
@@ -136,7 +143,8 @@ class Ecat:
 
     def show_header(self):
         """
-        Display header to stdout in key: value format
+        Display header to stdout in key: value format.
+
         :return: None
         """
         for key, value in self.ecat_header.items():
@@ -144,7 +152,8 @@ class Ecat:
 
     def show_subheaders(self):
         """
-        Displays subheaders to stdout
+        Displays subheaders to stdout.
+
         :return: None
         """
         for subheader in self.subheaders:
@@ -152,8 +161,13 @@ class Ecat:
 
     def populate_sidecar(self, **kwargs):
         """
-        creates a side car dictionary with any bids relevant information extracted from the ecat.
+        Creates a side car dictionary with any bids relevant information extracted from the ecat.
+
+        :param kwargs: Populates sidecar file with relevant PET information, additional information that is not in the
+            ECAT file can be supplied as a dictionar argument via kwargs.
+        :return: None
         """
+
         # if it's an ecat it's Siemens
         self.sidecar_template['Manufacturer'] = 'Siemens'
         # Siemens model best guess
@@ -218,6 +232,8 @@ class Ecat:
     def prune_sidecar(self):
         """
         Eliminate unpopulated fields in sidecar while leaving in mandatory fields even if they are unpopulated.
+
+        :return: a list of removed fields from the sidecar file
         """
         short_fields = list(self.sidecar_template_short.keys())
         full_fields = list(self.sidecar_template)
@@ -249,7 +265,7 @@ class Ecat:
         """
         Write sidecar file to a json or display to stdout if no filepath is supplied
         :param output_path: path to output a json file
-        :return:
+        :return: None
         """
         self.prune_sidecar()
         if output_path:
@@ -261,6 +277,7 @@ class Ecat:
     def json_out(self):
         """
         Dumps entire ecat header and header info into stdout formatted as json.
+
         :return: None
         """
         temp_json = json.dumps(self.ecat_info, indent=4)

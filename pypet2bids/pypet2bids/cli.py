@@ -12,6 +12,12 @@ simple command line tool to extract header and pixel information from ecat files
 
 
 class ParseKwargs(argparse.Action):
+    """
+    Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
+    Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
+    This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
+    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={})`
+    """
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, dict())
         for value in values:
@@ -20,6 +26,11 @@ class ParseKwargs(argparse.Action):
 
 
 def cli():
+    """
+    Builds an argparse.ArgumentParser() object to access the methods available in the Ecat class in pypet2bids.ecat.ECAT
+
+    :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("ecat", metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
@@ -51,6 +62,11 @@ def cli():
 
 
 def main():
+    """
+    Executes cli() and then uses Ecat class to convert or extract information from an Ecat file
+
+    :return: N/A
+    """
     cli_args = cli()
     collect_pixel_data = False
     if cli_args.convert:

@@ -5,6 +5,10 @@
 # pycharm nonsense
 *.idea
 
+# IDE settings
+.vscode/
+.idea/
+
 # python nonsense
 *__pycache__*
 
@@ -21,7 +25,6 @@ HISTORY.rst
 CONTRIBUTING.RST
 .travis.yml
 .editorconfig
-Makefile
 tox.ini
 README.rst
 
@@ -37,5 +40,4 @@ test_env/
 
 # sphinx
 docs/_build/*/*.pickle
-docs/_build/html/_static
-docs/_build/html/_sources
+docs/_build/
