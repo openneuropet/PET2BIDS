@@ -1,43 +1,46 @@
 function dcm2niix4pet(FolderList,MetaList,varargin)
 
-% Converts dicom image file to nifti+json calling dcm2niix augmenting
-% the json file to be BIDS compliant
+% Converts dicom image file to nifti+json calling dcm2niix augmenting the json file to be BIDS compliant
 %
-% FORMAT: fileout = dcm2bids4pet(FolderList,MetaList)
-%         fileout = dcm2bids4pet(FolderList,MetaList,options)
+% :format: - fileout = dcm2bids4pet(FolderList,MetaList)
+%          - fileout = dcm2bids4pet(FolderList,MetaList,options)
 %
-% INPUT:  FolderList - Cell array of char strings with filenames and paths
-%         MetaList   - Cell array of structures for metadata
-%         options:
-%                   'deletedcm' to be 'on' or 'off'
-%                    key-pair values pertaining to dcm2niix     
-%           o          the output directory or cell arrays of directories
-%           gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
-%           a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
-%           ba         = 'y';    % -ba : anonymize BIDS (y/n, default y)
-%           d          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
-%           f          = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
-%           g          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
-%           i          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
-%           l          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
-%           m          = '2';    % merge 2D slices from same series regardless of echo, exposure, etc. (n/y or 0/1/2, default 2) [no, yes, auto]
-%           p          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
-%           v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
-%           w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-%           x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-%           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+% :param FolderList: Cell array of char strings with filenames and paths
+% :param MetaList: Cell array of structures for metadata
+% :param options:
+%   - *deletedcm*  to be 'on' or 'off'
+%   - *o*         the output directory or cell arrays of directories
+%   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
+%   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
+%   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
+%   - *d*          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
+%   - *f*        = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
+%   - *g*          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
+%   - *i*          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
+%   - *l*          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
+%   - *m*          = '2';    % merge 2D slices from same series regardless of echo, exposure, etc. (n/y or 0/1/2, default 2) [no, yes, auto]
+%   - *p*          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
+%   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
+%   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
+%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
-% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+% .. code-block::
+%
+%    %Example
+%    meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
 %                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%        dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
-%        dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
-%        dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
+%    dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
+%    dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
+%    dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
 %
-% See also get_pet_metadata.m to generate the metadata structure
+%.. note::
 %
-% Cyril Pernet - 2021
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+%   See also get_pet_metadata.m to generate the metadata structure
+%
+%   Cyril Pernet - 2021
+%
+%   Copyright Open NeuroPET team
 
 dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')

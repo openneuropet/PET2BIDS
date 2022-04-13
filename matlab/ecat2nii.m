@@ -8,17 +8,16 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %
 % :param FileListIn: a name or a Cell array of characters with paths and filenames
 % :param MetaList: a structure or Cell array of structures for metadata
-%                  (a single structure can be use other many FileListIn - see examples)
-%                  options are name/value pairs
+%   (a single structure can be use other many FileListIn - see examples)
+%   options are name/value pairs
 % :param FileListOut: a name or cell array of characters with filenames
-%                     (with path if the path out is different)
+%   (with path if the path out is different)
 % :param sifout: is true or false (default) to output a sif file, default = false, 0/1 to indicate
 % :param gz: is true (default) or false to output .nii.gz or .nii
 % :param savemat: is true or false (default) to save the ecat data as .mat
 %
 % :returns: FileListOut is the name or a cell array of names of the nifti files created
 %        (should be the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
-%
 %
 % .. code-block::
 %
