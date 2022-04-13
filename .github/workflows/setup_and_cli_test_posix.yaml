@@ -58,12 +58,12 @@ jobs:
       - name: Test CLI --help
         run: |
           cd pypet2bids/
-          python3 -m pypet2bids.cli --help
+          python3 -m pypet2bids.ecat_cli --help
 
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          python3 -m pypet2bids.cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
+          python3 -m pypet2bids.ecat_cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
