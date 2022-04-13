@@ -19,6 +19,7 @@
 build/
 dist/
 *.spec
+pypet2bids/pypet2bids/metadata
 
 # Inherited cookiecutter files
 HISTORY.rst
@@ -41,3 +42,4 @@ test_env/
 # sphinx
 docs/_build/*/*.pickle
 docs/_build/
+
