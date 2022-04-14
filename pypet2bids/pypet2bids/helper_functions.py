@@ -3,6 +3,7 @@ import os
 import re
 import dotenv
 import ast
+import argparse
 
 
 def compress(file_like_object, output_path: str = None):
@@ -71,3 +72,16 @@ def load_vars_from_config(path_to_config: str):
             parameters[parameter] = str(value)
 
     return parameters
+
+class ParseKwargs(argparse.Action):
+    """
+    Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
+    Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
+    This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
+    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={})`
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, dict())
+        for value in values:
+            key, value = value.split('=')
+            getattr(namespace, self.dest)[key] = value
