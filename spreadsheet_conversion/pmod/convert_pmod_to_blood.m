@@ -1,19 +1,33 @@
 function convert_pmod_to_blood(varargin)
 
-% routine the converts bld files (i.e. pmod ready tab or comma separated values)
-% works on a subject per subject basis
+% routine the converts bld files (i.e. pmod pkin ready tab or comma separated values)
+% this convert data on a subject per subject basis
+% !! it supports only file with two columns, not the 'composite' type !!
 %
-% FORMAT convert_pmod_to_blood(filesin,'type','both','outputname',name,addjson,'on')
+% Background
+% PMOD (https://www.pmod.com/web/) PKIN software works with two or three files
+% https://www.pmod.com/files/download/v31/doc/pkin/2235.htm 
+% WholebloodActivity: overall blood activity 
+%      = tracer in the red blood cells and tracer metabolites, moslty in the plasma.
+% Plasma: overall plasma activity (tracer and metabolites)
+% ParentFraction: free unchanged tracer from plasma (ie 'after' interacting
+%                 with tissue) relative to total blood - this is the input to the brain
 %
-% INPUT filesin a cell array of files e.g. ParentFraction,Plasma2WholebloodRatio,WholebloodActivity pmod files
-%       whole blood and parent file must be present, Plasma2WholebloodRatio is optional
-%       'type' should be 'manual' 'autosampler' or 'both'
+% FORMAT convert_pmod_to_blood(filesin,'type','both','outputname',name,addjson,'off')
+%
+% INPUT if no input is provided, a GUI pops up
+%       filesin a cell array of files e.g. ParentFraction,Wholeblood, Plasma pmod files
+%       ParentFraction and Wholeblood files must be present, Plasma is optional
+%       'type' should be 'manual' 'autosampler' or 'both' to indicate the way data were collected
+%              (file time stamp should be enough to figure out which is which)
 %       optional
-%       'outputname' for the name of file(s) to export
-%       'addjson' to also create a json file 
+%       'outputname' for the base name of file(s) to export
+%       'addjson' to turn off the creation of the side json file ('on' by default)
 %
 % OUTPUT tsv files files for BIDS
-%        if 'addjson' is on, also create an associated json file
+%        if 'addjson' is 'on' (default), also creates an associated json file
+%
+% Example: convert_pmod_to_blood(filesin,'type','both','outputname',name,addjson,'off')
 %
 % Cyril Pernet - NRU
 
@@ -25,7 +39,7 @@ else
     addjson = 'on';
 end
 
-if addjson
+if strcmpi(addjson,'on')
     current    = which('convert_pmod_to_blood.m');
     root       = current(1:strfind(current,'converter')+length('converter'));
     jsontoload = fullfile(root,['metadata' filesep 'blood_metadata.json']);
@@ -57,6 +71,15 @@ if nargin == 0
             fprintf('files selected:\n%s\n', filein{i});
         end
     end
+    
+    % 'type' should be 'manual' 'autosampler' or 'both'
+    type = questdlg('What type of blood sampling was performed?', ...
+        'blood sampling', ...
+        'manual', 'autosampler', 'both', 'manual');
+    if isempty(type)
+        warning('selection aborded - exiting'); return
+    end
+    
 else
     for i=nargin:-1:1
         if ~exist(varargin{i}, 'file')
@@ -88,50 +111,105 @@ end
 for i=length(filein):-1:1
     if any(contains(datain{i}.Properties.VariableNames,'parent','IgnoreCase',true))
         ParentFraction = datain{i};
-    elseif any(contains(datain{i}.Properties.VariableNames,'value','IgnoreCase',true))
-        Plasma2WholebloodRatio = datain{i}; 
     elseif any(contains(datain{i}.Properties.VariableNames,{'whole-blood','whole blood'},'IgnoreCase',true))
-        WholebloodActivity = datain{i}; 
+        Wholeblood     = datain{i}; 
+    elseif any(contains(datain{i}.Properties.VariableNames,'plasma','IgnoreCase',true))
+        Plasma         = datain{i}; 
     end
 end
 clear filename datain
 
 if any([~exist('ParentFraction','var') ...
-        ~exist('WholebloodActivity','var')])
+        ~exist('Wholeblood','var')])
     error('ParentFraction and/or WholebloodActivity files did not load successfully')
 end
       
 % fix the time info to the right format
-if any(contains(WholebloodActivity.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
-    WholebloodActivity.("time[minutes]") = seconds(minutes(WholebloodActivity.("time[minutes]"))); 
+if any(contains(Wholeblood.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
+    varname = Wholeblood.Properties.VariableNames(find(contains(Wholeblood.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
+    Wholeblood.(cell2mat(varname)) = seconds(minutes(Wholeblood.(cell2mat(varname)))); % transform to seconds
+    WBtime = Wholeblood.(cell2mat(varname));
 end
 
-if any(contains(ParentFraction.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
-    ParentFraction.("time[minutes]") = seconds(minutes(ParentFraction.("time[minutes]"))); % transform to seconds
+if any(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
+    varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
+    ParentFraction.(cell2mat(varname)) = seconds(minutes(ParentFraction.(cell2mat(varname)))); 
+    PFtime = Wholeblood.(cell2mat(varname));
 end
 
-if exist('Plasma2WholebloodRatio','var')
-    if any(contains(Plasma2WholebloodRatio.Properties.VariableNames,'time[minutes]','IgnoreCase',true))
-        Plasma2WholebloodRatio.("time[minutes]") = seconds(minutes(Plasma2WholebloodRatio.("time[minutes]")));
+if exist('Plasma','var')
+    if any(contains(Plasma.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
+        varname = Plasma.Properties.VariableNames(find(contains(Plasma.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
+        Plasma.(cell2mat(varname)) = seconds(minutes(Plasma.(cell2mat(varname))));
+        Ptime = Wholeblood.(cell2mat(varname));
+    end
+end
+
+% check time information across files
+% if all manaul or autosampler, it make sense to have the same time points 
+if ~strcmpi(type,'both') 
+    if ~all(PFtime == WBtime)
+        error('ParentActivity and Whole blood have different time values - this seems impossible')
+    end
+    
+    if exist('Ptime','var')
+        if ~all(Ptime == WBtime)
+            error('Whole blood and Plasma have different time values - this seems impossible')
+        end
+    end
+    
+    if strmpi(type,'manual')
+        if exist('Plasma','var')
+            manual = [{'WholeBlood'},{'Parent'},{'Plasma'}];
+        else
+            manual = [{'WholeBlood'},{'Parent'}];
+        end
+        autosampler = [];
+    else % autosampler
+        if exist('Plasma','var')
+            autosampler = [{'WholeBlood'},{'Parent'},{'Plasma'}];
+        else
+            autosampler = [{'WholeBlood'},{'Parent'}];
+        end
+        manual = [];
+    end
+    
+else % assume the autosampling has more data points
+    if length(WBtime) ~= length(PFtime)
+        [~,pos] = min(length(WBtime), length(PFtime));
+        manual = [{'WholeBlood'},{'Parent'}]; manual = manual(pos);
+        autosampler = [{'WholeBlood'},{'Parent'}]; autosampler = autosampler(find([1 2] ~= pos));
+         if exist('Ptime','var')
+             if strcmpi(autosampler{1},'WholeBlood') && length(Ptime) == length(WBtime) % the most likely case
+                 autosampler{2} = 'Plasma';
+             elseif strcmpi(manual{1},'WholeBlood') && length(Ptime) == length(WBtime) % does that actually happens?
+                 manual{2} = 'Plasma';
+             elseif strcmpi(autosampler{1},'Parent') && length(Ptime) == length(PFtime) % does that actually happens?
+                 autosampler{2} = 'Plasma';
+             elseif strcmpi(manual{1},'Parent') && length(Ptime) == length(PFtime) % autosampler does whole blood only
+                 manual{2} = 'Plasma';
+             end
+         end
     end
 end
 
 % make _recording-autosampler_blood.tsv
-
-
-same_blood_plasma_sampling = 0;
-if length(WholebloodActivity.("time[minutes]")) == length(Plasma2WholebloodRatio.("time[minutes]"))
-    same_blood_plasma_sampling = ...
-        sum(WholebloodActivity.("time[minutes]") == Plasma2WholebloodRatio.("time[minutes]")) == length(Plasma2WholebloodRatio.("time[minutes]"));
-end
-
-if same_blood_plasma_sampling == 0
-    testdiff = length(Plasma2WholebloodRatio.("time[minutes]")) - sum(WholebloodActivity.("time[minutes]") == Plasma2WholebloodRatio.("time[minutes]"));
-    if length(ParentFraction.("time[minutes]")) == testdiff
-        parent_sampling = 'manual';
-    end
-end
-
 % make _recording-manual_blood.tsv
+
+
+%% export
+
+% if nargin==2
+%     [newpathname,filename]=fileparts(varargin{2});
+%     if isempty(newpathname)
+%         newpathname = pathname;
+%     end
+% else
+%     [~,filename] = fileparts(filename);
+% end
+% jsonwrite(fullfile(pathname, [filename '_pet.json']),info,'prettyprint','true');
+
+
+
 
 
