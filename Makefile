@@ -24,7 +24,6 @@ add:
 	@scripts/add_python_dependency $(ARGUMENTS)
 
 # copies metadata to path included in pypet2bids project to enable packaging of those files w/ poetry
-build:
+buildpackage:
 	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cd pypet2bids && poetry build
-

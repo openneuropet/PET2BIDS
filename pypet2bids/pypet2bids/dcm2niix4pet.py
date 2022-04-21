@@ -1,5 +1,5 @@
 from json_maj.main import JsonMAJ, load_json_or_dict
-from pypet2bids.helper_functions import ParseKwargs
+from pypet2bids.helper_functions import ParseKwargs, get_version
 import importlib.util
 import subprocess
 import pandas as pd
@@ -225,7 +225,7 @@ def collect_date_time_from_file_name(file_name):
 
 
 class Dcm2niix4PET:
-    def __init__(self, image_folder, destination_path, metadata_path=None,
+    def __init__(self, image_folder, destination_path=None, metadata_path=None,
                  metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s',
                  silent=False):
         """
@@ -265,7 +265,10 @@ class Dcm2niix4PET:
         self.check_for_dcm2niix()
 
         self.image_folder = Path(image_folder)
-        self.destination_path =  Path(destination_path)
+        if destination_path:
+            self.destination_path =  Path(destination_path)
+        else:
+            self.destination_path = self.image_folder
         if metadata_path is not None and metadata_translation_path is not None:
             self.metadata_path =  Path(metadata_path)
             self.metadata_translation_script = Path(metadata_path)
@@ -396,6 +399,15 @@ class Dcm2niix4PET:
                         update_json = JsonMAJ(json_path=str(created),
                                               update_values=self.additional_arguments)
                         update_json.update()
+
+                    # tag json with additional conversion software
+                    sidecar_json = JsonMAJ(json_path=str(created))
+
+                    conversion_software = sidecar_json.get('ConversionSoftware')
+                    conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
+
+                    sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
+                    sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, get_version()]})
 
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
