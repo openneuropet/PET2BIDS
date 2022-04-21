@@ -225,6 +225,10 @@ class Ecat:
             self.subheaders[0]['Z_PIXEL_SIZE'] * 10
         ]
 
+        # add tag for conversion software
+        self.side_car_template.update['ConversionSoftware'] = 'pypet2bids'
+        self.side_car_template.update['ConversionSoftwareVersion'] = pypet2bids.helper_functions.get_version()
+
         # include any additional values
         if kwargs:
             self.sidecar_template.update(**kwargs)
