@@ -175,6 +175,9 @@ def update_json_with_dicom_value(
                 temp = JsonMAJ(json_path=path_to_json, update_values={key: dicom_field})
                 temp.update()
 
+    # Additional Heuristics are included below
+
+
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
