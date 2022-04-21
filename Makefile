@@ -27,4 +27,3 @@ add:
 build:
 	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cd pypet2bids && poetry build
-
