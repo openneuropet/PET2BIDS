@@ -154,6 +154,14 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
+name = "json-maj"
+version = "0.0.3"
+description = "Updates Jsons w/ json, key pair, or entire dictionary as arguments"
+category = "main"
+optional = false
+python-versions = ">=3.7,<3.11"
+
+[[package]]
 name = "macholib"
 version = "1.16"
 description = "Mach-O header analysis and editing"
@@ -700,6 +708,10 @@ iniconfig = [
 jinja2 = [
     {file = "Jinja2-3.1.1-py3-none-any.whl", hash = "sha256:539835f51a74a69f41b848a9645dbdc35b4f20a3b601e2d9a7e22947b15ff119"},
     {file = "Jinja2-3.1.1.tar.gz", hash = "sha256:640bed4bb501cbd17194b3cace1dc2126f5b619cf068a726b98192a0fde74ae9"},
+]
+json-maj = [
+    {file = "json_maj-0.0.3-py3-none-any.whl", hash = "sha256:6bedbeab2b1b5994462978ca96779223ed9d122e506926bb2e2b44a2d693b2de"},
+    {file = "json_maj-0.0.3.tar.gz", hash = "sha256:4dd585ab77246f17d4a86f40c8fd6dc43bd71ddc575bfeaac70321dd346fe02a"},
 ]
 macholib = [
     {file = "macholib-1.16-py2.py3-none-any.whl", hash = "sha256:5a0742b587e6e57bfade1ab90651d4877185bf66fd4a176a488116de36878229"},

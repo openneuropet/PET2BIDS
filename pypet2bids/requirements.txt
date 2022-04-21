@@ -14,6 +14,7 @@ imagesize==1.3.0; python_version >= "3.6" and python_full_version < "3.0.0" or p
 importlib-metadata==4.10.1; python_version < "3.8" and python_version >= "3.7" and (python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "3.10" or python_full_version >= "3.4.0" and python_version >= "3.7" and python_version < "3.10")
 iniconfig==1.1.1; python_version >= "3.6"
 jinja2==3.1.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.7"
+json-maj==0.0.3; python_version >= "3.7" and python_version < "3.11"
 macholib==1.16; python_version >= "3.7" and python_version < "3.11" and sys_platform == "darwin"
 markupsafe==2.1.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.7"
 nibabel==3.2.1; python_version >= "3.6"

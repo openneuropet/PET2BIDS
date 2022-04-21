@@ -30,6 +30,8 @@ termcolor = "^1.1.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinxcontrib-matlabdomain = "^0.13.0"
 pyinstaller = "^5.0"
+json-maj = "^0.0.3"
+
 
 [tool.poetry.dev-dependencies]
 
