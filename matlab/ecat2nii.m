@@ -333,14 +333,26 @@ for j=1:length(FileListIn)
         info.Transform.T        = T;
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
-        if gz
-            niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
-            FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+        % niftiwrite requires Image Processing Toolbox, use nii_tool if not installed
+
+        if ~exist('niftiwrite', 'builtin') && ~exist('niftiwrite', 'file')
+            nii.hdr = info.raw;
+            nii.img = img_temp;
+            fnm = [filenameout '.nii'];
+            if gz
+                fnm = [fnm '.gz']; %#ok<*AGROW>
+            end;
+            nii_tool('save', nii, fnm);
+            FileListOut{j} = fnm;
         else
-            FileListOut{j} = [filenameout '.nii'];
-            niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
+            if gz
+                niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
+                FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+            else
+                FileListOut{j} = [filenameout '.nii'];
+                niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
+            end
         end
-        
     catch conversionerr
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end
