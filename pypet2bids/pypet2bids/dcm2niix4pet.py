@@ -122,6 +122,9 @@ def update_json_with_dicom_value(
     :return: a dictionary of sucessfully updated (written to the json file) fields and values
     """
 
+    # load the sidecar json
+    sidecar_json = load_json_or_dict(str(path_to_json))
+
     # purely to clean up the generated read the docs page from sphinx, otherwise the entire json appears in the
     # read the docs page.
     if dicom2bids_json is None:
@@ -132,7 +135,6 @@ def update_json_with_dicom_value(
     if units:
         try:
             # Units is missing, check to see if Unit is present
-            sidecar_json = load_json_or_dict(str(path_to_json))
             if sidecar_json.get('Unit', None):
                 temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')})
                 temp.remove('Unit')
@@ -145,7 +147,7 @@ def update_json_with_dicom_value(
     dcmfields = metadata_dictionaries['dicom2bids.json']['dcmfields']
     jsonfields = metadata_dictionaries['dicom2bids.json']['jsonfields']
 
-    special_cases = ["ReconstructionMethod", "ConvolutionKernel"]
+    regex_cases = ["ReconstructionMethod", "ConvolutionKernel"]
 
     # strip excess characters from dcmfields
     dcmfields = [re.sub('[^0-9a-zA-Z]+', '', field) for field in dcmfields]
@@ -155,6 +157,7 @@ def update_json_with_dicom_value(
 
     print("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
+    json_updater = JsonMAJ(json_path=path_to_json)
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
@@ -168,15 +171,45 @@ def update_json_with_dicom_value(
                 dicom_field = None
                 print(f"NOT FOUND {value} corresponding to BIDS {key} in dicom header.")
 
-            if dicom_field and value in special_cases:
-                    pass # do regex magic
+            if dicom_field and value in regex_cases:
+                # TODO ReconMethod
+                # if it exists get rid of it, we don't want no part of it.
+                if sidecar_json.get('ReconMethodName', None):
+                    json_updater.remove('ReconstructionMethod')
+                # try to fill in values
+                else:
+                    ReconMethodName = dicom_header
+
+                # TODO Convo Kernel
+                pass # do regex magic
             elif dicom_field:
                 # update json
-                temp = JsonMAJ(json_path=path_to_json, update_values={key: dicom_field})
-                temp.update()
+                json_updater.update({key: dicom_field})
 
     # Additional Heuristics are included below
 
+    # See if time zero is missing in json
+    if missing_values.get('TimeZero')['key'] == False or missing_values.get('TimeZero')['value'] == False:
+        json_updater.update({'TimeZero': sidecar_json['AcquisitionTime']})
+        json_updater.remove('AcquisitionTime')
+        json_updater.update({'ScanStart': 0})
+
+    else:
+        pass
+
+    if missing_values.get('ScanStart')['key'] == False or missing_values.get('ScanStart')['value'] == False:
+        json_updater.update({'ScanStart': 0})
+
+    if missing_values.get('InjectionStart')['key'] == False or missing_values.get('InjectionStart')['value'] == False:
+        json_updater.update({'InjectionTime': 0})
+
+    # check to see if units are BQML
+    json_updater = JsonMAJ(str(path_to_json))
+    if json_updater.get('Units') == 'BQML':
+        json_updater.update({'Units': 'Bq/mL'})
+
+
+    # TODO nucleotides
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
@@ -278,7 +311,7 @@ class Dcm2niix4PET:
         self.additional_arguments = additional_arguments
         self.subject_id = None
         self.file_format = file_format
-        self.dicom_headers = {}
+        self.dicom_headers = self.extract_dicom_headers()
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
         # to access the dicom header information use the key in self.headers_to_files to access that specific header
@@ -286,7 +319,6 @@ class Dcm2niix4PET:
         self.headers_to_files = {}
         # if silent is set to True output warnings aren't displayed to stdout/stderr
         self.silent = silent
-
 
     @staticmethod
     def check_for_dcm2niix():
@@ -316,6 +348,7 @@ class Dcm2niix4PET:
         :return: dicom header information to self.subject_id and/or self.dicom_header_data
         """
         n = 0
+        dicom_headers = {}
         for root, dirs, files in walk(self.image_folder):
             for f in files:
                 if n >= depth:
@@ -327,13 +360,13 @@ class Dcm2niix4PET:
                     if self.subject_id is None:
                         self.subject_id = dicom_header.PatientID
 
-                    self.dicom_headers[dicom_path.name] = dicom_header
+                    dicom_headers[dicom_path.name] = dicom_header
 
                 except pydicom.errors.InvalidDicomError:
                     pass
                 n += 1
 
-        return self.dicom_headers
+        return dicom_headers
 
     def run_dcm2niix(self):
         """
@@ -395,6 +428,7 @@ class Dcm2niix4PET:
                             check_for_missing,
                             dicom_header,
                             dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
+
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
