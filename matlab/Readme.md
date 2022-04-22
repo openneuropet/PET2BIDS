@@ -26,8 +26,8 @@ The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET
 _Note for windows user_: edit the dcm2niix4pet.m line 42 to indicate where is the function located
 
 ```matlab
-meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
-'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+meta = get_pet_metadata('Scanner','template_txt/SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+'ModeOfAdministration','infusion','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
 ```  
 Alternatively, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
@@ -36,8 +36,8 @@ Alternatively, you could have data already converted to nifti and json, and you 
 
 ```matlab
 jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
-metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
-                        'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+metadata = get_pet_metadata('Scanner','template_txt/SiemensBiograph','TimeZero','ScanStart','TracerName','AZ10416936','TracerRadionuclide','C11', ...
+                        'ModeOfAdministration','bolus','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
 status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 ```  
@@ -46,8 +46,8 @@ status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 
 ```matlab
 metadata1 = jsondecode(textread(myjsonfile.json)); % or use jsonread from the matlab BIDS library
-metadata2 = get_pet_metadata('Scanner', 'GEAdvance','TimeZero','XXX','tracer','DASB','Radionuclide','C11', ...
-                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+metadata2 = get_pet_metadata('Scanner', 'template_txt/GEAdvance','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11', ...
+                        'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 metadata  = [metadata2;metadata1];                        
 jsonwrite('mynewjsonfile.json'],metadata)                        
 ```  
@@ -58,8 +58,8 @@ jsonwrite('mynewjsonfile.json'],metadata)
 If you have ecat (.v) instead of dicom (.dcm), we have build a dedicated converter. Arguments in are the file to convert and some metadata as a structure (using the get_pet_metadata.m function for instance). This is shown below for HRRT data.
 
 ```matlab
-metadata = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','XXX','tracer','DASB','Radionuclide','C11', ...
-                        'Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+metadata = get_pet_metadata('Scanner','template_txt/SiemensHRRT','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11', ...
+    'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 ecat2nii({full_file_name},{metadata})
 ```  
 See the [documentation](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/Readme.md) for further details on ecat conversion.  
