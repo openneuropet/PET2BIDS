@@ -19,10 +19,11 @@ jobs:
       READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
       NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
+      METADATA_PATH: ${{ github.workspace }}/metadata/
 
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         #python: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
@@ -64,5 +65,6 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.TEST_ECAT_PATH }}');
+            addpath('${{ env.METADATA_PATH }}');
             ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
