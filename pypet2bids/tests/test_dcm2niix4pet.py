@@ -268,5 +268,21 @@ def test_additional_arguments():
             assert json_contents.get(key, "") == value
 
 
+def test_get_recon_method():
+    """
+    Given an input from a dicom such as
+    (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
+    returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
+    e.g.
+    ReconMethodName=
+    ReconMethodParameterLabels=
+    ReconMethodParameterUnits=
+    ReconMethodParameterValues=
+    :return:
+    """
+
+    reconstruction_method_string = "LO [PSF+TOF 3i21s]"
+
+
 if __name__ == '__main__':
     test_additional_arguments()

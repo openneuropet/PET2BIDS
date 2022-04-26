@@ -178,7 +178,9 @@ def update_json_with_dicom_value(
                     json_updater.remove('ReconstructionMethod')
                 # try to fill in values
                 else:
-                    ReconMethodName = dicom_header
+                    ReconMethodName = dicom_header['ReconstructionMethod']
+                    json_updater.remove('ReconstructionMethod')
+                    #iterations = re.
 
                 # TODO Convo Kernel
                 pass # do regex magic
