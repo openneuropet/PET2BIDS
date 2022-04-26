@@ -63,6 +63,6 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.SMALLER_ECAT_PATH }}');
-            ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
+            addpath('${{ env.TEST_ECAT_PATH }}');
+            ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
