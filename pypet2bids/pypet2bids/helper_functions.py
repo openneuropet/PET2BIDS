@@ -83,12 +83,18 @@ def get_version():
     """
     # this scripts directory path
     scripts_dir = pathlib.Path(os.path.dirname(__file__))
-    # the toml file with the version is 2 directories above
-    toml_dir = scripts_dir.parent
-    toml_path = os.path.join(toml_dir, 'pyproject.toml')
 
-    with open(toml_path, 'r') as infile:
-        tomlfile = toml.load(infile)
+    try:
+        # if this is bundled as a package look next to this file for the pyproject.toml
+        toml_path = os.path.join(scripts_dir, 'pyproject.toml')
+        with open(toml_path, 'r') as infile:
+            tomlfile = toml.load(infile)
+    except FileNotFoundError:
+        # when in development the toml file with the version is 2 directories above (e.g. where it should actually live)
+        toml_dir = scripts_dir.parent
+        toml_path = os.path.join(toml_dir, 'pyproject.toml')
+        with open(toml_path, 'r') as infile:
+            tomlfile = toml.load(infile)
 
     attrs = tomlfile.get('tool', {})
     poetry = attrs.get('poetry', {})
