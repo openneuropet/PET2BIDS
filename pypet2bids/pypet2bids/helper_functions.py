@@ -3,6 +3,9 @@ import os
 import re
 import dotenv
 import ast
+import argparse
+import pathlib
+import toml
 
 
 def compress(file_like_object, output_path: str = None):
@@ -71,3 +74,40 @@ def load_vars_from_config(path_to_config: str):
             parameters[parameter] = str(value)
 
     return parameters
+
+
+def get_version():
+    """
+    Gets the version of this software from the toml file
+    :return: version number from pyproject.toml
+    """
+    # this scripts directory path
+    scripts_dir = pathlib.Path(os.path.dirname(__file__))
+    # the toml file with the version is 2 directories above
+    toml_dir = scripts_dir.parent
+    toml_path = os.path.join(toml_dir, 'pyproject.toml')
+
+    with open(toml_path, 'r') as infile:
+        tomlfile = toml.load(infile)
+
+    attrs = tomlfile.get('tool', {})
+    poetry = attrs.get('poetry', {})
+    version = poetry.get('version', '')
+
+    return version
+
+
+class ParseKwargs(argparse.Action):
+    """
+    Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
+    Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
+    This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
+    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={})`
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, dict())
+        for value in values:
+            key, value = value.split('=')
+            getattr(namespace, self.dest)[key] = value
+
+

@@ -6,7 +6,8 @@ function convert_metadata_spreadsheets(varargin)
 %
 % FORMAT convert_metadata_spreadsheets(scanner_metadata_file,subjects_metadata_file,outputname)
 %
-% INPUT scanner_metadata_file is the .xlsx; .ods; .xls file to convert corresponding to scanner info (same for all subjects)
+% INPUT if no input is provided, a GUI pops up
+%       scanner_metadata_file is the .xlsx; .ods; .xls file to convert corresponding to scanner info (same for all subjects)
 %       subjects_metadata_file is the .xlsx; .ods; .xls file to convert corresponding to subject info (different for all subjects)
 %       outputname (optional) is the name of the json file out (with or without full path)
 %

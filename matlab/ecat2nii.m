@@ -137,8 +137,8 @@ for j=1:length(FileListIn)
         
         [pet_path,pet_file,ext]=fileparts(FileListIn{j});
         if strcmp(ext,'.gz')
-            newfile = gunzip([pet_path filesep pet_file ext]);
-            [~,pet_file,ext]=fileparts(newfile{1});
+            newfile          = gunzip([pet_path filesep pet_file ext]);
+            [~,pet_file,ext] = fileparts(newfile{1});
         end
         
         pet_file = [pet_file ext]; 
@@ -346,7 +346,7 @@ for j=1:length(FileListIn)
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end
     
-    if exist('newfile','var') % i.e. decompresed .ii.gz
+    if exist('newfile','var') % i.e. decompresed .nii.gz
         delete(newfile{1});
     end
 end

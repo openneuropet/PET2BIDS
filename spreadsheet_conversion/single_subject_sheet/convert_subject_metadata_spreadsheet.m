@@ -5,7 +5,8 @@ function convert_subject_metadata_spreadsheet(varargin)
 %
 % FORMAT convert_subject_metadata_spreadsheet(file2convert,outputname)
 %
-% INPUT file2convert is the .xlsx; .ods; .xls file to convert
+% INPUT if no input is provided, a GUI pops up
+%       file2convert is the .xlsx; .ods; .xls file to convert
 %       outputname (optional) is the name of the json file out (with or without full path)
 %
 % OUTPUT json file for BIDS

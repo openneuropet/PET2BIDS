@@ -12,7 +12,7 @@ function ecat2nii_test(varargin)
 % ecat2nii_test
 % ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v.gz')
 %
-% Claus Svarer & Cyril Pernet
+% Cyril Pernet, Claus Svarer & Anthony Galassi
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
 
@@ -31,13 +31,13 @@ cd(fileparts(ecatfile))
 if exist('groundtruth','var')
     ecat2nii(ecatfile,{meta},'gz',false)
     img                 = load(groundtruth);
-    img                 = sort(single([img.frame_1_pixel_data(:);img.frame_2_pixel_data(:);...
-        img.frame_3_pixel_data(:);img.frame_4_pixel_data(:)]));
     meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
     niftiout            = ecat2nii(ecatfile,meta);
     img_reread          = niftiread(niftiout{1});
     delete(niftiout{1}); delete([niftiout{1}(1:end-6) 'json']);
-    Diff_ecat_nifti     = img-sort(img_reread(:)); % ground truth vs write (ie 2 errors cumulated)
+    img                 = sort(single([img.frame_1_pixel_data(:);img.frame_2_pixel_data(:);...
+        img.frame_3_pixel_data(:);img.frame_4_pixel_data(:)]));
+    Diff_ecat_nifti     = sort(img)-sort(img_reread(:)); % ground truth vs write (ie 2 errors cumulated)
     meandiff            = mean(Diff_ecat_nifti(:));
     table(min(Diff_ecat_nifti(:)),meandiff,max(Diff_ecat_nifti(:)),...
         'VariableNames',{'min','mean','max'}) % analyze diff

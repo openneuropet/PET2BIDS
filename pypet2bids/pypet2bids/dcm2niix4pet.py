@@ -1,4 +1,5 @@
 from json_maj.main import JsonMAJ, load_json_or_dict
+from pypet2bids.helper_functions import ParseKwargs, get_version
 import importlib.util
 import subprocess
 import pandas as pd
@@ -15,6 +16,7 @@ from tempfile import TemporaryDirectory
 import shutil
 from dateutil import parser
 from termcolor import colored
+import argparse
 
 
 """
@@ -31,9 +33,13 @@ python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
 metadata_folder = join(pet2bids_folder, 'metadata')
 
-# collect metadata jsons
-metadata_jsons = \
-    [Path(join(metadata_folder, metadata_json)) for metadata_json in listdir(metadata_folder) if '.json' in metadata_json]
+try:
+    # collect metadata jsons in dev mode
+    metadata_jsons = \
+        [Path(join(metadata_folder, metadata_json)) for metadata_json in listdir(metadata_folder) if '.json' in metadata_json]
+except FileNotFoundError:
+    metadata_jsons = \
+        [Path(join(module_folder, 'metadata', metadata_json)) for metadata_json in listdir(join(module_folder, 'metadata')) if '.json' in metadata_json]
 
 # create a dictionary to house the PET metadata files
 metadata_dictionaries = {}
@@ -68,7 +74,7 @@ def check_json(path_to_json, items_to_check=None, silent=False):
 
     # check for default argument for dictionary of items to check
     if items_to_check is None:
-        items_to_check = metada_dictionaries['PET_metadata.json']
+        items_to_check = metadata_dictionaries['PET_metadata.json']
 
     # open the json
     with open(path_to_json, 'r') as infile:
@@ -219,7 +225,7 @@ def collect_date_time_from_file_name(file_name):
 
 
 class Dcm2niix4PET:
-    def __init__(self, image_folder, destination_path, metadata_path=None,
+    def __init__(self, image_folder, destination_path=None, metadata_path=None,
                  metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s',
                  silent=False):
         """
@@ -259,7 +265,10 @@ class Dcm2niix4PET:
         self.check_for_dcm2niix()
 
         self.image_folder = Path(image_folder)
-        self.destination_path =  Path(destination_path)
+        if destination_path:
+            self.destination_path =  Path(destination_path)
+        else:
+            self.destination_path = self.image_folder
         if metadata_path is not None and metadata_translation_path is not None:
             self.metadata_path =  Path(metadata_path)
             self.metadata_translation_script = Path(metadata_path)
@@ -391,6 +400,15 @@ class Dcm2niix4PET:
                                               update_values=self.additional_arguments)
                         update_json.update()
 
+                    # tag json with additional conversion software
+                    sidecar_json = JsonMAJ(json_path=str(created))
+
+                    conversion_software = sidecar_json.get('ConversionSoftware')
+                    conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
+
+                    sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
+                    sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, get_version()]})
+
                 new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
 
@@ -429,5 +447,60 @@ class Dcm2niix4PET:
                         headers_to_files[each] = [output_file]
         return headers_to_files
 
-if __name__ == "__main__":
-    pass
+def cli():
+    """
+    Collects arguments used to initiate a Dcm2niix4PET class, collects the following arguments from the user.
+
+    :param folder: folder containing imaging data, no flag required
+    :param -m, --metadata-path: path to PET metadata spreadsheet
+    :param -t, --translation-script-path: path to script used to extract information from metadata spreadsheet
+    :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
+    :return: arguments collected from argument parser
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('folder', type=str,
+                        help="Folder path containing imaging data")
+    parser.add_argument('--metadata-path', '-m', type=str, default=None,
+                        help="Path to metadata file for scan")
+    parser.add_argument('--translation-script-path', '-t', default=None,
+                        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +
+                             " compliant text files (tsv and json)")
+    parser.add_argument('--destination-path', '-d', type=str, default=None,
+                        help="Destination path to send converted imaging and metadata files to. If " +
+                             "omitted defaults to using the path supplied to folder path. If destination path " +
+                             "doesn't exist an attempt to create it will be made.", required=False)
+    parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
+                        help="Include additional values int the nifti sidecar json or override values extracted from "
+                             "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
+                             "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
+                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
+    parser.add_argument('--silent', '-s', type=bool, default=False, help="Display missing metadata warnings and errors"
+                                                                         "to stdout/stderr")
+
+    args = parser.parse_args()
+
+    return args
+
+def main():
+    """
+    Executes cli() and uses Dcm2niix4PET class to convert a folder containing dicoms into nifti + json.
+
+    :return: None
+    """
+
+    # collect args
+    cli_args = cli()
+
+    # instantiate class
+    converter = Dcm2niix4PET(
+        image_folder=cli_args.folder,
+        destination_path=cli_args.destination_path,
+        metadata_path=cli_args.metadata_path,
+        metadata_translation_script=cli_args.translation_script_path,
+        additional_arguments=cli_args.kwargs,
+        silent=cli_args.silent)
+
+    converter.run_dcm2niix()
+
+if __name__ == '__main__':
+    main()
