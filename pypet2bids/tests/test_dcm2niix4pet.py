@@ -281,8 +281,41 @@ def test_get_recon_method():
     :return:
     """
 
-    reconstruction_method_string = "LO [PSF+TOF 3i21s]"
+    reconstruction_method_strings = [
+        {
+            "contents": "LO [PSF+TOF 3i21s]",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "desired_output": "",
+        },
+        {
+            "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "desired_output": ""
+        }
+    ]
 
+def test_get_convolution_kernel():
+    convolution_kernel_strings = [
+
+    ]
 
 if __name__ == '__main__':
     test_additional_arguments()
