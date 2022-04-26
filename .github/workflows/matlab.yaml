@@ -47,9 +47,9 @@ jobs:
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
-      - name: Unzip Test File(s)
-        run: |
-          gzip -d ${{ env.SMALLER_ECAT_PATH }}
+      #- name: Unzip Test File(s)
+      #  run: |
+      #    gzip -d ${{ env.SMALLER_ECAT_PATH }}
       
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
@@ -64,7 +64,7 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.TEST_ECAT_PATH }}');
+            addpath('${{ env.SMALLER_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
+            ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
