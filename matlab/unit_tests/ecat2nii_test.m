@@ -18,7 +18,7 @@ function ecat2nii_test(varargin)
 
 if nargin ==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
-        ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v.gz']);
+        ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v']);
     groundtruth = [ecatfile(1:end-5) '.mat'];
 else
     ecatfile = varargin{1};
