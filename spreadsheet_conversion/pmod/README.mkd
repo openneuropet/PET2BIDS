@@ -1,3 +1,22 @@
 # convert_pmod_to_blood
 
-pmod is a popular software for kineatic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
+Pmod is a popular software for kineatic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
+
+_Usage note_ files can be importanted in any order because the function uses the 1st line of pmod files that contains information indicating what the columns are. 
+
+## Input files with user promtp
+
+Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files. Because no other information is provided, it will create the json file along with some warning messages since this will not be BIDS compliant.
+
+## function call with arguments
+
+```matlab
+file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
+file2 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'plasma_pmodexample.bld');
+file3 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'wholeblood_pmodexample.bld');
+convert_pmod_to_blood(file1,file2,file3,'type','both','outputname','sub01-',...
+                'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
+                'DispersionCorrected','false')
+```
+Using the command line, aditional arguments can be provided to create fully compliant BIDS json files. If some information is missing, warnings will be issues.
+

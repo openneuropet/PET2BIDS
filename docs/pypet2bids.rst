@@ -4,10 +4,10 @@ pypet2bids package
 Submodules
 ----------
 
-pypet2bids.cli module
----------------------
+pypet2bids.ecat\_cli module
+---------------------------
 
-.. automodule:: pypet2bids.cli
+.. automodule:: pypet2bids.ecat_cli
    :members:
    :undoc-members:
    :show-inheritance:

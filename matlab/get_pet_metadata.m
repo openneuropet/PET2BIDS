@@ -33,6 +33,19 @@ function metadata = get_pet_metadata(varargin)
 %
 % Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
 %                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+%           --> fails unless you move the template/SiemensBiographparameters.txt next to this function
+%
+%         meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
+%             'TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration',...
+%             'infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,...
+%             'MolarActivity', 107.66, 'InstitutionName','Rigshospitalet, NRU, DK',...
+%             'AcquisitionMode','list mode','ImageDecayCorrected','true',...
+%             'ImageDecayCorrectionTime' ,0,'ReconMethodName','OP-OSEM',...
+%             'ReconMethodParameterLabels',{'subsets','iterations'},...
+%             'ReconMethodParameterUnits',{'none','none'}, ...
+%             'ReconMethodParameterValues',[21 3], 'ReconFilterType','XYZGAUSSIAN',...
+%             'ReconFilterSize',2, 'AttenuationCorrection','CT-based attenuation correction');
+%        --> works without txt file because all arguments are passed
 %
 % INPUTS a series of key/value pairs are expected
 %        MANDATORY
@@ -163,9 +176,21 @@ else
     for n=1:2:nargin 
         if any(strcmpi(varargin{n},optional))
             if isnumeric(varargin{n+1})
-                eval([varargin{n} '=' num2str(varargin{n+1})])
+                if length(varargin{n+1}) == 1 
+                    eval([varargin{n} '=' num2str(varargin{n+1})]);
+                else 
+                    eval([varargin{n} '=[' num2str(varargin{n+1}) ']']);
+                end
             else
-                eval([varargin{n} '=''' varargin{n+1} ''''])
+                if iscell(varargin{n+1})
+                    frameval = [varargin{n} '={']; 
+                    for f=1:length(varargin{n+1})
+                        frameval = [frameval '''' varargin{n+1}{f} ''' ']; %#ok<AGROW>
+                    end
+                    eval([frameval(1:end-1) '}']);
+                else
+                    eval([varargin{n} '=''' varargin{n+1} '''']);
+                end
             end
         end
     end
