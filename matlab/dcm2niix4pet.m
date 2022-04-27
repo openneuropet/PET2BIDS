@@ -42,7 +42,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 %   Copyright Open NeuroPET team
 
-dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+%dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
@@ -108,7 +108,7 @@ if iscell(MetaList) && any(size(MetaList)~=size(FolderList))
         for f=1:size(MetaList,1)
             MetaList{f} = tmp;
         end
-        cleat tmp
+        clear tmp
     else
         error('2nd argument in must be a cell array of metadata structures')
     end

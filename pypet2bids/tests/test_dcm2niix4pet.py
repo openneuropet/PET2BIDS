@@ -268,5 +268,54 @@ def test_additional_arguments():
             assert json_contents.get(key, "") == value
 
 
+def test_get_recon_method():
+    """
+    Given an input from a dicom such as
+    (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
+    returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
+    e.g.
+    ReconMethodName=
+    ReconMethodParameterLabels=
+    ReconMethodParameterUnits=
+    ReconMethodParameterValues=
+    :return:
+    """
+
+    reconstruction_method_strings = [
+        {
+            "contents": "LO [PSF+TOF 3i21s]",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "desired_output": "",
+        },
+        {
+            "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
+            "desired_output": ""
+        },
+        {
+            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "desired_output": ""
+        }
+    ]
+
+def test_get_convolution_kernel():
+    convolution_kernel_strings = [
+
+    ]
+
 if __name__ == '__main__':
     test_additional_arguments()

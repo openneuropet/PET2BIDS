@@ -30,9 +30,17 @@ function convert_pmod_to_blood(varargin)
 % OUTPUT tsv files files for BIDS
 %        if 'addjson' is 'on' (default), also creates an associated json file
 %
-% Example: convert_pmod_to_blood(file1,file2,'type','manual','outputname','sub01-',...
+% Examples: 
+%             file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
+%             file2 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'plasma_pmodexample.bld');
+%             file3 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'wholeblood_pmodexample.bld');
+%             convert_pmod_to_blood(file1,file2,file3,'type','both','outputname','sub01-',...
 %                 'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
-%                 'DispersionCorrected','false')
+%                 'DispersionCorrected','false');
+%
+%             convert_pmod_to_blood('myfile1.bld','myfile2.bld','type','manual','outputname','sub01-',...
+%                 'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
+%                 'DispersionCorrected','false');
 %
 % Cyril Pernet - NRU
 
@@ -151,12 +159,18 @@ if any(contains(Wholeblood.Properties.VariableNames,{'minutes','min'},'IgnoreCas
     varname = Wholeblood.Properties.VariableNames(find(contains(Wholeblood.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
     Wholeblood.(cell2mat(varname)) = seconds(minutes(Wholeblood.(cell2mat(varname)))); % transform to seconds
     WBtime = Wholeblood.(cell2mat(varname));
+elseif any(contains(Wholeblood.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
+    varname = Wholeblood.Properties.VariableNames(find(contains(Wholeblood.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
+    WBtime = Wholeblood.(cell2mat(varname));
 end
 
 if any(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
     varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
     ParentFraction.(cell2mat(varname)) = seconds(minutes(ParentFraction.(cell2mat(varname))));
     PFtime = ParentFraction.(cell2mat(varname));
+elseif any(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
+    varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
+    WBtime = ParentFraction.(cell2mat(varname));
 end
 
 if exist('Plasma','var')
@@ -164,13 +178,16 @@ if exist('Plasma','var')
         varname = Plasma.Properties.VariableNames(find(contains(Plasma.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
         Plasma.(cell2mat(varname)) = seconds(minutes(Plasma.(cell2mat(varname))));
         Ptime = Plasma.(cell2mat(varname));
+    elseif any(contains(Plasma.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
+        varname = Plasma.Properties.VariableNames(find(contains(Plasma.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
+        WBtime = Plasma.(cell2mat(varname));
     end
 end
 
 % check time information across files
 % if all manaul or autosampler, it make sense to have the same time points
 if ~strcmpi(type,'both')
-    if ~all(PFtime == WBtime)
+    if length(PFtime) ~= length(WBtime) || ~all(PFtime == WBtime)
         error('ParentActivity and Whole blood have different time values - this seems impossible')
     end
     
@@ -301,6 +318,8 @@ if strcmpi(addjson,'on')
             MetaboliteMethod = varargin{v+1};
         elseif strcmpi(varargin{v},'MetaboliteRecoveryCorrectionApplied')
             MetaboliteRecoveryCorrectionApplied = varargin{v+1};
+        elseif strcmpi(varargin{v},'DispersionCorrected')
+            DispersionCorrected = varargin{v+1};
         end
     end
     
@@ -309,15 +328,21 @@ if strcmpi(addjson,'on')
     if exist('MetaboliteMethod','var')
         info.MetaboliteMethod = MetaboliteMethod;
     else
-        warning('Parent fraction is available, but you did not input the method, which is not BIDS compliant')
+        warning('Parent fraction is available, but input method is not specified, which is not BIDS compliant')
     end
     
     if exist('MetaboliteRecoveryCorrectionApplied','var')
         info.MetaboliteRecoveryCorrectionApplied = MetaboliteRecoveryCorrectionApplied;
     else
-        warning('Parent fraction is available, but you did not indicate if a Recovery Correction was applied, which is not BIDS compliant')
+        warning('Parent fraction is available, but there is no information if Recovery Correction was applied, which is not BIDS compliant')
     end
        
+    if exist('DispersionCorrected','var')
+        info.DispersionCorrected = DispersionCorrected;
+    else
+        warning('Parent fraction is available, but there is no information if DispersionCorrected was applied, which is not BIDS compliant')
+    end
+    
     info.time.Description                       = 'Time in relation to time zero defined by the _pet.json';
     info.time.Units                             = 's';
     info.whole_blood_radioactivity.Description  = 'Radioactivity in whole blood samples. Measured using COBRA counter.';
@@ -325,8 +350,9 @@ if strcmpi(addjson,'on')
     info.metabolite_parent_fraction.Description = 'Parent fraction of the radiotracer';
     info.metabolite_parent_fraction.Units       = 'arbitrary';
     if exist('Plasma','var')
-        info.plasma_radioactivity.Description = "Radioactivity in plasma samples.";
-        info.plasma_radioactivity.Units       = "kBq/mL";
+        info.PlasmaAvail                        = 'true';
+        info.plasma_radioactivity.Description   = 'Radioactivity in plasma samples';
+        info.plasma_radioactivity.Units         = 'kBq/mL';
     end
     
     for v=1:nargin 
@@ -350,7 +376,14 @@ if strcmpi(addjson,'on')
     if sum(M) ~= length(mandatory)
         index = find(M==0);
         for m=1:length(index)
-            warning('missing %s',mandatory{index(m)})
+            if iscell(mandatory{index(m)})
+                tmp = mandatory{index(m)};
+                for t=1:length(tmp)
+                    warning('missing %s',tmp{t})
+                end
+            else
+                warning('missing %s',mandatory{index(m)})
+            end
         end
         warning('the json file created is NOT BIDS compliant, mandatory fields are missing')
     end

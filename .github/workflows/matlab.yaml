@@ -19,11 +19,11 @@ jobs:
       READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
       NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
+      METADATA_PATH: ${{ github.workspace }}/metadata/
 
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest]
-        #python: [3.5, 3.6, 3.7, 3.8, 3.9]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout Repo
@@ -44,12 +44,6 @@ jobs:
         if: steps.cache-ecat.outputs.cache-hit != 'true'
         run: "tar xvzf ecat_test && rm ecat_test"
 
-      # the larger real data file uses too much ram for the github runner, we use the small file for
-      # heavy io operations instead
-      - name: Unzip Test File(s)
-        run: |
-          gzip -d ${{ env.SMALLER_ECAT_PATH }}
-      
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
         uses: matlab-actions/setup-matlab@v1
@@ -64,5 +58,6 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.SMALLER_ECAT_PATH }}');
+            addpath('${{ env.METADATA_PATH }}');
             ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
