@@ -496,6 +496,57 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
     parameter_units = ["none", "none"]
     parameter_labels = ["subsets", "iterations"]
 
+    # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
+    iter_sub_combos = {
+        'iter_first': [r'\d\di\ds', r'\d\di\d\ds', r'\di\ds', r'\di\d\ds',
+                       r'i\d\ds\d', r'i\d\ds\d\d', r'i\ds\d', r'i\ds\d\d'],
+        'sub_first': [r'\d\ds\di', r'\d\ds\d\di', r'\ds\di', r'\ds\d\di',
+                      r's\d\di\d', r's\d\di\d\d', r's\di\d', r's\di\d\d'],
+    }
+
+    order = None
+    possible_iter_sub_strings = []
+    for key, value in iter_sub_combos.items():
+        for expression in value:
+            iteration_subset_string = re.search(expression, contents)
+            if iteration_subset_string:
+                order = key
+                iteration_subset_string = iteration_subset_string[0]
+                possible_iter_sub_strings.append(iteration_subset_string)
+    if possible_iter_sub_strings:
+        possible_iter_sub_strings.sort(key=len)
+        iteration_subset_string = possible_iter_sub_strings[-1]
+
+    # after we've captured the subsets and iterations we next need to seperate them out from each other
+    if iteration_subset_string and order:
+        # first we determine if the first part of the string is a digit or a char
+
+        # then we know what order to extract the numbers from
+
+            # case letter first -> extract all digits following letter if letter is i digits are iterations,
+            # if letter is s digits are subsets
+
+            # case digit first -> extract all digits up to a single letter, collect letter, if letter is i digits
+            # belong to iterations if letter is s digits are subsets
+
+        # extract the subsets from contents
+        subset_string = re.search(r'\d\ds', contents)
+        if not subset_string:
+            subset_string = re.search(r'\ds', contents)
+        if subset_string:
+            subsets = re.search(r'[\d]', subset_iteration_string)
+
+        # extract the number of iterations from contents
+        iteration_string = re.search(r'\d\di', contents)
+        if not iteration_string:
+            iteration_string = re.search(r'\di', contents)
+        if subset_iteration_string:
+            subsets = re.search(r'[\d]', iteration_string)
+
+        # use the subset and the iteration strings to find the name of the reconstruction method
+
+        # get everything in front of \d\di or \di or \d\ds or \ds
+
     return {
         "contents": ReconStructionMethodString,
         "subsets": subsets,
