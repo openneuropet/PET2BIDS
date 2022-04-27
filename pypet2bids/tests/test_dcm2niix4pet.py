@@ -1,4 +1,5 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
+from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel
 import pytest
 import dotenv
 import os
@@ -274,43 +275,78 @@ def test_get_recon_method():
     (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
     returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
     e.g.
-    ReconMethodName=
-    ReconMethodParameterLabels=
-    ReconMethodParameterUnits=
-    ReconMethodParameterValues=
+    ReconMethodName="PSF+TOF"
+    ReconMethodParameterLabels=["subsets", "iterations"]
+    ReconMethodParameterUnits=["none", "none"]
+    ReconMethodParameterValues=[21, 3]
     :return:
     """
 
     reconstruction_method_strings = [
         {
             "contents": "LO [PSF+TOF 3i21s]",
-            "desired_output": ""
+            "subsets": 21,
+            "iterations": 3,
+            "name": "PSF+TOF",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         },
         {
             "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
-            "desired_output": ""
-        },
+            "subsets": 21,
+            "iterations": 3,
+            "name": "OP-OSEM",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
+    },
         {
             "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
-            "desired_output": ""
+            "subsets": 21,
+            "iterations": 3,
+            "name": "PSF+TOF",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         },
         {
             "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": "",
+            "subsets": None,
+            "iterations": None,
+            "name": "LOR-RAMLA",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         },
         {
             "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
-            "desired_output": ""
+            "subsets": None,
+            "iterations": None,
+            "name": "3D-RAMLA",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         },
         {
             "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "subsets": 15,
+            "iterations": 3,
+            "name": "OSEM",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         },
         {
             "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "subsets": None,
+            "iterations": None,
+            "name": "LOR-RAMLA",
+            "parameter_units": ["none", "none"],
+            "parameter_labels": ["subsets", "iterations"]
         }
     ]
+
+    for recon_data  in reconstruction_method_strings:
+        recon = get_recon_method(recon_data)
+        for key, value in recon_data.items():
+            if key != "contents":
+                assert value == recon[key]
+
 
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
@@ -318,4 +354,4 @@ def test_get_convolution_kernel():
     ]
 
 if __name__ == '__main__':
-    test_additional_arguments()
+    test_update_json_with_dicom_value()

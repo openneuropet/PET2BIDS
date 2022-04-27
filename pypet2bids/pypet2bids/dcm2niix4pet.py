@@ -192,7 +192,9 @@ def update_json_with_dicom_value(
 
     # See if time zero is missing in json
     if missing_values.get('TimeZero')['key'] == False or missing_values.get('TimeZero')['value'] == False:
-        json_updater.update({'TimeZero': sidecar_json['AcquisitionTime']})
+        time_parser = parser
+        acquistion_time = time_parser.parse(dicom_header['AcquisitionTime'].value).time().isoformat()
+        json_updater.update({'TimeZero': acquistion_time})
         json_updater.remove('AcquisitionTime')
         json_updater.update({'ScanStart': 0})
 
@@ -485,6 +487,26 @@ class Dcm2niix4PET:
                     except KeyError:
                         headers_to_files[each] = [output_file]
         return headers_to_files
+
+def get_recon_method(ReconStructionMethodString: str) -> dict:
+    contents = ReconStructionMethodString
+    subsets = None
+    iterations = None
+    name = None
+    parameter_units = ["none", "none"]
+    parameter_labels = ["subsets", "iterations"]
+
+    return {
+        "contents": ReconStructionMethodString,
+        "subsets": subsets,
+        "iterations": iterations,
+        "name": name,
+        "parameter_units": parameter_units,
+        "parameter_labels": parameter_labels
+    }
+
+def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
+    return {}
 
 def cli():
     """
