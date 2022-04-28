@@ -342,7 +342,7 @@ def test_get_recon_method():
     ]
 
     for recon_data  in reconstruction_method_strings:
-        recon = get_recon_method(recon_data)
+        recon = get_recon_method(recon_data['contents'])
         for key, value in recon_data.items():
             if key != "contents":
                 assert value == recon[key]
@@ -354,4 +354,4 @@ def test_get_convolution_kernel():
     ]
 
 if __name__ == '__main__':
-    test_update_json_with_dicom_value()
+    test_get_recon_method()
