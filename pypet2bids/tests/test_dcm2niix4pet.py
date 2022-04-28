@@ -287,57 +287,64 @@ def test_get_recon_method():
             "contents": "LO [PSF+TOF 3i21s]",
             "subsets": 21,
             "iterations": 3,
-            "name": "PSF+TOF",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
             "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
             "subsets": 21,
             "iterations": 3,
-            "name": "OP-OSEM",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
-    },
+            "ReconMethodName": "OP-OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
+        },
         {
             "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
             "subsets": 21,
             "iterations": 3,
-            "name": "PSF+TOF",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
             "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
             "subsets": None,
             "iterations": None,
-            "name": "LOR-RAMLA",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
             "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
             "subsets": None,
             "iterations": None,
-            "name": "3D-RAMLA",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "3D-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
             "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
             "subsets": 15,
             "iterations": 3,
-            "name": "OSEM",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [15, 3]
         },
         {
             "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
             "subsets": None,
             "iterations": None,
-            "name": "LOR-RAMLA",
-            "parameter_units": ["none", "none"],
-            "parameter_labels": ["subsets", "iterations"]
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         }
     ]
 
@@ -350,8 +357,7 @@ def test_get_recon_method():
 
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
-
     ]
 
 if __name__ == '__main__':
-    test_get_recon_method()
+    pass

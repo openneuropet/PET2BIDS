@@ -177,6 +177,7 @@ def update_json_with_dicom_value(
                 if sidecar_json.get('ReconMethodName', None):
                     json_updater.remove('ReconstructionMethod')
                 # try to fill in values
+
                 else:
                     ReconMethodName = dicom_header['ReconstructionMethod']
                     json_updater.remove('ReconstructionMethod')
@@ -489,17 +490,25 @@ class Dcm2niix4PET:
         return headers_to_files
 
 def get_recon_method(ReconStructionMethodString: str) -> dict:
+    """
+    Given the reconstruction method from a dicom header this function does its best to determine the name of the
+    reconstruction, the number of iterations used in the reconstruction, and the number of subsets in the
+    reconstruction.
+    :param ReconStructionMethodString:
+    :return: dictionary containing PET BIDS fields ReconMethodName, ReconMethodParameterUnits,
+        ReconMethodParameterLabels, and ReconMethodParameterValues
+    """
     contents = ReconStructionMethodString
     subsets = None
     iterations = None
-    name = None
-    parameter_units = ["none", "none"]
-    parameter_labels = ["subsets", "iterations"]
+    ReconMethodName = None
+    ReconMethodParameterUnits = ["none", "none"]
+    ReconMethodParameterLabels = ["subsets", "iterations"]
 
     # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
     iter_sub_combos = {
-        'iter_first': [r"\d\di\ds", r"\d\di\d\ds", r"\di\ds", r"\di\d\ds",
-                       r"i\d\ds\d", r"i\d\ds\d\d", r"i\ds\d", r"i\ds\d\d"],
+        'iter_first': [r'\d\di\ds', r'\d\di\d\ds', r'\di\ds', r'\di\d\ds',
+                       r'i\d\ds\d', r'i\d\ds\d\d', r'i\ds\d', r'i\ds\d\d'],
         'sub_first': [r'\d\ds\di', r'\d\ds\d\di', r'\ds\di', r'\ds\d\di',
                       r's\d\di\d', r's\d\di\d\d', r's\di\d', r's\di\d\d'],
     }
@@ -508,6 +517,7 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
     iter_sub_combos['sub_first'] = [re.compile(regex) for regex in iter_sub_combos['sub_first']]
     order = None
     possible_iter_sub_strings = []
+    # run through possible combinations of iteration subtitution strings in iter_sub_combos
     for key, value in iter_sub_combos.items():
         for expression in value:
             iteration_subset_string = expression.search(contents)
@@ -515,8 +525,12 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
                 order = key
                 iteration_subset_string = iteration_subset_string[0]
                 possible_iter_sub_strings.append(iteration_subset_string)
+    # if matches get ready to pick one
     if possible_iter_sub_strings:
+        # sorting matches by string length as our method can return more than one match e.g. 3i21s will return
+        # 3i21s and 3i1s or something similar
         possible_iter_sub_strings.sort(key=len)
+        # picking the longest match as it's most likely the correct one
         iteration_subset_string = possible_iter_sub_strings[-1]
 
     # after we've captured the subsets and iterations we next need to seperate them out from each other
@@ -524,13 +538,19 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
         #  remove all chars replace with spaces
         just_digits = re.sub(r'[a-zA-Z]', " ", iteration_subset_string)
         just_digits = just_digits.strip()
+        # split up subsets and iterations
         just_digits = just_digits.split(" ")
+        # assign digits to either subsets or iterations based on order information obtained earlier
         if order == 'iter_first' and len(just_digits) == 2:
             iterations = int(just_digits[0])
             subsets = int(just_digits[1])
-        else:
+        elif len(just_digits) == 2:
             iterations = int(just_digits[1])
             subsets = int(just_digits[0])
+        else:
+            # if we don't have both we decide that we don't have either, flawed but works for the samples in
+            # test_dcm2niix4pet.py may. Will be updated when non-conforming data is obtained
+            pass # do nothing, this case shouldn't fire.....
 
     if iteration_subset_string:
         name = re.sub(iteration_subset_string, "", contents)
@@ -540,8 +560,8 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
     name = name[1].strip()
 
     # cleaning up weird chars at end or start of name
-    name = re.sub(r'[^a-zA-Z]$', "", name)
-    name = re.sub(r'^[^a-zA-Z]', "", name)
+    name = re.sub(r'[^a-zA-Z0-9]$', "", name)
+    name = re.sub(r'^[^a-zA-Z0-9]', "", name)
 
     # get everything in front of \d\di or \di or \d\ds or \ds
 
@@ -549,9 +569,10 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
         "contents": ReconStructionMethodString,
         "subsets": subsets,
         "iterations": iterations,
-        "name": name,
-        "parameter_units": parameter_units,
-        "parameter_labels": parameter_labels
+        "ReconMethodName": name,
+        "ReconMethodParameterUnits": ReconMethodParameterUnits,
+        "ReconMethodParameterLabels": ReconMethodParameterLabels,
+        "ReconMethodParameterValues" : [subsets, iterations]
     }
 
 def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
