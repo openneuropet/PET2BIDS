@@ -284,7 +284,7 @@ def test_get_recon_method():
 
     reconstruction_method_strings = [
         {
-            "contents": "LO [PSF+TOF 3i21s]",
+            "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
             "ReconMethodName": "PSF+TOF",
@@ -293,7 +293,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
+            "contents": "OP-OSEM3i21s",
             "subsets": 21,
             "iterations": 3,
             "ReconMethodName": "OP-OSEM",
@@ -302,7 +302,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
+            "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
             "ReconMethodName": "PSF+TOF",
@@ -311,7 +311,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "contents": "LOR-RAMLA",
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
@@ -320,7 +320,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
+            "contents": "3D-RAMLA",
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "3D-RAMLA",
@@ -329,7 +329,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
+            "contents": 'OSEM:i3s15',
             "subsets": 15,
             "iterations": 3,
             "ReconMethodName": "OSEM",
@@ -338,7 +338,7 @@ def test_get_recon_method():
             "ReconMethodParameterValues": [15, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
+            "contents": "LOR-RAMLA",
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
@@ -351,7 +351,7 @@ def test_get_recon_method():
     for recon_data  in reconstruction_method_strings:
         recon = get_recon_method(recon_data['contents'])
         for key, value in recon_data.items():
-            if key != "contents":
+            if key != "contents" and key != 'subsets' and key != 'iterations':
                 assert value == recon[key]
 
 
@@ -360,4 +360,5 @@ def test_get_convolution_kernel():
     ]
 
 if __name__ == '__main__':
-    pass
+    test_manufacturers()
+    test_update_json_with_dicom_value()

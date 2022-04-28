@@ -176,12 +176,11 @@ def update_json_with_dicom_value(
                 # if it exists get rid of it, we don't want no part of it.
                 if sidecar_json.get('ReconMethodName', None):
                     json_updater.remove('ReconstructionMethod')
-                # try to fill in values
-
-                else:
-                    ReconMethodName = dicom_header['ReconstructionMethod']
+                if dicom_header.get('ReconstructionMethod', None):
+                    reconstruction_method = dicom_header.ReconstructionMethod
                     json_updater.remove('ReconstructionMethod')
-                    #iterations = re.
+                    reconstruction_method = get_recon_method(reconstruction_method)
+                    json_updater.update(reconstruction_method)
 
                 # TODO Convo Kernel
                 pass # do regex magic
@@ -434,7 +433,6 @@ class Dcm2niix4PET:
                             dicom_header,
                             dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
 
-
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
                     if self.additional_arguments:
@@ -556,8 +554,6 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
         name = re.sub(iteration_subset_string, "", contents)
     else:
         name = contents
-    name = re.search(r'\[(.*?)\]', name)
-    name = name[1].strip()
 
     # cleaning up weird chars at end or start of name
     name = re.sub(r'[^a-zA-Z0-9]$', "", name)
@@ -566,9 +562,6 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
     # get everything in front of \d\di or \di or \d\ds or \ds
 
     return {
-        "contents": ReconStructionMethodString,
-        "subsets": subsets,
-        "iterations": iterations,
         "ReconMethodName": name,
         "ReconMethodParameterUnits": ReconMethodParameterUnits,
         "ReconMethodParameterLabels": ReconMethodParameterLabels,
