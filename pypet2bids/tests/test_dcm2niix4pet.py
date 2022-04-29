@@ -360,5 +360,4 @@ def test_get_convolution_kernel():
     ]
 
 if __name__ == '__main__':
-    test_manufacturers()
-    test_update_json_with_dicom_value()
+    pass
