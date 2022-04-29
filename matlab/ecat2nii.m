@@ -28,15 +28,14 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % SIF is a simple ascii file that contains the PET frame start and end times,
 % and the numbers of observed events during each PET time frame.
 %
-% Dev: if the meta structure as a field (key) 'info' with a value containing 'test'
-%      the json validation is skipped -- allows e.g. unit testing
-%
 % Uses: readECAT7.m (Raymond Muzic, 2002)
+%       jsonwrite.m (Guillaume Flandin, 2020)
+%       nii_tool.m (Xiangrui Li, 2016)
+%
 % See also get_pet_metadata.m to generate the metadata structure
 %
-% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
-%    (some of the code is based on code from Mark Lubbering
-% ----------------------------------------------
+% Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021
+% ----------------------------------------------------------------
 % Copyright Open NeuroPET team
 
 %% defaults
@@ -134,10 +133,10 @@ for j=1:length(FileListIn)
             error('the file %s does not exist',FileListIn{j}),
         end
         
-        [pet_path,pet_file,ext]=fileparts(FileListIn{j});
+        [pet_path,pet_file,ext] = fileparts(FileListIn{j});
         if strcmp(ext,'.gz')
-            newfile          = gunzip([pet_path filesep pet_file ext]);
-            [~,pet_file,ext] = fileparts(newfile{1});
+            newfile             = gunzip([pet_path filesep pet_file ext]);
+            [~,pet_file,ext]    = fileparts(newfile{1});
         end
         
         pet_file = [pet_file ext]; 
@@ -270,6 +269,9 @@ for j=1:length(FileListIn)
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         info                                  = orderfields(info);
+        
+        % write json file using jsonwrite from Guillaume Flandin
+        % $Id: spm_jsonwrite.m
         jsonwrite([filenameout '.json'],info)
         status = updatejsonpetfile([filenameout '.json']); % validate
         if status.state ~= 1
@@ -333,26 +335,30 @@ for j=1:length(FileListIn)
         info.Transform.T        = T;
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
-        % niftiwrite requires Image Processing Toolbox, use nii_tool if not installed
 
-        if ~exist('niftiwrite', 'builtin') && ~exist('niftiwrite', 'file')
-            nii.hdr = info.raw;
-            nii.img = img_temp;
-            fnm = [filenameout '.nii'];
-            if gz
-                fnm = [fnm '.gz']; %#ok<*AGROW>
-            end;
-            nii_tool('save', nii, fnm);
-            FileListOut{j} = fnm;
-        else
-            if gz
-                niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
-                FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
-            else
-                FileListOut{j} = [filenameout '.nii'];
-                niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
-            end
+        % write nifti file using nii_tool
+        % Copyright (c) 2016, Xiangrui Li https://github.com/xiangruili/dicm2nii
+        % BSD-2-Clause License
+        nii.hdr                 = info.raw;
+        nii.img                 = img_temp;
+        fnm                     = [filenameout '.nii'];
+        if gz 
+            fnm = [fnm '.gz']; %#ok<*AGROW>
         end
+        nii_tool('save', nii, fnm);
+        FileListOut{j}          = fnm;
+        
+        % optionally one can use niftiwrite from the Image Processing Toolbox
+        % warning different versions of matlab may provide different nifti results
+        %
+        % if gz
+        %     niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
+        %     FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+        % else
+        %     FileListOut{j} = [filenameout '.nii'];
+        %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
+        % end
+    
     catch conversionerr
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end
