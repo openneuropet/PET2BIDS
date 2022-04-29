@@ -4,7 +4,7 @@ BIDS requires nifti files and json. While json can be writen be hand, this is mo
 
 ## Dependencies
 
-We use the [niftiwrite](https://se.mathworks.com/help/images/ref/niftiwrite.html) from the Matlab image processing toolbox, which is only need to convert ecat files. For DICOM files, dcm2niix is also necessary. The jsonwrite function is distributed here, taken from [json.io](https://github.com/gllmflndn/JSONio). There are no other dependencies.
+By default this software will use [niftiwrite](https://se.mathworks.com/help/images/ref/niftiwrite.html) from the Matlab image processing toolbox, which is only need to convert ecat files. However, if the toolbox is not installed the software will use the included [nii_tool](https://github.com/xiangruili/dicm2nii). For DICOM files, dcm2niix is also necessary. The jsonwrite function is distributed here, taken from [json.io](https://github.com/gllmflndn/JSONio). There are no other dependencies.
 
 ## Configuration
 
