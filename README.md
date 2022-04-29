@@ -18,7 +18,7 @@ Under the /matlab folder, you will find the source code to use - simply add that
 
 Under the /pypet2bids folder,  you will find the source code to use - follow the installation instruction in /pypet2bids/pypet2bids/README.md.
 
-### spreadsheet_conversion
+### spreadsheet_conversion (custom and pmod)
 
 This folder contains spreadsheets templates and examples of metadata and matlab and python code to convert them to json files. Often, metadata such as Frame durations, InjectedRadioactivity, etc are stored in spreadsheets and we have made those function to create json files automatically for 1 or many subjects at once to go with the nifti imaging data. Note, we also have conversion for pmod files (also spreadsheets) allowing to export to blood.tsv files.
 
