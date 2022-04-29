@@ -1,4 +1,5 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
+from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel
 import pytest
 import dotenv
 import os
@@ -274,48 +275,89 @@ def test_get_recon_method():
     (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
     returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
     e.g.
-    ReconMethodName=
-    ReconMethodParameterLabels=
-    ReconMethodParameterUnits=
-    ReconMethodParameterValues=
+    ReconMethodName="PSF+TOF"
+    ReconMethodParameterLabels=["subsets", "iterations"]
+    ReconMethodParameterUnits=["none", "none"]
+    ReconMethodParameterValues=[21, 3]
     :return:
     """
 
     reconstruction_method_strings = [
         {
-            "contents": "LO [PSF+TOF 3i21s]",
-            "desired_output": ""
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "OP-OSEM3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "OP-OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": "",
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "3D-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "3D-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": 'OSEM:i3s15',
+            "subsets": 15,
+            "iterations": 3,
+            "ReconMethodName": "OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [15, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         }
     ]
 
+    for recon_data  in reconstruction_method_strings:
+        recon = get_recon_method(recon_data['contents'])
+        for key, value in recon_data.items():
+            if key != "contents" and key != 'subsets' and key != 'iterations':
+                assert value == recon[key]
+
+
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
-
     ]
 
 if __name__ == '__main__':
-    test_additional_arguments()
+    pass
