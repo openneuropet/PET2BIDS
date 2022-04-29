@@ -3,16 +3,17 @@ function structout = flattenstruct(structin)
 % routine that take a structure with nested subfileds
 % and output all fields in a flat structure
 %
-% FORMAT structout = flattendcm(filein)
+% :format: - structout = flattendcm(structin)
 %
-% INPUT  structin is a structure with nested fields
-% OUTPUT structout is a flat sructure with all the dcm fields
+% :param structin: a structure with nested fields
+% :returns structout: a flat sructure with all the dcm fields
 %                  fields that are flattened is empty [] and their
 %                  subfileds start with the 1st letter of the parent 
 %
-% Cyril Pernet Novembre 2021
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+% .. note:: 
+%    Cyril Pernet Novembre 2021
+%    ----------------------------------------------
+%    Copyright Open NeuroPET team
 
 rootfields = fieldnames(structin); % root fieldnames
 for f=1:length(rootfields)

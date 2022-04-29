@@ -39,7 +39,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   See also get_pet_metadata.m to generate the metadata structure
 %
 %   Cyril Pernet - 2021
-%
+%   ----------------------------
 %   Copyright Open NeuroPET team
 
 dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix

@@ -3,28 +3,28 @@ function status = updatejsonpetfile(varargin)
 % generic function that updates PET json file with missing PET-BIDS
 % information, if only the jsonfile is provided, it only checks if valid
 %
-% FORMAT status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
+% :format: status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
-% INPUT - jsonfilename: json file to check or update update
-%       optional
-%       - newfields: a structure with the newfields to go into the json file
-%       - dcminfo:   a dcmfile or the dicominfo structure from a representative
-%                    dicom file- This information is used to also update the json
+% :param jsonfilename: json file to check or update update
+% :param newfields: (optional) a structure with the newfields to go into the json file
+% :param dcminfo: (optional) a dcmfile or the dicominfo structure from a representative
+%                    dicom file. This information is used to also update the json
 %                    file, and if a comflict exists, it returns warning messages,
 %                    assumnimg the newfield provided is correct (i.e. as a user you
 %                    know better than default dicom, presumably)
 %
-% OUTPUT status returns the state of the updating (includes warning messages
-%               returned if any)
+% :returns status: the state of the updating (includes warning messages returned if any)
 %
-% jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
-% metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
-%                        'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
-% dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
-% status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
+% .. code-block::
+%    jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
+%    metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
+%                           'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+%    dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
+%    status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 %
-% Cyril Pernet Nov 2021
-% ----------------------------------------------
+% .. note:: 
+% Cyril Pernet 2021
+% ----------------------------
 % Copyright Open NeuroPET team
 
 status = struct('state',[],'messages',{''});

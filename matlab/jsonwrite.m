@@ -1,29 +1,27 @@
 function varargout = jsonwrite(varargin)
+
 % Serialize a JSON (JavaScript Object Notation) structure
-% FORMAT jsonwrite(filename,json)
-% filename - JSON filename
-% json     - JSON structure
 %
-% FORMAT S = jsonwrite(json)
-% json     - JSON structure
-% S        - serialized JSON structure (string)
+% : format: - jsonwrite(filename,json,options)
+%           - S = jsonwrite(json)
 %
-% FORMAT [...] = jsonwrite(...,opts)
-% opts     - structure or list of name/value pairs of optional parameters:
-%              prettyPrint: indent output [Default: false]
-%              replacementStyle: string to control how non-alphanumeric
-%                characters are replaced {'underscore','hex','delete','nop'}
-%                [Default: 'underscore']
-%              convertInfAndNaN: encode NaN, Inf and -Inf as "null"
-%                [Default: true]
+% :param filename: the name of the JSON file to write
+% :param json:     the JSON structure
+% :param options:
+%    - *prettyPrint* true or false to indent output [Default: true]
+%    - *replacementStyle* string to control how non-alphanumeric characters
+%          are replaced {'underscore','hex','delete','nop'} [Default: 'underscore']
+%    - *convertInfAndNaN* encode NaN, Inf and -Inf as "null" [Default: true]
+%
+% :returns: S the serialized JSON structure (string)
 % 
 % References:
 %   JSON Standard: https://www.json.org/
 %   jsonencode: https://www.mathworks.com/help/matlab/ref/jsonencode.html
-
-% Guillaume Flandin
-% $Id: spm_jsonwrite.m 8031 2020-12-10 13:37:00Z guillaume $
-
+%
+% .. note::
+%    Guillaume Flandin
+%    $Id: spm_jsonwrite.m 8031 2020-12-10 13:37:00Z guillaume $
 
 %-Input parameters
 %--------------------------------------------------------------------------

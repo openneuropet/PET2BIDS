@@ -1,43 +1,44 @@
 function [mh,sh,data] = readECAT7(fs,matrix,varargin)
-%  [mh,sh,data] = readECAT(fs, [matrix], ['Calibrated', 'on'])
+
 %  Read the main header, subheaders, and image/sinogram data from
 %     ECAT v 7.x *.v, *.i, *.S, and *.a files.
 %
-%  mh - main header
-%  sh - cell array of subheaders.  sh{i} is subheader for matrix(i).
-%  data - cell array containing pixel data.  data{i} is a
-%         [rows, cols, planes] or [proj, views, planes] array with the
-%         data of matrix i.
-%         The data are stored in the file as 2 byte signed integers.
-%  fs (optional) - file specification (name/path) of file to read.  if
+%  :format: [mh,sh,data] = readECAT(fs, [matrix], ['Calibrated', 'on'])
+%
+%  :param fs: (optional) file specification (name/path) of file to read.  if
 %     file specification is not given, then user is prompted to select a file.
-%  matrix - (optional) vector of matrix numbers to read.  Default = all matrices in file.
-%  keyword / value pairs.  Here is the list accepted
-%    'Calibrated', 'on' : calibrate to pixel values in units given in mh.data_units.
+%  :param matrix: (optional) vector of matrix numbers to read.  Default = all matrices in file.
+%  :param Calibrated': 'on' or 'off', if on it calibrates to pixel values in units given in mh.data_units.
 %                         When 'Calibrated' is 'on', pixel values are stored as doubles;
 %                         otherwise, pixels are int16.  Calibration is achieved
 %                         by multiplication of pixels by ecat_calibration_factor
 %                         (in mh) and the scale_factor (in sh).
 %                         The default is uncalibrated in which case pixels are int16.
 %
-% NOTES:
-% To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
-% This could be helpful to convert a time-sequence of image volumes to something
-% that can be more easily manipulated.
+% :returns mh   - main header
+%          sh   - cell array of subheaders.  sh{i} is subheader for matrix(i).
+%          data - cell array containing pixel data.  data{i} is a
+%                 [rows, cols, planes] or [proj, views, planes] array with the
+%                 data of matrix i. The data are stored in the file as 2 byte signed integers.
 %
-%  This should work for the entire line of ECAT scanners running 7.x of the software.
-%  Original version written by BT Christian, 12/10/98
-%  Overhaul by RF Muzic, 20000726
-%  Revised by RF Muzic, 20010916
-%  Revised by RF Muzic, 20011221 add support for 3D sinogram files (prev only images supported)
-%  Revised by RF Muzic, 20021017 generalize support from multiple frames to multiple
+% .. note:: 
+%     To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
+%     This could be helpful to convert a time-sequence of image volumes to something
+%     that can be more easily manipulated.
+%
+%     This should work for the entire line of ECAT scanners running 7.x of the software.
+%     Original version written by BT Christian, 12/10/98
+%     Overhaul by RF Muzic, 20000726
+%     Revised by RF Muzic, 20010916
+%     Revised by RF Muzic, 20011221 add support for 3D sinogram files (prev only images supported)
+%     Revised by RF Muzic, 20021017 generalize support from multiple frames to multiple
 %                     matrices.  The distinction is that a matrix could correspond to
 %                     different bed position or different frame.
-%  Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.
+%     Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.
 %                     It is actually 49 shorts (to make a 512 byte sh block) whereas CTI docs says 48.
 %                     Add support for .a files.
-% Copyright ? 2002 Raymond F. Muzic, Jr.
-% Not intended for clinical/diagnostic use.  User assumes all risk.
+%     Copyright ? 2002 Raymond F. Muzic, Jr.
+%     Not intended for clinical/diagnostic use.  User assumes all risk.
 
 persistent lastpath_
 

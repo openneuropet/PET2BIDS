@@ -13,10 +13,12 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % :param FileListOut: a name or cell array of characters with filenames
 %   (with path if the path out is different)
 % :param sifout: is true or false (default) to output a sif file, default = false, 0/1 to indicate
+%    SIF is a simple ascii file that contains the PET frame start and end times,
+%    and the numbers of observed events during each PET time frame.
 % :param gz: is true (default) or false to output .nii.gz or .nii
 % :param savemat: is true or false (default) to save the ecat data as .mat
 %
-% :returns: FileListOut is the name or a cell array of names of the nifti files created
+% :returns FileListOut: is the name or a cell array of names of the nifti files created
 %        (should be the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
 % .. code-block::
@@ -27,18 +29,17 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));``
 %
-% .. note:: SIF is a simple ascii file that contains the PET frame start and end times,
-%       and the numbers of observed events during each PET time frame.
+% .. note:: 
 %
-% Uses: readECAT7.m (Raymond Muzic, 2002)
-%       jsonwrite.m (Guillaume Flandin, 2020)
-%       nii_tool.m (Xiangrui Li, 2016)
+%    Uses: readECAT7.m (Raymond Muzic, 2002)
+%          jsonwrite.m (Guillaume Flandin, 2020)
+%          nii_tool.m (Xiangrui Li, 2016)
 %
-% See also get_pet_metadata.m to generate the metadata structure
+%    See also get_pet_metadata.m to generate the metadata structure
 %
-% Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021
-% ----------------------------------------------------------------
-% Copyright Open NeuroPET team
+%    Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021
+%    ----------------------------------------------------------------
+%    Copyright Open NeuroPET team
 
 %% defaults
 % ---------
