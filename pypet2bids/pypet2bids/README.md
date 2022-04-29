@@ -1,4 +1,8 @@
-# Python ECAT converter
+# Python DICOM PET converter
+
+_to do_
+
+# Python ECAT PET converter
 
 This converter takes an ecat file, reads it in and then with the help of nibabel spits out a Nifti w/ a BIDS compliant
 json replete with any relevant fields parsed from the ecat headers. Required fields that cannot be filled from data
