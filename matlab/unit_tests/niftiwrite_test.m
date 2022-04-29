@@ -71,7 +71,11 @@ info.Transform.T        = T;
 info.raw.intent_name    = '';
 info.raw.magic          = 'n+1 ';
 
-niftiwrite(single(to_write),'test.nii',info,'Endian','little','Compressed',false);
+% niftiwrite(single(to_write),'test.nii',info,'Endian','little','Compressed',false);
+nii.hdr  = info.raw;
+nii.img  = to_write;
+nii_tool('save', nii, 'test.nii');
+
 img_reread = niftiread('test.nii');
 img_diff   = img(:)-img_reread(:);
         
