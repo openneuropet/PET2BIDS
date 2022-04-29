@@ -39,7 +39,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 % ----------------------------------------------
 % Copyright Open NeuroPET team
 
-%dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
@@ -226,9 +226,9 @@ for folder = 1:size(FolderList,1)
     system(command);
    
     % deal with dcm files
-    dcmfiles = dir(fullfile(outputdir{folder},'*dcm'));
+    dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(
-        dcmfiles = dir(outputdir{folder}); % pick in the middle to avoid other files
+        dcmfiles = dir(FolderList{folder}); % pick in the middle to avoid other files
         dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
     else
         dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
