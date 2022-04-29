@@ -19,7 +19,7 @@
 build/
 dist/
 *.spec
-pypet2bids/pypet2bids/metadata
+pypet2bids/pypet2bids/metadata/
 pypet2bids/pypet2bids/pyproject.toml
 
 # Inherited cookiecutter files

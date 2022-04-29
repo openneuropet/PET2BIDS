@@ -1,24 +1,30 @@
 function dataout = check_metaradioinputs(varargin)
 
-% routine to check input consistency, possibly generate new ones from PET
+% Routine to check input consistency, possibly generate new ones from PET
 % BIDS metadata - this only makes sense if you respect the input units as
 % indicated
 %
-% FORMAT: dataout = check_metaradioinputs(varargin)
+% :format: dataout = check_metaradioinputs(varargin)
 %
-% INPUTS: arguments in are any of these key/value pairs
-%           - InjectedRadioactivity in MBq
-%           - InjectedMass          in ug
-%           - SpecificRadioactivity in Bq/g or MBq/ug
-%           - MolarActivity         in GBq/umol
-%           - MolecularWeight       in g/mol
+% .. note:: arguments in are provided via the following params (key/value pairs)
+%   e.g.
+%    - InjectedRadioctivity=0
+%    - InjectedMass=0
 %
-% OUTPUT: dataout is a structure with the original and updated field,
+% :param InjectedRadioactivity: in MBq
+% :param InjectedMass:          in ug
+% :param SpecificRadioactivity: in Bq/g or MBq/ug
+% :param MolarActivity:         in GBq/umol
+% :param MolecularWeight:       in g/mol
+%
+% :return: a structure with the original and updated field,
 %         including expected units
 %
-% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+% .. note::
+%   Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
+%
+%   Copyright Open NeuroPET team
+%
 
 %% check inputs
 if size(varargin,2)==1

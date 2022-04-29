@@ -5,4 +5,3 @@ pypet2bids
    :maxdepth: 4
 
    pypet2bids
-   tests
