@@ -185,8 +185,12 @@ for j=1:length(FileListIn)
             if ~isempty(newpet_path)
                 pet_path = newpet_path;
             end
-        end 
+        end
+        
         filenameout  = [pet_path filesep pet_filename];
+        if ~exist(fileparts(filenameout),'dir')
+            mkdir(fileparts(filenameout))
+        end
 
         % write timing info separately
         if sifout
