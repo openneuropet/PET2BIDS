@@ -277,6 +277,33 @@ for j=1:length(FileListIn)
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         info                                  = orderfields(info);
         
+        % check radiotracer info - should have been done already in
+        % get_pet_metadata ; but user can also populate metadata by hand
+        % so let's recheck
+         if ~isfield(info,'Units')
+            info.Units = 'Bq/mL';
+         end
+        
+         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
+             'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
+         index                  = 1; % make key-value pairs
+         arguments              = cell(1,sum(input_check)*2);
+         for r=find(input_check)
+             arguments{index}   = radioinputs{r};
+             arguments{index+1} = info.(radioinputs{r});
+             index = index + 2;
+         end
+         dataout                = check_metaradioinputs(arguments);
+         datafieldnames         = fieldnames(dataout);
+         
+         % set new info fields
+         for f = 1:size(datafieldnames,1)
+             if ~isfield(info,datafieldnames{f})
+                 info.(datafieldnames{f}) = dataout.(datafieldnames{f});
+             end
+         end
+         
         % write json file using jsonwrite from Guillaume Flandin
         % $Id: spm_jsonwrite.m
         jsonwrite([filenameout '.json'],info)
