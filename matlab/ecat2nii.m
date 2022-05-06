@@ -289,18 +289,20 @@ for j=1:length(FileListIn)
          input_check            = cellfun(@(x) isfield(info,x), radioinputs);
          index                  = 1; % make key-value pairs
          arguments              = cell(1,sum(input_check)*2);
-         for r=find(input_check)
-             arguments{index}   = radioinputs{r};
-             arguments{index+1} = info.(radioinputs{r});
-             index = index + 2;
-         end
-         dataout                = check_metaradioinputs(arguments);
-         datafieldnames         = fieldnames(dataout);
-         
-         % set new info fields
-         for f = 1:size(datafieldnames,1)
-             if ~isfield(info,datafieldnames{f})
-                 info.(datafieldnames{f}) = dataout.(datafieldnames{f});
+         if sum(input_check) ~= 0
+             for r=find(input_check)
+                 arguments{index}   = radioinputs{r};
+                 arguments{index+1} = info.(radioinputs{r});
+                 index = index + 2;
+             end
+             dataout                = check_metaradioinputs(arguments);
+             datafieldnames         = fieldnames(dataout);
+             
+             % set new info fields
+             for f = 1:size(datafieldnames,1)
+                 if ~isfield(info,datafieldnames{f})
+                     info.(datafieldnames{f}) = dataout.(datafieldnames{f});
+                 end
              end
          end
          
@@ -380,7 +382,7 @@ for j=1:length(FileListIn)
             fnm = [fnm '.gz']; %#ok<*AGROW>
         end
         nii_tool('save', nii, fnm);
-        FileListOut{j}          = fnm;
+        FileListOut{j} = fnm;
         
         % optionally one can use niftiwrite from the Image Processing Toolbox
         % warning different versions of matlab may provide different nifti results
