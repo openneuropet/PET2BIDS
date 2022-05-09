@@ -2,7 +2,17 @@ import collections
 import unittest
 import pypet2bids.helper_functions as helper_functions
 from os import remove
+import pandas
+from pathlib import Path
+from os.path import join
 
+# collect config files
+# fields to check for
+module_folder = Path(__file__).parent.resolve()
+python_folder = module_folder.parent
+pet2bids_folder = python_folder.parent
+metadata_folder = join(pet2bids_folder, 'spreadsheet_conversion')
+single_subject_metadata_file = join(metadata_folder, 'single_subject_sheet', 'subject_metadata_example.xlsx')
 
 class TestHelperFunctions(unittest.TestCase):
     @classmethod
@@ -53,6 +63,27 @@ class TestHelperFunctions(unittest.TestCase):
     def tearDown(cls) -> None:
         remove(cls.test_env_file_path)
 
+def test_open_metadata():
+    # read in a known metadata spreadsheet
+    test_dataframe = pandas.read_excel(single_subject_metadata_file)
+
+    # read in the the same dataframe using the helper function
+    metadata_dataframe = helper_functions.open_meta_data(single_subject_metadata_file)
+
+    pandas.testing.assert_frame_equal(test_dataframe, metadata_dataframe)
+
+def test_translate_metadata():
+    test_translate_script_path = join(module_folder, 'metadata_excel_example_reader.py')
+
+    test_output = helper_functions.translate_metadata(single_subject_metadata_file,test_translate_script_path)
+
+    assert test_output['nifti_json']['ImageDecayCorrectionTime'] == 0
+    assert test_output['nifti_json']['ReconMethodName'] == '3D-OSEM-PSF'
+    assert test_output['nifti_json']['ReconMethodParameterLabels'] == ['subsets', 'iterations']
+    assert test_output['nifti_json']['ReconMethodParameterUnits'] == ['none', 'none']
+    assert test_output['nifti_json']['ReconMethodParameterValues'] == [16, 10]
+    assert test_output['nifti_json']['ReconFilterType'] == 'none'
 
 if __name__ == '__main__':
+    test_open_metadata()
     unittest.main()
