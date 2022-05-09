@@ -22,7 +22,6 @@ function status = updatejsonpetfile(varargin)
 %    dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
 %    status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 %
-% .. note:: 
 % Cyril Pernet 2021
 % ----------------------------
 % Copyright Open NeuroPET team
