@@ -172,7 +172,6 @@ def update_json_with_dicom_value(
                 print(f"NOT FOUND {value} corresponding to BIDS {key} in dicom header.")
 
             if dicom_field and value in regex_cases:
-                # TODO ReconMethod
                 # if it exists get rid of it, we don't want no part of it.
                 if sidecar_json.get('ReconMethodName', None):
                     json_updater.remove('ReconstructionMethod')
@@ -183,7 +182,6 @@ def update_json_with_dicom_value(
                     json_updater.update(reconstruction_method)
 
                 # TODO Convo Kernel
-                pass # do regex magic
             elif dicom_field:
                 # update json
                 json_updater.update({key: dicom_field})
@@ -214,6 +212,7 @@ def update_json_with_dicom_value(
 
 
     # TODO nucleotides
+
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, time_field='StudyTime', date_field='StudyDate', date='', time=''):
     """
@@ -440,9 +439,18 @@ class Dcm2niix4PET:
                                               update_values=self.additional_arguments)
                         update_json.update()
 
-                    # tag json with additional conversion software
-                    sidecar_json = JsonMAJ(json_path=str(created))
+                    # there are some additional updates that depend on some PET BIDS logic that we do next, since these
+                    # updates depend on both information provided via the sidecar json and/or information provided via
+                    # additional arguments we run this step after updating the sidecar with those additional user
+                    # arguments
 
+                    sidecar_json = JsonMAJ(json_path=str(created)) # load all supplied and now written sidecar data in
+
+                    check_metadata_radio_inputs = check_meta_radio_inputs(sidecar_json.json_data) # run logic
+
+                    sidecar_json.update(check_metadata_radio_inputs) # update sidecar json with results of logic
+
+                    # tag json with additional conversion software
                     conversion_software = sidecar_json.get('ConversionSoftware')
                     conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
 
@@ -567,6 +575,145 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
         "ReconMethodParameterLabels": ReconMethodParameterLabels,
         "ReconMethodParameterValues" : [subsets, iterations]
     }
+
+def check_meta_radio_inputs(kwargs: dict) -> dict:
+    InjectedRadioactivity = kwargs.get('InjectedRadioactivity', None)
+    InjectedMass = kwargs.get("InjectedMass", None)
+    SpecificRadioactivity = kwargs.get("SpecificRadioactivity", None)
+    MolarActivity = kwargs.get("MolarActivity", None)
+    MolecularWeight = kwargs.get("MolecularWeight", None)
+
+    data_out = {}
+
+    if InjectedRadioactivity and InjectedMass:
+        data_out['InjectedRadioactivity'] = InjectedRadioactivity
+        data_out['InjectedRadioactivityUnits'] = 'MBq'
+        data_out['InjectedMass'] = InjectedMass
+        data_out['InjectedMassUnits'] = 'ug'
+        # check for strings where there shouldn't be strings
+        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        if False in numeric_check:
+            data_out['InjectedMass'] = 'n/a'
+            data_out['InjectedMassUnits'] = 'n/a'
+        else:
+            tmp = (InjectedRadioactivity*10**6)/(InjectedMass*10**6)
+            if SpecificRadioactivity:
+                if SpecificRadioactivity != tmp:
+                    print(colored("WARNING infered SpecificRadioactivity in Bq/g doesn''t match InjectedRadioactivity "
+                                  "and InjectedMass, could be a unit issue", "yellow"))
+                data_out['SpecificRadioactivity'] = SpecificRadioactivity
+                data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
+            else:
+                data_out['SpecificRadioactivity'] = tmp
+                data_out['SpecificRadioactivityUnits'] = 'Bq/g'
+
+    if InjectedRadioactivity and SpecificRadioactivity:
+        data_out['InjectedRadioactivity'] = InjectedRadioactivity
+        data_out['InjectedRadioactivityUnits'] = 'MBq'
+        data_out['SpecificRadioactivity'] = SpecificRadioactivity
+        data_out['SpecificRadioactivityUnits'] = 'Bq/g'
+        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(SpecificRadioactivity).isnumeric()]
+        if False in numeric_check:
+            data_out['InjectedMass'] = 'n/a'
+            data_out['InjectedMassUnits'] = 'n/a'
+        else:
+            tmp = (((InjectedRadioactivity)*10**6) / SpecificRadioactivity)*10**6
+            if InjectedMass:
+                if InjectedMass != tmp:
+                    print(colored("WARNING Infered InjectedMass in ug doesn''t match InjectedRadioactivity and "
+                                  "InjectedMass, could be a unit issue", "yellow"))
+                data_out['InjectedMass'] = InjectedMass
+                data_out['InjectedMassUnits'] = kwargs.get('InjectedMassUnits', 'n/a')
+            else:
+                data_out['InjectedMass'] = tmp
+                data_out['InjectedMassUnits'] = 'ug'
+
+    if InjectedMass and SpecificRadioactivity:
+        data_out['InjectedMass'] = InjectedMass
+        data_out['InjectedMassUnits'] = 'ug'
+        data_out['SpecificRadioactivity'] = SpecificRadioactivity;
+        data_out['SpecificRadioactivityUnits'] = 'Bq/g'
+        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        if False in numeric_check:
+            data_out['InjectedRadioactivity'] = 'n/a'
+            data_out['InjectedRadioactivityUnits'] = 'n/a'
+        else:
+            tmp = ((InjectedMass/10**6)/SpecificRadioactivity)/10**6; # ((ug / 10 ^ 6) / Bq / g) / 10 ^ 6 = MBq
+            if InjectedRadioactivity:
+                if InjectedRadioactivity != tmp:
+                    print(colored("WARNING infered InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
+                                  "and InjectedMass, could be a unit issue", "yellow"))
+                data_out['InjectedRadioactivity'] = InjectedRadioactivity
+                data_out['InjectedRadioactivityUnits'] = kwargs.get('InjectedRadioactivityUnits', 'n/a')
+            else:
+                data_out['InjectedRadioactivity'] = tmp
+                data_out['InjectedRadioactivityUnits'] = 'MBq'
+
+    if MolarActivity and MolecularWeight:
+        data_out['MolarActivity'] = MolarActivity
+        data_out['MolarActivityUnits'] = 'GBq/umol'
+        data_out['MolecularWeight'] = MolecularWeight
+        data_out['MolecularWeightUnits'] = 'g/mol'
+        numeric_check = [str(MolarActivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        if False in numeric_check:
+            data_out['SpecificRadioactivity'] = 'n/a';
+            data_out['SpecificRadioactivityUnits'] = 'n/a';
+        else:
+            tmp = (MolarActivity*10**6)/(MolecularWeight/10**6) # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
+            if SpecificRadioactivity:
+                if SpecificRadioactivity != tmp:
+                    print(colored('infered SpecificRadioactivity in MBq/ug doesn''t match Molar Activity and Molecular '
+                                  'Weight, could be a unit issue', 'yellow'))
+                data_out['SpecificRadioactivity'] = SpecificRadioactivity
+                data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
+            else:
+                data_out['SpecificRadioactivity'] = tmp
+                data_out['SpecificRadioactivityUnits'] = 'Bq/g'
+
+    if MolarActivity and SpecificRadioactivity:
+        data_out['SpecificRadioactivity'] = SpecificRadioactivity
+        data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
+        data_out['MolarActivity'] = MolarActivity
+        data_out['MolarActivityUnits'] = 'GBq/umol'
+        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(MolarActivity).isnumeric()]
+        if False in numeric_check:
+            data_out['MolecularWeight'] = 'n/a'
+            data_out['MolecularWeightUnits'] = 'n/a'
+        else:
+            tmp = (SpecificRadioactivity/1000)/MolarActivity  # (MBq / ug / 1000) / (GBq / umol) = g / mol
+            if MolecularWeight:
+                if MolecularWeight != tmp:
+                    print(colored("WARNING Infered MolecularWeight in MBq/ug doesn't match Molar Activity and "
+                                  "Molecular Weight, could be a unit issue", 'yellow'))
+
+                data_out['MolecularWeight'] = MolecularWeight
+                data_out['MolecularWeightUnits'] = kwargs.get('MolecularWeightUnits', 'n/a')
+            else:
+                data_out.MolecularWeight = tmp
+                data_out.MolecularWeightUnits = 'g/mol'
+
+    if MolecularWeight and SpecificRadioactivity:
+        data_out['SpecificRadioactivity'] = SpecificRadioactivity;
+        data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
+        data_out['MolecularWeight'] = MolarActivity
+        data_out['MolecularWeightUnits'] = 'g/mol'
+        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        if False in numeric_check:
+            data_out['MolarActivity'] = 'n/a'
+            data_out['MolarActivityUnits'] = 'n/a'
+        else:
+            tmp = MolecularWeight * (SpecificRadioactivity / 1000)  # g / mol * (MBq / ug / 1000) = GBq / umol
+            if MolarActivity:
+                if MolarActivity != tmp:
+                    print(colored("WARNING infered MolarActivity in GBq/umol doesn''t match Specific Radioactivity and "
+                                  "Molecular Weight, could be a unit issue", "yellow"))
+                data_out['MolarActivity'] = MolarActivity
+                data_out['MolarActivityUnits'] = kwargs.get('MolarActivityUnits', 'n/a')
+            else:
+                data_out['MolarActivity'] = tmp;
+                data_out['MolarActivityUnits'] = 'GBq/umol'
+
+    return data_out
 
 def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
     return {}

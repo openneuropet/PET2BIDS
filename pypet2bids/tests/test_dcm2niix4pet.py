@@ -1,5 +1,5 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
-from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel
+from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel, check_meta_radio_inputs
 import pytest
 import dotenv
 import os
@@ -10,6 +10,7 @@ import json
 from os.path import join
 import re
 import pydicom
+from unittest import TestCase
 
 # collect config files
 # fields to check for
@@ -268,7 +269,6 @@ def test_additional_arguments():
         for key, value in additional_args.items():
             assert json_contents.get(key, "") == value
 
-
 def test_get_recon_method():
     """
     Given an input from a dicom such as
@@ -355,9 +355,49 @@ def test_get_recon_method():
                 assert value == recon[key]
 
 
+
+def test_check_meta_radio_inputs():
+    # test first conditional given InjectedRadioactivity and InjectedMass
+    given = {'InjectedRadioactivity': 10, 'InjectedMass': 10}
+    solution = {'InjectedRadioactivityUnits': 'MBq',
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g',
+                'SpecificRadioactivity': 1}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # first case + adding in a value for SpecificRadioactivity
+    given = {'InjectedRadioactivity': 10, 'InjectedMass': 10, 'SpecificRadioactivity':1}
+    solution = {'InjectedRadioactivityUnits': 'n/a',
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g'}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # second case + SpecificRadioactivityUnits adde to to given
+    solution.update({'SpecificRadioactivityUnits': 'Bq/g'})
+    given.update({'SpecificRadioactivityUnits': 'Bq/g'})
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # test second conditional given InjectedRadioactivity and SpecificRadioactivity
+    given = {'InjectedRadioactivity': 10, 'SpecificRadioactivity': 10}
+    solution = {'InjectedRadioactivityUnits': 'MBq',
+                'InjectedMass': 1000000000000.0,
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g',
+                'SpecificRadioactivity': 10}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+
+
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
     ]
 
 if __name__ == '__main__':
-    pass
+    test_check_meta_radio_inputs()
