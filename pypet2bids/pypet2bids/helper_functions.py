@@ -6,6 +6,9 @@ import ast
 import argparse
 import pathlib
 import toml
+import pathlib
+from pandas import read_csv, read_excel
+import importlib
 
 
 def compress(file_like_object, output_path: str = None):
@@ -117,3 +120,60 @@ class ParseKwargs(argparse.Action):
             getattr(namespace, self.dest)[key] = value
 
 
+def open_meta_data(metadata_path):
+    """
+    Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
+    file's extension.
+    :param extension: The extension of the file
+    :return: a pandas dataframe representation of the spreadsheet/metadatafile
+    """
+
+    metadata_path = pathlib.Path(metadata_path)
+
+    if metadata_path.exists():
+        pass
+    else:
+        raise FileExistsError(metadata_path)
+
+    # collect suffix from metadata an use the approriate pandas method to read the data
+    extension = metadata_path.suffix
+
+    methods = {
+        'excel': read_excel,
+        'csv': read_csv
+    }
+
+    if 'xls' in extension:
+        proper_method = 'excel'
+    else:
+        proper_method = extension
+
+    try:
+        use_me_to_read = methods.get(proper_method, None)
+        metadata_dataframe = use_me_to_read(metadata_path)
+    except IOError as err:
+        raise err(f"Problem opening {metadata_path}")
+
+    return metadata_dataframe
+
+def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
+    # load metadata
+    metadata_dataframe = open_meta_data(metadata_path)
+
+    if metadata_dataframe is not None:
+        try:
+            # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
+            # data from their particular spreadsheet wherever that file is located.
+            spec = importlib.util.spec_from_file_location("metadata_translation_script_path",
+                                                          metadata_translation_script_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            # note the translation must have a method named translate metadata in order to work
+            text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
+        except AttributeError as err:
+            print(f"Unable to locate metadata_translation_script\n{err}")
+    else:
+        print(f"No metadata found at {metadata_path}")
+        text_file_data = None
+
+    return text_file_data
