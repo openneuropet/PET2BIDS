@@ -1,5 +1,5 @@
 from json_maj.main import JsonMAJ, load_json_or_dict
-from pypet2bids.helper_functions import ParseKwargs, get_version
+from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata
 import importlib.util
 import subprocess
 import pandas as pd
@@ -308,9 +308,10 @@ class Dcm2niix4PET:
             self.destination_path =  Path(destination_path)
         else:
             self.destination_path = self.image_folder
-        if metadata_path is not None and metadata_translation_path is not None:
+        if metadata_path is not None and metadata_translation_script is not None:
             self.metadata_path =  Path(metadata_path)
-            self.metadata_translation_script = Path(metadata_path)
+            self.metadata_translation_script = Path(metadata_translation_script)
+            self.spreadsheet_metadata = translate_metadata(self.metadata_path, self.metadata_translation_script)
         self.additional_arguments = additional_arguments
         self.subject_id = None
         self.file_format = file_format
@@ -431,6 +432,12 @@ class Dcm2niix4PET:
                             check_for_missing,
                             dicom_header,
                             dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
+
+                    # if we have entities in our metadata spreadsheet that we've used we update
+                    if self.spreadsheet_metadata.get('nifti_json', None):
+                        update_json = JsonMAJ(json_path=str(created),
+                                              update_values=self.spreadsheet_metadata['nifti_json'])
+                        update_json.update()
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
