@@ -3,8 +3,8 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
 %
-% :format: - fileout = ecat2nii(FileListIn,MetaList)
-%          - fileout = ecat2nii(FileListIn,MetaList,options)
+% :format: - FileListOut = ecat2nii(FileListIn,MetaList)
+%          - FileListOut = ecat2nii(FileListIn,MetaList,options)
 %
 % :param FileListIn: a name or a Cell array of characters with paths and filenames
 % :param MetaList: a structure or Cell array of structures for metadata
@@ -218,21 +218,28 @@ for j=1:length(FileListIn)
         end
         
         % write nifti format + json
-        img_temp                                  = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
-                sub_iter                          = strsplit(sh{1,1}.annotation);
-                iterations                        = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
-                subsets                           = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
-                info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
-                info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
-                info.ReconMethodParameterValues   = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
-            else
+                [info.ReconMethodName,i,s]            = get_recon_method(deblank(sh{1,1}.annotation));
+                if ~isempty(i) && ~isempty(s)
+                    info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [i, s, mh.lwr_true_thres, mh.upr_true_thres];
+                else % some method with i and s e.g. projection
+                    info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                end
+                
+            else % annotion if blank - no info on method
+                warning('no reconstruction method information found - invalid BIDS metadata')
                 info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
                 info.ReconMethodParameterUnits    = {'keV', 'keV'};
                 info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
             end
-        else
+            
+        else % no info on method
+            warning('no reconstruction method information found - invalid BIDS metadata')
             info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
             info.ReconMethodParameterUnits    = {'keV', 'keV'};
             info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
@@ -314,6 +321,7 @@ for j=1:length(FileListIn)
             warning('the json file is BIDS invalid')
         end
         
+        img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         info.Datatype                         = 'single';
         info.BitsPerPixel                     = 32;
         info.SpaceUnits                       = 'Millimeter';
