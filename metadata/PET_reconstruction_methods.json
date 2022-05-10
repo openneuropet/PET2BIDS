@@ -1,5 +1,5 @@
 {
-  "reconstruction_method_strings": [
+  "reconstruction_method": [
     {
       "contents": "PSF+TOF3i21s",
       "subsets": 21,
@@ -86,9 +86,35 @@
         "iterations"
       ],
       "ReconMethodParameterValues": [
-        "",
-        ""
+        null,
+        null
       ]
+    }
+  ],
+  "reconstruction_names": [
+    {
+      "value": "PSF",
+      "name": "Point-Spread Function"
+    },
+    {
+      "value": "TOF",
+      "name": " Time Of Flight"
+    },
+    {
+      "value": "OP",
+      "name": "Ordinary Poisson"
+    },
+    {
+      "value": "OSEM",
+      "name": "Ordered Subset Expectation Maximization"
+    },
+        {
+      "value": "LOR",
+      "name": "Line Of Response"
+    },
+    {
+      "value": "RAMLA",
+      "name": "Row Action Maximum Likelihood"
     }
   ]
 }
