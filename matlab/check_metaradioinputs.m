@@ -101,7 +101,7 @@ if exist('InjectedMass', 'var') && exist('SpecificRadioactivity', 'var')
         dataout.InjectedRadioactivity      = 'n/a';
         dataout.InjectedRadioactivityUnits = 'n/a';
     else
-        tmp = ((InjectedMass/10^6) / SpecificRadioactivity) / 10^6; % ((ug/10^6) / Bq/g) / 10^6 = MBq
+        tmp = ((InjectedMass/10^6)*SpecificRadioactivity) / 10^6; % ((ug/10^6)*Bq/g) / 10^6 = MBq
         if exist('InjectedRadioactivity', 'var')
             if InjectedRadioactivity ~= tmp
                 warning('infered InjectedRadioactivity in MBq doesn''t match SpecificRadioactivity and InjectedMass, could be a unit issue')
