@@ -96,7 +96,7 @@ end
 % try to match the library with looking at bits of names and reassemble
 for v = 1:length(values)
     if ~isempty(strfind(headervalue,values{v}))
-        if any(strcmpi(values{v},{'OSEM','LARMA'}))
+        if any(strcmpi(values{v},{'OSEM','RAMLA'}))
             method = [method dim ' ' names{v} ' '];
         else
             method = [method names{v} ' '];
