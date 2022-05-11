@@ -111,75 +111,13 @@ else % -------------- update ---------------
     if ~isfield(filemetadata,'InjectionStart')
         filemetadata.InjectionStart = 0;
     end
-    
-    % -------------------------------------------------------------------
-    %         dcm2nixx extracted data to update with BIDS name if needed  
-    % -------------------------------------------------------------------
-    
-    % check Unit(s) (depends on dcm2nixx version)
-    if isfield(filemetadata,'Unit')
-        filemetadata.Units = filemetadata.Unit;
-        filemetadata       = rmfield(filemetadata,'Unit');
-        if strcmpi(filemetadata.Units,'BQML')
-            filemetadata.Units = 'Bq/mL';
-        end
-    end
-    
-    % run some heuristic - from names we know
-    if isfield(filemetadata,'ReconstructionMethod')
-        if isfield(filemetadata.ReconMethodName) % if already there remove dcm2niix info
-            filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
-        else % try to fill in info
-            filemetadata.ReconMethodName = filemetadata.ReconstructionMethod;
-            filemetadata                 = rmfield(filemetadata,'ReconstructionMethod');
-            iterations                   = regexp(filemetadata.ReconMethodName,'\d\di','Match');
-            if isempty(iterations)
-                iterations               = regexp(filemetadata.ReconMethodName,'\di','Match');
-            end
-            subsets                      = regexp(filemetadata.ReconMethodName,'\d\ds','Match');
-            if isempty(subsets)
-                subsets                  = regexp(filemetadata.ReconMethodName,'\ds','Match');
-            end
-            
-            if ~isempty(iterations) && ~isempty(subsets)
-                index1 = strfind(filemetadata.ReconMethodName,iterations);
-                index2 = index1 + length(cell2mat(iterations))-1;
-                filemetadata.ReconMethodName(index1:index2) = [];
-                index1 = strfind(filemetadata.ReconMethodName,subsets);
-                index2 = index1 + length(cell2mat(subsets ))-1;
-                filemetadata.ReconMethodName(index1:index2) = [];
-                filemetadata.ReconMethodParameterLabels     = ["subsets","iterations"];
-                filemetadata.ReconMethodParameterUnits      = ["none","none"];
-                filemetadata.ReconMethodParameterValues     = [str2double(subsets{1}(1:end-1)),str2double(iterations{1}(1:end-1))];
-            end
-        end
-    end
-    
-    if isfield(filemetadata,'ConvolutionKernel')
-        if isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
-            filemetadata = rmfield(filemetadata,'ConvolutionKernel'); % already there, remove
-        else % attempt to fill
-            if contains(filemetadata.ConvolutionKernel,'.00')
-                loc = strfind(filemetadata.ConvolutionKernel,'.00');
-                filemetadata.ConvolutionKernel(loc:loc+2) = [];
-                filtersize = regexp(filemetadata.ConvolutionKernel,'\d*','Match');
-                if ~isempty(filtersize)
-                    filemetadata.ReconFilterSize = cell2mat(filtersize);
-                    loc = strfind(filemetadata.ConvolutionKernel,filtersize{1});
-                    filemetadata.ConvolutionKernel(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
-                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
-                else
-                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
-                end
-                filemetadata = rmfield(filemetadata,'ConvolutionKernel');
-            end
-        end
-    end    
+    filemetadata = dcm2bids_internal(filemetadata);
     
     % -------------------------------------------------------------
     % possible dcm fields to recover - this part is truly empirical
     % going over different dcm files and figuring out fields
     % ------------------------------------------------------------
+    
     if exist('dcminfo','var')
         if ischar(dcminfo)
             dcminfo = flattenstruct(dicominfo(dcminfo));
@@ -224,8 +162,8 @@ else % -------------- update ---------------
             error('looking for %s, but the file is missing',jsontoload)
         end
         
-        for f=1:length(dcmfields) % check each field from dicom image
-            if isfield(dcminfo,dcmfields{f}) % if it matches our list of dicom tags
+        for f=1:length(dcmfields) % check each field from the library
+            if isfield(dcminfo,dcmfields{f}) % if it matches a dicom tag from the image
                 if isfield(filemetadata,jsonfields{f}) % and  the json field exist,
                     % then compare and inform the user if different
                     if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
@@ -234,21 +172,125 @@ else % -------------- update ---------------
                         else
                             warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                         end
-                    else % otherwise set the field in the json file
-                        warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
-                        filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                     end
+                else % otherwise set the field in the json file
+                    if isnumeric(dcminfo.(dcmfields{f}))
+                        warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})) ' from dicom field ' dcmfields{f}])
+                    else
+                        warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                    end
+                    filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
         end
+        filemetadata = dcm2bids_internal(filemetadata);
     end
-        
+    
+    % delete all non BIDS fields
+    % --------------------------
+    all_bids = [petmetadata.mandatory;petmetadata.recommended;petmetadata.optional];
+    fn_check = fieldnames(filemetadata);
+    for f=1:size(fn_check,1)
+        if ~contains(fn_check{f},all_bids) 
+            filemetadata = rmfield(filemetadata,fn_check{f});
+        end
+    end
+    
+    
     %% recursive call to check status
+    % -----------------------------
     status = updatejsonpetfile(filemetadata);
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
     end
     filemetadata = orderfields(filemetadata);
     jsonwrite(jsonfilename,filemetadata)
+end
+
+function filemetadata = dcm2bids_internal(filemetadata)
+
+% routine to check dcm data compatible for BIDS
+% check Unit(s) (depends on dcm2nixx version)
+
+if isfield(filemetadata,'Unit')
+    filemetadata.Units = filemetadata.Unit;
+    filemetadata       = rmfield(filemetadata,'Unit');
+    if strcmpi(filemetadata.Units,'BQML')
+        filemetadata.Units = 'Bq/mL';
+    end
+end
+
+% check radiotracer info - should have been done already in
+% get_pet_metadata ; but user can also populate metadata by hand
+% so let's recheck
+radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
+    'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+input_check            = cellfun(@(x) isfield(filemetadata,x), radioinputs);
+index                  = 1; % make key-value pairs
+arguments              = cell(1,sum(input_check)*2);
+if sum(input_check) ~= 0
+    for r=find(input_check)
+        arguments{index}   = radioinputs{r};
+        arguments{index+1} = filemetadata.(radioinputs{r});
+        index = index + 2;
+    end
+    dataout                = check_metaradioinputs(arguments);
+    datafieldnames         = fieldnames(dataout);
+    
+    % set new info fields
+    for f = 1:size(datafieldnames,1)
+        if ~isfield(filemetadata,datafieldnames{f})
+            filemetadata.(datafieldnames{f}) = dataout.(datafieldnames{f});
+        end
+    end
+end
+
+% check our libray from names we know
+if isfield(filemetadata,'ReconstructionMethod')
+    [filemetadata.ReconMethodName,iteration,subset] = get_recon_method(filemetadata.ReconstructionMethod);
+elseif isfield(filemetadata,'ReconMethodName')
+    [filemetadata.ReconMethodName,iteration,subset] = get_recon_method(filemetadata.ReconMethodName);
+end
+
+if exist('iteration','var') && exist('subset','var')
+    if ~isempty(iteration) && ~isempty(subset)
+        filemetadata.ReconMethodParameterLabels     = ["subsets","iterations"];
+        filemetadata.ReconMethodParameterUnits      = ["none","none"];
+        filemetadata.ReconMethodParameterValues     = [str2double(subset),str2double(iteration)];
+    else % returns none if actually seen as empty by get_recon_method
+        filemetadata.ReconMethodParameterLabels     = "none";
+        filemetadata.ReconMethodParameterUnits      = "none";
+        filemetadata.ReconMethodParameterValues     = "none";
+    end
+end
+
+if isfield(filemetadata,'ConvolutionKernel') || ...
+    isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+       
+      if isfield(filemetadata,'ConvolutionKernel')
+          filtername = filemetadata.ConvolutionKernel;
+      elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+          if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
+              filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
+          end
+      end
+       
+    if exist('filtername','var')
+        % might need to remove trailing .00 for regex to work
+        if contains(filtername,'.00') 
+            loc = strfind(filtername,'.00');
+            filtername(loc:loc+2) = [];
+        end
+        
+        filtersize = regexp(filtername,'\d*','Match');
+        if ~isempty(filtersize)
+            filemetadata.ReconFilterSize = cell2mat(filtersize);
+            loc = strfind(filtername,filtersize{1});
+            filtername(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
+            filemetadata.ReconFilterType = filtername;
+        else
+            filemetadata.ReconFilterType = filtername;
+        end
+    end
 end
 
