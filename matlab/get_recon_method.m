@@ -15,8 +15,8 @@ function [method,iteration,subset] = get_recon_method(headervalue)
 
 %% defaults
 method    = [];
-iteration = 'none';
-subset    = 'none';
+iteration = [];
+subset    = [];
 
 %% load metadata from the library
 current    = which('ecat2nii.m');
@@ -49,16 +49,16 @@ for n=1:length(numbers)
     end
     
     if loc_length<length(headervalue)       
-        if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}])
+        if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}]) && isempty(iteration)
             iteration          = numbers{n};
             iteration_position = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 'i'])
+        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 'i']) && isempty(iteration)
             iteration          = numbers{n};
             iteration_position = loc:loc_length+1;
-        elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}]) 
+        elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}]) && isempty(subset)
             subset            = numbers{n};
             subset_position   = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 's'])
+        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 's']) && isempty(subset)
             subset            = numbers{n};
             subset_position   = loc:loc_length+1;
         end
