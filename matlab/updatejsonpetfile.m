@@ -26,6 +26,7 @@ function status = updatejsonpetfile(varargin)
 % ----------------------------
 % Copyright Open NeuroPET team
 
+warning on % set to off to ignore our usefull warnings
 status = struct('state',[],'messages',{''});
 
 %% check data in

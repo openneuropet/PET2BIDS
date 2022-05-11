@@ -44,6 +44,7 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %% defaults
 % ---------
 
+warning on % set to off to ignore our usefull warnings
 sifout  = false; % 0/1 to indicate if sif file are also created
 gz      = true;  % compress nifti
 savemat = false; % save ecat data as .mat
