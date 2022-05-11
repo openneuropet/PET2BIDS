@@ -17,4 +17,6 @@ matlab
 
 .. mat:autofunction:: check_metaradioinputs
 
+.. mat:autofunction:: get_recon_method
+
 .. mat:autofunction:: jsonwrite
