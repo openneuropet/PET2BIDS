@@ -1,10 +1,10 @@
 # convert_pmod_to_blood
 
-Pmod is a popular software for kineatic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
+PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
 
-_Usage note_ files can be importanted in any order because the function uses the 1st line of pmod files that contains information indicating what the columns are. 
+_Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains information indicating what the columns are. 
 
-## Input files with user promtp
+## Input files with user prompt
 
 Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files. Because no other information is provided, it will create the json file along with some warning messages since this will not be BIDS compliant.
 
