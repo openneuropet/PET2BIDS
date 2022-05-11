@@ -42,7 +42,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   ----------------------------
 %   Copyright Open NeuroPET team
 
-dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+dcm2niixpath = 'D:\MRI\MRIcroGL12win\MRIcroGL 2\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
@@ -60,7 +60,7 @@ gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, def
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 ba         = 'y';    % -ba : anonymize BIDS (y/n, default y)
 d          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
-f          = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
+f          = '%p_%i_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
 g          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
 i          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
 l          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
