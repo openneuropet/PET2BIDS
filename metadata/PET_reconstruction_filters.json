@@ -1,1 +1,9 @@
-{}
+{
+  "dicom_values": [
+    {
+      "value": "XYZGAUSSIAN3.00",
+      "ReconFilterSize": 3,
+      "ReconFilterType": 
+    }
+  ]  
+}
