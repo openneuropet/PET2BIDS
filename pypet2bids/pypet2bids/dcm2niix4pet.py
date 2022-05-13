@@ -52,7 +52,8 @@ for metadata_json in metadata_jsons:
         metadata_dictionaries[metadata_json.name] = dictionary
     except FileNotFoundError as err:
         raise err(f"Missing pet metadata files in {metadata_folder}, unable to validate metadata.")
-
+    except json.decoder.JSONDecodeError as err:
+        raise IOError(f"Unable to read from {metadata_json}")
 
 def check_json(path_to_json, items_to_check=None, silent=False):
     """
@@ -507,9 +508,11 @@ def get_recon_method(ReconStructionMethodString: str) -> dict:
     Given the reconstruction method from a dicom header this function does its best to determine the name of the
     reconstruction, the number of iterations used in the reconstruction, and the number of subsets in the
     reconstruction.
+
     :param ReconStructionMethodString:
     :return: dictionary containing PET BIDS fields ReconMethodName, ReconMethodParameterUnits,
         ReconMethodParameterLabels, and ReconMethodParameterValues
+
     """
     contents = ReconStructionMethodString
     subsets = None

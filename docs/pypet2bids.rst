@@ -1,3 +1,5 @@
+.. _pypet2bids-package:
+
 pypet2bids package
 ==================
 
