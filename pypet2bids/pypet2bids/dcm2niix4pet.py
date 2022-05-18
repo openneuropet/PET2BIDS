@@ -1,7 +1,8 @@
 import os
+import sys
 
 from json_maj.main import JsonMAJ, load_json_or_dict
-from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata
+from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path
 import subprocess
 import pandas as pd
 from os.path import join
@@ -15,6 +16,7 @@ import shutil
 from dateutil import parser
 from termcolor import colored
 import argparse
+
 
 """
 This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
@@ -490,14 +492,16 @@ class Dcm2niix4PET:
                 protocol_name = str(first_dicom.ProtocolName)
                 blood_file_name_w_out_extension = protocol_name + date_time + series_number + "_blood"
 
-            if self.spreadsheet_metadata.get('blood_tsv'):
+            if self.spreadsheet_metadata.get('blood_tsv', None) is not None:
                 blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
                 if type(blood_tsv_data) is pd.DataFrame:
                     # write out blood_tsv using pandas csv write
-                        blood_tsv_data.to_csv(blood_file_name_w_out_extension + ".tsv", sep='\t', index=False)
+                        blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
+                                              , sep='\t',
+                                              index=False)
                 elif type(blood_tsv_data) is str:
                     # write out with write
-                    with open(blood_file_name_w_out_extension + ".tsv", 'w') as outfile:
+                    with open(join(tempdir_path, blood_file_name_w_out_extension + ".tsv"), 'w') as outfile:
                         outfile.writelines(blood_tsv_data)
                 else:
                     raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
@@ -516,12 +520,12 @@ class Dcm2niix4PET:
                            f"pandas.DataFrame or str\nCheck return type of {translate_metadata} in "
                            f"{self.metadata_translation_script}")
 
-                with open(blood_file_name_w_out_extension + '.json', 'w') as outfile:
-                    json.dump(blood_json_data, outfile, indent="4")
+                with open(join(tempdir_path, blood_file_name_w_out_extension + '.json'), 'w') as outfile:
+                    json.dump(blood_json_data, outfile, indent=4)
 
-            blood_files = [join(str(temp_dir), blood_file) for blood_file in os.listdir(str(temp_dir))]
+            blood_files = [join(str(tempdir_path), blood_file) for blood_file in os.listdir(str(tempdir_path))]
             for blood_file in blood_files:
-                shutil.move(blood_file, self.destination_path)
+                shutil.move(blood_file, join(self.destination_path, os.path.basename(blood_file)))
 
     def convert(self):
         self.run_dcm2niix()
@@ -801,7 +805,7 @@ def cli():
     :return: arguments collected from argument parser
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('folder', type=str,
+    parser.add_argument('folder', type=str, default=os.getcwd(),
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
                         help="Path to metadata file for scan")
@@ -837,10 +841,10 @@ def main():
 
     # instantiate class
     converter = Dcm2niix4PET(
-        image_folder=cli_args.folder,
-        destination_path=cli_args.destination_path,
-        metadata_path=cli_args.metadata_path,
-        metadata_translation_script=cli_args.translation_script_path,
+        image_folder=str(expand_path(cli_args.folder)),
+        destination_path=str(expand_path(cli_args.destination_path)),
+        metadata_path=str(expand_path(cli_args.metadata_path)),
+        metadata_translation_script=str(expand_path(cli_args.translation_script_path)),
         additional_arguments=cli_args.kwargs,
         silent=cli_args.silent)
 
