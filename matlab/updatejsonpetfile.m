@@ -171,7 +171,11 @@ else % -------------- update ---------------
                         if isnumeric(filemetadata.(jsonfields{f}))
                             warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
                         else
-                            warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                            if ischar(filemetadata.(jsonfields{f}))
+                                warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])                                
+                            else % also char but as array
+                                warning(['possible mismatch between json ' jsonfields{f} ': ' char(strjoin(filemetadata.(jsonfields{f}))) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                            end
                         end
                     end
                 else % otherwise set the field in the json file
