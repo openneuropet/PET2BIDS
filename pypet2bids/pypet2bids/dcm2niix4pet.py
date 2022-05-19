@@ -482,15 +482,16 @@ class Dcm2niix4PET:
     def post_dcm2niix(self):
         with TemporaryDirectory() as temp_dir:
             tempdir_path = Path(temp_dir)
-            if self.subject_id:
+            if self.subject_id != list(self.dicom_headers.values())[0].PatientID:
                 blood_file_name_w_out_extension = "sub-" + self.subject_id + "_blood"
-            elif not self.subject_id and self.dicom_headers:
+            elif self.dicom_headers:
                 # collect date and time and series number from dicom
-                first_dicom = list[self.dicom_headers.values()][0]
+                first_dicom = list(self.dicom_headers.values())[0]
                 date_time = dicom_datetime_to_dcm2niix_time(first_dicom)
                 series_number = str(first_dicom.SeriesNumber)
-                protocol_name = str(first_dicom.ProtocolName)
-                blood_file_name_w_out_extension = protocol_name + date_time + series_number + "_blood"
+                protocol_name = str(first_dicom.SeriesDescription).replace(" ", "_")
+                blood_file_name_w_out_extension = protocol_name + '_' + self.subject_id + '_' + date_time + '_' + \
+                                                  series_number + "_blood"
 
             if self.spreadsheet_metadata.get('blood_tsv', None) is not None:
                 blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
