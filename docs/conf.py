@@ -43,7 +43,7 @@ copyright = '2022, OpenNeuroPET'
 author = 'OpenNeuroPET'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '0.0.10g'
 
 # -- General configuration ---------------------------------------------------
 
