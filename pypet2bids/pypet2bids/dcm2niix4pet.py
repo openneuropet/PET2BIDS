@@ -316,7 +316,7 @@ class Dcm2niix4PET:
             self.destination_path = self.image_folder
 
         self.spreadsheet_metadata = {}
-        if metadata_path is not None and metadata_translation_script is not None:
+        if metadata_path and metadata_translation_script:
             self.metadata_path = Path(metadata_path)
             self.metadata_translation_script = Path(metadata_translation_script)
             self.spreadsheet_metadata = translate_metadata(self.metadata_path, self.metadata_translation_script)
@@ -842,10 +842,10 @@ def main():
 
     # instantiate class
     converter = Dcm2niix4PET(
-        image_folder=str(expand_path(cli_args.folder)),
-        destination_path=str(expand_path(cli_args.destination_path)),
-        metadata_path=str(expand_path(cli_args.metadata_path)),
-        metadata_translation_script=str(expand_path(cli_args.translation_script_path)),
+        image_folder=expand_path(cli_args.folder),
+        destination_path=expand_path(cli_args.destination_path),
+        metadata_path=expand_path(cli_args.metadata_path),
+        metadata_translation_script=expand_path(cli_args.translation_script_path),
         additional_arguments=cli_args.kwargs,
         silent=cli_args.silent)
 
