@@ -24,7 +24,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
 % .. code-block::
 %
@@ -169,23 +169,23 @@ for var=1:length(varargin)
         if ~contains(p,{'y','n'}); error('Philips precise float scaling error,''y'' or ''n'''); end
     elseif strcmpi(varargin{var},'v')
         v = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
+        if isnumeric(v)
+            if ~contains(num2str(v),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
         else
-            if ~contains(m,{'y','n'}); error('verbose error,''y'' or ''n'''); end
+            if ~contains(v,{'y','n'}); error('verbose error,''y'' or ''n'''); end
         end
     elseif strcmpi(varargin{var},'w')
         w = varargin{var+1};
-        if ~contains(num2str(m),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
+        if ~contains(num2str(w),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
     elseif strcmpi(varargin{var},'x')
         x = varargin{var+1};
         if ~contains(x,{'y','n','i'}); error('3D acq. option error,''y/n/i'''); end
     elseif strcmpi(varargin{var},'z')
         z = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'3'}); error('verbose error, 3 for no as input'); end
+        if isnumeric(z)
+            if ~contains(num2str(z),{'3'}); error('verbose error, 3 for no as input'); end
         else
-            if ~contains(m,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
+            if ~contains(z,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
