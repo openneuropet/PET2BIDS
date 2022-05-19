@@ -1,14 +1,11 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
 from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel, check_meta_radio_inputs
-import pytest
 import dotenv
 import os
 from pathlib import Path
-import pydicom
 from tempfile import TemporaryDirectory
 import json
 from os.path import join
-import re
 import pydicom
 from unittest import TestCase
 
@@ -144,17 +141,20 @@ def test_run_dcm2niix():
         if dcm2niix_output.get(output_file_stem, None):
             dcm2niix_output[output_file_stem] = dcm2niix_output[output_file_stem].append(path_object.resolve())
         else:
-            dcm2niix_output[output_file_stem]  = []
+            dcm2niix_output[output_file_stem] = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
 
     for file in created_niftis:
         path_object = Path(file)
         output_file_stem = os.path.join(*path_object.parents, path_object.stem)
         if dcm2niix_output.get(output_file_stem, None):
-            dcm2nnix_output[output_file_stem] = dcm2iix[output_file_stem].append(path_object.resolve())
+            dcm2niix_output[output_file_stem] = dcm2niix_output[output_file_stem].append(path_object.resolve())
         else:
-            dcm2niix_output[output_file_stem]  = []
+            dcm2niix_output[output_file_stem] = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
+
+    assert len(created_niftis) == len(created_jsons)
+
 
 def test_manufacturers():
     # As far as we know there are these three manufacturers
@@ -198,6 +198,7 @@ def test_manufacturers():
         # now check the output of the jsons, see if the fields are all there
         for key, value in manufacturer_paths.items():
             print(key, value)
+
 
 def test_update_json_with_dicom_value():
     """
@@ -355,7 +356,6 @@ def test_get_recon_method():
                 assert value == recon[key]
 
 
-
 def test_check_meta_radio_inputs():
     # test first conditional given InjectedRadioactivity and InjectedMass
     given = {'InjectedRadioactivity': 10, 'InjectedMass': 10}
@@ -394,10 +394,10 @@ def test_check_meta_radio_inputs():
     TestCase().assertEqual(this, solution)
 
 
-
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
     ]
 
+
 if __name__ == '__main__':
-    test_check_meta_radio_inputs()
+    test_run_dcm2niix()

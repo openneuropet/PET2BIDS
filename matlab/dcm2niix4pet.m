@@ -10,6 +10,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 % :param options:
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
+%                 IF the folder is BIDS sub-xx files are renamed automatically
 %   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 %   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 %   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
@@ -23,7 +24,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
 % .. code-block::
 %
@@ -42,7 +43,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   ----------------------------
 %   Copyright Open NeuroPET team
 
-dcm2niixpath = 'D:\MRI\MRIcroGL12win\MRIcroGL 2\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
@@ -69,7 +70,7 @@ p          = 'y';    % Philips precise float (not display) scaling (y/n, default
 v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+z          = 'y';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 
 %% check dcm2nii inputs
 % --------------------
@@ -168,23 +169,23 @@ for var=1:length(varargin)
         if ~contains(p,{'y','n'}); error('Philips precise float scaling error,''y'' or ''n'''); end
     elseif strcmpi(varargin{var},'v')
         v = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
+        if isnumeric(v)
+            if ~contains(num2str(v),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
         else
-            if ~contains(m,{'y','n'}); error('verbose error,''y'' or ''n'''); end
+            if ~contains(v,{'y','n'}); error('verbose error,''y'' or ''n'''); end
         end
     elseif strcmpi(varargin{var},'w')
         w = varargin{var+1};
-        if ~contains(num2str(m),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
+        if ~contains(num2str(w),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
     elseif strcmpi(varargin{var},'x')
         x = varargin{var+1};
         if ~contains(x,{'y','n','i'}); error('3D acq. option error,''y/n/i'''); end
     elseif strcmpi(varargin{var},'z')
         z = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'3'}); error('verbose error, 3 for no as input'); end
+        if isnumeric(z)
+            if ~contains(num2str(z),{'3'}); error('verbose error, 3 for no as input'); end
         else
-            if ~contains(m,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
+            if ~contains(z,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
@@ -241,13 +242,45 @@ for folder = 1:size(FolderList,1)
         delete(fullfile(outputdir{folder},'*dcm'))
     end
     
-    % update json
-    newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
-    if size(newmetadata,1)>1
-        warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
-        newmetadata = newmetadata(1);
+    % rename if BIDS folfer sub-
+    if contains(outputdir{folder},'sub-')
+        if strcmpi(z,'y')
+            data  = dir(fullfile(outputdir{folder},'*.nii.gz'));
+        else
+            data  = dir(fullfile(outputdir{folder},'*.nii'));
+        end
+        
+        if size(data,1)>1
+            warning('more than 1 nifti file found in %s, using only 1st one',outputdir{folder})
+            data = data(1);
+        end
+        
+        dataname    = fullfile(data.folder,data.name);
+        [~,newname] = fileparts(data.folder);
+        if strcmpi(z,'y')
+            newname     = [newname '.nii.gz'];
+            metadata    = [dataname(1:end-6) 'json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-6) 'json']);
+        else
+            newname     = [newname '.nii'];
+            metadata    = [dataname(1:end-3) 'json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-3) 'json']);
+        end
+        movefile(dataname,fullfile(data.folder,newname));
+        movefile(metadata,newmetadata);
     end
-    jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
+    
+    % update json
+    if ~exist('newmetadata','var')
+        newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
+        if size(newmetadata,1)>1
+            warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
+            newmetadata = newmetadata(1);
+        end
+        jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
+    else
+        jsonfilename = newmetadata;
+    end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
 
