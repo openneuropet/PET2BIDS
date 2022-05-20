@@ -16,6 +16,7 @@ function status = updatejsonpetfile(varargin)
 % :returns status: the state of the updating (includes warning messages returned if any)
 %
 % .. code-block::
+%
 %    jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
 %    metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11', ...
 %                           'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
@@ -29,7 +30,7 @@ function status = updatejsonpetfile(varargin)
 warning on % set to off to ignore our usefull warnings
 status = struct('state',[],'messages',{''});
 
-%% check data in
+% check data in
 jsonfilename = varargin{1};
 if nargin >= 2
     newfields = varargin{2};

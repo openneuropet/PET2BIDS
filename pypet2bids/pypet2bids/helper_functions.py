@@ -205,8 +205,11 @@ def write_out_module(module: str='pypet2bids.metadata_spreadsheet_example_reader
 
     import_and_write_out_module(module=module, destination=args.template_path)
 
-def expand_path(path_like):
-    if path_like[0] == '~':
-        return os.path.expanduser(path_like)
+def expand_path(path_like: str) -> str:
+    if path_like:
+        if path_like[0] == '~':
+            return str(os.path.expanduser(path_like))
+        else:
+            return (os.path.abspath(path_like))
     else:
-        return os.path.abspath(path_like)
+        return ''

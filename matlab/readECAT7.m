@@ -1,7 +1,7 @@
 function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 
-%  Read the main header, subheaders, and image/sinogram data from
-%     ECAT v 7.x *.v, *.i, *.S, and *.a files.
+% Read the main header, subheaders, and image\/sinogram data from
+% ECAT v 7.x \*.v, \*.i, \*.S, and \*.a files.
 %
 %  :format: [mh,sh,data] = readECAT(fs, [matrix], ['Calibrated', 'on'])
 %
@@ -15,30 +15,39 @@ function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 %                         (in mh) and the scale_factor (in sh).
 %                         The default is uncalibrated in which case pixels are int16.
 %
-% :returns mh   - main header
-%          sh   - cell array of subheaders.  sh{i} is subheader for matrix(i).
-%          data - cell array containing pixel data.  data{i} is a
+% :returns: - mh   \- main header
+%           - sh   \- cell array of subheaders.  sh{i} is subheader for matrix(i).
+%           - data \- cell array containing pixel data.  data{i} is a
 %                 [rows, cols, planes] or [proj, views, planes] array with the
 %                 data of matrix i. The data are stored in the file as 2 byte signed integers.
 %
 % .. note:: 
-%     To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
-%     This could be helpful to convert a time-sequence of image volumes to something
-%     that can be more easily manipulated.
 %
-%     This should work for the entire line of ECAT scanners running 7.x of the software.
-%     Original version written by BT Christian, 12/10/98
-%     Overhaul by RF Muzic, 20000726
-%     Revised by RF Muzic, 20010916
-%     Revised by RF Muzic, 20011221 add support for 3D sinogram files (prev only images supported)
-%     Revised by RF Muzic, 20021017 generalize support from multiple frames to multiple
-%                     matrices.  The distinction is that a matrix could correspond to
-%                     different bed position or different frame.
-%     Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.
-%                     It is actually 49 shorts (to make a 512 byte sh block) whereas CTI docs says 48.
-%                     Add support for .a files.
-%     Copyright ? 2002 Raymond F. Muzic, Jr.
-%     Not intended for clinical/diagnostic use.  User assumes all risk.
+%   To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
+%   This could be helpful to convert a time-sequence of image volumes to something
+%   that can be more easily manipulated.
+%
+%   This should work for the entire line of ECAT scanners running 7.x of the software.
+%
+%   Original version written by BT Christian, 12/10/98
+%
+%   Overhaul by RF Muzic, 20000726
+%
+%   Revised by RF Muzic, 20010916
+%
+%   Revised by RF Muzic, 20011221 add support for 3D sinogram files (prev only images supported)
+%
+%   Revised by RF Muzic, 20021017 generalize support from multiple frames to multiple
+%   matrices.  The distinction is that a matrix could correspond to
+%   different bed position or different frame.
+%
+%   Revised by RF Muzic, 20021029 correct length of last fill block in image file subheader.
+%   It is actually 49 shorts (to make a 512 byte sh block) whereas CTI docs says 48.
+%   Add support for .a files.
+%
+%   Copyright ? 2002 Raymond F. Muzic, Jr.
+%
+%   Not intended for clinical/diagnostic use.  User assumes all risk.
 
 persistent lastpath_
 
