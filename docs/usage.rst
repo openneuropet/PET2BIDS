@@ -104,7 +104,101 @@ For converting dicom to BIDS use dcm2niix4pet via:
       --silent SILENT, -s SILENT
                             Display missing metadata warnings and errorsto stdout/stderr
 
-**Running pypet2bids**
+**Using pypet2bids**
+
+Pypet2bids is primarily designed to run as a command line utility, design choice was made for 2 purposes:
+
+1) to provide a universal interface (API) so the library is operable with any scripting or programming language
+2) keeping the usage as simple as possible, use of this library is as simple as install -> run command
+
+Additionally, one has access to the underlying python methods and classes if one wishes to use this library from within
+a Python environment.
+
+Command line usage:
+
+In the most simple use case one can convert a folder full of dicoms into a NIFTI
+
+.. code-block::
+
+    dcm2niix4pet /folder/with/PET/dicoms/ -d /folder/with/PET/nifti_jsons
+
+
+However, more often than not the information required to create a valid PET BIDS nifti and json isn't present
+w/ in the dicom headers of the PET Image files. Extra information can be extracted at the time of conversion by
+including a spreadsheet file (tsv, xlsx, etc) and an extraction script
+
+.. code-block::
+
+    dcm2niix /folder/with/PET/dicoms/ --destination /folder/with/PET/nifti_jsons --metadatapath /file/with/PET_metadata.xlsx --translation-script translate.py
+
+It this point you may be asking self what is a metadata translation script? It's a python script designed to collect
+relevant PET metadata from a spreadsheet. There are two approaches to extracting additional PET metadata from a spreasheet.
+
+    - Format a spreadsheet to be more BIDS like and read use that data in the conversion:
+
+      .. image:: media/image_example_bids_spreadsheet.png
+
+    - Create a translation script that will extract and transform data from an existing spreadsheet. This method has the
+      benefit of better preserving the original data, but the cost is that it requires more fiddling directly in Python.
+      An example can be see below
+
+      .. code-block::
+
+            def translate_metadata(metadata_dataframe, image_path=NotImplemented):
+
+            nifti_json = {
+                'Manufacturer': '',
+                'ManufacturersModelName': '',
+                'Units': 'Bq/mL',
+                'TracerName': '[11C]PS13',
+                'TracerRadionuclide': '11C',
+                'InjectedRadioactivity': metadata_dataframe['Analyzed:'][32]*(1/1000)*(37*10**9), # mCi convert to Bq -> (mCi /1000) *  37000000000
+                'InjectedRadioactivityUnits': 'Bq',
+                'InjectedMass': metadata_dataframe['Met365a.xls - 011104'][35] * metadata_dataframe['Analyzed:'][38] , #provided in nmol/kg for subject
+                'InjectedMassUnits': 'nmol',
+                'SpecificRadioactivity': 9218*37*10**9, # c11 is maximum 9218 Ci/umol,
+                'SpecificRadioactivityUnits': 'Bq/mol',
+                'ModeOfAdministration': 'bolus',
+                'TimeZero': 0,
+                'ScanStart': 0,
+                'InjectionStart': 0,
+                'FrameTimesStart': [],
+                'FrameDuration': [],
+                'AcquisitionMode': '',
+                'ImageDecayCorrected': '',
+                'ImageDecayCorrectionTime': 0,
+                'ReconMethodName': '',
+                'ReconMethodParameterLabels': [],
+                'ReconMethodParameterUnits': [],
+                'ReconMethodParameterValues': [],
+                'ReconFilterType': '',
+                'ReconFilterSize': 0,
+                'AttenuationCorrection': '',
+                'InstitutionName': '',
+                'InstitutionalDepartmentName': ''
+            }
+
+If you're thinking it's to much to ask you to generate this script from scratch, you're absolutely right. You can generate a
+template script by running the following command:
+
+.. code-block::
+
+    pet2bids-spreadsheet-template /path/to/save/template/script.py
+    ls /path/to/save/template/script.py
+    script.py
+
+Now assuming you've located your dicom images, set up your template script/and or your metadata spreadsheet you should
+be able produce the output resembling the following:
+
+.. code-block::
+
+    machine:folder user$ ls ~/Desktop/testdcm2niix4pet/
+    PET_Brain_Dyn_TOF_7801580_20180322104003_5.json         PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.json
+    PET_Brain_Dyn_TOF_7801580_20180322104003_5.nii.gz       PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.tsv
+
+
+
+
 
 
 
