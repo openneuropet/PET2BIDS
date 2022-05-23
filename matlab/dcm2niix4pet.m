@@ -124,10 +124,9 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'gz')
         gz = varargin{var+1};
         if ~num(gz)
-            error('invalid compression experession, not a numeric');
-            if gz>9
-                error('invalid compression value, must be between 1 and 9');
-            end
+            error('invalid compression expression, not a numeric');
+        elseif gz>9
+            error('invalid compression value, must be between 1 and 9');
         end
     elseif strcmpi(varargin{var},'a')
         a = varargin{var+1};
@@ -139,9 +138,8 @@ for var=1:length(varargin)
         d = varargin{var+1};
         if ~num(d)
             error('invalid compression experession, not a numeric');
-            if d>9
-                error('invalid compression value, must be between 0 and 9');
-            end
+        elseif d>9
+            error('invalid compression value, must be between 0 and 9');
         end
     elseif strcmpi(varargin{var},'f')
         f = varargin{var+1};
@@ -256,13 +254,20 @@ for folder = 1:size(FolderList,1)
         end
         
         dataname    = fullfile(data.folder,data.name);
-        [~,newname] = fileparts(data.folder);
+        start       = strfind(data.folder,'sub-');
+        ending      = strfind(data.folder,filesep);
+        if sum(ending>start)~=0
+            newname = data.folder(start:ending(find(ending>start,1))-1); % from sub- to the next filesep
+        else
+            newname = data.folder(start:end); % from sub- to the end
+        end
+        
         if strcmpi(z,'y')
-            newname     = [newname '.nii.gz'];
+            newname     = [newname '.nii.gz']; %#ok<AGROW>
             metadata    = [dataname(1:end-6) 'json'];
             newmetadata = fullfile(data.folder,[newname(1:end-6) 'json']);
         else
-            newname     = [newname '.nii'];
+            newname     = [newname '.nii']; %#ok<AGROW>
             metadata    = [dataname(1:end-3) 'json'];
             newmetadata = fullfile(data.folder,[newname(1:end-3) 'json']);
         end
