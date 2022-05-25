@@ -1,45 +1,49 @@
 function dcm2niix4pet(FolderList,MetaList,varargin)
 
-% Converts dicom image file to nifti+json calling dcm2niix augmenting
-% the json file to be BIDS compliant
+% Converts dicom image file to nifti+json calling dcm2niix augmenting the json file to be BIDS compliant
 %
-% FORMAT: fileout = dcm2bids4pet(FolderList,MetaList)
-%         fileout = dcm2bids4pet(FolderList,MetaList,options)
+% :format: - fileout = dcm2bids4pet(FolderList,MetaList)
+%          - fileout = dcm2bids4pet(FolderList,MetaList,options)
 %
-% INPUT:  FolderList - Cell array of char strings with filenames and paths
-%         MetaList   - Cell array of structures for metadata
-%         options:
-%                   'deletedcm' to be 'on' or 'off'
-%                    key-pair values pertaining to dcm2niix     
-%           o          the output directory or cell arrays of directories
-%           gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
-%           a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
-%           ba         = 'y';    % -ba : anonymize BIDS (y/n, default y)
-%           d          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
-%           f          = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
-%           g          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
-%           i          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
-%           l          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
-%           m          = '2';    % merge 2D slices from same series regardless of echo, exposure, etc. (n/y or 0/1/2, default 2) [no, yes, auto]
-%           p          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
-%           v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
-%           w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-%           x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-%           z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+% :param FolderList: Cell array of char strings with filenames and paths
+% :param MetaList: Cell array of structures for metadata
+% :param options:
+%   - *deletedcm*  to be 'on' or 'off'
+%   - *o*         the output directory or cell arrays of directories
+%                 IF the folder is BIDS sub-xx files are renamed automatically
+%   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
+%   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
+%   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
+%   - *d*          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
+%   - *f*        = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
+%   - *g*          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
+%   - *i*          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
+%   - *l*          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
+%   - *m*          = '2';    % merge 2D slices from same series regardless of echo, exposure, etc. (n/y or 0/1/2, default 2) [no, yes, auto]
+%   - *p*          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
+%   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
+%   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
+%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+%   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
-% Example meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
+% .. code-block::
+%
+%    %Example
+%    meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
 %                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%        dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
-%        dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
-%        dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
+%    dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
+%    dcm2niix4pet({folder1,folder2,folder3},{meta}); % use the same PET meta for all subjects
+%    dcm2niix4pet({folder1,folder2,folder3},{meta1,meta2,meta3}); % each subject has specific metadata info
 %
-% See also get_pet_metadata.m to generate the metadata structure
+%.. note::
 %
-% Cyril Pernet - 2021
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+%   See also get_pet_metadata.m to generate the metadata structure
+%
+%   Cyril Pernet - 2021
+%   ----------------------------
+%   Copyright Open NeuroPET team
 
-%dcm2niixpath = 'D:\MRI\mricrogl\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist('dcm2niixpath','var')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
@@ -57,7 +61,7 @@ gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, def
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 ba         = 'y';    % -ba : anonymize BIDS (y/n, default y)
 d          = 5;      % directory search depth. Convert DICOMs in sub-folders of in_folder? (0..9, default 5)
-f          = '%f_%p_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
+f          = '%p_%i_%t_%s'; % filename (%a=antenna (coil) name, %b=basename, %c=comments, %d=description, %e=echo number, %f=folder name, %g=accession number, %i=ID of patient, %j=seriesInstanceUID, %k=studyInstanceUID, %m=manufacturer, %n=name of patient, %o=mediaObjectInstanceUID, %p=protocol, %r=instance number, %s=series number, %t=time, %u=acquisition number, %v=vendor, %x=study ID; %z=sequence name; default '%f_%p_%t_%s')
 g          = 'n';    % generate defaults file (y/n/o/i [o=only: reset and write defaults; i=ignore: reset defaults], default n)
 i          = 'n';    % ignore derived, localizer and 2D images (y/n, default n)
 l          = 'n';    % losslessly scale 16-bit integers to use dynamic range (y/n/o [yes=scale, no=no, but uint16->int16, o=original], default n)
@@ -66,7 +70,7 @@ p          = 'y';    % Philips precise float (not display) scaling (y/n, default
 v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
-z          = 'n';    % gz compress images (y/o/i/n/3, default n) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+z          = 'y';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 
 %% check dcm2nii inputs
 % --------------------
@@ -120,10 +124,9 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'gz')
         gz = varargin{var+1};
         if ~num(gz)
-            error('invalid compression experession, not a numeric');
-            if gz>9
-                error('invalid compression value, must be between 1 and 9');
-            end
+            error('invalid compression expression, not a numeric');
+        elseif gz>9
+            error('invalid compression value, must be between 1 and 9');
         end
     elseif strcmpi(varargin{var},'a')
         a = varargin{var+1};
@@ -135,9 +138,8 @@ for var=1:length(varargin)
         d = varargin{var+1};
         if ~num(d)
             error('invalid compression experession, not a numeric');
-            if d>9
-                error('invalid compression value, must be between 0 and 9');
-            end
+        elseif d>9
+            error('invalid compression value, must be between 0 and 9');
         end
     elseif strcmpi(varargin{var},'f')
         f = varargin{var+1};
@@ -165,23 +167,23 @@ for var=1:length(varargin)
         if ~contains(p,{'y','n'}); error('Philips precise float scaling error,''y'' or ''n'''); end
     elseif strcmpi(varargin{var},'v')
         v = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
+        if isnumeric(v)
+            if ~contains(num2str(v),{'0','1','2'}); error('verbose error, 0/1/2 as input'); end
         else
-            if ~contains(m,{'y','n'}); error('verbose error,''y'' or ''n'''); end
+            if ~contains(v,{'y','n'}); error('verbose error,''y'' or ''n'''); end
         end
     elseif strcmpi(varargin{var},'w')
         w = varargin{var+1};
-        if ~contains(num2str(m),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
+        if ~contains(num2str(w),{'0','1','2'}); error('name conflicts behaviour error, 0/1/2 as input'); end
     elseif strcmpi(varargin{var},'x')
         x = varargin{var+1};
         if ~contains(x,{'y','n','i'}); error('3D acq. option error,''y/n/i'''); end
     elseif strcmpi(varargin{var},'z')
         z = varargin{var+1};
-        if isnumeric(m)
-            if ~contains(num2str(m),{'3'}); error('verbose error, 3 for no as input'); end
+        if isnumeric(z)
+            if ~contains(num2str(z),{'3'}); error('verbose error, 3 for no as input'); end
         else
-            if ~contains(m,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
+            if ~contains(z,{'y','n'}); error('gz compress images error,''y/o/i/n'' expected'); end
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
@@ -226,9 +228,9 @@ for folder = 1:size(FolderList,1)
     system(command);
    
     % deal with dcm files
-    dcmfiles = dir(fullfile(outputdir{folder},'*dcm'));
+    dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(
-        dcmfiles = dir(outputdir{folder}); % pick in the middle to avoid other files
+        dcmfiles = dir(FolderList{folder}); % pick in the middle to avoid other files
         dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
     else
         dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
@@ -238,13 +240,52 @@ for folder = 1:size(FolderList,1)
         delete(fullfile(outputdir{folder},'*dcm'))
     end
     
-    % update json
-    newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
-    if size(newmetadata,1)>1
-        warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
-        newmetadata = newmetadata(1);
+    % rename if BIDS folfer sub-
+    if contains(outputdir{folder},'sub-')
+        if strcmpi(z,'y')
+            data  = dir(fullfile(outputdir{folder},'*.nii.gz'));
+        else
+            data  = dir(fullfile(outputdir{folder},'*.nii'));
+        end
+        
+        if size(data,1)>1
+            warning('more than 1 nifti file found in %s, using only 1st one',outputdir{folder})
+            data = data(1);
+        end
+        
+        dataname    = fullfile(data.folder,data.name);
+        start       = strfind(data.folder,'sub-');
+        ending      = strfind(data.folder,filesep);
+        if sum(ending>start)~=0
+            newname = data.folder(start:ending(find(ending>start,1))-1); % from sub- to the next filesep
+        else
+            newname = data.folder(start:end); % from sub- to the end
+        end
+        
+        if strcmpi(z,'y')
+            newname     = [newname '.nii.gz']; %#ok<AGROW>
+            metadata    = [dataname(1:end-6) 'json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-6) 'json']);
+        else
+            newname     = [newname '.nii']; %#ok<AGROW>
+            metadata    = [dataname(1:end-3) 'json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-3) 'json']);
+        end
+        movefile(dataname,fullfile(data.folder,newname));
+        movefile(metadata,newmetadata);
     end
-    jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
+    
+    % update json
+    if ~exist('newmetadata','var')
+        newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
+        if size(newmetadata,1)>1
+            warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
+            newmetadata = newmetadata(1);
+        end
+        jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
+    else
+        jsonfilename = newmetadata;
+    end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
 

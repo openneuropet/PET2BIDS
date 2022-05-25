@@ -33,7 +33,7 @@ if exist('groundtruth','var')
     img                 = load(groundtruth);
     meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
     niftiout            = ecat2nii(ecatfile,meta);
-    img_reread          = niftiread(niftiout{1});
+    img_reread          = nii_tool('img', niftiout{1});
     delete(niftiout{1}); delete([niftiout{1}(1:end-6) 'json']);
     img                 = sort(single([img.frame_1_pixel_data(:);img.frame_2_pixel_data(:);...
         img.frame_3_pixel_data(:);img.frame_4_pixel_data(:)]));
@@ -46,7 +46,7 @@ else
     [filepath,filename] = fileparts(ecatfile);
     img                 = load(fullfile(filepath,[filename(1:end-2) '.ecat.mat']));
     img                 = img.(cell2mat(fieldnames(img)));
-    img_reread          = niftiread(fullfile(filepath,[filename(1:end-2) '.nii']));
+    img_reread          = nii_tool('img', fullfile(filepath,[filename(1:end-2) '.nii']));
     
     Diff_ecat_nifti     = img - img_reread; % read vs write
     meandiff            = mean(img(:)-img_reread(:));

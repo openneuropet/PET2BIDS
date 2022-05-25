@@ -19,7 +19,7 @@
 build/
 dist/
 *.spec
-pypet2bids/pypet2bids/metadata
+pypet2bids/pypet2bids/metadata/
 pypet2bids/pypet2bids/pyproject.toml
 
 # Inherited cookiecutter files
@@ -44,3 +44,5 @@ test_env/
 docs/_build/*/*.pickle
 docs/_build/
 
+# anything with a tilde in it
+*~*

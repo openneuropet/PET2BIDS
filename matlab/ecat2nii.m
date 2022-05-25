@@ -3,45 +3,48 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 % Converts ECAT 7 image file from hrrt pet scanner (ecat format)
 % to nifti image files + json
 %
-% FORMAT: fileout = ecat2nii(FileListIn,MetaList)
-%         fileout = ecat2nii(FileListIn,MetaList,options)
+% :format: - FileListOut = ecat2nii(FileListIn,MetaList)
+%          - FileListOut = ecat2nii(FileListIn,MetaList,options)
 %
-% INPUT: FileListIn - a name or a Cell array of characters with paths and filenames 
-%        MetaList - a structure or Cell array of structures for metadata
-%        (a single structure can be use other many FileListIn - see examples)
-%        options are name/value pairs
-%                'FileListOut' a name or cell array of characters with filenames
-%                              (with path if the path out is different)
-%                'sifout' is true or false (default) to output a sif file
-%                'gz' is true (default) or false to output .nii.gz or .nii
-%                'savemat' is true or false (default) to save the ecat data as .mat
+% :param FileListIn: a name or a Cell array of characters with paths and filenames
+% :param MetaList: a structure or Cell array of structures for metadata
+%   (a single structure can be use other many FileListIn - see examples)
+%   options are name/value pairs
+% :param FileListOut: a name or cell array of characters with filenames
+%   (with path if the path out is different)
+% :param sifout: is true or false (default) to output a sif file, default = false, 0/1 to indicate
+%    SIF is a simple ascii file that contains the PET frame start and end times,
+%    and the numbers of observed events during each PET time frame.
+% :param gz: is true (default) or false to output .nii.gz or .nii
+% :param savemat: is true or false (default) to save the ecat data as .mat
 %
-% OUTPUT FileListOut is the name or a cell array of names of the nifti files created
+% :returns FileListOut: is the name or a cell array of names of the nifti files created
 %        (should be the same as FileListOut entered as option with the added proper extension .nii or .nii.gz)
 %
-% Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
+% .. code-block::
+%
+%   Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
 %                      'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
-%         FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
-%         FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
-%         FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));
+%   FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
+%   FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
+%   FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));``
 %
-% SIF is a simple ascii file that contains the PET frame start and end times,
-% and the numbers of observed events during each PET time frame.
+% .. note:: 
 %
-% Dev: if the meta structure as a field (key) 'info' with a value containing 'test'
-%      the json validation is skipped -- allows e.g. unit testing
+%    Uses: readECAT7.m (Raymond Muzic, 2002)
+%          jsonwrite.m (Guillaume Flandin, 2020)
+%          nii_tool.m (Xiangrui Li, 2016)
 %
-% Uses: readECAT7.m (Raymond Muzic, 2002)
-% See also get_pet_metadata.m to generate the metadata structure
+%    See also get_pet_metadata.m to generate the metadata structure
 %
-% Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
-%    (some of the code is based on code from Mark Lubbering
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+%    Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021
+%    ----------------------------------------------------------------
+%    Copyright Open NeuroPET team
 
 %% defaults
 % ---------
 
+warning on % set to off to ignore our usefull warnings
 sifout  = false; % 0/1 to indicate if sif file are also created
 gz      = true;  % compress nifti
 savemat = false; % save ecat data as .mat
@@ -134,10 +137,10 @@ for j=1:length(FileListIn)
             error('the file %s does not exist',FileListIn{j}),
         end
         
-        [pet_path,pet_file,ext]=fileparts(FileListIn{j});
+        [pet_path,pet_file,ext] = fileparts(FileListIn{j});
         if strcmp(ext,'.gz')
-            newfile          = gunzip([pet_path filesep pet_file ext]);
-            [~,pet_file,ext] = fileparts(newfile{1});
+            newfile             = gunzip([pet_path filesep pet_file ext]);
+            [~,pet_file,ext]    = fileparts(newfile{1});
         end
         
         pet_file = [pet_file ext]; 
@@ -183,8 +186,12 @@ for j=1:length(FileListIn)
             if ~isempty(newpet_path)
                 pet_path = newpet_path;
             end
-        end 
+        end
+        
         filenameout  = [pet_path filesep pet_filename];
+        if ~exist(fileparts(filenameout),'dir')
+            mkdir(fileparts(filenameout))
+        end
 
         % write timing info separately
         if sifout
@@ -212,21 +219,28 @@ for j=1:length(FileListIn)
         end
         
         % write nifti format + json
-        img_temp                                  = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
-                sub_iter                          = strsplit(sh{1,1}.annotation);
-                iterations                        = str2double(cell2mat(regexp(sub_iter{2},'\d*','Match')));
-                subsets                           = str2double(cell2mat(regexp(sub_iter{3},'\d*','Match')));
-                info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
-                info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
-                info.ReconMethodParameterValues   = [iterations, subsets, mh.lwr_true_thres, mh.upr_true_thres];
-            else
+                [info.ReconMethodName,i,s]            = get_recon_method(deblank(sh{1,1}.annotation));
+                if ~isempty(i) && ~isempty(s)
+                    info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [str2double(i), str2double(s), mh.lwr_true_thres, mh.upr_true_thres];
+                else % some method without iteration and subset e.g. back projection
+                    info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                end
+                
+            else % annotation is blank - no info on method
+                warning('no reconstruction method information found - invalid BIDS metadata')
                 info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
                 info.ReconMethodParameterUnits    = {'keV', 'keV'};
                 info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
             end
-        else
+            
+        else % no info on method
+            warning('no reconstruction method information found - invalid BIDS metadata')
             info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
             info.ReconMethodParameterUnits    = {'keV', 'keV'};
             info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
@@ -270,12 +284,45 @@ for j=1:length(FileListIn)
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         info                                  = orderfields(info);
+        
+        % check radiotracer info - should have been done already in
+        % get_pet_metadata ; but user can also populate metadata by hand
+        % so let's recheck
+         if ~isfield(info,'Units')
+            info.Units = 'Bq/mL';
+         end
+        
+         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
+             'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
+         index                  = 1; % make key-value pairs
+         arguments              = cell(1,sum(input_check)*2);
+         if sum(input_check) ~= 0
+             for r=find(input_check)
+                 arguments{index}   = radioinputs{r};
+                 arguments{index+1} = info.(radioinputs{r});
+                 index = index + 2;
+             end
+             dataout                = check_metaradioinputs(arguments);
+             datafieldnames         = fieldnames(dataout);
+             
+             % set new info fields
+             for f = 1:size(datafieldnames,1)
+                 if ~isfield(info,datafieldnames{f})
+                     info.(datafieldnames{f}) = dataout.(datafieldnames{f});
+                 end
+             end
+         end
+         
+        % write json file using jsonwrite from Guillaume Flandin
+        % $Id: spm_jsonwrite.m
         jsonwrite([filenameout '.json'],info)
         status = updatejsonpetfile([filenameout '.json']); % validate
         if status.state ~= 1
             warning('the json file is BIDS invalid')
         end
         
+        img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
         info.Datatype                         = 'single';
         info.BitsPerPixel                     = 32;
         info.SpaceUnits                       = 'Millimeter';
@@ -333,14 +380,30 @@ for j=1:length(FileListIn)
         info.Transform.T        = T;
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
-        if gz
-            niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
-            FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
-        else
-            FileListOut{j} = [filenameout '.nii'];
-            niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
+
+        % write nifti file using nii_tool
+        % Copyright (c) 2016, Xiangrui Li https://github.com/xiangruili/dicm2nii
+        % BSD-2-Clause License
+        nii.hdr                 = info.raw;
+        nii.img                 = img_temp;
+        fnm                     = [filenameout '.nii'];
+        if gz 
+            fnm = [fnm '.gz']; %#ok<*AGROW>
         end
+        nii_tool('save', nii, fnm);
+        FileListOut{j} = fnm;
         
+        % optionally one can use niftiwrite from the Image Processing Toolbox
+        % warning different versions of matlab may provide different nifti results
+        %
+        % if gz
+        %     niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
+        %     FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+        % else
+        %     FileListOut{j} = [filenameout '.nii'];
+        %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
+        % end
+    
     catch conversionerr
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end

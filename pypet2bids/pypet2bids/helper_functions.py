@@ -1,11 +1,18 @@
 import gzip
 import os
 import re
+import shutil
+
 import dotenv
 import ast
 import argparse
 import pathlib
 import toml
+import pathlib
+from pandas import read_csv, read_excel
+import importlib
+import sys
+import argparse
 
 
 def compress(file_like_object, output_path: str = None):
@@ -117,3 +124,92 @@ class ParseKwargs(argparse.Action):
             getattr(namespace, self.dest)[key] = value
 
 
+def open_meta_data(metadata_path):
+    """
+    Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
+    file's extension.
+    :param extension: The extension of the file
+    :return: a pandas dataframe representation of the spreadsheet/metadatafile
+    """
+
+    metadata_path = pathlib.Path(metadata_path)
+
+    if metadata_path.exists():
+        pass
+    else:
+        raise FileExistsError(metadata_path)
+
+    # collect suffix from metadata an use the approriate pandas method to read the data
+    extension = metadata_path.suffix
+
+    methods = {
+        'excel': read_excel,
+        'csv': read_csv
+    }
+
+    if 'xls' in extension:
+        proper_method = 'excel'
+    else:
+        proper_method = extension
+
+    try:
+        use_me_to_read = methods.get(proper_method, None)
+        metadata_dataframe = use_me_to_read(metadata_path)
+    except IOError as err:
+        raise err(f"Problem opening {metadata_path}")
+
+    return metadata_dataframe
+
+def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
+    # load metadata
+    metadata_dataframe = open_meta_data(metadata_path)
+
+    if metadata_dataframe is not None:
+        try:
+            # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
+            # data from their particular spreadsheet wherever that file is located.
+            spec = importlib.util.spec_from_file_location("metadata_translation_script_path",
+                                                          metadata_translation_script_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            # note the translation must have a method named translate metadata in order to work
+            text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
+        except AttributeError as err:
+            print(f"Unable to locate metadata_translation_script\n{err}")
+    else:
+        print(f"No metadata found at {metadata_path}")
+        text_file_data = None
+
+    return text_file_data
+
+def import_and_write_out_module(module: str, destination: str):
+    """
+    Writes an imported module file to a destination
+    :param module: an imported python module
+    :param destination: the destination to write the source/script of the module to file
+
+    :return: the destination path of the copied module file if successful
+    """
+    imported_module = importlib.import_module(module)
+    path_to_module = os.path.abspath(imported_module.__file__)
+    shutil.copy(path_to_module, destination)
+    if os.path.isfile(destination):
+        return destination
+    elif os.path.isdir(destination):
+        return os.path.join(destination, os.path.basename(path_to_module))
+
+def write_out_module(module: str='pypet2bids.metadata_spreadsheet_example_reader'):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('template_path', type=str, help="Path to write out template for a translation script.")
+    args = parser.parse_args()
+
+    import_and_write_out_module(module=module, destination=args.template_path)
+
+def expand_path(path_like: str) -> str:
+    if path_like:
+        if path_like[0] == '~':
+            return str(os.path.expanduser(path_like))
+        else:
+            return (os.path.abspath(path_like))
+    else:
+        return ''

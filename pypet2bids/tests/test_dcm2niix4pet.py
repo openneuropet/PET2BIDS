@@ -1,14 +1,13 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
-import pytest
+from pypet2bids.dcm2niix4pet import get_recon_method, get_convolution_kernel, check_meta_radio_inputs
 import dotenv
 import os
 from pathlib import Path
-import pydicom
 from tempfile import TemporaryDirectory
 import json
 from os.path import join
-import re
 import pydicom
+from unittest import TestCase
 
 # collect config files
 # fields to check for
@@ -142,17 +141,20 @@ def test_run_dcm2niix():
         if dcm2niix_output.get(output_file_stem, None):
             dcm2niix_output[output_file_stem] = dcm2niix_output[output_file_stem].append(path_object.resolve())
         else:
-            dcm2niix_output[output_file_stem]  = []
+            dcm2niix_output[output_file_stem] = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
 
     for file in created_niftis:
         path_object = Path(file)
         output_file_stem = os.path.join(*path_object.parents, path_object.stem)
         if dcm2niix_output.get(output_file_stem, None):
-            dcm2nnix_output[output_file_stem] = dcm2iix[output_file_stem].append(path_object.resolve())
+            dcm2niix_output[output_file_stem] = dcm2niix_output[output_file_stem].append(path_object.resolve())
         else:
-            dcm2niix_output[output_file_stem]  = []
+            dcm2niix_output[output_file_stem] = []
             dcm2niix_output[output_file_stem].append(path_object.resolve())
+
+    assert len(created_niftis) == len(created_jsons)
+
 
 def test_manufacturers():
     # As far as we know there are these three manufacturers
@@ -196,6 +198,7 @@ def test_manufacturers():
         # now check the output of the jsons, see if the fields are all there
         for key, value in manufacturer_paths.items():
             print(key, value)
+
 
 def test_update_json_with_dicom_value():
     """
@@ -267,55 +270,134 @@ def test_additional_arguments():
         for key, value in additional_args.items():
             assert json_contents.get(key, "") == value
 
-
 def test_get_recon_method():
     """
     Given an input from a dicom such as
     (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
     returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
     e.g.
-    ReconMethodName=
-    ReconMethodParameterLabels=
-    ReconMethodParameterUnits=
-    ReconMethodParameterValues=
+    ReconMethodName="PSF+TOF"
+    ReconMethodParameterLabels=["subsets", "iterations"]
+    ReconMethodParameterUnits=["none", "none"]
+    ReconMethodParameterValues=[21, 3]
     :return:
     """
 
     reconstruction_method_strings = [
         {
-            "contents": "LO [PSF+TOF 3i21s]",
-            "desired_output": ""
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [OP-OSEM3i21s]                           #  12, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "OP-OSEM3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "OP-OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": "",
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [3D-RAMLA]                               #   8, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "3D-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "3D-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         },
         {
-            "contents": "(0054,1103) LO [OSEM:i3s15]                             #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": 'OSEM:i3s15',
+            "subsets": 15,
+            "iterations": 3,
+            "ReconMethodName": "OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [15, 3]
         },
         {
-            "contents": "(0054,1103) LO [LOR-RAMLA]                              #  10, 1 ReconstructionMethod",
-            "desired_output": ""
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
         }
     ]
 
+    for recon_data  in reconstruction_method_strings:
+        recon = get_recon_method(recon_data['contents'])
+        for key, value in recon_data.items():
+            if key != "contents" and key != 'subsets' and key != 'iterations':
+                assert value == recon[key]
+
+
+def test_check_meta_radio_inputs():
+    # test first conditional given InjectedRadioactivity and InjectedMass
+    given = {'InjectedRadioactivity': 10, 'InjectedMass': 10}
+    solution = {'InjectedRadioactivityUnits': 'MBq',
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g',
+                'SpecificRadioactivity': 1}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # first case + adding in a value for SpecificRadioactivity
+    given = {'InjectedRadioactivity': 10, 'InjectedMass': 10, 'SpecificRadioactivity':1}
+    solution = {'InjectedRadioactivityUnits': 'n/a',
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g'}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # second case + SpecificRadioactivityUnits adde to to given
+    solution.update({'SpecificRadioactivityUnits': 'Bq/g'})
+    given.update({'SpecificRadioactivityUnits': 'Bq/g'})
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+    # test second conditional given InjectedRadioactivity and SpecificRadioactivity
+    given = {'InjectedRadioactivity': 10, 'SpecificRadioactivity': 10}
+    solution = {'InjectedRadioactivityUnits': 'MBq',
+                'InjectedMass': 1000000000000.0,
+                'InjectedMassUnits': 'ug',
+                'SpecificRadioactivityUnits': 'Bq/g',
+                'SpecificRadioactivity': 10}
+    solution.update(given)
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this, solution)
+
+
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
-
     ]
 
+
 if __name__ == '__main__':
-    test_additional_arguments()
+    test_run_dcm2niix()

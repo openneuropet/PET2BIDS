@@ -4,16 +4,21 @@ BIDS requires nifti files and json. While json can be writen be hand, this is mo
 
 ## Dependencies
 
-We use the [niftiwrite](https://se.mathworks.com/help/images/ref/niftiwrite.html) from the Matlab image processing toolbox, which is only need to convert ecat files. For DICOM files, dcm2niix is also necessary. The jsonwrite function is distributed here, taken from [json.io](https://github.com/gllmflndn/JSONio). There are no other dependencies.
+_To convert DICOM files_, [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage) (Chris Rorden) must be installed. Windows users must, in addition, indicate its full path in [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m#L42).
+
+## Redistributed functions
+
+ _To convert ECAT files_, [ecat2nii.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/ecat2nii.m) uses [readECAT7](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/readECAT7.m) (Raymond Muzic, 2002) and [nii_tool](https://github.com/xiangruili/dicm2nii) (Xiangrui Li, 2016), who are included and redistributed in the repository. _To write the JSON sidecar files_, one uses jsonwrite.m (Guillaume Flandin, 2020) taken from [json.io](https://github.com/gllmflndn/JSONio). 
 
 ## Configuration
 
 The entire repository or only the matlab subfolder (your choice) should be in your matlab path.  
-Defaults parameters should be set in the .txt files to generate metadata easily (i.e. avoiding to pass all arguments in although this is also possible). You can find templates of such parameter file under /template_txt (SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
+
+Defaults parameters should be set in (sannername).txt files to generate metadata easily (i.e. avoiding to pass all arguments in although this is also possible). You can find templates of such parameter file under /template_txt (SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
 
 ### Get metadata
 
-To simplify the curation of json files, one used the get_metadata.m function. This function take as argument the scanner info (thus load the relevant parameters.txt file) and also need some manual input related to tracers.  
+To simplify the curation of json files, one uses the [get_pet_metadata.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/get_pet_metadata.m) function. This function takes as arguments the scanner info (thus loading the relevant *parameters.txt file) and also need some manual input related to the injected tracer.  
   
 _Feel free to reach out if you have an issue with your scanner files, we can help_.
 
@@ -21,7 +26,7 @@ _Feel free to reach out if you have an issue with your scanner files, we can hel
 
 ### converting dicom files
 
-The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m) which wraps around dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata as a structure (using the get_metadata.m function for instance) and possibly options as per dcm2nixx.  
+The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m) which wraps around dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.  
 
 _Note for windows user_: edit the dcm2niix4pet.m line 42 to indicate where is the .exe function located
 
@@ -38,7 +43,7 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
     'ReconFilterSize',2, 'AttenuationCorrection','CT-based attenuation correction');
 dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
 ```  
-_Note that get_pet_metadata can be called in a much simpler way if you have a `*_parameters.txt` seating on disk next to this function. The call would then looks like:_
+_Note that get_pet_metadata can be called in a much simpler way if you have a `*parameters.txt` seating on disk next to this function. The call would then looks like:_
 
 ```matlab
 % your SiemensBiographparameters.txt file is stored next to get_pet_metadata.m
@@ -48,7 +53,7 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','Trac
 dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
 ```  
 
-Alternatively, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
+**Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
 
 1. Use the [updatejsonpetfile.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/updatejsonpetfile.m) function. Arguments in are the json file to update and metadata to add as a structure (using a get_metadata.m function for instance) and possibly a dicom file to check additional fields. This is show below for data from the biograph.
 
