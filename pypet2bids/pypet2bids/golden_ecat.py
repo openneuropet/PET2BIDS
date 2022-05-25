@@ -60,8 +60,8 @@ def main():
     image_max = 32767
     spacing = round((image_max - image_min) / number_of_array_elements)
 
-    #integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
-    integer_pixel_data = numpy.arange(image_min, image_max, dtype=">H", step=spacing)
+    integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
+    #integer_pixel_data = numpy.arange(image_min, image_max, dtype=">H", step=spacing)
 
     # save data for analysis in matlab
     matlab_struct = {}
@@ -72,6 +72,7 @@ def main():
     temp_three_d_arrays = numpy.array_split(integer_pixel_data, number_of_frames)
     for i in range(number_of_frames):
         frames.append(temp_three_d_arrays[i].reshape(one_dimension, one_dimension, one_dimension))
+        #frames.append(temp_three_d_arrays[i])
         matlab_struct[f"frame_{i + 1}_pixel_data"] = frames[i]
 
     # edit the header to suit the new file
@@ -95,9 +96,8 @@ def main():
             subheader['DATA_TYPE'] = 6
             subheader['SCALE_FACTOR'] = 1
 
-
     matlab_struct['subheaders'] = subheaders_to_write
-    matlab_struct['mainheder'] = header_to_write
+    matlab_struct['mainheader'] = header_to_write
 
     write_ecat(ecat_file=int_golden_ecat_path,
                mainheader_schema=ecat_header_maps['ecat_headers']['73']['mainheader'],
@@ -112,11 +112,12 @@ def main():
                pixel_data=frames
                )
 
-    savemat(os.path.join(ecat_validation_folder, (int_golden_ecat_path_stem + '.mat'))
-            , matlab_struct)
+    mat_out_file = os.path.join(ecat_validation_folder, (int_golden_ecat_path_stem + '.mat'))
+    savemat(mat_out_file, matlab_struct, oned_as='column')
 
     # now read it just to make sure what was created is a real file and not error riddled.
     int_golden_ecat_main_header, int_golden_ecat_subheaders, int_golden_ecat_pixel_data = read_ecat(int_golden_ecat_path)
+
 
 if __name__ == "__main__":
     main()

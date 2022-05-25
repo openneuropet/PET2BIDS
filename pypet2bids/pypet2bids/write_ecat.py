@@ -219,7 +219,18 @@ def write_pixel_data(ecat_file, pixel_data: numpy.ndarray, byte_position: int=No
         #raise Exception("Must provide seek boolean and byte position")
     else:
         pass
-    flattened_pixels = pixel_data.flatten().tobytes()
+    """
+    order : {'C', 'F', 'A', 'K'}, optional
+                'C' means to flatten in row-major (C-style) order.
+                'F' means to flatten in column-major (Fortran-
+                style) order. 'A' means to flatten in column-major
+                order if `a` is Fortran *contiguous* in memory,
+                row-major order otherwise. 'K' means to flatten
+                `a` in the order the elements occur in memory.
+                The default is 'C'.
+    """
+
+    flattened_pixels = pixel_data.flatten(order='F').tobytes()
     ecat_file.write(flattened_pixels)
     return 0
 
