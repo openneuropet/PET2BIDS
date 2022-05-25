@@ -315,11 +315,19 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
-        self.spreadsheet_metadata = {}
-        if metadata_path and metadata_translation_script:
+        # load the spreadsheet if the path exists
+        if metadata_path is not None:
             self.metadata_path = Path(metadata_path)
-            self.metadata_translation_script = Path(metadata_translation_script)
-            self.spreadsheet_metadata = translate_metadata(self.metadata_path, self.metadata_translation_script)
+            self.extract_metadata()
+        # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
+        # spreadsheet
+        if self.metadata_path.exists() and metadata_translation_path is not None:
+            self.metadata_translation_script = Path(metadata_path)
+            # load the spreadsheet into a dataframe
+            self.extract_metadata()
+            # next we use the loaded python script to extract the information we need
+            self.load_spread_sheet_data()
+
         self.additional_arguments = additional_arguments
         self.subject_id = None
         self.file_format = file_format
@@ -564,6 +572,54 @@ class Dcm2niix4PET:
                         headers_to_files[each] = [output_file]
         return headers_to_files
 
+    def extract_metadata(self):
+        """
+        Opens up a metadata file and reads it into a pandas dataframe
+        :return: a pd dataframe object
+        """
+        # collect metadata from spreadsheet
+        metadata_extension = pathlib.Path(self.metadata_path).suffix
+        self.open_meta_data(metadata_extension)
+
+    def open_meta_data(self, extension):
+        """
+        Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
+        file's extension.
+        :param extension: The extension of the file
+        :return: a pandas dataframe representation of the spreadsheet/metadatafile
+        """
+        methods = {
+            'excel': pd.read_excel,
+            'csv': pd.read_csv
+        }
+
+        if 'xls' in extension:
+            proper_method = 'excel'
+        else:
+            proper_method = extension
+
+        try:
+            use_me_to_read = methods.get(proper_method, None)
+            self.metadata_dataframe = use_me_to_read(self.metadata_path)
+        except IOError as err:
+            raise err(f"Problem opening {self.metadata_path}")
+
+    def load_spread_sheet_data(self):
+        if self.metadata_translation_script_path:
+            try:
+                # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
+                # data from their particular spreadsheet wherever that file is located.
+                spec = importlib.util.spec_from_file_location("metadata_translation_script",
+                                                              self.metadata_translation_script_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                text_file_data = module.translate_metadata(self.metadata_dataframe, self.dicom_header_data)
+            except AttributeError as err:
+                print(f"Unable to locate metadata_translation_script")
+
+            self.blood_tsv = text_file_data.get('blood_tsv', {})
+            self.blood_json = text_file_data.get('blood_json', {})
+            self.nifti_json = text_file_data.get('nifti_json', {})
 
 # noinspection PyPep8Naming
 def get_recon_method(ReconstructionMethodString: str) -> dict:
