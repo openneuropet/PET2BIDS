@@ -52,6 +52,7 @@ def test_check_json(capsys):
 
         assert f'WARNING!!!! Manufacturer is not present in {bad_json_path}' in check_output.out
 
+
 def test_extract_dicom_headers():
     converter = Dcm2niix4PET(test_dicom_image_folder, test_dicom_convert_nifti_output_path)
     converter.extract_dicom_headers()
@@ -112,6 +113,8 @@ def test_collect_date_from_file_name():
         first_dicom_header = converter.dicom_headers[next(iter(converter.dicom_headers))]
         StudyDate = first_dicom_header.StudyDate
         StudyTime = str(round(float(first_dicom_header.StudyTime)))
+        if len(StudyTime) < 6:
+            StudyTime = (6 - len(StudyTime)) * "0" + StudyTime
 
         # run dcm2niix to convert these dicoms
         converter.run_dcm2niix()
@@ -252,6 +255,7 @@ def test_update_json_with_dicom_value():
             for field in check_fields:
                 assert test_json.get(field, "") != ""
 
+
 def test_additional_arguments():
     additional_args = {'additional1': 1, 'additional2': 2}
     with TemporaryDirectory() as tempdir:
@@ -269,6 +273,7 @@ def test_additional_arguments():
 
         for key, value in additional_args.items():
             assert json_contents.get(key, "") == value
+
 
 def test_get_recon_method():
     """
@@ -400,4 +405,4 @@ def test_get_convolution_kernel():
 
 
 if __name__ == '__main__':
-    test_run_dcm2niix()
+    test_collect_date_from_file_name()

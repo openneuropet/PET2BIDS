@@ -16,6 +16,8 @@ import shutil
 from dateutil import parser
 from termcolor import colored
 import argparse
+import importlib
+
 
 
 """
@@ -243,6 +245,10 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
         parsed_date = dicom.StudyDate
         parsed_time = str(round(float(dicom.StudyTime)))
+        if len(parsed_time) < 6:
+            zeros_to_pad = 6 - len(parsed_time)
+            parsed_time = zeros_to_pad * '0' + parsed_time
+
     elif date and time:
         parsed_date = date
         parsed_time = str(round(float(time)))
@@ -307,6 +313,8 @@ class Dcm2niix4PET:
         """
 
         # check to see if dcm2niix is installed
+        self.blood_json = None
+        self.blood_tsv = None
         self.check_for_dcm2niix()
 
         self.image_folder = Path(image_folder)
@@ -315,23 +323,24 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
-        # load the spreadsheet if the path exists
-        if metadata_path is not None:
-            self.metadata_path = Path(metadata_path)
-            self.extract_metadata()
+        self.subject_id = None
+        self.dicom_headers = self.extract_dicom_headers()
+
+        self.spreadsheet_metadata = {}
         # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
         # spreadsheet
-        if self.metadata_path.exists() and metadata_translation_path is not None:
-            self.metadata_translation_script = Path(metadata_path)
-            # load the spreadsheet into a dataframe
-            self.extract_metadata()
-            # next we use the loaded python script to extract the information we need
-            self.load_spread_sheet_data()
+        if metadata_path and metadata_translation_script:
+            self.metadata_path = Path(metadata_path)
+            self.metadata_translation_script = Path(metadata_translation_script)
+
+            if self.metadata_path.exists() and self.metadata_translation_script.exists():
+                # load the spreadsheet into a dataframe
+                self.extract_metadata()
+                # next we use the loaded python script to extract the information we need
+                self.load_spread_sheet_data()
 
         self.additional_arguments = additional_arguments
-        self.subject_id = None
         self.file_format = file_format
-        self.dicom_headers = self.extract_dicom_headers()
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
         # to access the dicom header information use the key in self.headers_to_files to access that specific header
@@ -560,7 +569,9 @@ class Dcm2niix4PET:
         # collect study date and time from header
         for each in self.dicom_headers:
             header_study_date = self.dicom_headers[each].StudyDate
-            header_acquisition_time = self.dicom_headers[each].StudyTime
+            header_acquisition_time = str(round(float(self.dicom_headers[each].StudyTime)))
+            if len(header_acquisition_time) < 6:
+                header_acquisition_time = (6 - len(header_acquisition_time)) * "0" + header_acquisition_time
 
             header_date_time = dicom_datetime_to_dcm2niix_time(date=header_study_date, time=header_acquisition_time)
 
@@ -578,7 +589,7 @@ class Dcm2niix4PET:
         :return: a pd dataframe object
         """
         # collect metadata from spreadsheet
-        metadata_extension = pathlib.Path(self.metadata_path).suffix
+        metadata_extension = Path(self.metadata_path).suffix
         self.open_meta_data(metadata_extension)
 
     def open_meta_data(self, extension):
@@ -605,21 +616,23 @@ class Dcm2niix4PET:
             raise err(f"Problem opening {self.metadata_path}")
 
     def load_spread_sheet_data(self):
-        if self.metadata_translation_script_path:
+        text_file_data = {}
+        if self.metadata_translation_script:
             try:
                 # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
                 # data from their particular spreadsheet wherever that file is located.
                 spec = importlib.util.spec_from_file_location("metadata_translation_script",
-                                                              self.metadata_translation_script_path)
+                                                              self.metadata_translation_script)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                text_file_data = module.translate_metadata(self.metadata_dataframe, self.dicom_header_data)
+                text_file_data = module.translate_metadata(self.metadata_dataframe)
             except AttributeError as err:
                 print(f"Unable to locate metadata_translation_script")
 
-            self.blood_tsv = text_file_data.get('blood_tsv', {})
-            self.blood_json = text_file_data.get('blood_json', {})
-            self.nifti_json = text_file_data.get('nifti_json', {})
+            self.spreadsheet_metadata['blood_tsv'] = text_file_data.get('blood_tsv', {})
+            self.spreadsheet_metadata['blood_json'] = text_file_data.get('blood_json', {})
+            self.spreadsheet_metadata['nifti_json'] = text_file_data.get('nifti_json', {})
+
 
 # noinspection PyPep8Naming
 def get_recon_method(ReconstructionMethodString: str) -> dict:
