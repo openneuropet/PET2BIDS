@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path
@@ -216,7 +217,11 @@ def update_json_with_dicom_value(
     if json_updater.get('Units') == 'BQML':
         json_updater.update({'Units': 'Bq/mL'})
 
-    # TODO nucleotides
+    # Add radionuclide to json
+    Radionuclide = get_radionuclide(dicom_header)
+    if Radionuclide:
+        json_updater.update({'TracerRadionuclide': Radionuclide})
+    print("PAUSE")
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
@@ -858,6 +863,56 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
                 data_out['MolarActivityUnits'] = 'GBq/umol'
 
     return data_out
+
+
+def get_radionuclide(pydicom_dicom):
+    """
+    Gets the radionuclide if given a pydicom_object if
+    pydicom_object.RadiopharmaceuticalInformationSequence[0].RadionuclideCodeSequence exists
+
+    :param pydicom_dicom: dicom object collected by pydicom.dcmread("dicom_file.img")
+    :return: Labeled Radionuclide e.g. 11Carbon, 18Flourine
+    """
+    try:
+        radiopharmaceutical_information_sequence = pydicom_dicom.RadiopharmaceuticalInformationSequence
+        radionuclide_code_sequence = radiopharmaceutical_information_sequence[0].RadionuclideCodeSequence
+        code_value = radionuclide_code_sequence[0].CodeValue
+        code_meaning = radionuclide_code_sequence[0].CodeMeaning
+        extraction_good = True
+    except AttributeError:
+        warnings.warn("Unable to extract RadioNuclideCodeSequence from RadiopharmaceuticalInformationSequence")
+        radionuclide = ""
+        extraction_good = False
+
+    if extraction_good:
+        # check to see if these nucleotides appear in our verified values
+        verified_nucleotides = metadata_dictionaries['dicom2bids.json']['RadionuclideCodes']
+
+        check_code_value = ""
+        check_code_meaning = ""
+
+        if code_value in verified_nucleotides.keys():
+            check_code_value = code_value
+        else:
+            warnings.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
+                          f"will attempt to infer from code meaning {code_meaning}")
+
+        if code_meaning in verified_nucleotides.values():
+            radionuclide = re.sub(r'\^', "", code_meaning)
+            check_code_meaning = code_meaning
+        else:
+            warnings.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
+            if code_value in verified_nucleotides.keys:
+                radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
+
+        # final check
+        if check_code_meaning and check_code_value:
+            pass
+        else:
+            warnings.warn(f"Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
+                          f"header")
+
+    return radionuclide
 
 
 def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
