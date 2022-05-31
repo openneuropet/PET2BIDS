@@ -20,7 +20,7 @@ subset    = [];
 
 %% load metadata from the library
 current    = which('ecat2nii.m');
-root       = current(1:strfind(current,'converter')+length('converter'));
+root       = current(1:strfind(current,'matlab')-1);
 jsontoload = fullfile(root,['metadata' filesep 'PET_reconstruction_methods.json']);
 if exist(jsontoload,'file')
     reconstruction_metadata = jsondecode(fileread(jsontoload));
