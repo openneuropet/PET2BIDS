@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path
@@ -16,6 +17,8 @@ import shutil
 from dateutil import parser
 from termcolor import colored
 import argparse
+import importlib
+
 
 
 """
@@ -214,7 +217,11 @@ def update_json_with_dicom_value(
     if json_updater.get('Units') == 'BQML':
         json_updater.update({'Units': 'Bq/mL'})
 
-    # TODO nucleotides
+    # Add radionuclide to json
+    Radionuclide = get_radionuclide(dicom_header)
+    if Radionuclide:
+        json_updater.update({'TracerRadionuclide': Radionuclide})
+    print("PAUSE")
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
@@ -243,6 +250,10 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
         parsed_date = dicom.StudyDate
         parsed_time = str(round(float(dicom.StudyTime)))
+        if len(parsed_time) < 6:
+            zeros_to_pad = 6 - len(parsed_time)
+            parsed_time = zeros_to_pad * '0' + parsed_time
+
     elif date and time:
         parsed_date = date
         parsed_time = str(round(float(time)))
@@ -307,6 +318,8 @@ class Dcm2niix4PET:
         """
 
         # check to see if dcm2niix is installed
+        self.blood_json = None
+        self.blood_tsv = None
         self.check_for_dcm2niix()
 
         self.image_folder = Path(image_folder)
@@ -315,15 +328,24 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
+        self.subject_id = None
+        self.dicom_headers = self.extract_dicom_headers()
+
         self.spreadsheet_metadata = {}
+        # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
+        # spreadsheet
         if metadata_path and metadata_translation_script:
             self.metadata_path = Path(metadata_path)
             self.metadata_translation_script = Path(metadata_translation_script)
-            self.spreadsheet_metadata = translate_metadata(self.metadata_path, self.metadata_translation_script)
+
+            if self.metadata_path.exists() and self.metadata_translation_script.exists():
+                # load the spreadsheet into a dataframe
+                self.extract_metadata()
+                # next we use the loaded python script to extract the information we need
+                self.load_spread_sheet_data()
+
         self.additional_arguments = additional_arguments
-        self.subject_id = None
         self.file_format = file_format
-        self.dicom_headers = self.extract_dicom_headers()
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
         # to access the dicom header information use the key in self.headers_to_files to access that specific header
@@ -552,7 +574,9 @@ class Dcm2niix4PET:
         # collect study date and time from header
         for each in self.dicom_headers:
             header_study_date = self.dicom_headers[each].StudyDate
-            header_acquisition_time = self.dicom_headers[each].StudyTime
+            header_acquisition_time = str(round(float(self.dicom_headers[each].StudyTime)))
+            if len(header_acquisition_time) < 6:
+                header_acquisition_time = (6 - len(header_acquisition_time)) * "0" + header_acquisition_time
 
             header_date_time = dicom_datetime_to_dcm2niix_time(date=header_study_date, time=header_acquisition_time)
 
@@ -563,6 +587,56 @@ class Dcm2niix4PET:
                     except KeyError:
                         headers_to_files[each] = [output_file]
         return headers_to_files
+
+    def extract_metadata(self):
+        """
+        Opens up a metadata file and reads it into a pandas dataframe
+        :return: a pd dataframe object
+        """
+        # collect metadata from spreadsheet
+        metadata_extension = Path(self.metadata_path).suffix
+        self.open_meta_data(metadata_extension)
+
+    def open_meta_data(self, extension):
+        """
+        Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
+        file's extension.
+        :param extension: The extension of the file
+        :return: a pandas dataframe representation of the spreadsheet/metadatafile
+        """
+        methods = {
+            'excel': pd.read_excel,
+            'csv': pd.read_csv
+        }
+
+        if 'xls' in extension:
+            proper_method = 'excel'
+        else:
+            proper_method = extension
+
+        try:
+            use_me_to_read = methods.get(proper_method, None)
+            self.metadata_dataframe = use_me_to_read(self.metadata_path)
+        except IOError as err:
+            raise err(f"Problem opening {self.metadata_path}")
+
+    def load_spread_sheet_data(self):
+        text_file_data = {}
+        if self.metadata_translation_script:
+            try:
+                # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
+                # data from their particular spreadsheet wherever that file is located.
+                spec = importlib.util.spec_from_file_location("metadata_translation_script",
+                                                              self.metadata_translation_script)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                text_file_data = module.translate_metadata(self.metadata_dataframe)
+            except AttributeError as err:
+                print(f"Unable to locate metadata_translation_script")
+
+            self.spreadsheet_metadata['blood_tsv'] = text_file_data.get('blood_tsv', {})
+            self.spreadsheet_metadata['blood_json'] = text_file_data.get('blood_json', {})
+            self.spreadsheet_metadata['nifti_json'] = text_file_data.get('nifti_json', {})
 
 
 # noinspection PyPep8Naming
@@ -789,6 +863,56 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
                 data_out['MolarActivityUnits'] = 'GBq/umol'
 
     return data_out
+
+
+def get_radionuclide(pydicom_dicom):
+    """
+    Gets the radionuclide if given a pydicom_object if
+    pydicom_object.RadiopharmaceuticalInformationSequence[0].RadionuclideCodeSequence exists
+
+    :param pydicom_dicom: dicom object collected by pydicom.dcmread("dicom_file.img")
+    :return: Labeled Radionuclide e.g. 11Carbon, 18Flourine
+    """
+    try:
+        radiopharmaceutical_information_sequence = pydicom_dicom.RadiopharmaceuticalInformationSequence
+        radionuclide_code_sequence = radiopharmaceutical_information_sequence[0].RadionuclideCodeSequence
+        code_value = radionuclide_code_sequence[0].CodeValue
+        code_meaning = radionuclide_code_sequence[0].CodeMeaning
+        extraction_good = True
+    except AttributeError:
+        warnings.warn("Unable to extract RadioNuclideCodeSequence from RadiopharmaceuticalInformationSequence")
+        radionuclide = ""
+        extraction_good = False
+
+    if extraction_good:
+        # check to see if these nucleotides appear in our verified values
+        verified_nucleotides = metadata_dictionaries['dicom2bids.json']['RadionuclideCodes']
+
+        check_code_value = ""
+        check_code_meaning = ""
+
+        if code_value in verified_nucleotides.keys():
+            check_code_value = code_value
+        else:
+            warnings.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
+                          f"will attempt to infer from code meaning {code_meaning}")
+
+        if code_meaning in verified_nucleotides.values():
+            radionuclide = re.sub(r'\^', "", code_meaning)
+            check_code_meaning = code_meaning
+        else:
+            warnings.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
+            if code_value in verified_nucleotides.keys:
+                radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
+
+        # final check
+        if check_code_meaning and check_code_value:
+            pass
+        else:
+            warnings.warn(f"Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
+                          f"header")
+
+    return radionuclide
 
 
 def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
