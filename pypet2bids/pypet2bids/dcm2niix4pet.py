@@ -221,7 +221,6 @@ def update_json_with_dicom_value(
     Radionuclide = get_radionuclide(dicom_header)
     if Radionuclide:
         json_updater.update({'TracerRadionuclide': Radionuclide})
-    print("PAUSE")
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
