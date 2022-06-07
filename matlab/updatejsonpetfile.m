@@ -243,14 +243,17 @@ if sum(input_check) ~= 0
         index = index + 2;
     end
     dataout                = check_metaradioinputs(arguments);
-    datafieldnames         = fieldnames(dataout);
     
-    % set new info fields
-    for f = 1:size(datafieldnames,1)
-        if ~isfield(filemetadata,datafieldnames{f})
-            filemetadata.(datafieldnames{f}) = dataout.(datafieldnames{f});
+    if ~isempty(dataout)
+        datafieldnames     = fieldnames(dataout);
+        % set new info fields
+        for f = 1:size(datafieldnames,1)
+            if ~isfield(filemetadata,datafieldnames{f})
+                filemetadata.(datafieldnames{f}) = dataout.(datafieldnames{f});
+            end
         end
     end
+
 end
 
 % check our libray from names we know
