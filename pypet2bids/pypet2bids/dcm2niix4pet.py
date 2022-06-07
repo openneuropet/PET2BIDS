@@ -222,6 +222,20 @@ def update_json_with_dicom_value(
     if Radionuclide:
         json_updater.update({'TracerRadionuclide': Radionuclide})
 
+    # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
+    updated_values = json.load(open(path_to_json, 'r'))
+    for key, value in paired_fields.items():
+        try:
+            json_field = updated_values.get(key)
+            dicom_field = dicom_header.__getattr__(key)
+            if json_field != dicom_field:
+                print(colored(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value of {dicom_field}",
+                              "yellow"))
+        except AttributeError:
+            pass
+
+
+
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
     """
@@ -908,7 +922,7 @@ def get_radionuclide(pydicom_dicom):
         if check_code_meaning and check_code_value:
             pass
         else:
-            warnings.warn(f"Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
+            warnings.warn(f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
                           f"header")
 
     return radionuclide
