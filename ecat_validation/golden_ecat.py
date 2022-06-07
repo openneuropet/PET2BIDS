@@ -1,0 +1,1 @@
+pypet2bids/golden_ecat.py
