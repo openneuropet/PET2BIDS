@@ -100,6 +100,8 @@ else % -------------- update ---------------
             if ~isfield(filemetadata,'InjectionStart')
                 filemetadata.InjectionStart = 0;
             end
+        else
+            filemetadata.ScanStart = filemetadata.AcquisitionTime - filemetadata.TimeZero;
         end
     else
         warning('TimeZero is not defined, which is not compliant with PET BIDS')
