@@ -83,6 +83,7 @@ def main():
     header_to_write['PATIENT_NAME'] = 'Majesty'
     header_to_write['FACILITY_NAME'] = 'Virtual'
     header_to_write['NUM_PLANES'] = one_dimension
+    header_to_write['CALIBRATION_FACTOR'] = 1.0
 
     subheaders_to_write = skeleton_subheader[0:number_of_frames]
     for subheader in subheaders_to_write:
