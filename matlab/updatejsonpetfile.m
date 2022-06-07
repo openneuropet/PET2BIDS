@@ -94,7 +94,6 @@ else % -------------- update ---------------
     if isfield(filemetadata,'TimeZero')
         if strcmpi(filemetadata.TimeZero,'ScanStart') || isempty(filemetadata.TimeZero)
             filemetadata.TimeZero   = filemetadata.AcquisitionTime;
-            filemetadata            = rmfield(filemetadata,'AcquisitionTime');
             filemetadata.ScanStart  = 0;     
             
             if ~isfield(filemetadata,'InjectionStart')
@@ -103,6 +102,7 @@ else % -------------- update ---------------
         else
             filemetadata.ScanStart = filemetadata.AcquisitionTime - filemetadata.TimeZero;
         end
+        filemetadata               = rmfield(filemetadata,'AcquisitionTime');
     else
         warning('TimeZero is not defined, which is not compliant with PET BIDS')
     end
