@@ -235,8 +235,6 @@ def update_json_with_dicom_value(
             pass
 
 
-
-
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
@@ -928,7 +926,32 @@ def get_radionuclide(pydicom_dicom):
     return radionuclide
 
 
-def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
+def get_convolution_kernel(ConvolutionKernelString: str, pydicom_header=None) -> dict:
+    """
+    if isfield(filemetadata,'ConvolutionKernel')
+        if isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+            filemetadata = rmfield(filemetadata,'ConvolutionKernel'); % already there, remove
+        else % attempt to fill
+            if contains(filemetadata.ConvolutionKernel,'.00')
+                loc = strfind(filemetadata.ConvolutionKernel,'.00');
+                filemetadata.ConvolutionKernel(loc:loc+2) = [];
+                filtersize = regexp(filemetadata.ConvolutionKernel,'\d*','Match');
+                if ~isempty(filtersize)
+                    filemetadata.ReconFilterSize = cell2mat(filtersize);
+                    loc = strfind(filemetadata.ConvolutionKernel,filtersize{1});
+                    filemetadata.ConvolutionKernel(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
+                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
+                else
+                    filemetadata.ReconFilterType = filemetadata.ConvolutionKernel;
+                end
+                filemetadata = rmfield(filemetadata,'ConvolutionKernel');
+            end
+        end
+    end
+    """
+
+
+
     return {}
 
 
