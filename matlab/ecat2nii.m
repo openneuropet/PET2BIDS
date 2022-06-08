@@ -146,7 +146,7 @@ for j=1:length(FileListIn)
         pet_file = [pet_file ext]; 
         [mh,sh]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
         if sh{1}.data_type ~= 6
-            error('Conversion for 16 bit signed data only (type 6 in ecat file) - error loading ecat file');
+            error('Conversion for 16 bit data only (type 6 in ecat file) - error loading ecat file');
         end
         Nframes  = mh.num_frames;
         
@@ -169,13 +169,15 @@ for j=1:length(FileListIn)
         end
      
         % rescale to 16 bits
-        MaxImg       = max(img_temp(:));
-        img_temp     = img_temp/MaxImg*32767;
-        Sca          = MaxImg/32767;
-        MinImg       = min(img_temp(:));
-        if (MinImg<-32768)
-            img_temp = img_temp/MinImg*(-32768);
-            Sca      = Sca*MinImg/(-32768);
+        if range(img_temp(:)) ~= 32767
+            MaxImg       = max(img_temp(:));
+            img_temp     = img_temp/MaxImg*32767;
+            Sca          = MaxImg/32767;
+            MinImg       = min(img_temp(:));
+            if (MinImg<-32768)
+                img_temp = img_temp/MinImg*(-32768);
+                Sca      = Sca*MinImg/(-32768);
+            end
         end
         
         % check names
