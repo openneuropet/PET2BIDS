@@ -258,7 +258,7 @@ def write_ecat(ecat_file: Path,
         # write subheaders followed by pixel data
         for index, subheader in enumerate(subheaders_values):
             position = outfile.tell()
-            table_position = directory_table[0][1 ,index + 1] * 512
+            table_position = directory_table[0][1, index + 1] * 512
             write_header(ecat_file=outfile,
                          schema=subheader_schema,
                          values=subheader,

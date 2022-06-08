@@ -164,6 +164,7 @@ def ecat2nii(ecat_main_header=None,
 
     # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
     #  factor img_nii.header['scl_inter'] # defaults to NaN array
+    img_nii.header['scl_slope'] = main_header['ECAT_CALIBRATION_FACTOR']
     img_nii.header['scl_inter'] = 0
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0
@@ -177,7 +178,7 @@ def ecat2nii(ecat_main_header=None,
     img_nii.header['qform_code'] = 0
     img_nii.header['sform_code'] = 1  # 0: Arbitrary coordinates;
     # 1: Scanner-based anatomical coordinates;
-    # 2: Coordinates aligned to another file's, or to anatomical "truth" (coregistration);
+    # 2: Coordinates aligned to another file's, or to anatomical "truth" (co-registration);
     # 3: Coordinates aligned to Talairach-Tournoux Atlas; 4: MNI 152 normalized coordinates
 
     img_nii.header['quatern_b'] = 0
