@@ -513,7 +513,7 @@ class Dcm2niix4PET:
                             if re.search('\d+.\d+', sidecar_json.get('ConvolutionKernel')):
                                 recon_filter_size = re.search('\d+.\d', sidecar_json.get('ConvolutionKernel'))[0]
                             # collect just the filter type by popping out the filter size if it exists
-                            recon_filter_type = re.sub(recon_filter_size, sidecar_json.get('ConvolutionKernel'))
+                            recon_filter_type = re.sub(recon_filter_size, '', sidecar_json.get('ConvolutionKernel'))
 
                             # update the json
                             sidecar_json.update({
