@@ -23,8 +23,8 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %
 % .. code-block::
 %
-%   Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','tracer','DASB','Radionuclide','C11', ...
-%                      'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
+%   Example Meta = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','ScanStart','TracerName','DASB','TracerRadionuclide','C11', ...
+%                      'ModeOfAdministration','bolus','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 %   FileListOut = ecat2nii(EcatFile,Meta,'FileListOut',ConvertedRenamedFile1);
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));``
