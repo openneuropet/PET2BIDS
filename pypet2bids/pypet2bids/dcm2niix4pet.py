@@ -502,6 +502,26 @@ class Dcm2niix4PET:
 
                     sidecar_json.update(check_metadata_radio_inputs)  # update sidecar json with results of logic
 
+                    # check to see if convolution kernel is present
+                    sidecar_json = JsonMAJ(json_path=str(created))
+                    if sidecar_json.get('ConvolutionKernel'):
+                        if sidecar_json.get('ReconFilterType') and sidecar_json.get('ReconFilterSize'):
+                            sidecar_json.remove('ConvolutionKernel')
+                        else:
+                            # collect filter size
+                            recon_filter_size = ''
+                            if re.search('\d+.\d+', sidecar_json.get('ConvolutionKernel')):
+                                recon_filter_size = re.search('\d+.\d', sidecar_json.get('ConvolutionKernel'))[0]
+                            # collect just the filter type by popping out the filter size if it exists
+                            recon_filter_type = re.sub(recon_filter_size, '', sidecar_json.get('ConvolutionKernel'))
+
+                            # update the json
+                            sidecar_json.update({
+                                'ReconFilterSize': recon_filter_size,
+                                'ReconFilterType': recon_filter_type})
+                            # remove non bids field
+                            sidecar_json.remove('ConvolutionKernel')
+
                     # tag json with additional conversion software
                     conversion_software = sidecar_json.get('ConversionSoftware')
                     conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
@@ -926,10 +946,6 @@ def get_radionuclide(pydicom_dicom):
                           f"header")
 
     return radionuclide
-
-
-def get_convolution_kernel(ConvolutionKernelString: str) -> dict:
-    return {}
 
 
 def cli():
