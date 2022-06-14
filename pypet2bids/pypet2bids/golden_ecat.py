@@ -83,6 +83,7 @@ def main():
     header_to_write['PATIENT_NAME'] = 'Majesty'
     header_to_write['FACILITY_NAME'] = 'Virtual'
     header_to_write['NUM_PLANES'] = one_dimension
+    header_to_write['ECAT_CALIBRATION_FACTOR'] = 1.0
 
     subheaders_to_write = skeleton_subheader[0:number_of_frames]
     for subheader in subheaders_to_write:
@@ -95,9 +96,8 @@ def main():
             subheader['DATA_TYPE'] = 6
             subheader['SCALE_FACTOR'] = 1
 
-
     matlab_struct['subheaders'] = subheaders_to_write
-    matlab_struct['mainheder'] = header_to_write
+    matlab_struct['mainheader'] = header_to_write
 
     write_ecat(ecat_file=int_golden_ecat_path,
                mainheader_schema=ecat_header_maps['ecat_headers']['73']['mainheader'],
@@ -117,6 +117,7 @@ def main():
 
     # now read it just to make sure what was created is a real file and not error riddled.
     int_golden_ecat_main_header, int_golden_ecat_subheaders, int_golden_ecat_pixel_data = read_ecat(int_golden_ecat_path)
+
 
 if __name__ == "__main__":
     main()
