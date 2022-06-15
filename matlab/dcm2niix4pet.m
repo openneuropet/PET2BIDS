@@ -257,19 +257,20 @@ for folder = 1:size(FolderList,1)
         start       = strfind(data.folder,'sub-');
         ending      = strfind(data.folder,filesep);
         if sum(ending>start)~=0
-            newname = data.folder(start:ending(find(ending>start,1))-1); % from sub- to the next filesep
+            newname = data.folder(start:ending(end)-1); % from sub- to last subfolder (ses-)
+            newname(strfind(newname,filesep)) = '_'; 
         else
             newname = data.folder(start:end); % from sub- to the end
         end
         
         if strcmpi(z,'y')
-            newname     = [newname '.nii.gz']; %#ok<AGROW>
-            metadata    = [dataname(1:end-6) 'json'];
-            newmetadata = fullfile(data.folder,[newname(1:end-6) 'json']);
+            newname     = [newname '_pet.nii.gz']; %#ok<AGROW>
+            metadata    = [dataname(1:end-7) '.json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-7) '.json']);
         else
-            newname     = [newname '.nii']; %#ok<AGROW>
-            metadata    = [dataname(1:end-3) 'json'];
-            newmetadata = fullfile(data.folder,[newname(1:end-3) 'json']);
+            newname     = [newname '_pet.nii']; %#ok<AGROW>
+            metadata    = [dataname(1:end-4) '.json'];
+            newmetadata = fullfile(data.folder,[newname(1:end-4) '.json']);
         end
         movefile(dataname,fullfile(data.folder,newname));
         movefile(metadata,newmetadata);
@@ -288,9 +289,3 @@ for folder = 1:size(FolderList,1)
     end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 end
-
-
-
-
-
-
