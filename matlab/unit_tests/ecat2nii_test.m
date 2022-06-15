@@ -10,6 +10,7 @@ function ecat2nii_test(varargin)
 %
 % USAGE
 % ecat2nii_test
+% ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\synthetic_ecat_integer_16x16x16x4.v.gz')
 % ecat2nii_test('D:\BIDS\ONP\BIDS-converter\ecat_validation\ECAT7_multiframe.v.gz')
 %
 % Cyril Pernet, Claus Svarer & Anthony Galassi
@@ -59,6 +60,7 @@ else
     table(summary_diff(:,1),summary_diff(:,2),summary_diff(:,3),...
         'VariableNames',{'min','mean','max'}) % analyze diff
     delete(fullfile(filepath,[filename(1:end-2) '.nii']))
+    delete(fullfile(filepath,[filename(1:end-2) '.json']))
     delete(fullfile(filepath,[filename(1:end-2) '.ecat.mat']))
 end
 

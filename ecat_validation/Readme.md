@@ -6,7 +6,7 @@ During our effort to create a converter to BIDS, we came across some documentati
 
 ## Validation
 
-For the matlab code, this can be found under /matlab/unit_tests.
+Synthetic ecat data of size 16*16*16*4 were created using golden_ecat.py (synthetic_ecat_integer_16x16x16x4.v.gz), and the values of each voxel also saved directly as .mat (synthetic_ecat_integer_16x16x16x4.mat). The validation ecat2nii_test.m then read the .v, convert to .nii, and reread the .nii. It then compare the reread values to expected ones (from the .mat). Ideally we would have the same values but (1) we have different dymamic range (here only 1 out of 16bits ~0.0003) because ecat2nii rescale your data to 16bits and (2) precisions around 0 differs as well, some small changes are expected. This can be seen in the figure below. Reread vs Orignal show a perfect correlation, but with an average difference of -0.000001 with min -05 and max 0.5 (to put this in perspective, it means for PET images, differences are equivalent of 1 photon detection - we can live with that).
 
 ## Conversion
 
