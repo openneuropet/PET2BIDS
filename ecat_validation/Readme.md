@@ -79,6 +79,8 @@ write_ecat(ecat_file=int_golden_ecat_path,
                )
 ```
 
+### Results
+
 The  validation ecat2nii_test.m then read the .v, convert to .nii, and reread the .nii. It then compares the reread values to
 expected ones (from the .mat). Ideally we would have the same values but (1) we have different dymamic range 
 (here only 1 out of 16bits ~0.0003) because ecat2nii rescale your data to 16bits and (2) precisions around 0 differs as 
@@ -87,11 +89,11 @@ perfect correlation, but with an average difference of -0.000001 with min -05 an
 (to put this in perspective, it means for PET images, differences are equivalent of 1 photon detection - we can live 
 with that).
 
-![](https://github.com/openneuropet/PET2BIDS/blob/main/ecat_validation/synthetic_ecat_integer_16x16x16x4.v.jpg)
+![](synthetic_ecat_integer_16x16x16x4.v.jpg)
 
 ## Conversion
 
-The ecat file ECAT7_multiframe.v was converted here as a test, with ecat2nii.m as follow
+The ecat file ECAT7_multiframe.v was converted here as a test, with ecat2nii.m as follows
 
 ```matlab
 file          = fullfile(pwd,'ECAT7_multiframe.v.gz'); % edit with the right path
