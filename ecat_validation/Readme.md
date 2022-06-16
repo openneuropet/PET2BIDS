@@ -101,7 +101,19 @@ meta.TimeZero = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
 ecat2nii(file,meta)
 ```
 
+Similarly, in Python
+
 ```python
+from pypet2bids.ecat import Ecat
+ecat = Ecat(ecat_file='ECAT7_multiframe.v.gz')
+ecat.make_nifti()
+```
+
+Or more commonly the ECAT is converted using the CLI:
+
+```bash
+pip install pypet2bids
+ecatpet2bids ECAT7_multiframe.v.gz --convert
 ```
 
 This illustrates [what metadata are extracted from the ecat file](https://github.com/openneuropet/BIDS-converter/blob/main/PETdata_in/Siemens_ecat/ECAT7_multiframe.json) - which does not comform with BIDS because radiochemistry and pharmaceutical metadata are missing.
