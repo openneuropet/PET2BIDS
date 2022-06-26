@@ -172,7 +172,13 @@ else % -------------- update ---------------
                     % then compare and inform the user if different
                     if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                         if isnumeric(filemetadata.(jsonfields{f}))
-                            warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                            if isnumeric(dcminfo.(dcmfields{f}))
+                                if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
+                                    warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                                end
+                            else
+                                warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
+                            end
                         else
                             if ischar(filemetadata.(jsonfields{f}))
                                 warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])                                
@@ -194,9 +200,12 @@ else % -------------- update ---------------
         filemetadata = dcm2bids_internal(filemetadata);
     end
     
-    % delete all non BIDS fields
-    % --------------------------
+    % delete all non BIDS fields ++
+    % ------------------------------
     all_bids = [petmetadata.mandatory;petmetadata.recommended;petmetadata.optional];
+    all_bids{length(all_bids)+1} = 'ScatterCorrectionMethod';
+    all_bids{length(all_bids)+1} = 'RandomsCorrectionMethod';
+    
     fn_check = fieldnames(filemetadata);
     for f=1:size(fn_check,1)
         if ~contains(fn_check{f},all_bids) 
