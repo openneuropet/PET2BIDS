@@ -114,7 +114,15 @@
     },
     {
       "value": "TOF",
-      "name": " Time Of Flight"
+      "name": "Time Of Flight"
+    },
+    {
+      "value": "VPFX",
+      "name": "Time Of Flight"
+    },
+    {
+      "value": "VPFXS",
+      "name": "Point-Spread Function Time Of Flight"
     }
-  ]
+]
 }
