@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+import csv
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path
@@ -550,9 +551,11 @@ class Dcm2niix4PET:
 
             if self.spreadsheet_metadata.get('blood_tsv', None) is not None:
                 blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
-                if type(blood_tsv_data) is pd.DataFrame:
+                if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
+                    if type(blood_tsv_data) is dict:
+                        blood_tsv_data = pd.DataFrame(blood_tsv_data)
                     # write out blood_tsv using pandas csv write
-                        blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
+                    blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
                                               , sep='\t',
                                               index=False)
                 elif type(blood_tsv_data) is str:
@@ -935,7 +938,7 @@ def get_radionuclide(pydicom_dicom):
             check_code_meaning = code_meaning
         else:
             warnings.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
-            if code_value in verified_nucleotides.keys:
+            if code_value in verified_nucleotides.keys():
                 radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
 
         # final check
