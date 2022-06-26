@@ -29,7 +29,7 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},Meta,'gz',false,'sifout',true);
 %   FileListOut = ecat2nii({EcatFile1,EcatFile2},{Meta1,Meta2},'FileListOut',{ConvertedRenamedFile1,ConvertedRenamedFile2}));``
 %
-% .. note:: 
+% .. note::
 %
 %    Uses: readECAT7.m (Raymond Muzic, 2002)
 %          jsonwrite.m (Guillaume Flandin, 2020)
@@ -143,7 +143,7 @@ for j=1:length(FileListIn)
             [~,pet_file,ext]    = fileparts(newfile{1});
         end
         
-        pet_file = [pet_file ext]; 
+        pet_file = [pet_file ext];
         [mh,sh]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
         if sh{1}.data_type ~= 6
             error('Conversion for 16 bit data only (type 6 in ecat file) - error loading ecat file');
@@ -157,7 +157,7 @@ for j=1:length(FileListIn)
             [mh,shf,data]     = readECAT7([pet_path filesep pet_file],i);
             img_temp(:,:,:,i) = flipdim(flipdim(flipdim((double(cat(4,data{:}))*shf{1}.scale_factor),2),3),1); %#ok<DFLIPDIM>
             % also get timing information
-            Start(i)          = shf{1}.frame_start_time*60; 
+            Start(i)          = shf{1}.frame_start_time*60;
             DeltaTime(i)      = shf{1}.frame_duration*60;
             if mh.sw_version >=73
                 Prompts(i)    = shf{1}.prompt_rate*shf{1}.frame_duration*60;
@@ -167,7 +167,7 @@ for j=1:length(FileListIn)
                 Randoms(i)    = 0;
             end
         end
-     
+        
         % rescale to 16 bits
         if range(img_temp(:)) ~= 32767
             MaxImg       = max(img_temp(:));
@@ -194,7 +194,7 @@ for j=1:length(FileListIn)
         if ~exist(fileparts(filenameout),'dir')
             mkdir(fileparts(filenameout))
         end
-
+        
         % write timing info separately
         if sifout
             pid = fopen([filenameout '.sif'],'w');
@@ -290,36 +290,42 @@ for j=1:length(FileListIn)
         % check radiotracer info - should have been done already in
         % get_pet_metadata ; but user can also populate metadata by hand
         % so let's recheck
-         if ~isfield(info,'Units')
+        if ~isfield(info,'Units')
             info.Units = 'Bq/mL';
-         end
+        end
         
-         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-             'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
-         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
-         index                  = 1; % make key-value pairs
-         arguments              = cell(1,sum(input_check)*2);
-         if sum(input_check) ~= 0
-             for r=find(input_check)
-                 arguments{index}   = radioinputs{r};
-                 arguments{index+1} = info.(radioinputs{r});
-                 index = index + 2;
-             end
-             dataout                = check_metaradioinputs(arguments);
-             datafieldnames         = fieldnames(dataout);
-             
-             % set new info fields
-             for f = 1:size(datafieldnames,1)
-                 if ~isfield(info,datafieldnames{f})
-                     info.(datafieldnames{f}) = dataout.(datafieldnames{f});
-                 end
-             end
-         end
-         
+        radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
+            'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+        input_check            = cellfun(@(x) isfield(info,x), radioinputs);
+        index                  = 1; % make key-value pairs
+        arguments              = cell(1,sum(input_check)*2);
+        if sum(input_check) ~= 0
+            for r=find(input_check)
+                arguments{index}   = radioinputs{r};
+                arguments{index+1} = info.(radioinputs{r});
+                index = index + 2;
+            end
+            dataout                = check_metaradioinputs(arguments);
+            datafieldnames         = fieldnames(dataout);
+            
+            % set new info fields
+            for f = 1:size(datafieldnames,1)
+                if ~isfield(info,datafieldnames{f})
+                    info.(datafieldnames{f}) = dataout.(datafieldnames{f});
+                end
+            end
+        end
+        
         % write json file using jsonwrite from Guillaume Flandin
         % $Id: spm_jsonwrite.m
-        jsonwrite([filenameout '.json'],info)
-        status = updatejsonpetfile([filenameout '.json']); % validate
+        if ~contains(filenameout,'_pet')
+            jsonwrite([filenameout '_pet.json'],info)
+            status = updatejsonpetfile([filenameout '_pet.json']); % validate
+        else
+            jsonwrite([filenameout '.json'],info)
+            status = updatejsonpetfile([filenameout '.json']); % validate
+        end
+        
         if status.state ~= 1
             warning('the json file is BIDS invalid')
         end
@@ -382,30 +388,39 @@ for j=1:length(FileListIn)
         info.Transform.T        = T;
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
-
+        
         % write nifti file using nii_tool
         % Copyright (c) 2016, Xiangrui Li https://github.com/xiangruili/dicm2nii
         % BSD-2-Clause License
         nii.hdr                 = info.raw;
         nii.img                 = img_temp;
-        fnm                     = [filenameout '.nii'];
-        if gz 
+        % add _pet if needed
+        if ~contains(filenameout,'_pet')
+            fnm                 = [filenameout '_pet.nii'];
+        else
+            fnm                 = [filenameout '.nii'];
+        end
+        
+        % compress if requested
+        if gz
             fnm = [fnm '.gz']; %#ok<*AGROW>
         end
+        
         nii_tool('save', nii, fnm);
         FileListOut{j} = fnm;
         
         % optionally one can use niftiwrite from the Image Processing Toolbox
         % warning different versions of matlab may provide different nifti results
+        % this is kept here allowing to uncomment to compare results
         %
         % if gz
         %     niftiwrite(img_temp,[filenameout '.nii'],info,'Endian','little','Compressed',true);
-        %     FileListOut{j} = [filenameout '.nii.gz']; %#ok<*AGROW>
+        %     FileListOut{j} = [filenameout '_pet.nii.gz']; %#ok<*AGROW>
         % else
-        %     FileListOut{j} = [filenameout '.nii'];
+        %     FileListOut{j} = [filenameout '_pet.nii'];
         %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
         % end
-    
+        
     catch conversionerr
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
     end
