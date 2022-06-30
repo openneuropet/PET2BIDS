@@ -225,7 +225,11 @@ for folder = 1:size(FolderList,1)
     if ~exist(outputdir{folder},'dir')
         mkdir(outputdir{folder}); 
     end
-    system(command);
+    
+    out = system(command);
+    if out ~= 0
+        error('%s did not run properly',command)
+    end
    
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
@@ -284,6 +288,8 @@ for folder = 1:size(FolderList,1)
         elseif size(newmetadata,1)>1
             warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
             newmetadata = newmetadata(1);
+        else
+            warning('the output directory is not BIDS compliant, it should start with sub-')
         end
         jsonfilename = fullfile(newmetadata.folder,newmetadata.name);
     else
