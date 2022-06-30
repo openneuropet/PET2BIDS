@@ -48,7 +48,9 @@ if isstruct(jsonfilename)
     filemetadata = jsonfilename;
 else
     if exist(jsonfilename,'file')
-        filemetadata = jsondecode(fileread(jsonfilename));
+        fr = fileread(jsonfilename);
+        fr(strfind(fr,'\9')) = 9; % ensures 'return' is not encoded
+        filemetadata = jsondecode(fr);
     else
         error('looking for %s, but the file is missing',jsonfilename)
     end
