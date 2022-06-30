@@ -279,7 +279,9 @@ for folder = 1:size(FolderList,1)
     % update json
     if ~exist('newmetadata','var')
         newmetadata  = dir(fullfile(outputdir{folder},'*.json'));
-        if size(newmetadata,1)>1
+        if isempty(newmetadata)
+            error('no json file found in output directory %s',outputdir{folder})
+        elseif size(newmetadata,1)>1
             warning('more than 1 json file found in %s, using only 1st one',outputdir{folder})
             newmetadata = newmetadata(1);
         end
