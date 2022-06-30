@@ -14,7 +14,7 @@ _To convert DICOM files_, [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.p
 
 The entire repository or only the matlab subfolder (your choice) should be in your matlab path.  
 
-Defaults parameters should be set in (sannername).txt files to generate metadata easily (i.e. avoiding to pass all arguments in although this is also possible). You can find templates of such parameter file under /template_txt (SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
+Defaults parameters should be set in (scannername).txt files to generate metadata easily (i.e. avoiding to pass all arguments in although this is also possible). You can find templates of such parameter file under /template_txt (SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
 
 ### Get metadata
 
