@@ -14,7 +14,7 @@ Simply download the repository - follow the specific Matlab or Python explanatio
 
 1 - remember to set the path to the PET2BIDS/matlab folder, you will find the source code to use here.
 2 - if converting DICOM files, make sure you have dcm2niix (for windows users, edit dcm2niix4pet.m to set the right paths to the .exe)
-3 - start using the code! more info here https://github.com/openneuropet/PET2BIDS/tree/main/matlab#readme
+3 - start using the code! more info [here](https://github.com/openneuropet/PET2BIDS/tree/main/matlab#readme)
 
 ### pypet2bids
 
