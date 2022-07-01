@@ -28,6 +28,10 @@ This folder contains spreadsheets templates and examples of metadata and matlab 
 
 A small collection of json files for our metadata information. 
 
+### user metadata 
+
+No matter the way you prefer inputting metadata (passing all arguments, using txt or env file, using spreadsheets), you are always right! DICOM values will be ignored - BUT they are checked and the code tells you if there is inconsistency between your inputs and what DICOM says.
+
 ### ecat_validation
 
 This folder contains code generating Siemens HRRT scanner data using ecat file format and validating the matlab and python conversion tools (i.e. giving the data generated as ecat, do our nifti images reflect acurately the data).
