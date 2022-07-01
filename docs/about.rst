@@ -19,7 +19,7 @@ and  `ezBIDS <https://brainlife.io/ezbids/>`_ to integrate our library into thei
 
 **What is the command line for matlab?**
 
-After setting up the library in your matlab path only 3 commands are needed: ''meta = get_pet_metadata(varargin)'' followed by either ecat2nii(file, meta) or dcm2niix4pet(dcmfolder,meta,'o','mynewfolder'); for a comprehensive list of available commands/methods see :ref:`matlab`.
+After setting up the library in your matlab path only 3 commands are needed: ``meta = get_pet_metadata(varargin)`` followed by either ``ecat2nii(file, meta)`` or ``dcm2niix4pet(dcmfolder,meta,'o','mynewfolder')``. For a comprehensive list of available commands/methods see :ref:`matlab`.
 
 **What is the command line for Python or better, is there or command line interface?**
 
