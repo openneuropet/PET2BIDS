@@ -1,6 +1,11 @@
 function dcm2niix4pet(FolderList,MetaList,varargin)
 
-% Converts dicom image file to nifti+json calling dcm2niix augmenting the json file to be BIDS compliant
+% Converts dicom image file to nifti+json calling dcm2niix augmenting the
+% json file to be BIDS compliant. Note that you are always right when it
+% comes to metadata! DICOM values to be used in the json will be ignored, 
+% always using the meta data provided - BUT DICOM values are checked and 
+% the code tells you if there is inconsistency between your inputs and what
+% DICOM says.
 %
 % :format: - fileout = dcm2bids4pet(FolderList,MetaList)
 %          - fileout = dcm2bids4pet(FolderList,MetaList,options)
