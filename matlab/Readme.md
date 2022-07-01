@@ -28,7 +28,7 @@ _Feel free to reach out if you have an issue with your scanner files, we can hel
 
 The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m) which wraps around dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.  
 
-_Note for windows user_: edit the dcm2niix4pet.m line 42 to indicate where is the .exe function located
+_Note for windows user_: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
 ```matlab
 meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
