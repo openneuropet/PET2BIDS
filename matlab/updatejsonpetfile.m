@@ -176,10 +176,10 @@ else % -------------- update ---------------
                         if isnumeric(filemetadata.(jsonfields{f}))
                             if isnumeric(dcminfo.(dcmfields{f}))
                                 if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
-                                    warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f}))])
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}'))])
                                 end
                             else
-                                warning(['possible mismatch between json ' jsonfields{f} ':' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
+                                warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
                             end
                         else
                             if ischar(filemetadata.(jsonfields{f}))
@@ -191,7 +191,7 @@ else % -------------- update ---------------
                     end
                 else % otherwise set the field in the json file
                     if isnumeric(dcminfo.(dcmfields{f}))
-                        warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})) ' from dicom field ' dcmfields{f}])
+                        warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})') ' from dicom field ' dcmfields{f}])
                     else
                         warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
                     end
