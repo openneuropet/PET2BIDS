@@ -10,8 +10,7 @@ and delivers BIDS fomatted outputs (e.g. nifti, json, and tsv files). See the be
 
 **It looks like you're just wrapping dcm2niix, why not just use it?**
 
-That's a correct assessment, however dcm2niix only handles the conversion from dicom to nii. It has
-no idea what a spreadsheet is and knows roughly what BIDS is, but is not fully compliant with the standard.
+That's a correct assessment, however (1) dcm2niix only handles the conversion from dicom to nii and knows roughly what BIDS is, but the json file produced is not fully compliant with the standard, (2) dicom data never contain the radioactivity information (e.g. injected dose) and that's why you need to provide it, (3) conversion of blood data requires dedicated scripts and dcm2niix has no idea what a spreadsheet is.
 
 **Is there a CLI or do I need to learn Python to use this tool?**
 
