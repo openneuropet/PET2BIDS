@@ -909,6 +909,7 @@ def get_radionuclide(pydicom_dicom):
     :param pydicom_dicom: dicom object collected by pydicom.dcmread("dicom_file.img")
     :return: Labeled Radionuclide e.g. 11Carbon, 18Flourine
     """
+    radionuclide = ""
     try:
         radiopharmaceutical_information_sequence = pydicom_dicom.RadiopharmaceuticalInformationSequence
         radionuclide_code_sequence = radiopharmaceutical_information_sequence[0].RadionuclideCodeSequence
@@ -917,7 +918,6 @@ def get_radionuclide(pydicom_dicom):
         extraction_good = True
     except AttributeError:
         warnings.warn("Unable to extract RadioNuclideCodeSequence from RadiopharmaceuticalInformationSequence")
-        radionuclide = ""
         extraction_good = False
 
     if extraction_good:
