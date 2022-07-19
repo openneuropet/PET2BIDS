@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+  [workflow_dispatch]
 
 jobs:
   Collect-Data-and-Test:
@@ -36,9 +37,12 @@ jobs:
           path: cimbi36
           key: ${{ runner.os }}-ecats
 
-      - name: Collect Ecat Dataset w/ curl
-        if: steps.cache-ecat.outputs.cache-hit != 'true'
-        run: "curl -o ecat_test ${{ env.ECAT_URL }}"
+      - name: Install gdown and collect Ecat from Google Drive
+        run: "python3 -m pip install gdown && gdown ${{ secrets.CIMBI_ECAT_ON_GOOGLE_DRIVE }} -O ecat_test"
+
+      #- name: Collect Ecat Dataset w/ curl
+      #  if: steps.cache-ecat.outputs.cache-hit != 'true'
+      #  run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
         if: steps.cache-ecat.outputs.cache-hit != 'true'
