@@ -11,7 +11,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ECAT_URL: https://openneuro.org/crn/datasets/ds003773/snapshots/1.0.0/files/sourcedata:ecat73:cimbi36.tar.gz
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
       SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
@@ -39,10 +38,6 @@ jobs:
 
       - name: Install gdown and collect Ecat from Google Drive
         run: "python3 -m pip install gdown && gdown ${{ secrets.CIMBI_ECAT_ON_GOOGLE_DRIVE }} -O ecat_test"
-
-      #- name: Collect Ecat Dataset w/ curl
-      #  if: steps.cache-ecat.outputs.cache-hit != 'true'
-      #  run: "curl -o ecat_test ${{ env.ECAT_URL }}"
 
       - name: Decompress dataset
         if: steps.cache-ecat.outputs.cache-hit != 'true'
