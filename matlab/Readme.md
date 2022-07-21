@@ -30,7 +30,7 @@ The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET
 
 _Note for windows user_: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
-In order to convert a PET dataset on disk to PET BIDS, just create a structure containing all the meta information and then point the function to dicomfolder where your data resides:
+Now in order to convert a PET dataset on disk to PET BIDS,  just create a structure containing all the meta information and then point the function to the folder where your data resides *dcmfolder* and the folder where you want to output the PET BIDS formatted dataset *mynewfolder*:
 
 ```matlab
 meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
@@ -43,7 +43,7 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
     'ReconMethodParameterUnits',{'none','none'}, ...
     'ReconMethodParameterValues',[21 3], 'ReconFilterType','XYZGAUSSIAN',...
     'ReconFilterSize',2, 'AttenuationCorrection','CT-based attenuation correction');
-dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
+dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
 ```  
 _Note that get_pet_metadata can be called in a much simpler way if you have a `*parameters.txt` seating on disk next to this function. The call would then looks like:_
 
@@ -52,7 +52,7 @@ _Note that get_pet_metadata can be called in a much simpler way if you have a `*
 meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36',...
     'TracerRadionuclide','C11', 'ModeOfAdministration','infusion','SpecificRadioactivity', ...
     605.3220, 'InjectedMass', 1.5934,'MolarActivity', 107.66);
-dcm2niix4pet(dcmfolder,meta,'o','mynewfolder');
+dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
 ```  
 
 **Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
