@@ -1,6 +1,14 @@
+# Pypet2bids
+
+This library contains several tools and many methods to aid in the conversion of PET imaging and blood data into 
+[BIDS]() formatted data. For more detailed documentation refer to the pages at our 
+[readthedocs.io site](https://pet2bids.readthedocs.io/en/latest/).
+
 # Python DICOM PET converter
 
-_to do_
+This converter is a simple wrapper around Chris Rorden's [Dcm2niix](https://github.com/rordenlab/dcm2niix) that provides
+additional functionality to convert and deliver more BIDS PET friendly output (supplemented sidecar jsons, tsvs, etc)
+following image conversion from dicom to nifti.
 
 # Python ECAT PET converter
 
@@ -10,21 +18,34 @@ present in the ecat image are still included in the bids json but as empty strin
 
 ## Installation and Nifti Generation/Conversion
 
+### Installation
+
+Use pip to install the library via:
 ```bash
-# install the requirements with pip
-pip3 install -r requirements.txt
-# then use the cli to create a nifti from the ecat via:
-python3 cli.py /path/to/ecat/image.v --convert
+pip install pypet2bids
+```
+
+### Converting Dicoms to Nifti
+
+```bash
+dcm2niix4pet /path/to/folder/with/dicoms
+```
+
+### Converting ECAT to Nifti
+
+```bash
+# for ecat to Nii use the cli to create a nifti from the ecat via:
+ecatpet2bids /path/to/ecat/image.v --convert
 ```
 
 If you wish to generate the converted image(s) and json somewhere other than the current directory of your ecat image(s)
 include the `--nifti` argument and specify a filename w/ a full path included e.g.:
 
 ```bash
-python3 cli.py /path/to/ecat/image.v --convert --nifti /path/to/new/nifti
+ecatpet2bids /path/to/ecat/image.v --convert --nifti /path/to/new/nifti
 ```
 
-## Additional Usage
+### Additional Usage
 
 This converter was written originally as a method to extract ecat header/subheader data into stdout key: value format
 and/or json.
@@ -32,8 +53,8 @@ and/or json.
 For more information about those arguments see `python main.py --help` or read below:
 
 ```bash
-python cli.py --help
-usage: cli.py [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name]
+ecatpet2bids --help
+usage: ecatpet2bids [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name]
        [--subheader] [--sidecar] [--kwargs [KWARGS ...]]
        [--scannerparams [SCANNERPARAMS ...]] ecat_file
 
@@ -66,7 +87,7 @@ optional arguments:
                         *parameters.txt from which this cli is called.
 ```
 
-## Configuring a default scanner parameters file
+### Configuring a default scanner parameters file
 
 When converting a files from ECAT to Nifti originating from the same scanner or institution it
 may be desirable to include these same values in your BIDS sidecar.json across all files/scans/subjects.
@@ -105,7 +126,7 @@ BidsInt=7
 
 - Pointing directly at a scannerparams file `--scannerparams /path/to/scannerparams.txt`
 - **NOTE**: `--scannerparams` usage by itself with no file path requires a parameter file exist in the directory
-that the CLI is being called from. `$ecat_dir: python main.py ecatfile.v --scannerparms` assumes that `ls ecat_dir` will
+that the CLI is being called from. `$ecat_dir: ecatpet2bids ecatfile.v --scannerparms` assumes that `ls ecat_dir` will
 reveal a file containing `*parameters.txt`
 
 ## Testing
