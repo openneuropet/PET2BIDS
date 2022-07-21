@@ -6,6 +6,12 @@ This repository is hosting tools to curate PET brain data using the [Brain Imagi
 
 For DICOM conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage), collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix and nifti please see [The first step for neuroimaging data analysis: DICOM to NIfTI conversion](https://www.ncbi.nlm.nih.gov/pubmed/26945974) paper.
 
+# Documentation
+
+For **more detailed** (and most likely helpful) documentation visit the Read the Docs site for this project at:
+
+[https://pet2bids.readthedocs.io](https://pet2bids.readthedocs.io/en/latest/index.html#)
+
 ## Installation
 
 Simply download the repository - follow the specific Matlab or Python explanations. Matlab and Python codes provide the same functionalities.
