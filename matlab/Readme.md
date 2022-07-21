@@ -30,6 +30,8 @@ The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET
 
 _Note for windows user_: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
+In order to convert a PET dataset on disk to PET BIDS, just create a structure containing all the meta information and then point the function to dicomfolder where your data resides:
+
 ```matlab
 meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
     'TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration',...
