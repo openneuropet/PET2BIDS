@@ -168,7 +168,58 @@ For converting dicom to BIDS use dcm2niix4pet via:
 
 **Running pypet2bids**
 
+Pypet2bids can be run via the command line after being installed, often additional radiological information will need to
+be passed to pypet2bids in addition to PET imaging data. Passing this data can be done in a number of increasingly
+complex ways. The simplest method to pass on information is directly at the command line when calling either
+**dcm2niix4pet** or **ecatpet2bids**. Both of these tools accept additional arguments via key pair's separated by the
+equals sign `=`. This functionality is designed to mirror that of the Matlab code.
 
+Some extra values in the case of this Siemens Biograph would look like the following:
+
+.. code-block::
+
+    dcm2niix4pet OpenNeuroPET-Phantoms/source/SiemensBiographPETMR-NRU --kwargs
+        TimeZero=ScanStart
+        Manufacturer=Siemens
+        ManufacturersModelName=Biograph InstitutionName="Rigshospitalet, NRU, DK"
+        BodyPart=Phantom
+        Units=Bq/mL
+        TracerName=none
+        TracerRadionuclide=F18
+        InjectedRadioactivity=81.24
+        SpecificRadioactivity=13019.23
+        ModeOfAdministration=infusion
+        FrameTimesStart=0
+        AcquisitionMode="list mode"
+        ImageDecayCorrected=true
+        ImageDecayCorrectionTime=0
+        AttenuationCorrection=MR-corrected
+        FrameDuration=300
+        FrameTimesStart=0
+
+
+And similarly, extra key pair values can be passed to ecatpet2bids:
+
+.. code-block::
+
+    ecatpet2bids OpenNeuroPET-Phantoms/source/SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v
+    --convert
+    --kwargs
+    TimeZero=ScanStart
+    Manufacturer=Siemens
+    ManufacturersModelName=HRRT
+    InstitutionName="Rigshospitalet, NRU, DK"
+    BodyPart=Phantom
+    Units=Bq/mL
+    TracerName=none
+    TracerRadionuclide=F18
+    InjectedRadioactivity=81.24
+    SpecificRadioactivity=13019.23
+    ModeOfAdministration=infusion
+    AcquisitionMode="list mode"
+    ImageDecayCorrected=true
+    ImageDecayCorrectionTime=0
+    AttenuationCorrection="10-min transmission scan"
 
 
 
