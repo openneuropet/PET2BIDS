@@ -4,7 +4,7 @@ import warnings
 import csv
 
 from json_maj.main import JsonMAJ, load_json_or_dict
-from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path
+from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
 import subprocess
 import pandas as pd
 from os.path import join
@@ -189,7 +189,6 @@ def update_json_with_dicom_value(
                     reconstruction_method = get_recon_method(reconstruction_method)
                     json_updater.update(reconstruction_method)
 
-                # TODO Convolution Kernel
             elif dicom_field:
                 # update json
                 json_updater.update({key: dicom_field})
@@ -342,7 +341,9 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
-        self.subject_id = None
+        self.subject_id = collect_bids_part('sub', str(self.destination_path))
+        self.session_id = collect_bids_part('ses', str(self.destination_path))
+
         self.dicom_headers = self.extract_dicom_headers()
 
         self.spreadsheet_metadata = {}
@@ -530,7 +531,22 @@ class Dcm2niix4PET:
                     sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
                     sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, get_version()]})
 
-                new_path = Path(join(self.destination_path, created_path.name))
+                # if there's a subject id rename the output file to use it
+                if self.subject_id:
+                    if 'nii.gz' in created_path.name:
+                        suffix = '.nii.gz'
+                    else:
+                        suffix = created_path.suffix
+
+                    if self.session_id:
+                        session_id = '_' + self.session_id
+                    else:
+                        session_id = ''
+
+                    new_path = Path(join(self.destination_path),
+                                    self.subject_id + session_id + '_pet' + suffix)
+                else:
+                    new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)
 
             return self.destination_path
