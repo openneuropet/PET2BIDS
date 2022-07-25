@@ -179,23 +179,23 @@ Some extra values in the case of this Siemens Biograph would look like the follo
 .. code-block::
 
     dcm2niix4pet OpenNeuroPET-Phantoms/source/SiemensBiographPETMR-NRU --kwargs
-        TimeZero=ScanStart
-        Manufacturer=Siemens
-        ManufacturersModelName=Biograph InstitutionName="Rigshospitalet, NRU, DK"
-        BodyPart=Phantom
-        Units=Bq/mL
-        TracerName=none
-        TracerRadionuclide=F18
-        InjectedRadioactivity=81.24
-        SpecificRadioactivity=13019.23
-        ModeOfAdministration=infusion
-        FrameTimesStart=0
-        AcquisitionMode="list mode"
-        ImageDecayCorrected=true
-        ImageDecayCorrectionTime=0
-        AttenuationCorrection=MR-corrected
-        FrameDuration=300
-        FrameTimesStart=0
+    TimeZero=ScanStart
+    Manufacturer=Siemens
+    ManufacturersModelName=Biograph InstitutionName="Rigshospitalet, NRU, DK"
+    BodyPart=Phantom
+    Units=Bq/mL
+    TracerName=none
+    TracerRadionuclide=F18
+    InjectedRadioactivity=81.24
+    SpecificRadioactivity=13019.23
+    ModeOfAdministration=infusion
+    FrameTimesStart=0
+    AcquisitionMode="list mode"
+    ImageDecayCorrected=true
+    ImageDecayCorrectionTime=0
+    AttenuationCorrection=MR-corrected
+    FrameDuration=300
+    FrameTimesStart=0
 
 
 And similarly, extra key pair values can be passed to ecatpet2bids:
