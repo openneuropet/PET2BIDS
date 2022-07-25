@@ -213,3 +213,20 @@ def expand_path(path_like: str) -> str:
             return (os.path.abspath(path_like))
     else:
         return ''
+
+def collect_bids_part(bids_part:str, path_like: str) -> str:
+    # break up path into parts
+    parts = pathlib.PurePath(path_like).parts
+
+    # create search string
+    search_string = bids_part + '-(.*)'
+    # collect bids_part
+    for part in parts:
+        found_part = re.search(search_string, part)
+        if found_part:
+            collected_part = found_part[0]
+            break
+        else:
+            collected_part = ''
+
+    return collected_part
