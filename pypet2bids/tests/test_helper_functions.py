@@ -92,5 +92,20 @@ def test_translate_metadata():
     assert test_output['nifti_json']['ReconMethodParameterValues'] == [16, 10]
     assert test_output['nifti_json']['ReconFilterType'] == 'none'
 
+def test_collect_bids_parts():
+    bids_like_path = '/home/users/user/bids_data/sub-NDAR123/ses-firstsession'
+    subject_id = helper_functions.collect_bids_part('sub', bids_like_path)
+    assert subject_id == 'sub-NDAR123'
+
+    session_id = helper_functions.collect_bids_part('ses', bids_like_path)
+    assert session_id == 'ses-firstsession'
+
+    not_bids_like_path = '/home/users/user/no/bids/here'
+    nope_sub = helper_functions.collect_bids_part('sub', not_bids_like_path)
+    assert nope_sub == ''
+
+    nope_ses = helper_functions.collect_bids_part('ses', not_bids_like_path)
+    assert nope_ses == ''
+
 if __name__ == '__main__':
     unittest.main()
