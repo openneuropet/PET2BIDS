@@ -44,7 +44,7 @@ This folder contains code generating Siemens HRRT scanner data using ecat file f
 
 ## Citation 
 
-Please [cite us](CITATION.cff) when using PET2BIDS
+Please [cite us](CITATION.cff) when using PET2BIDS.
 
 ## Contribute
 
