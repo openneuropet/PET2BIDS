@@ -8,18 +8,32 @@ class PmodToBlood:
             whole_blood_activity: Path,
             parent_fraction: Path,
             plasma_activity: Path = None,
-            blood_sampling_type: str = 'manual',
+            blood_sampling_type: str = 'both',
             output_name: str = '',
             output_json: bool = False,
             **kwargs):
 
+        # whole blood and parent fraction are required, always attempt to load
         self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity),
                              'parent_fraction': self.load_pmod_file(parent_fraction)}
-        if parent_fraction:
+
+        # plasma activity is not required, but is used if provided
+        if plasma_activity:
             self.blood_series['plasma_activity'] = self.load_pmod_file(plasma_activity)
+        self.data_collection = {}
 
         # scale time to seconds
         self.scale_time()
+
+        # one may encounter data collected manually and/or automatically, we vary our logic depending on the case
+        self.data_collection = {}
+
+        for blood_sample in self.blood_series.keys():
+            var = f"{blood_sample}_collection_method"
+            if not kwargs.get(var, None):
+                self.ask_recording_type(blood_sample)
+            else:
+                self.data_collection[blood_sample] = kwargs.get(var)
 
         if output_name:
             self.output_name = Path(output_name)
@@ -85,3 +99,19 @@ class PmodToBlood:
             dataframe['time'] = dataframe['time']*time_scalar
             self.blood_series[name] = dataframe
 
+    def ask_recording_type(self, recording: str):
+        """
+        Prompt user about data collection to determine how data was collected for each
+        measure. e.g. auto-sampled, manually drawn, or a combination of the two
+        """
+        how = None
+        while how != 'a' or how != 'm':
+            how = input(f"How was the {recording} data sampled?:\nEnter A for automatically or M for manually\n")
+            if str.lower(how) == 'm':
+                self.data_collection[recording] = 'manual'
+                break
+            elif str.lower(how) == 'a':
+                self.data_collection[recording] = 'automatic'
+                break
+            else:
+                print(f"You entered {how}; please enter either M or A to exit this prompt")
