@@ -2,6 +2,7 @@ import pandas as pd
 import warnings
 import re
 from pathlib import Path
+from os.path import join
 
 
 class PmodToBlood:
@@ -14,6 +15,9 @@ class PmodToBlood:
             output_name: str = '',
             output_json: bool = False,
             **kwargs):
+        
+        self.auto_sampled = []
+        self.manually_sampled = []
 
         # whole blood and parent fraction are required, always attempt to load
         self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity),
@@ -41,10 +45,14 @@ class PmodToBlood:
         # check blood files for consistency
         self.check_time_info()
 
+        # if given an output name run with that, otherwise we construct a name from the parent path the .bld files were 
+        # found at.
         if output_name:
             self.output_name = Path(output_name)
         else:
             self.output_name = Path(whole_blood_activity).parent
+
+        self.write_out_tsvs()
 
     @staticmethod
     def load_pmod_file(pmod_blood_file: Path):
@@ -94,18 +102,14 @@ class PmodToBlood:
             for key, sampling_type in self.data_collection.items():
                 compare_lengths.append({'name': key,'sampling_type': sampling_type, 'sample_length': len(self.blood_series[key])})
 
-            auto_sampled = []
-            manually_sampled = []
             for each in compare_lengths:
                 if 'auto' in str.lower(each['sampling_type']):
-                    auto_sampled.append(each)
+                    self.auto_sampled.append(each)
                 elif 'manual' in str.lower(each['sampling_type']):
-                    manually_sampled.append(each)
-            print(f"auto_sampled: {auto_sampled}")
-            print(f"manually_sampled: {manually_sampled}")
+                    self.manually_sampled.append(each)
 
-            for auto in auto_sampled:
-                for manual in manually_sampled:
+            for auto in self.auto_sampled:
+                for manual in self.manually_sampled:
                     if auto['sample_length'] < manual['sample_length']:
                         warnings.warn(
                             f"Autosampled .bld input for {list(auto.keys())[0]} has {len(auto['sample_length'])} rows\n\
@@ -127,8 +131,6 @@ class PmodToBlood:
                 time_scalar = 60.0
 
             if time_column_header_name and len(time_column_header_name) == 1:
-                print("Before Rename")
-                print(dataframe)
                 dataframe.rename(columns={time_column_header_name[0]: 'time'}, inplace=True)
             else:
                 raise Exception("Unable to locate time column in blood file, make sure input files are formatted "
@@ -140,24 +142,29 @@ class PmodToBlood:
 
             # locate radioactivity column
             radioactivity_column_header_name = [header for header in dataframe.columns if 'bq' and 'cc' in str.lower(header)]
+            # locate parent fraction column
             parent_fraction_column_header_name = [header for header in dataframe.columns if 'parent' in str.lower(header)]
+            # run through radio updating conversion if not percent parent
             if radioactivity_column_header_name and len(time_column_header_name) == 1:
                 sub_ml_for_cc =re.sub('cc', 'mL', radioactivity_column_header_name[0])
                 extracted_units = re.search(r'\[(.*?)\]', sub_ml_for_cc)
+                second_column_name = None
                 if 'plasma' in str.lower(radioactivity_column_header_name[0]):
                     second_column_name = 'plasma_radioactivity'
-                elif 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(radioactivity_column_header_name[0]):
+                if 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(radioactivity_column_header_name[0]):
                     second_column_name = 'whole_blood_radioactivity'
-                print(extracted_units.group(1))
+                
+                if second_column_name:
+                    dataframe.rename(columns={radioactivity_column_header_name[0]: second_column_name}, inplace=True)
+
                 if extracted_units:
                     self.units = extracted_units.group(1)
-                    dataframe.rename(columns={radioactivity_column_header_name[0]: second_column_name}, inplace=True)
                 else:
                     raise Exception("Unable to determine radioactivity entries from .bld column name. Column name/units must be in Bq/cc or Bq/mL")
+            # if percent parent rename column accordingly
             elif parent_fraction_column_header_name and len(parent_fraction_column_header_name) == 1:
                     dataframe.rename(columns={parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'}, inplace=True)
-
-            print(dataframe)
+            self.blood_series[name] == dataframe
 
     def ask_recording_type(self, recording: str):
         """
@@ -179,3 +186,38 @@ class PmodToBlood:
                 break
             else:
                 print(f"You entered {how}; please enter either M or A to exit this prompt")
+
+    def write_out_tsvs(self, subject_id: str = '', session_id: str = ''):
+        # first we combine the various blood datas into one or two dataframes, the autosampled data goes into a recording_autosample,
+        # and the manually sampled data goes into a recording_manual if they exist
+        file_name = ''
+        if subject_id:
+            file_name += 'sub-' + subject_id + '_'
+        if session_id:
+            file_name += 'ses-' + session_id + '_'
+
+        if not self.output_name.is_file():
+            file_name = join(self.output_name, file_name)
+        else:
+            file_name = self.output_name.stem
+
+        manual_path = file_name + '_recording-manual_blood.tsv'
+        automatic_path = file_name + '_recording-automatic_blood.tsv'
+
+        # first combine autosampled data
+        if self.auto_sampled:
+            first_auto_sampled = self.auto_sampled.pop()
+            for remaining_auto in self.auto_sampled:
+                column_difference = remaining_auto.columns.difference(first_auto_sampled.columns)
+                for column in list(column_difference):
+                    first_auto_sampled[column] = remaining_auto[column]
+            first_auto_sampled.to_csv(automatic_path, sep='\t', index=False)
+
+        # combine any additional manually sampled dataframes
+        if self.manually_sampled:
+            first_manually_sampled = self.manually_sampled.pop()
+            for remaining_manual in self.manually_sampled:
+                column_difference = remaining_manual.columns.difference(first_manually_sampled.columns)
+                for column in list(column_difference):
+                    first_manually_sampled[column] = remaining_manual[column]
+            first_manually_sampled.to_csv(manual_path, sep='\t', index=False)
