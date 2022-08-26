@@ -1,9 +1,62 @@
 import pandas as pd
+import argparse
 import warnings
 import re
 from pathlib import Path
 from os.path import join
 
+from pypet2bids.helper_functions import ParseKwargs
+
+def cli():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--whole-blood-path",
+        '-whole',
+        help="Path to pmod whole blood file.",
+        required=True,
+        type=Path
+    )
+    parser.add_argument(
+        "--parent-fraction-path",
+        "-parent",
+        help="Path to pmod parent fraction path.",
+        required=True,
+        type=Path
+    )
+    parser.add_argument(
+        "--plasma-activity-path",
+        "-plasma", help="Path to pmod plasma file.",
+        required=False,
+        type=Path,
+        default=None
+    )
+    parser.add_argument(
+        "--output-name", 
+        "-o", 
+        help="Name Stem for output files (tsv and json) provide as either folder path or filename path.",
+        type=str,
+        default=''
+    )
+    parser.add_argument(
+        "--json", 
+        "-j", 
+        help="Output a json data dictionary along with tsv files (default True)",
+        default=True,
+        type=bool
+    )
+    parser.add_argument(
+        '--kwargs', 
+        '-k', 
+        nargs='*',
+        action=ParseKwargs,
+        help="Pass additional arguments not enumerated in this help menu, see documentation online" +
+        " for more details.",
+        default={}
+        )
+
+    args = parser.parse_args()
+
+    return args
 
 class PmodToBlood:
     def __init__(
@@ -221,3 +274,23 @@ class PmodToBlood:
                 for column in list(column_difference):
                     first_manually_sampled[column] = remaining_manual[column]
             first_manually_sampled.to_csv(manual_path, sep='\t', index=False)
+
+def main():
+    """
+    Executes the PmodToBlood class using argparse
+
+    :return: None
+    """
+
+    cli_args = cli()
+    pmod_to_blood = PmodToBlood(
+        whole_blood_activity=cli_args.whole_blood_path,
+        parent_fraction=cli_args.parent_fraction_path,
+        plasma_activity=cli_args.plasma_activity_path,
+        output_name=cli_args.output_name,
+        output_json=cli_args.json,
+        kwargs=cli_args.kwargs
+    )
+
+if __name__ == "__main__":
+    main()
