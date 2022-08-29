@@ -309,7 +309,7 @@ class PmodToBlood:
             file_path = join(self.output_path, self.subject_id + '_')
             if self.session_id:
                 file_path += self.session_id + '_'
-            manual_path = file_path + 'recording-pmodmanual_blood.tsv'
+            manual_path = file_path + 'recording-manual_blood.tsv'
             automatic_path = file_path + 'recording-pmodautomatic_blood.tsv'
         else:
             manual_path = join(self.output_path, 'recording-pmodmanual_blood.tsv')
