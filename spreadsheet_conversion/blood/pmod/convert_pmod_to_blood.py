@@ -313,7 +313,7 @@ class PmodToBlood:
             automatic_path = file_path + 'recording-pmodautomatic_blood.tsv'
         else:
             manual_path = join(self.output_path, 'recording-pmodmanual_blood.tsv')
-            automatic_path = join(self.output_path, 'recording-pmodautomatic_blood.tsv')
+            automatic_path = join(self.output_path, 'recording-automatic_blood.tsv')
 
         # first combine autosampled data
         if self.auto_sampled:
