@@ -1,7 +1,24 @@
 import pytest
 import pathlib
 import os
-from convert_pmod_to_blood import PmodToBlood
+from convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
+
+
+def test_type_cast_cli_input():
+    assert True == type_cast_cli_input('true')
+    assert True == type_cast_cli_input('t')
+    assert True == type_cast_cli_input('True')
+    assert False == type_cast_cli_input('f')
+    assert False == type_cast_cli_input('false')
+    assert False == type_cast_cli_input('False')
+    assert [1, 2, 3] == type_cast_cli_input('[1, 2, 3]')
+    assert [1.0, 2, 3] == type_cast_cli_input('[1.0, 2, 3]')
+    assert [1.0, 2.0, 3.0] == type_cast_cli_input('[1.0, 2.0, 3.0]')
+    assert ['a', 'b'] == type_cast_cli_input("['a', 'b']")
+    assert {'a': 'b'} == type_cast_cli_input("{'a': 'b'}")
+    assert 1 == type_cast_cli_input('1')
+    assert 1.0 == type_cast_cli_input('1.0')
+    assert 'string' == type_cast_cli_input('string')
 
 @pytest.fixture()
 def good_blood_files():
