@@ -310,9 +310,9 @@ class PmodToBlood:
             if self.session_id:
                 file_path += self.session_id + '_'
             manual_path = file_path + 'recording-manual_blood.tsv'
-            automatic_path = file_path + 'recording-pmodautomatic_blood.tsv'
+            automatic_path = file_path + 'recording-automatic_blood.tsv'
         else:
-            manual_path = join(self.output_path, 'recording-pmodmanual_blood.tsv')
+            manual_path = join(self.output_path, 'recording-manual_blood.tsv')
             automatic_path = join(self.output_path, 'recording-automatic_blood.tsv')
 
         # first combine autosampled data
@@ -342,7 +342,7 @@ class PmodToBlood:
                 file_path += self.session_id + '_'
             file_path +=  'blood.json'
         else:
-            file_path = join(self.output_path, 'pmod_blood.json')
+            file_path = join(self.output_path, 'blood.json')
 
         side_car_template = {
             "Time": {
