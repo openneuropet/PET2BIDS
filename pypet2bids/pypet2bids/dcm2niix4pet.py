@@ -990,7 +990,7 @@ def cli():
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
-                        help="Include additional values int the nifti sidecar json or override values extracted from "
+                        help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
                              "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
