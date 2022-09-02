@@ -46,3 +46,6 @@ docs/_build/
 
 # anything with a tilde in it
 *~*
+
+# nothing on D:\\BIDS
+D:\\BIDS*

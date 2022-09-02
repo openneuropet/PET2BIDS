@@ -1,7 +1,7 @@
 import pytest
 import pathlib
 import os
-from convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
+from pypet2bids.convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
 
 
 def test_type_cast_cli_input():

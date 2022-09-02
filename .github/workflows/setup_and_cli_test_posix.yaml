@@ -77,4 +77,4 @@ jobs:
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          pytest -k 'not write_pixel_data' tests/
+          pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
