@@ -198,7 +198,11 @@ def update_json_with_dicom_value(
     # See if time zero is missing in json
     if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
         time_parser = parser
-        acquisition_time = time_parser.parse(dicom_header['AcquisitionTime'].value).time().isoformat()
+        if sidecar_json.get('AcquisitionTime', None):
+            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().isoformat()
+        else:
+            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().isoformat()
+
         json_updater.update({'TimeZero': acquisition_time})
         json_updater.remove('AcquisitionTime')
         json_updater.update({'ScanStart': 0})
