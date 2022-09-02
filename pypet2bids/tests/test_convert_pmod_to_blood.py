@@ -20,10 +20,13 @@ def test_type_cast_cli_input():
     assert 1.0 == type_cast_cli_input('1.0')
     assert 'string' == type_cast_cli_input('string')
 
+
 @pytest.fixture()
 def good_blood_files():
     this_files_parent_dir = os.path.dirname(os.path.abspath(__file__))
-    bld_files = [os.path.join(this_files_parent_dir, bld) for bld in os.listdir(this_files_parent_dir) if pathlib.Path(bld).suffix == '.bld']
+    project_dir = pathlib.Path(this_files_parent_dir).parent.parent
+    pmod_blood_dir = os.path.join(project_dir, 'spreadsheet_conversion', 'blood', 'pmod')
+    bld_files = [os.path.join(pmod_blood_dir, bld) for bld in os.listdir(pmod_blood_dir) if pathlib.Path(bld).suffix == '.bld']
     good_blood_files = {'parent': [], 'plasma': [], 'whole': []}
     for index, bld_file in enumerate(bld_files):
         for key in good_blood_files.keys():
@@ -32,7 +35,10 @@ def good_blood_files():
         
     yield good_blood_files
 
+
 class TestPmodToBlood:
+    # requires manual input, don't run in actions
+
 
     def test_load_files(self, good_blood_files):
         print(good_blood_files)

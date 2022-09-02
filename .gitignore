@@ -49,3 +49,6 @@ docs/_build/
 
 # nothing on D:\\BIDS
 D:\\BIDS*
+
+# spreadsheet outputs from testing
+/spreadsheet_conversion/blood/pmod/recording-*
