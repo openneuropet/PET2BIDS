@@ -198,7 +198,11 @@ def update_json_with_dicom_value(
     # See if time zero is missing in json
     if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
         time_parser = parser
-        acquisition_time = time_parser.parse(dicom_header['AcquisitionTime'].value).time().isoformat()
+        if sidecar_json.get('AcquisitionTime', None):
+            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().isoformat()
+        else:
+            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().isoformat()
+
         json_updater.update({'TimeZero': acquisition_time})
         json_updater.remove('AcquisitionTime')
         json_updater.update({'ScanStart': 0})
@@ -512,8 +516,8 @@ class Dcm2niix4PET:
                         else:
                             # collect filter size
                             recon_filter_size = ''
-                            if re.search('\d+.\d+', sidecar_json.get('ConvolutionKernel')):
-                                recon_filter_size = re.search('\d+.\d', sidecar_json.get('ConvolutionKernel'))[0]
+                            if re.search(r'\d+.\d+', sidecar_json.get('ConvolutionKernel')):
+                                recon_filter_size = re.search(r'\d+.\d', sidecar_json.get('ConvolutionKernel'))[0]
                             # collect just the filter type by popping out the filter size if it exists
                             recon_filter_type = re.sub(recon_filter_size, '', sidecar_json.get('ConvolutionKernel'))
 

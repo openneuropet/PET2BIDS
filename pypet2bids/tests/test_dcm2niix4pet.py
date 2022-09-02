@@ -173,34 +173,34 @@ def test_manufacturers():
             if dicom_folder_path.exists():
                 manufacturer_paths[manu] = {'dicom_path': dicom_folder_path}
 
-    # open a temporary directory to write output to
-    with TemporaryDirectory() as tempdir:
-        tempdir_path = Path(tempdir)
-        # create output path for every existing manufacturer
-        manus = manufacturer_paths.keys()
-        for manu in manus:
-            nifti_path = os.path.join(tempdir_path, f"{manu}_nifti_output")
-            os.mkdir(nifti_path)
-            manufacturer_paths[manu]['nifti_path'] = nifti_path
+        # open a temporary directory to write output to
+        with TemporaryDirectory() as tempdir:
+            tempdir_path = Path(tempdir)
+            # create output path for every existing manufacturer
+            manus = manufacturer_paths.keys()
+            for manu in manus:
+                nifti_path = os.path.join(tempdir_path, f"{manu}_nifti_output")
+                os.mkdir(nifti_path)
+                manufacturer_paths[manu]['nifti_path'] = nifti_path
 
-            # convert these things
-            input_path = manufacturer_paths[manu]['dicom_path']
-            output_path = manufacturer_paths[manu]['nifti_path']
-            converter = Dcm2niix4PET(input_path, output_path)
+                # convert these things
+                input_path = manufacturer_paths[manu]['dicom_path']
+                output_path = manufacturer_paths[manu]['nifti_path']
+                converter = Dcm2niix4PET(input_path, output_path)
 
 
-            converter.run_dcm2niix()
-            print(f"running converson on images at {input_path}")
-            # add jsons to the manufacturer_paths
-            output_path_files = os.listdir(output_path)
-            jsons = [os.path.join(output_path, output_json) for output_json in output_path_files if
-                         '.json' in output_json]
+                converter.run_dcm2niix()
+                print(f"running converson on images at {input_path}")
+                # add jsons to the manufacturer_paths
+                output_path_files = os.listdir(output_path)
+                jsons = [os.path.join(output_path, output_json) for output_json in output_path_files if
+                             '.json' in output_json]
 
-            manufacturer_paths[manu]['json_path'] = jsons
+                manufacturer_paths[manu]['json_path'] = jsons
 
-        # now check the output of the jsons, see if the fields are all there
-        for key, value in manufacturer_paths.items():
-            print(key, value)
+            # now check the output of the jsons, see if the fields are all there
+            for key, value in manufacturer_paths.items():
+                print(key, value)
 
 
 def test_update_json_with_dicom_value():
@@ -226,7 +226,7 @@ def test_update_json_with_dicom_value():
             # now we collect a dicom header
             dicom_headers = []
 
-            dicom_folder = os.getenv("TEST_DICOM_IMAGE_FOLDER_SIEMENS", "")
+            dicom_folder = os.getenv("TEST_DICOM_IMAGE_FOLDER", "")
 
             # possible dicoms
             possible_dicoms = [os.path.join(dicom_folder, d) for d in os.listdir(dicom_folder)]
