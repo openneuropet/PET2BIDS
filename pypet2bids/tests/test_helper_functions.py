@@ -14,6 +14,8 @@ python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
 metadata_folder = join(pet2bids_folder, 'spreadsheet_conversion')
 single_subject_metadata_file = join(metadata_folder, 'single_subject_sheet', 'subject_metadata_example.xlsx')
+multi_subject_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'subjects_metadata_example.xlsx')
+scanner_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'scanner_metadata_example.xlsx')
 
 class TestHelperFunctions(unittest.TestCase):
     @classmethod
@@ -64,6 +66,7 @@ class TestHelperFunctions(unittest.TestCase):
     def tearDown(cls) -> None:
         remove(cls.test_env_file_path)
 
+
 def test_open_metadata():
     # read in a known metadata spreadsheet
     test_dataframe = pandas.read_excel(single_subject_metadata_file)
@@ -79,6 +82,7 @@ def test_open_metadata():
     with tempfile.TemporaryDirectory():
         pass
 
+
 def test_translate_metadata():
     test_translate_script_path = join(module_folder, 'metadata_excel_example_reader.py')
 
@@ -91,6 +95,7 @@ def test_translate_metadata():
     assert test_output['nifti_json']['ReconMethodParameterUnits'] == ['none', 'none']
     assert test_output['nifti_json']['ReconMethodParameterValues'] == [16, 10]
     assert test_output['nifti_json']['ReconFilterType'] == 'none'
+
 
 def test_collect_bids_parts():
     bids_like_path = '/home/users/user/bids_data/sub-NDAR123/ses-firstsession'
@@ -106,6 +111,50 @@ def test_collect_bids_parts():
 
     nope_ses = helper_functions.collect_bids_part('ses', not_bids_like_path)
     assert nope_ses == ''
+
+
+def test_transform_row_to_dict():
+    # load real test data from many subject sheet
+    many_subjects_dataframe = pandas.read_excel(multi_subject_metadata_file)
+    subject_with_frames_time_start_input = many_subjects_dataframe.iloc[0]
+
+    # transform a row
+    transformed_row = helper_functions.transform_row_to_dict(subject_with_frames_time_start_input)
+
+    frame_times_start = subject_with_frames_time_start_input['FrameTimesStart'].split(',')
+    frame_times_start = [int(entry) for entry in frame_times_start]
+
+    assert frame_times_start == transformed_row['FrameTimesStart']
+
+    # test whole dataframe transform
+    transform_row_from_dataframe = helper_functions.transform_row_to_dict(0, many_subjects_dataframe)
+
+    assert frame_times_start == transform_row_from_dataframe['FrameTimesStart']
+
+    # a simpler test
+    key = 'FrameTimesStart'
+    values = '0,1,2,3,4,5,6'
+    simpler_df = pandas.DataFrame({key: [values]})
+
+    assert [int(v) for v in values.split(',')] == helper_functions.transform_row_to_dict(0, simpler_df)['FrameTimesStart']
+
+
+def test_get_coordinates_containing():
+    given_data = {
+        'columnA': ['string1', 'string2', 'string3', 'muchlongerstringVALUE'],
+        'columnB': [0, 1, 2, 3],
+        'columnC': [pandas.NA, 1.2, 3.1, pandas.NA]
+    }
+
+    given_dataframe = pandas.DataFrame(given_data)
+    get_coords = helper_functions.get_coordinates_containing
+    assert get_coords('string3', given_dataframe) == [(2, 'columnA')]
+    assert get_coords('string3', given_dataframe, single=True) == (2, 'columnA')
+    assert get_coords('notthere', given_dataframe) == []
+    assert get_coords('string', given_dataframe) == [(0, 'columnA'), (1, 'columnA'), (2, 'columnA'), (3, 'columnA')]
+    assert get_coords(0, given_dataframe, exact=True, single=True) == (0, 'columnB')
+    assert get_coords(0, given_dataframe, exact=True) == [(0, 'columnB')]
+
 
 if __name__ == '__main__':
     unittest.main()
