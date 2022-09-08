@@ -39,6 +39,7 @@ README.rst
 
 # test environment
 test_env/
+*.pytest_cache
 
 # sphinx
 docs/_build/*/*.pickle
@@ -51,4 +52,4 @@ docs/_build/
 D:\\BIDS*
 
 # spreadsheet outputs from testing
-/spreadsheet_conversion/blood/pmod/recording-*
+/spreadsheet_conversion/blood/pmod/recording-*!/spreadsheet_conversion/blood/.pytest_cache/

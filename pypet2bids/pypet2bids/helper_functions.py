@@ -3,20 +3,100 @@ import os
 import re
 import shutil
 import typing
+import json
+import warnings
+import logging
 
 import dotenv
 import ast
-import argparse
-import pathlib
 
 import pandas
 import toml
 import pathlib
 from pandas import read_csv, read_excel
-from numpy import where
 import importlib
-import sys
 import argparse
+from typing import Union
+
+parent_dir = pathlib.Path(__file__).parent.resolve()
+project_dir = parent_dir.parent.parent
+metadata_dir = os.path.join(project_dir, 'metadata')
+pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
+permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
+
+
+def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
+    if type(pet_bids_req_json) is str:
+        pet_bids_req_json = pathlib.Path(pet_bids_req_json)
+    if pet_bids_req_json.is_file():
+        with open(pet_bids_req_json, 'r') as infile:
+            reqs = json.load(infile)
+        return reqs
+    else:
+        raise FileNotFoundError(pet_bids_req_json)
+
+
+def flatten_series(series):
+    """
+    This function retrieves either a list or a single value from a pandas series object thus converting a complex
+    data type to a simple datatype or list of simple types. If the length of the series is one or less this returns that
+    single value, else this object returns all values within the series that are not Null/nan in the form of a list
+    :param series: input series of type pandas.Series object, typically extracted as a column/row from a
+    pandas.Dataframe object
+    :return: a simplified single value or list of values
+    """
+    simplified_series_object = series.dropna().to_list()
+    if len(simplified_series_object) > 1:
+        pass
+    elif len(simplified_series_object) == 1:
+        simplified_series_object = simplified_series_object[0]
+    else:
+        raise f"Invalid Series: {series}"
+    return simplified_series_object
+
+
+def single_spreadsheet_reader(
+        path_to_spreadsheet: Union[str, pathlib.Path],
+        pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
+        metadata={},
+        **kwargs):
+    if type(path_to_spreadsheet) is str:
+        path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
+
+    if path_to_spreadsheet.is_file():
+        pass
+    else:
+        raise FileNotFoundError(f"{path_to_spreadsheet} does not exist.")
+
+    if pet2bids_metadata_json:
+        if type(pet_metadata_json) is str:
+            pet2bids_metadata_json = pathlib.Path(pet2bids_metadata_json)
+
+        if pet2bids_metadata_json.is_file():
+            with open(pet_metadata_json, 'r') as infile:
+                metadata_fields = json.load(infile)
+        else:
+            raise FileNotFoundError(f"Required metadata file not found at {pet_metadata_json}, check to see if this file exists;"
+                        f"\nelse pass path to file formatted to this {permalink_pet_metadata_json} via "
+                        f"pet2bids_metadata_json argument in simplest_spreadsheet_reader call.")
+    else:
+        raise FileNotFoundError(f"pet2bids_metadata_json input required for function call, you provided {pet2bids_metadata_json}")
+
+    spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
+
+    # collect mandatory fields
+    for field_level in metadata_fields.keys():
+        for field in metadata_fields[field_level]:
+            series = spreadsheet_dataframe.get(field, None)
+            if series is not None:
+                metadata[field] = flatten_series(series)
+            elif not series and field_level == 'mandatory' and not metadata.get(field, None):
+                logging.warning(f"{field} not found in {path_to_spreadsheet}, {field} is required by BIDS")
+
+    # lastly apply any kwargs to the metadata
+    metadata.update(**kwargs)
+
+    return metadata
 
 
 def compress(file_like_object, output_path: str = None):
@@ -129,7 +209,7 @@ class ParseKwargs(argparse.Action):
             getattr(namespace, self.dest)[key] = value
 
 
-def open_meta_data(metadata_path):
+def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
@@ -137,7 +217,8 @@ def open_meta_data(metadata_path):
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
 
-    metadata_path = pathlib.Path(metadata_path)
+    if type(metadata_path) is str:
+        metadata_path = pathlib.Path(metadata_path)
 
     if metadata_path.exists():
         pass
@@ -231,7 +312,7 @@ def expand_path(path_like: str) -> str:
         return ''
 
 
-def collect_bids_part(bids_part: str, path_like: str) -> str:
+def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> str:
     """
     Regex is hard, this finds a bids key if it's present in path or pathlink string
 
@@ -243,12 +324,27 @@ def collect_bids_part(bids_part: str, path_like: str) -> str:
     :param bids_part: the bids part to find in the path e.g. subject id, session id, recording, etc etc
     :type bids_part: string
     :param path_like: a pathlike input, this is strictly for parsing file paths or file like strings
-    :type path_like: string
+    :type path_like: string or pathlib.Path object, we don't descriminate
     :return: the collected bids part
     :rtype: string
     """
+    # get os of system
+    if os.name == 'posix':
+        not_windows = True
+    else:
+        not_windows = False
+
     # break up path into parts
     parts = pathlib.PurePath(path_like).parts
+
+    # this shouldn't happen, but we check if someone passed a windows path to a posix machine
+    # should we check for the inverse? No, not until someone complains about this loudly enough.
+    for part in parts:
+        if '\\' in part and not_windows:
+            # explicitly use windows path splitting
+            parts = pathlib.PureWindowsPath(path_like).parts
+            logging.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
+            break
 
     # create search string
     search_string = bids_part + '-(.*)'

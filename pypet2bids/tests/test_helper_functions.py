@@ -99,11 +99,14 @@ def test_translate_metadata():
 
 def test_collect_bids_parts():
     bids_like_path = '/home/users/user/bids_data/sub-NDAR123/ses-firstsession'
+    windows_bids_like_path = 'D:\BIDS\ONP\sub-NDAR123\ses-firstsession\pet'
     subject_id = helper_functions.collect_bids_part('sub', bids_like_path)
     assert subject_id == 'sub-NDAR123'
+    assert helper_functions.collect_bids_part('sub', windows_bids_like_path) == 'sub-NDAR123'
 
     session_id = helper_functions.collect_bids_part('ses', bids_like_path)
     assert session_id == 'ses-firstsession'
+    assert helper_functions.collect_bids_part('ses', windows_bids_like_path) == 'ses-firstsession'
 
     not_bids_like_path = '/home/users/user/no/bids/here'
     nope_sub = helper_functions.collect_bids_part('sub', not_bids_like_path)
