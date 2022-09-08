@@ -1,24 +1,16 @@
 import pandas
 import warnings
+import pathlib
+from typing import Union
+from os.path import join
+import json
+from helper_functions import open_meta_data, flatten_series
 
-
-def flatten_series(series):
-    """
-    This function retrieves either a list or a single value from a pandas series object thus converting a complex
-    data type to a simple datatype or list of simple types. If the length of the series is one or less this returns that
-    single value, else this object returns all values within the series that are not Null/nan in the form of a list
-    :param series: input series of type pandas.Series object, typically extracted as a column/row from a
-    pandas.Dataframe object
-    :return: a simplified single value or list of values
-    """
-    simplified_series_object = series.dropna().to_list()
-    if len(simplified_series_object) > 1:
-        pass
-    elif len(simplified_series_object) == 1:
-        simplified_series_object = simplified_series_object[0]
-    else:
-        raise(f"Invalid Series: {series}")
-    return simplified_series_object
+parent_dir = pathlib.Path(__file__).parent.resolve()
+project_dir = parent_dir.parent
+metadata_dir = join(project_dir, 'metadata')
+pet_metadata_json = join(metadata_dir, 'PET_metadata.json')
+permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
 
 def translate_metadata(metadata_dataframe, image_path=NotImplemented):
