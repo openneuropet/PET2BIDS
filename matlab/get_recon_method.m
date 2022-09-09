@@ -96,13 +96,19 @@ end
 % try to match the library with looking at bits of names and reassemble
 for v = 1:length(values)
     if ~isempty(strfind(headervalue,values{v}))
-        if any(strcmpi(values{v},{'OSEM','RAMLA'}))
-            method = [method dim ' ' names{v} ' '];
+        if any(strcmpi(values{v},{'OS','OSEM','RAMLA'})) 
+            renamed{strfind(headervalue,values{v})} = [dim ' ' names{v} ' ']; %#ok<AGROW>
         else
-            method = [method names{v} ' '];
+            renamed{strfind(headervalue,values{v})} = [names{v} ' ']; %#ok<AGROW>
         end
     end
 end
+
+for v=1:length(renamed)
+    if ~isempty(renamed{v})
+        method = [method renamed{v}]; %#ok<AGROW>
+    end
+end   
 method = deblank(method);
 
 if isempty(method )
