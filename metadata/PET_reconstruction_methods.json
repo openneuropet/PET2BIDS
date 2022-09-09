@@ -93,6 +93,10 @@
   ],
   "reconstruction_names": [
     {
+      "value": "OS",
+      "name": "Ordered Subset"
+    },
+    {
       "value": "OSEM",
       "name": "Ordered Subset Expectation Maximization"
     },
@@ -117,6 +121,10 @@
       "name": "Time Of Flight"
     },
     {
+      "value": "TF",
+      "name": "Time Of Flight"
+    },
+    {
       "value": "VPHD",
       "name": "VUE Point HD"
     },
@@ -135,6 +143,10 @@
     {
       "value": "Q.Clear",
       "name": "VUE Point HD with regularization (smoothing)"
+    },
+    {
+      "value": "BLOB",
+      "name": "3D spherically symmetric basis function"
     }
   ]
 }
