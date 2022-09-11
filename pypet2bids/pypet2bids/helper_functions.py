@@ -215,7 +215,7 @@ class ParseKwargs(argparse.Action):
 def very_tolerant_literal_eval(value):
     try:
         value = ast.literal_eval(value)
-    except ValueError:
+    except (SyntaxError, ValueError):
         if str(value).lower() == 'none':
             value = None
         elif str(value).lower() == 'true':

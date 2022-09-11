@@ -215,7 +215,7 @@ def update_json_with_dicom_value(
         json_updater.update({'ScanStart': 0})
 
     if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
-        json_updater.update({'InjectionTime': 0})
+        json_updater.update({'InjectionStart': 0})
 
     # check to see if units are BQML
     json_updater = JsonMAJ(str(path_to_json))
@@ -226,6 +226,9 @@ def update_json_with_dicom_value(
     Radionuclide = get_radionuclide(dicom_header)
     if Radionuclide:
         json_updater.update({'TracerRadionuclide': Radionuclide})
+
+    # remove scandate if it exists
+    json_updater.remove('ScanDate')
 
     # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
     updated_values = json.load(open(path_to_json, 'r'))
@@ -268,13 +271,14 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
         parsed_date = dicom.StudyDate
         parsed_time = str(round(float(dicom.StudyTime)))
-        if len(parsed_time) < 6:
-            zeros_to_pad = 6 - len(parsed_time)
-            parsed_time = zeros_to_pad * '0' + parsed_time
 
     elif date and time:
         parsed_date = date
         parsed_time = str(round(float(time)))
+
+    if len(parsed_time) < 6:
+        zeros_to_pad = 6 - len(parsed_time)
+        parsed_time = zeros_to_pad * '0' + parsed_time
 
     return parsed_date + parsed_time
 
@@ -491,6 +495,12 @@ class Dcm2niix4PET:
                                               update_values=self.spreadsheet_metadata['nifti_json'])
                         update_json.update()
 
+                    # check to see if frame duration is a single value, if so convert it to list
+                    update_json = JsonMAJ(json_path=str(created))
+                    frame_duration = update_json.get('FrameDuration')
+                    if frame_duration and type(frame_duration) is not list:
+                        update_json.update({'FrameDuration': [frame_duration]})
+
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
                     if self.additional_arguments:
@@ -518,16 +528,28 @@ class Dcm2niix4PET:
                             # collect filter size
                             recon_filter_size = ''
                             if re.search(r'\d+.\d+', sidecar_json.get('ConvolutionKernel')):
-                                recon_filter_size = re.search(r'\d+.\d', sidecar_json.get('ConvolutionKernel'))[0]
+                                recon_filter_size = re.search(r'\d+.\d*', sidecar_json.get('ConvolutionKernel'))[0]
+                                recon_filter_size = float(recon_filter_size)
+                                sidecar_json.update({'ReconFilterSize': float(recon_filter_size)})
                             # collect just the filter type by popping out the filter size if it exists
-                            recon_filter_type = re.sub(recon_filter_size, '', sidecar_json.get('ConvolutionKernel'))
+                            recon_filter_type = re.sub(str(recon_filter_size), '', sidecar_json.get('ConvolutionKernel'))
+                            # further sanitize the recon filter type string
+                            recon_filter_type = re.sub(r'[^a-zA-Z0-9]', ' ', recon_filter_type)
+                            recon_filter_type = re.sub(r' +', ' ', recon_filter_type)
 
                             # update the json
-                            sidecar_json.update({
-                                'ReconFilterSize': recon_filter_size,
-                                'ReconFilterType': recon_filter_type})
+                            sidecar_json.update({'ReconFilterType': recon_filter_type})
                             # remove non bids field
                             sidecar_json.remove('ConvolutionKernel')
+
+                    # check the input args again as our logic get's applied after parsing user inputs
+                    recon_filter_user_input = {
+                        'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
+                        'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
+                    }
+                    for key, value in recon_filter_user_input.items():
+                        if value:
+                            sidecar_json.update({key: value})
 
                     # tag json with additional conversion software
                     conversion_software = sidecar_json.get('ConversionSoftware')
