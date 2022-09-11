@@ -9,6 +9,7 @@ from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
+from pypet2bids.helper_functions import get_recon_method
 
 
 def parse_this_date(date_like_object) -> str:
@@ -72,7 +73,7 @@ class Ecat:
             raise err
 
         directory_byte_block = read_bytes(
-            path_to_bytes=ecat_file,
+            path_to_bytes=self.ecat_file,
             byte_start=512,
             byte_stop=1024)
 
@@ -188,6 +189,11 @@ class Ecat:
             self.sidecar_template['PromptRate'].append(subheader.get('PROMPT_RATE', None))
             self.sidecar_template['RandomRate'].append(subheader.get('RANDOM_RATE', None))
             self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE', None))
+
+        # collect possible reconstruction method from subheader
+        recon_method = get_recon_method(self.subheaders[0].get('ANNOTATION'))
+        if recon_method:
+            self.sidecar_template.update(**recon_method)
 
         # collect and convert start times for acquisition/time zero?
         scan_start_time = self.ecat_header.get('SCAN_START_TIME', None)

@@ -159,5 +159,91 @@ def test_get_coordinates_containing():
     assert get_coords(0, given_dataframe, exact=True) == [(0, 'columnB')]
 
 
+def test_get_recon_method():
+    """
+    Given an input from a dicom such as
+    (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
+    returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
+    e.g.
+    ReconMethodName="PSF+TOF"
+    ReconMethodParameterLabels=["subsets", "iterations"]
+    ReconMethodParameterUnits=["none", "none"]
+    ReconMethodParameterValues=[21, 3]
+    :return:
+    """
+
+    reconstruction_method_strings = [
+        {
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
+        },
+        {
+            "contents": "OP-OSEM3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "OP-OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
+        },
+        {
+            "contents": "PSF+TOF 3i21s",
+            "subsets": 21,
+            "iterations": 3,
+            "ReconMethodName": "PSF+TOF",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [21, 3]
+        },
+        {
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
+        },
+        {
+            "contents": "3D-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "3D-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
+        },
+        {
+            "contents": 'OSEM:i3s15',
+            "subsets": 15,
+            "iterations": 3,
+            "ReconMethodName": "OSEM",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [15, 3]
+        },
+        {
+            "contents": "LOR-RAMLA",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodParameterUnits": ["none", "none"],
+            "ReconMethodParameterLabels": ["subsets", "iterations"],
+            "ReconMethodParameterValues": [None, None]
+        }
+    ]
+
+    for recon_data  in reconstruction_method_strings:
+        recon = helper_functions.get_recon_method(recon_data['contents'])
+        for key, value in recon_data.items():
+            if key != "contents" and key != 'subsets' and key != 'iterations':
+                assert value == recon[key]
+
+
 if __name__ == '__main__':
     unittest.main()
