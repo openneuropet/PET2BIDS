@@ -6,6 +6,7 @@ from os.path import join
 import pathlib
 import re
 import numpy
+from pypet2bids.helper_functions import decompress
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
@@ -224,6 +225,9 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
 
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
     """
+    if ".gz" in ecat_file:
+        ecat_file = decompress(ecat_file)
+
     # try to determine what type of ecat this is
     possible_ecat_headers = {}
     for entry, dictionary in ecat_header_maps['ecat_headers'].items():
