@@ -497,9 +497,14 @@ class Dcm2niix4PET:
 
                     # check to see if frame duration is a single value, if so convert it to list
                     update_json = JsonMAJ(json_path=str(created))
-                    frame_duration = update_json.get('FrameDuration')
-                    if frame_duration and type(frame_duration) is not list:
-                        update_json.update({'FrameDuration': [frame_duration]})
+
+                    # should be list/array types in the json
+                    should_be_array = ['FrameDuration', 'ScatterFraction', 'FrameTimesStart', 'DecayCorrectionFactor']
+
+                    for should in should_be_array:
+                        should_value = update_json.get(should)
+                        if should_value and type(should_value) is not list:
+                            update_json.update({should: [should_value]})
 
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
