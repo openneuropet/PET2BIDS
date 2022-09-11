@@ -43,38 +43,43 @@ for n=1:length(numbers)
     loc        = strfind(headervalue,numbers{n});
     loc_length = loc+length(numbers{n})-1;
     
-    if strcmpi(headervalue(loc:loc+1),'3D')
-        dim          = '3D'; 
+    if strcmpi(headervalue(loc:loc+1),'2D')
+        dim          = '2D';
+        dim_position = loc:loc+1;
+    elseif strcmpi(headervalue(loc:loc+1),'3D')
+        dim          = '3D';
         dim_position = loc:loc+1;
     end
     
-    if loc_length<length(headervalue)       
-        if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}]) && isempty(iteration)
-            iteration          = numbers{n};
-            iteration_position = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 'i']) && isempty(iteration)
-            iteration          = numbers{n};
-            iteration_position = loc:loc_length+1;
-        elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}]) && isempty(subset)
-            subset            = numbers{n};
-            subset_position   = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 's']) && isempty(subset)
-            subset            = numbers{n};
-            subset_position   = loc:loc_length+1;
-        end
-    else
-        if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}]) 
-            iteration = numbers{n};
-            iteration_position = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length)],[numbers{n} 'i'])
-            iteration = numbers{n};
-            iteration_position = loc:loc_length;
-        elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}])
-            subset          = numbers{n};
-            subset_position = loc-1:loc_length;
-        elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length)],[numbers{n} 's'])
-            subset          = numbers{n};
-            subset_position = loc:loc_length;
+    if loc > 1
+        if loc_length<length(headervalue)
+            if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}]) && isempty(iteration)
+                iteration          = numbers{n};
+                iteration_position = loc-1:loc_length;
+            elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 'i']) && isempty(iteration)
+                iteration          = numbers{n};
+                iteration_position = loc:loc_length+1;
+            elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}]) && isempty(subset)
+                subset            = numbers{n};
+                subset_position   = loc-1:loc_length;
+            elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length+1)],[numbers{n} 's']) && isempty(subset)
+                subset            = numbers{n};
+                subset_position   = loc:loc_length+1;
+            end
+        else
+            if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}])
+                iteration = numbers{n};
+                iteration_position = loc-1:loc_length;
+            elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length)],[numbers{n} 'i'])
+                iteration = numbers{n};
+                iteration_position = loc:loc_length;
+            elseif strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['s',numbers{n}])
+                subset          = numbers{n};
+                subset_position = loc-1:loc_length;
+            elseif strcmpi([headervalue(loc:loc_length) headervalue(loc_length)],[numbers{n} 's'])
+                subset          = numbers{n};
+                subset_position = loc:loc_length;
+            end
         end
     end
 end
@@ -96,11 +101,21 @@ end
 % try to match the library with looking at bits of names and reassemble
 for v = 1:length(values)
     if ~isempty(strfind(headervalue,values{v}))
-        if any(strcmpi(values{v},{'OSEM','RAMLA'}))
-            method = [method dim ' ' names{v} ' '];
+        if any(strcmpi(values{v},{'OS','OSEM','RAMLA'}))
+            renamed{strfind(headervalue,values{v})} = [dim ' ' names{v} ' ']; %#ok<AGROW>
         else
-            method = [method names{v} ' '];
+            renamed{strfind(headervalue,values{v})} = [names{v} ' ']; %#ok<AGROW>
         end
+    end
+end
+
+if ~exist('renamed','var')
+    renamed{1} = headervalue; % still return something
+end
+
+for v=1:length(renamed)
+    if ~isempty(renamed{v})
+        method = [method renamed{v}]; %#ok<AGROW>
     end
 end
 method = deblank(method);

@@ -93,6 +93,10 @@
   ],
   "reconstruction_names": [
     {
+      "value": "OS",
+      "name": "Ordered Subset"
+    },
+    {
       "value": "OSEM",
       "name": "Ordered Subset Expectation Maximization"
     },
@@ -110,19 +114,39 @@
     },
     {
       "value": "PSF",
-      "name": "Point-Spread Function"
+      "name": "Point-Spread Function modelling"
     },
     {
       "value": "TOF",
       "name": "Time Of Flight"
     },
     {
-      "value": "VPFX",
+      "value": "TF",
       "name": "Time Of Flight"
     },
     {
+      "value": "VPHD",
+      "name": "VUE Point HD"
+    },
+    {
+      "value": "VPHD-S",
+      "name": "3D Ordered Subset Expectation Maximization with Point-Spread Function modelling"
+    },
+    {
+      "value": "VPFX",
+      "name": "VUE Point HD using Time Of Flight"
+    },
+    {
       "value": "VPFXS",
-      "name": "Point-Spread Function Time Of Flight"
+      "name": "VUE Point HD using Time Of Flight with Point-Spread Function modelling"
+    },
+    {
+      "value": "Q.Clear",
+      "name": "VUE Point HD with regularization (smoothing)"
+    },
+    {
+      "value": "BLOB",
+      "name": "3D spherically symmetric basis function"
     }
-]
+  ]
 }
