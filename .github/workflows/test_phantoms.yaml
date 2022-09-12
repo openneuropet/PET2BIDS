@@ -1,0 +1,88 @@
+name: Test On Phantoms
+on:
+  workflow_dispatch:
+
+jobs:
+  Download_Phantoms:
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ECAT_TEST_FOLDER: "cimbi36"
+      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+      SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
+      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
+      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
+      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
+      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
+      MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
+
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-20.04]
+        python: [3.9, 3.10]
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Cache Phantoms
+        if: ${{ !env.ACT }}
+        id: phantom-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-phantoms
+        with:
+          path: PHANTOMS
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles(PHANTOMS.zip) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}- 
+
+      - name: Cache Node
+        if: ${{ !env.ACT }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ env.cache-name }}
+
+      - name: Install dcm2niix
+        run: |
+          if [ "$RUNNER_OS" == "Linux"]; then
+            apt get-install dcm2niix
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install dcm2niix
+          fi
+
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          cd pypet2bids
+          pip install -r requirements.txt
+          pip install gdown
+
+      - name: Set Up Node
+        uses: actions/setup-node@v3
+
+      - name: Install BIDS Validator
+        run: npm install -g bids-validator
+
+      - name: Collect Phantoms from Google Drive
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
+        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS }} -O PHANTOMS.zip
+
+      - name: Decompress dataset
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
+        run: unzip PHANTOMS.zip
+
+      - name: Run Python Conversion on Dataset
+        run: |
+          cd OpenNeuroPET-Phantoms/code
+          bash python_conversions.sh
+          cd .. && bids-validator python
