@@ -25,6 +25,91 @@ Use pip to install the library via:
 pip install pypet2bids
 ```
 
+## A brief note about kwargs
+
+It's desirable for the user to be able to quickly provide additional metadata at the time of conversion to make the output of
+the conversion BIDS compliant. PET data is often strewn across multiple files and formats; the `--kwargs` flag allows 
+the user to input any metadata that may not be present in a spreadsheet, text, or imaging type of file. We use the 
+word `kwargs` is it corresponds directly to the default argument place-holder in Python used for dictionary based 
+arguments (key pair sets of values), see 
+[kwargs](https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists).
+
+`--kwargs` can be used to *force* (or guide) an image or set of images into BIDS compliance by supplying missing info.
+or overwriting errant info recorded or used elsewhere. In the example below the following arguments are supplied to 
+`kwargs`:
+
+```bash
+# full example below; input is wrapped with \ for readability on screen
+dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans \ 
+--destination-path $DESTINATION/sub-GeneralElectricAdvanceNIMH/pet \
+--kwargs \
+TimeZero="13:39:41" \
+Manufacturer="GE MEDICAL SYSTEMS" \
+ManufacturersModelName="GE Advance" \
+InstitutionName="NIH Clinical Center, USA" \
+BodyPart="Phantom" \
+Units="Bq/mL" \
+TracerName="FDG" \
+TracerRadionuclide="F18" \
+InjectedRadioactivity=75.8500 \
+InjectionStart=0 \
+SpecificRadioactivity=418713.8 \
+ModeOfAdministration="infusion" \
+FrameTimesStart="[0]" \
+ReconMethodParameterValues="[1, 1]" \
+ImageDecayCorrected='false' \
+AttenuationCorrection='n/a' \
+AcquisitionMode='list mode' \
+ImageDecayCorrectionTime="0" \
+ScatterCorrectionMethod="Gaussian Fit" \
+ScanStart="0"
+```
+
+And when calling directly from python:
+
+```python
+kwargs = {
+    "TimeZero": "13:39:41",
+    "Manufacturer": "GE MEDICAL SYSTEMS",
+    "ManufacturersModelName": "GE Advance",
+    "InstitutionName": "NIH Clinical Center, USA",
+    "BodyPart": "Phantom",
+    "Units": "Bq/mL",
+    "TracerName": "FDG", 
+    "TracerRadionuclide": "F18",
+    "InjectedRadioactivity": 75.8500,
+    "InjectionStart": 0,
+    "SpecificRadioactivity": 418713.8,
+    "ModeOfAdministration": "infusion",
+    "FrameTimesStart": [0],
+    "ReconMethodParameterValues":[1, 1],
+    "ImageDecayCorrected": False,
+    "AttenuationCorrection": "n/a",
+    "AcquisitionMode": "list mode",
+    "ImageDecayCorrectionTime": 0,
+    "ScatterCorrectionMethod": "Gaussian Fit",
+    "ScanStart": 0
+    }
+
+dcm2niix4pet = Dcm2niix4PET(
+    image_folder='SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans', 
+    destination_path='DESTINATION/sub-GeneralElectricAdvanceNIMH/pet',
+    additional_arguments=kwargs)
+
+```
+
+Arguments supplied to kwargs should correspond directly to the following datatypes (which as chance would have it are 
+all acceptable BIDS types, json serializable too!):
+- [int](https://docs.python.org/3/library/functions.html?highlight=int#int)
+- [float](https://docs.python.org/3/library/functions.html?highlight=float#float)
+- [list](https://docs.python.org/3/library/stdtypes.html#list)
+- [string](https://docs.python.org/3/library/stdtypes.html#str)
+
+Any argument supplied that falls outside of scope of the above types will be parsed as a string if possible or it will
+return an error if the syntax of the argument pair is expressed incorrectly e.g. `KeyPair = 3` or `KeyPairList=[1,`
+
+
+
 ### Converting Dicoms to Nifti
 
 ```bash
