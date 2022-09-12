@@ -39,9 +39,30 @@ or overwriting errant info recorded or used elsewhere. In the example below the 
 `kwargs`:
 
 ```bash
-dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans --destination-path $DESTINATION/sub-GeneralElectricAdvanceNIMH/pet 
---kwargs TimeZero="13:39:41" BodyPart="Phantom" SpecificRadioactivity=418713.8 ReconMethodParameterValues="[1, 1]" \
-ImageDecayCorrected='false' AttenuationCorrection='n/a' AcquisitionMode='list mode' ScanStart="0"
+# full example below; input is wrapped with \ for readability on screen
+dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans \ 
+--destination-path $DESTINATION/sub-GeneralElectricAdvanceNIMH/pet \
+--kwargs \
+TimeZero="13:39:41" \
+Manufacturer="GE MEDICAL SYSTEMS" \
+ManufacturersModelName="GE Advance" \
+InstitutionName="NIH Clinical Center, USA" \
+BodyPart="Phantom" \
+Units="Bq/mL" \
+TracerName="FDG" \
+TracerRadionuclide="F18" \
+InjectedRadioactivity=75.8500 \
+InjectionStart=0 \
+SpecificRadioactivity=418713.8 \
+ModeOfAdministration="infusion" \
+FrameTimesStart="[0]" \
+ReconMethodParameterValues="[1, 1]" \
+ImageDecayCorrected='false' \
+AttenuationCorrection='n/a' \
+AcquisitionMode='list mode' \
+ImageDecayCorrectionTime="0" \
+ScatterCorrectionMethod="Gaussian Fit" \
+ScanStart="0"
 ```
 
 And when calling directly from python:
@@ -49,12 +70,24 @@ And when calling directly from python:
 ```python
 kwargs = {
     "TimeZero": "13:39:41",
-    "BodyPart":"Phantom",
-    "SpecificRadioactivity": 418713.8, 
-    "ReconMethodParameterValues": [1, 1],
-    "ImageDecayCorrected": False, 
-    "AttenuationCorrection": 'n/a',
-    "AcquisitionMode":"list mode", 
+    "Manufacturer": "GE MEDICAL SYSTEMS",
+    "ManufacturersModelName": "GE Advance",
+    "InstitutionName": "NIH Clinical Center, USA",
+    "BodyPart": "Phantom",
+    "Units": "Bq/mL",
+    "TracerName": "FDG", 
+    "TracerRadionuclide": "F18",
+    "InjectedRadioactivity": 75.8500,
+    "InjectionStart": 0,
+    "SpecificRadioactivity": 418713.8,
+    "ModeOfAdministration": "infusion",
+    "FrameTimesStart": [0],
+    "ReconMethodParameterValues":[1, 1],
+    "ImageDecayCorrected": False,
+    "AttenuationCorrection": "n/a",
+    "AcquisitionMode": "list mode",
+    "ImageDecayCorrectionTime": 0,
+    "ScatterCorrectionMethod": "Gaussian Fit",
     "ScanStart": 0
     }
 
