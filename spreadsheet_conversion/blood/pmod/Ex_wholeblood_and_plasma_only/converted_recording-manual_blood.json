@@ -1,0 +1,16 @@
+{
+  "WholeBloodAvail": "true",
+  "MetaboliteAvail": "true",
+  "time": {
+    "Description": "Time in relation to time zero defined by the _pet.json",
+    "Units": "s"
+  },
+  "whole_blood_radioactivity": {
+    "Description": "Radioactivity in whole blood samples. Measured using COBRA counter.",
+    "Units": "kBq/mL"
+  },
+  "metabolite_parent_fraction": {
+    "Description": "Parent fraction of the radiotracer",
+    "Units": "arbitrary"
+  }
+}
