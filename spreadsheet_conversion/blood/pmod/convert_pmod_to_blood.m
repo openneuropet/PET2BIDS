@@ -14,23 +14,24 @@ function convert_pmod_to_blood(varargin)
 % ParentFraction: free unchanged tracer from plasma (ie 'after' interacting
 %                 with tissue) relative to total blood - this is the input to the brain
 %
-% FORMAT convert_pmod_to_blood(filesin,'type','both',addjson,'off')
-%        convert_pmod_to_blood(filesin,'type','both','outputname','name','jsonkey', 'jsonvalue')
+% :format: - convert_pmod_to_blood(filesin,'type','both',addjson,'off')
+%          - convert_pmod_to_blood(filesin,'type','both','outputname','name','jsonkey', 'jsonvalue')
 %
-% INPUT if no input is provided, a GUI pops up
+% :param FileListIn: if no input is provided, a GUI pops up
 %       filesin a cell array of files e.g. ParentFraction,Wholeblood, Plasma pmod files
 %       ParentFraction and Wholeblood files must be present, Plasma is optional
 %       'type' should be 'manual' 'autosampler' or 'both' to indicate the way data were collected
 %              (file time stamp should be enough to figure out which is which)
-%       optional
-%       'outputname' for the base name of file(s) to export
-%       'addjson' to turn off the creation of the side json file ('on' by default)
-%       any key and value pairs to go in the blood json file
+% :param option: 'outputname' for the base name of file(s) to export
+%                'addjson' to turn off the creation of the side json file ('on' by default)
+%                any key and value pairs to go in the blood json file
 %
-% OUTPUT tsv files files for BIDS
+% :returns FileListOut: tsv files files for BIDS
 %        if 'addjson' is 'on' (default), also creates an associated json file
 %
-% Examples: 
+% .. code-block::
+%
+%    Examples: 
 %             file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
 %             file2 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'plasma_pmodexample.bld');
 %             file3 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'wholeblood_pmodexample.bld');
@@ -42,7 +43,11 @@ function convert_pmod_to_blood(varargin)
 %                 'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
 %                 'DispersionCorrected','false');
 %
-% Cyril Pernet - NRU
+% .. note::
+%
+%    Cyril Pernet - NRU
+%    ----------------------------
+%    Copyright Open NeuroPET team
 
 %% PET BIDS parameters
 jsoncheck = contains(varargin,'json','IgnoreCase',true);
@@ -185,7 +190,7 @@ if exist('Plasma','var')
 end
 
 % check time information across files
-% if all manaul or autosampler, it make sense to have the same time points
+% if all manual or autosampler, it make sense to have the same time points
 if ~strcmpi(type,'both')
     if length(PFtime) ~= length(WBtime) || ~all(PFtime == WBtime)
         error('ParentActivity and Whole blood have different time values - this seems impossible')
