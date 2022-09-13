@@ -4,6 +4,8 @@ PMOD is a popular software for kinetic modeling requiring blood data to be impor
 
 _Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains information indicating what the columns are. 
 
+_Reminder_ *Wholeblood* is the overall blood radioactivity *Plasma* is the overall radioactivity in the plasma (i.e. blood minus red cells) *ParentFraction* is the free unchanged tracer from plasma relative to whole blood
+
 ## Input files with user prompt
 
 Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files. Because no other information is provided, it will create the json file along with some warning messages since this will not be BIDS compliant.
