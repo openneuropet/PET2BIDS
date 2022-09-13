@@ -4,22 +4,25 @@ function convert_metadata_spreadsheets(varargin)
 % & subjects_metadata_template.xlsx - works creating file for many subjects
 % (see also scanner_metadata_example.xlsx & subjects_metadata_example.xlsx) 
 %
-% FORMAT convert_metadata_spreadsheets(scanner_metadata_file,subjects_metadata_file,outputname)
+% :format: convert_metadata_spreadsheets(scanner_metadata_file,subjects_metadata_file,outputname)
 %
-% INPUT if no input is provided, a GUI pops up
+% :param FileListIn: if no input is provided, a GUI pops up
 %       scanner_metadata_file is the .xlsx; .ods; .xls file to convert corresponding to scanner info (same for all subjects)
 %       subjects_metadata_file is the .xlsx; .ods; .xls file to convert corresponding to subject info (different for all subjects)
 %       outputname (optional) is the name of the json file out (with or without full path)
 %
-% OUTPUT json files for BIDS
+% :returns FileListOut: json files for BIDS
 %
-% NOTE: no specific fields are expected in each spreadsheet, except that
-% together they provide valid BIDS key and values (+ a participant_id - see
-% README.mkd). This means that while the example shows how a single scanner 
-% file is used with a set of parameters, such information could change across 
-% subjects and be moved in the subject spreadsheet.
+% .. note::
+%    no specific fields are expected in each spreadsheet, except that
+%    together they provide valid BIDS key and values (+ a participant_id - see
+%    README.mkd). This means that while the example shows how a single scanner 
+%    file is used with a set of parameters, such information could change across 
+%    subjects and be moved in the subject spreadsheet.
 % 
-% Cyril Pernet - NRU
+%    Cyril Pernet - NRU
+%    ----------------------------
+%    Copyright Open NeuroPET team
 
 %% PET BIDS parameters
 current    = which('convert_metadata_spreadsheets.m');
