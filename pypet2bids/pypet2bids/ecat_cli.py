@@ -1,4 +1,5 @@
 import argparse
+import ast
 import os
 import pathlib
 import sys
@@ -79,6 +80,18 @@ def main():
         # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
         if scanner_params and cli_args.kwargs:
             for variable_name, value in cli_args.kwargs.items():
+                try:
+                    value = ast.literal_eval(value)
+                except ValueError:
+                    if str(value).lower() == 'none':
+                        value = None
+                    elif str(value).lower() == 'true':
+                        value = True
+                    elif str(value).lower() == 'false':
+                        value = False
+                    else:
+                        value = str(value)
+
                 cli_args.scannerparams[variable_name] = value
             # update cli.kwargs
             cli_args.kwargs = cli_args.scannerparams

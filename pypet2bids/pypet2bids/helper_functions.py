@@ -205,9 +205,26 @@ class ParseKwargs(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, dict())
         for value in values:
-            key, value = value.split('=')
-            getattr(namespace, self.dest)[key] = value
+            try:
+                key, value = value.split('=')
+                getattr(namespace, self.dest)[key] = very_tolerant_literal_eval(value)
+            except ValueError:
+                raise Exception(f"Unable to unpack {value}")
 
+
+def very_tolerant_literal_eval(value):
+    try:
+        value = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        if str(value).lower() == 'none':
+            value = None
+        elif str(value).lower() == 'true':
+            value = True
+        elif str(value).lower() == 'false':
+            value = False
+        else:
+            value = str(value)
+    return value
 
 def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
     """
@@ -451,3 +468,88 @@ def transform_row_to_dict(row: typing.Union[int, str, pandas.Series], dataframe:
         transformed[key] = evaluated
 
     return transformed
+
+
+# noinspection PyPep8Naming
+def get_recon_method(ReconstructionMethodString: str) -> dict:
+    """
+    Given the reconstruction method from a dicom header this function does its best to determine the name of the
+    reconstruction, the number of iterations used in the reconstruction, and the number of subsets in the
+    reconstruction.
+
+    :param ReconstructionMethodString:
+    :return: dictionary containing PET BIDS fields ReconMethodName, ReconMethodParameterUnits,
+        ReconMethodParameterLabels, and ReconMethodParameterValues
+
+    """
+    contents = ReconstructionMethodString.replace(' ', '')
+    subsets = None
+    iterations = None
+    ReconMethodParameterUnits = ["none", "none"]
+    ReconMethodParameterLabels = ["subsets", "iterations"]
+
+    # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
+    iter_sub_combos = {
+        'iter_first': [r'\d\di\ds', r'\d\di\d\ds', r'\di\ds', r'\di\d\ds',
+                       r'i\d\ds\d', r'i\d\ds\d\d', r'i\ds\d', r'i\ds\d\d'],
+        'sub_first': [r'\d\ds\di', r'\d\ds\d\di', r'\ds\di', r'\ds\d\di',
+                      r's\d\di\d', r's\d\di\d\d', r's\di\d', r's\di\d\d'],
+    }
+
+    iter_sub_combos['iter_first'] = [re.compile(regex) for regex in iter_sub_combos['iter_first']]
+    iter_sub_combos['sub_first'] = [re.compile(regex) for regex in iter_sub_combos['sub_first']]
+    order = None
+    possible_iter_sub_strings = []
+    iteration_subset_string = None
+    # run through possible combinations of iteration substitution strings in iter_sub_combos
+    for key, value in iter_sub_combos.items():
+        for expression in value:
+            iteration_subset_string = expression.search(contents)
+            if iteration_subset_string:
+                order = key
+                iteration_subset_string = iteration_subset_string[0]
+                possible_iter_sub_strings.append(iteration_subset_string)
+    # if matches get ready to pick one
+    if possible_iter_sub_strings:
+        # sorting matches by string length as our method can return more than one match e.g. 3i21s will return
+        # 3i21s and 3i1s or something similar
+        possible_iter_sub_strings.sort(key=len)
+        # picking the longest match as it's most likely the correct one
+        iteration_subset_string = possible_iter_sub_strings[-1]
+
+    # after we've captured the subsets and iterations we next need to separate them out from each other
+    if iteration_subset_string and order:
+        #  remove all chars replace with spaces
+        just_digits = re.sub(r'[a-zA-Z]', " ", iteration_subset_string)
+        just_digits = just_digits.strip()
+        # split up subsets and iterations
+        just_digits = just_digits.split(" ")
+        # assign digits to either subsets or iterations based on order information obtained earlier
+        if order == 'iter_first' and len(just_digits) == 2:
+            iterations = int(just_digits[0])
+            subsets = int(just_digits[1])
+        elif len(just_digits) == 2:
+            iterations = int(just_digits[1])
+            subsets = int(just_digits[0])
+        else:
+            # if we don't have both we decide that we don't have either, flawed but works for the samples in
+            # test_dcm2niix4pet.py may. Will be updated when non-conforming data is obtained
+            pass  # do nothing, this case shouldn't fire.....
+
+    if iteration_subset_string:
+        ReconMethodName = re.sub(iteration_subset_string, "", contents)
+    else:
+        ReconMethodName = contents
+
+    # cleaning up weird chars at end or start of name
+    ReconMethodName = re.sub(r'[^a-zA-Z0-9]$', "", ReconMethodName)
+    ReconMethodName = re.sub(r'^[^a-zA-Z0-9]', "", ReconMethodName)
+
+    # get everything in front of \d\di or \di or \d\ds or \ds
+
+    return {
+        "ReconMethodName": ReconMethodName,
+        "ReconMethodParameterUnits": ReconMethodParameterUnits,
+        "ReconMethodParameterLabels": ReconMethodParameterLabels,
+        "ReconMethodParameterValues": [subsets, iterations]
+    }

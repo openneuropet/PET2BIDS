@@ -37,6 +37,10 @@ def ecat2nii(ecat_main_header=None,
         nifti_file = os.path.splitext(ecat_file)[0] + ".nii"
     else:
         nifti_file = nifti_file
+
+    if not pathlib.Path(nifti_file).parent.exists():
+        pathlib.Path(nifti_file).parent.mkdir(parents=True, exist_ok=True)
+
     # collect the output folder from the nifti path will use for .sif files
     output_folder = pathlib.Path(nifti_file).parent
     nifti_file_w_out_extension = os.path.splitext(str(pathlib.Path(nifti_file).name))[0]
