@@ -37,8 +37,12 @@ for f=1:length(rootfields)
                     else
                         disp('deep recursion')
                         tmp = extractfrom.Item_1.(subfields{fieldindex});
-                        if isfield(tmp,'Item_1') % because we can have empty struct
-                            extractfrom = flattenstruct(extractfrom.Item_1.(subfields{fieldindex}).Item_1);
+                        if isfield(tmp,'Item_1')  % because we can have empty struct
+                            if ~isempty(tmp.Item_1)
+                                extractfrom = flattenstruct(extractfrom.Item_1.(subfields{fieldindex}).Item_1);
+                            else
+                                done = 1;
+                            end
                         else
                             fieldindex  = fieldindex  + 1;
                             if fieldindex == length(subfields)+1
