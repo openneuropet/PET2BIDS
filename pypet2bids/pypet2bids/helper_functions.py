@@ -194,6 +194,15 @@ def get_version():
     return version
 
 
+def is_numeric(check_this_object: str) -> bool:
+    try:
+        converted_to_num = ast.literal_eval(check_this_object)
+        numeric_types = [int, float, pandas.NA]
+        if type(converted_to_num) in numeric_types:
+            return True
+    except (ValueError, TypeError):
+        return False
+
 class ParseKwargs(argparse.Action):
     """
     Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.

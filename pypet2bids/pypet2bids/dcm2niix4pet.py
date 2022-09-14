@@ -6,7 +6,7 @@ import csv
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-from pypet2bids.helper_functions import get_recon_method
+from pypet2bids.helper_functions import get_recon_method, is_numeric
 import subprocess
 import pandas as pd
 from os.path import join
@@ -739,7 +739,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMass'] = InjectedMass
         data_out['InjectedMassUnits'] = 'ug'
         # check for strings where there shouldn't be strings
-        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -760,7 +760,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedRadioactivityUnits'] = 'MBq'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(SpecificRadioactivity).isnumeric()]
+        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(SpecificRadioactivity))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -781,7 +781,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMassUnits'] = 'ug'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedRadioactivity'] = 'n/a'
             data_out['InjectedRadioactivityUnits'] = 'n/a'
@@ -802,7 +802,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['MolarActivityUnits'] = 'GBq/umol'
         data_out['MolecularWeight'] = MolecularWeight
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [str(MolarActivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        numeric_check = [is_numeric(str(MolarActivity)), is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['SpecificRadioactivity'] = 'n/a'
             data_out['SpecificRadioactivityUnits'] = 'n/a'
@@ -846,7 +846,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
         data_out['MolecularWeight'] = MolarActivity
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['MolarActivity'] = 'n/a'
             data_out['MolarActivityUnits'] = 'n/a'
@@ -915,6 +915,17 @@ def get_radionuclide(pydicom_dicom):
     return radionuclide
 
 
+epilog = textwrap.dedent('''
+    
+    example usage:
+    
+    dcm2niix4pet folder_with_pet_dicoms/ --destinationp-path sub-ValidBidSSubject/pet # the simplest conversion
+    dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
+    # use with an input spreadsheet
+    
+''')
+
+
 def cli():
     """
     Collects arguments used to initiate a Dcm2niix4PET class, collects the following arguments from the user.
@@ -925,7 +936,7 @@ def cli():
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
     parser.add_argument('folder', nargs='?', type=str, default=os.getcwd(),
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
