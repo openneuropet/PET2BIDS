@@ -12,13 +12,27 @@ from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
 simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
 """
 
+epilog = textwrap.dedent('''
+    
+    example usage:
+    
+    ecatpet2bids ecatfile.v --dump # dumps ecat header information
+    ecatpet2bids ecatfile.v --json # dumps header and subheader information to stdout
+    ecatpet2bids ecatfile.v --nifti sub-01_ses-example_pet.nii --convert --kwargs TimeZero="12:34:56" # convert to nii
+    ecatpet2bids ecatfile.v --scannerparams ge_parameters.txt --nifti sub-01_pet.nii --convert # load scanner specific \
+params
+    
+    For additional (highly verbose) example usage call this program with the --show-examples flag.
+''')
+
+
 def cli():
     """
     Builds an argparse.ArgumentParser() object to access the methods available in the Ecat class in pypet2bids.ecat.ECAT
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,epilog=epilog)
     parser.add_argument("ecat", nargs='?', metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
     parser.add_argument("--convert", "-c", required=False, action='store_true',
