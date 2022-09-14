@@ -11,6 +11,17 @@ from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
 from pypet2bids.helper_functions import get_recon_method
 
+"""
+This function does?
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
 
 def parse_this_date(date_like_object) -> str:
     """

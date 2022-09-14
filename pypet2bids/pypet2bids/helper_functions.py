@@ -24,6 +24,17 @@ metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
+"""
+This function does?
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:

@@ -9,7 +9,16 @@ from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
 
 """
 simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
 """
+
 
 def cli():
     """

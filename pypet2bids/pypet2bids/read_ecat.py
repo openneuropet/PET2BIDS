@@ -12,6 +12,18 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
 
+"""
+This program read an ecat files (*.v) 
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
+
 # collect ecat header maps, this program will not work without these as ECAT data varies in the byte location of its
 # data depending on the version of ECAT it was formatted with.
 try:
