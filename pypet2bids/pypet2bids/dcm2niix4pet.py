@@ -1,5 +1,6 @@
 import os
 import sys
+import textwrap
 import warnings
 import csv
 
@@ -925,7 +926,7 @@ def cli():
     :return: arguments collected from argument parser
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('folder', type=str, default=os.getcwd(),
+    parser.add_argument('folder', nargs='?', type=str, default=os.getcwd(),
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
                         help="Path to metadata file for scan")
@@ -933,20 +934,139 @@ def cli():
                         help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +
                              " compliant text files (tsv and json)")
     parser.add_argument('--destination-path', '-d', type=str, default=None,
-                        help="Destination path to send converted imaging and metadata files to. If " +
+                        help="Destination path to send converted imaging and metadata files to. If subject id and "
+                             "session id is included in the path files created by dcm2niix4pet will be named as such. "
+                             "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If " +
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
-                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
+                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
+                             "Note: the value portion of the argument (right side of the equal's sign) should always"
+                             "be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
     parser.add_argument('--silent', '-s', type=bool, default=False, help="Display missing metadata warnings and errors"
                                                                          "to stdout/stderr")
+    parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
+                        action='store_true')
 
     args = parser.parse_args()
 
     return args
+
+
+example1 = textwrap.dedent('''
+
+Usage examples are below, the first being the most brutish way of making dcm2niix4pet to pass through the
+BIDS validator (with no errors, removing all warnings is left to the user as an exercise) see:
+
+example 1 (Passing PET metadata via the --kwargs argument): 
+    
+    # Note `#` denotes a comment
+    # dcm2niix4pet is called with the following arguments
+    
+    # folder -> GeneralElectricSignaPETMR-NIMH/
+    # destination-path -> sub-GeneralElectricSignaPETMRINIMH/pet
+    # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
+
+    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet 
+    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR" 
+    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate" 
+    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75 
+    ModeOfAdministration="infusion" FrameTimesStart=0 
+    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0 
+    ReconMethodParameterValues="[1, 1]" ReconFilterType="n/a" ReconFilterSize=1
+
+    # The output of the above command (given some GE phantoms from the NIMH) can be seen below with tree
+    
+    tree sub-GeneralElectricSignaPETMRNIMH 
+    sub-GeneralElectricSignaPETMRNIMH
+    └── pet
+        ├── sub-GeneralElectricSignaPETMRNIMH_pet.json
+        └── sub-GeneralElectricSignaPETMRNIMH_pet.nii.gz
+
+    # Further, when we examine the json output file we can see that all of our metadata supplied via kwargs was written
+    # into the sidecar json 
+    
+    cat sub-GeneralElectricSignalPETMRNIMH/pet/sub-GeneralElectricSignaPETMRNIMH_pet.json
+    {
+        "Modality": "PT",
+        "Manufacturer": "GE MEDICAL SYSTEMS",
+        "ManufacturersModelName": "SIGNA PET/MR",
+        "InstitutionName": "NIH Clinical Center, USA",
+        "StationName": "PETMR",
+        "PatientPosition": "HFS",
+        "SoftwareVersions": "61.00",
+        "SeriesDescription": "PET Scan for VQC Verification",
+        "ProtocolName": "PET Scan for VQC Verification",
+        "ImageType": [
+            "ORIGINAL",
+            "PRIMARY"
+        ],
+        "SeriesNumber": 2,
+        "Radiopharmaceutical": "Germanium",
+        "RadionuclidePositronFraction": 0.891,
+        "RadionuclideHalfLife": 23410100.0,
+        "Units": "Bq/mL",
+        "DecayCorrection": "NONE",
+        "AttenuationCorrectionMethod": "NONE, 0.000000 cm-1,",
+        "SliceThickness": 2.78,
+        "ImageOrientationPatientDICOM": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0
+        ],
+        "ConversionSoftware": [
+            "dcm2niix",
+            "pypet2bids"
+        ],
+        "ConversionSoftwareVersion": [
+            "v1.0.20220720",
+            "1.0.2"
+        ],
+        "FrameDuration": [
+            98000
+        ],
+        "ReconMethodName": "VPFX",
+        "ReconMethodParameterUnits": [
+            "none",
+            "none"
+        ],
+        "ReconMethodParameterLabels": [
+            "subsets",
+            "iterations"
+        ],
+        "ReconMethodParameterValues": [
+            1,
+            1
+        ],
+        "AttenuationCorrection": "NONE, 0.000000 cm-1,",
+        "TimeZero": "14:08:45",
+        "ScanStart": 0,
+        "InjectionStart": 0,
+        "TracerRadionuclide": "Germanium68",
+        "BodyPart": "Phantom",
+        "TracerName": "Gallium citrate",
+        "InjectedRadioactivity": 1,
+        "SpecificRadioactivity": 23423.75,
+        "ModeOfAdministration": "infusion",
+        "FrameTimesStart": [
+            0
+        ],
+        "AcquisitionMode": "list mode",
+        "ImageDecayCorrected": false,
+        "ImageDecayCorrectionTime": 0,
+        "ReconFilterType": "n/a",
+        "ReconFilterSize": 1,
+        "InjectedRadioactivityUnits": "MBq",
+        "SpecificRadioactivityUnits": "Bq/g",
+        "InjectedMass": "n/a",
+        "InjectedMassUnits": "n/a"
+        }''')
 
 
 def main():
@@ -959,16 +1079,19 @@ def main():
     # collect args
     cli_args = cli()
 
-    # instantiate class
-    converter = Dcm2niix4PET(
-        image_folder=expand_path(cli_args.folder),
-        destination_path=expand_path(cli_args.destination_path),
-        metadata_path=expand_path(cli_args.metadata_path),
-        metadata_translation_script=expand_path(cli_args.translation_script_path),
-        additional_arguments=cli_args.kwargs,
-        silent=cli_args.silent)
+    if cli_args.show_examples:
+        print(example1)
+    else:
+        # instantiate class
+        converter = Dcm2niix4PET(
+            image_folder=expand_path(cli_args.folder),
+            destination_path=expand_path(cli_args.destination_path),
+            metadata_path=expand_path(cli_args.metadata_path),
+            metadata_translation_script=expand_path(cli_args.translation_script_path),
+            additional_arguments=cli_args.kwargs,
+            silent=cli_args.silent)
 
-    converter.convert()
+        converter.convert()
 
 
 if __name__ == '__main__':
