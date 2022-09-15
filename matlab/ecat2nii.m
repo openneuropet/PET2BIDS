@@ -263,7 +263,7 @@ for j=1:length(FileListIn)
         % Time stuff, time zero is kinda required [] or 'ScanStart' or actual value
         if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
             offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
-            info.TimeZero                     = datestr((datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset),'hh.mm.ss');
+            info.TimeZero                     = datestr((datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset),'hh:mm:ss');
             if offset ~=0
                 warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
             end
