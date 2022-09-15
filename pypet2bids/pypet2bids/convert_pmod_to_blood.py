@@ -9,6 +9,20 @@ import ast
 from pathlib import Path
 from os.path import join
 
+
+"""
+this function does
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
+
+
 from pypet2bids.helper_functions import ParseKwargs, collect_bids_part
 
 epilog = textwrap.dedent('''

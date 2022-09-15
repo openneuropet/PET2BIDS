@@ -17,6 +17,18 @@ from pathlib import Path
 import shutil
 from argparse import ArgumentParser
 
+"""
+this fuinction does
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
+
 class Convert:
     """
     This class is an all in one dicom to bids converter that uses dcm2niix to convert images and then post conversion

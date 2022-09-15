@@ -17,6 +17,8 @@ def read_multi_subject_spreadsheets(
     Reads in two spreadsheets as formatted in PET2BIDS/spreadsheet_conversion/many_subject_sheets,
     generic (scanner or subject independent data is supplied via the first argument and subject
     specific data is suppiled via the second argument.
+
+    :format:
     :param general_metadata_spreadsheet: path to a metadatspread sheet containing bids fields as columns
     with values below
     :type general_metadata_spreadsheet: file path
@@ -29,7 +31,12 @@ def read_multi_subject_spreadsheets(
     :return: dictionary of subject data extracted from each spreadsheet along with any additional
     kwargs supplied
     :rtype: dict
+    
+    Anthony Galassi
+    -----------------------------
+    Copyright Open NeuroPET team
     """
+
     required_fields = load_pet_bids_requirements_json()
 
     if general_metadata_spreadsheet.is_file() and multiple_subject_spreadsheet.is_file():

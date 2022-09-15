@@ -23,14 +23,22 @@ import argparse
 import importlib
 
 
-
 """
 This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
 bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
 optionally, this module can collect blood or physiological data/metadata from spreadsheet files if the path of that
 spreadsheet file as well as a python module/script written to interpret it are provided in addition to relevant dcm2niix
 commands.
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
 """
+
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()

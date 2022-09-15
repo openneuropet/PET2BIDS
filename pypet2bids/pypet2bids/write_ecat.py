@@ -1,33 +1,17 @@
-import struct
-from math import ceil, floor
-from pypet2bids.read_ecat import  ecat_header_maps, get_buffer_size
-import numpy
-from pathlib import Path
-
 """
 This program will create an ecat file if provided an ecat schema and a dictionary of values to populate that schema
 with.
 
-# First this program collects the same schemas that read_ecat.py does,
+:format:
+:param:
+:return:
 
-from read_ecat import ecat_header_maps
-
-# next this program selects one of the header maps as speficified by some input e.g. if given:
-
-ecat7.3
-
-# it would select the standard image matrix at:
-
-ecat_header_maps['ecat_headers']['73']['mainheader'] 
-
-# and  the subheader map at: 
-
-ecat_header_maps['ecat_headers']['73']['11'] 
-
-# or whatever number is corresponding to the type
-# of ecat header you wish to write. Perhaps these should belong in a reverse sort of dictionary
-
-# going to need to create the directory byte block(s) for an ecat. Basically, reverse the process of reading the 
+First this program collects the same schemas that read_ecat.py does, from read_ecat import ecat_header_maps. 
+Next this program selects one of the header maps as speficified by some input e.g. if given: ecat7.3 it would 
+select the standard image matrix at: ecat_header_maps['ecat_headers']['73']['mainheader'] 
+and the subheader map at: ecat_header_maps['ecat_headers']['73']['11'] or whatever number is corresponding to 
+the type of ecat header you wish to write. Perhaps these should belong in a reverse sort of dictionary going to
+need to create the directory byte block(s) for an ecat. Basically, reverse the process of reading the 
 directory in lines 227 through 257 in ecat_read. 
     
     determine the number of frames in the image/pixel data
@@ -38,11 +22,19 @@ directory in lines 227 through 257 in ecat_read.
     table.
     final output should be a bytes: 1024 type object.
     
-# after generating the table you should then be able to write the main header, write the directory table,
+After generating the table you should then be able to write the main header, write the directory table,
 then write each subheader and corresponding pixel data
 
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
 """
 
+import struct
+from math import ceil, floor
+from pypet2bids.read_ecat import  ecat_header_maps, get_buffer_size
+import numpy
+from pathlib import Path
 
 def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int = 0, seek: bool = False):
     """
