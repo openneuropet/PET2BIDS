@@ -553,13 +553,16 @@ class Dcm2niix4PET:
                             sidecar_json.remove('ConvolutionKernel')
 
                     # check the input args again as our logic get's applied after parsing user inputs
-                    recon_filter_user_input = {
-                        'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
-                        'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
-                    }
-                    for key, value in recon_filter_user_input.items():
-                        if value:
-                            sidecar_json.update({key: value})
+                    if self.additional_arguments:
+                        recon_filter_user_input = {
+                            'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
+                            'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
+                        }
+                        for key, value in recon_filter_user_input.items():
+                            if value:
+                                sidecar_json.update({key: value})
+                    else:
+                        pass
 
                     # tag json with additional conversion software
                     conversion_software = sidecar_json.get('ConversionSoftware')

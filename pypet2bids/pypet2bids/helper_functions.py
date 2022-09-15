@@ -62,7 +62,7 @@ def single_spreadsheet_reader(
         path_to_spreadsheet: Union[str, pathlib.Path],
         pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
         metadata={},
-        **kwargs):
+        **kwargs) -> dict:
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -163,8 +163,8 @@ def load_vars_from_config(path_to_config: str):
 
     for parameter, value in parameters.items():
         try:
-            parameters[parameter] = ast.literal_eval(value)
-        except ValueError:
+            parameters[parameter] = very_tolerant_literal_eval(value)
+        except (ValueError, SyntaxError):
             parameters[parameter] = str(value)
 
     return parameters

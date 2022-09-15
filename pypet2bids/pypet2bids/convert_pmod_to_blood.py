@@ -28,7 +28,52 @@ Additonal arguments/fields are passed via the kwargs flag in key value pairs.
 
 Note: lines prepended with # denote comments/notes where as lines without # denote data or input arguments
 
-example 1 (passing the bare minimum): 
+example 1 (passing the bare minimum):
+    
+    # running the following
+    convert-pmod-to-blood -whole whole_blood.bld -parent plasma_parent.bld
+    # will result in outputting a tsv like the following:
+    
+    time	whole_blood_radioactivity	metabolite_parent_fraction
+    25.2	0.000885	0.000874
+    43.2	0.0192	0.00603
+    51	0.92	1.38
+    63	18.34858412	26.44553306
+    90	51.96910035	73.40036984
+    109.2	59.02807247	83.01412114
+    130.8	74.9568219	106.0071338
+    148.2	88.02307965	124.3830225
+    171	86.93918061	120.924026
+    189	47.18244008	65.42298506
+    214.8	28.06571066	38.95386252
+    319.2	10.22288119	14.11052535
+    613.8	6.586049482	7.581724865
+    919.2	7.448797008	5.784621668
+    1810.2	6.49534108	4.294965789
+    2719.2	5.373595253	2.836715768
+    3607.2	4.798934663	2.48197381
+    5419.8	3.898890497	2.05348682
+    7207.2	3.772252717	1.77176473
+    
+    # and a json data dictionary as well
+    {
+      "WholeBloodAvail": "true",
+      "MetaboliteAvail": "true",
+      "time": {
+        "Description": "Time in relation to time zero defined by the _pet.json",
+        "Units": "s"
+      },
+      "whole_blood_radioactivity": {
+        "Description": "Radioactivity in whole blood samples. Measured using COBRA counter.",
+        "Units": "kBq/mL"
+      },
+      "metabolite_parent_fraction": {
+        "Description": "Parent fraction of the radiotracer",
+        "Units": "arbitrary"
+      }
+    }
+
+ 
 ''')
 
 
@@ -70,6 +115,13 @@ def cli():
         help="Output a json data dictionary along with tsv files (default True)",
         default=True,
         type=bool
+    )
+    parser.add_argument(
+        "--engine",
+        "-e",
+        help="Engine for loading PMOD files, see options for pandas.read_excel. Defaults to None.",
+        default='',
+        type=str
     )
     parser.add_argument(
         '--kwargs',
@@ -114,6 +166,7 @@ class PmodToBlood:
             plasma_activity: Path = None,
             output_path: Path = None,
             output_json: bool = False,
+            engine='',
             **kwargs):
 
         if kwargs:
@@ -129,6 +182,7 @@ class PmodToBlood:
             self.kwargs[key] = type_cast_cli_input(value)
 
         self.units = None
+        self.engine = engine
 
         # if given an output name run with that, otherwise we construct a name from the parent path the .bld files were 
         # found at.
@@ -158,12 +212,12 @@ class PmodToBlood:
         self.manually_sampled = []
 
         # whole blood and parent fraction are required, always attempt to load
-        self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity),
-                             'parent_fraction': self.load_pmod_file(parent_fraction)}
+        self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity, engine=self.engine),
+                             'parent_fraction': self.load_pmod_file(parent_fraction, engine=self.engine)}
 
         # plasma activity is not required, but is used if provided
         if plasma_activity:
-            self.blood_series['plasma_activity'] = self.load_pmod_file(plasma_activity)
+            self.blood_series['plasma_activity'] = self.load_pmod_file(plasma_activity, engine=self.engine)
 
         # one may encounter data collected manually and/or automatically, we vary our logic depending on the case
         self.data_collection = {}
@@ -187,9 +241,9 @@ class PmodToBlood:
             self.write_out_jsons()
 
     @staticmethod
-    def load_pmod_file(pmod_blood_file: Path):
+    def load_pmod_file(pmod_blood_file: Path, engine=''):
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
-            loaded_file = pd.read_excel(str(pmod_blood_file))
+            loaded_file = pd.read_excel(str(pmod_blood_file), engine=engine)
             return loaded_file
         else:
             raise FileNotFoundError(str(pmod_blood_file))
@@ -438,6 +492,7 @@ def main():
             plasma_activity=cli_args.plasma_activity_path,
             output_path=cli_args.output_path,
             output_json=cli_args.json,
+            engine=cli_args.engine,
             kwargs=cli_args.kwargs
         )
     else:
