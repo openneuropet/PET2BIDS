@@ -9,6 +9,19 @@ TESTS_DIR = pathlib.Path(__file__).resolve().parent
 PYPET2BIDS_DIR = TESTS_DIR.parent
 PET2BIDS_DIR = PYPET2BIDS_DIR.parent
 
+# obtain ecat file path
+ecat_file_path = PET2BIDS_DIR / 'ecat_validation' / 'ECAT7_multiframe.v.gz'
+dicom_source_folder = os.getenv('TEST_DICOM_IMAGE_FOLDER', None)
+if dicom_source_folder:
+    dicom_source_folder = pathlib.Path(dicom_source_folder)
+if not dicom_source_folder:
+    dicom_source_folder = PET2BIDS_DIR / 'OpenNeuroPET-Phantoms' / 'source' / 'SiemensBiographPETMR-NRU'
+if not dicom_source_folder.exists():
+    raise FileNotFoundError(dicom_source_folder)
+
+
+dcm2niix4pet = PYPET2BIDS_DIR / 'pypet2bids' / 'dcm2niix4pet.py'
+ecatpet2bids = PYPET2BIDS_DIR / 'pypet2bids' / 'ecat_cli.py'
 
 dataset_description_dictionary = {
   "_Comment": "This is a very basic example of a dataset description json",
@@ -177,7 +190,7 @@ def test_kwargs_produce_valid_conversion(tmp_path):
         json.dump(dataset_description_dictionary, outfile, indent=4)
 
     ecat_bids_nifti_path = ecat_bids_dir / "sub-ecat_ses-test_pet.nii"
-    convert_ecat_command = f"ecatpet2bids {ecat_file_path} --convert --nifti {ecat_bids_nifti_path} --kwargs {kwargs_string}"
+    convert_ecat_command = f"python {ecatpet2bids} {ecat_file_path} --convert --nifti {ecat_bids_nifti_path} --kwargs {kwargs_string}"
 
     convert_ecat = subprocess.run(convert_ecat_command, shell=True, capture_output=True)
 
@@ -204,7 +217,7 @@ def test_kwargs_produce_valid_conversion(tmp_path):
         json.dump(dataset_description_dictionary, outfile, indent=4)
 
     # pass parsed objects to dcm2niix4pet
-    convert_dicom_command = f"dcm2niix4pet {dicom_source_folder} --destination-path {destination_path} --kwargs {kwargs_string}"
+    convert_dicom_command = f"python {dcm2niix4pet} {dicom_source_folder} --destination-path {destination_path} --kwargs {kwargs_string}"
 
     convert_dicom = subprocess.run(convert_dicom_command, shell=True, capture_output=True)
 

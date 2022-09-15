@@ -6,7 +6,7 @@ import csv
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-from pypet2bids.helper_functions import get_recon_method, is_numeric
+from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
 import subprocess
 import pandas as pd
 from os.path import join
@@ -244,8 +244,6 @@ def update_json_with_dicom_value(
             pass
 
 
-
-
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
@@ -356,6 +354,8 @@ class Dcm2niix4PET:
 
         self.dicom_headers = self.extract_dicom_headers()
 
+        self.additional_arguments = additional_arguments
+
         self.spreadsheet_metadata = {}
         # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
         # spreadsheet
@@ -368,8 +368,12 @@ class Dcm2niix4PET:
                 self.extract_metadata()
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
+        elif metadata_path and not metadata_translation_script:
+            spread_sheet_values = single_spreadsheet_reader(metadata_path)
+            if not self.spreadsheet_metadata.get('nifti_json', None):
+                self.spreadsheet_metadata['nifti_json'] = {}
+            self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
 
-        self.additional_arguments = additional_arguments
         self.file_format = file_format
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files

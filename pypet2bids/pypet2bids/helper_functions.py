@@ -20,6 +20,9 @@ from typing import Union
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
+if 'PET2BIDS' not in project_dir.parts:
+    project_dir = parent_dir
+
 metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"

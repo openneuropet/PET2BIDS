@@ -149,25 +149,9 @@ def main():
 
         # if any additional non null values have been included in a scanner.txt include those in the sidecar,
         # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
-        if scanner_params and cli_args.kwargs:
-            for variable_name, value in cli_args.kwargs.items():
-                try:
-                    value = ast.literal_eval(value)
-                except ValueError:
-                    if str(value).lower() == 'none':
-                        value = None
-                    elif str(value).lower() == 'true':
-                        value = True
-                    elif str(value).lower() == 'false':
-                        value = False
-                    else:
-                        value = str(value)
-
-                cli_args.scannerparams[variable_name] = value
-            # update cli.kwargs
-            cli_args.kwargs = cli_args.scannerparams
-        else:
-            cli_args.kwargs = scanner_params
+        if scanner_params:
+            scanner_params.update(cli_args.kwargs)
+            cli_args.kwargs.update(scanner_params)
 
     ecat = Ecat(ecat_file=cli_args.ecat,
                 nifti_file=cli_args.nifti,
