@@ -2,6 +2,7 @@ function status = updatejsonpetfile(varargin)
 
 % generic function that updates PET json file with missing PET-BIDS
 % information, if only the jsonfile is provided, it only checks if valid
+% (and possibly updates some fields from scaler to array)
 %
 % :format: status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
@@ -23,7 +24,7 @@ function status = updatejsonpetfile(varargin)
 %    dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
 %    status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 %
-% Cyril Pernet 2021
+% Cyril Pernet 2022
 % ----------------------------
 % Copyright Open NeuroPET team
 
@@ -68,6 +69,13 @@ end
 
 %% check metadata and update them
 if nargin == 1
+    % --------- update arrays if needed ---------------
+    [filemetadata,updated] = update_arrays(filemetadata);
+    if updated
+        warning('some scalars were changed to array')
+        jsonwrite(jsonfilename,filemetadata)
+    end
+    
     % -------------- only check ---------------
     for m=length(petmetadata.mandatory):-1:1
         test(m) = isfield(filemetadata,petmetadata.mandatory{m});
@@ -92,10 +100,10 @@ else % -------------- update ---------------
     for f=1:length(addfields)
         filemetadata.(addfields{f}) = newfields.(addfields{f});
     end
-   
+       
     if isfield(filemetadata,'TimeZero')
         if strcmpi(filemetadata.TimeZero,'ScanStart') || isempty(filemetadata.TimeZero)
-            filemetadata.TimeZero   = filemetadata.AcquisitionTime;
+            filemetadata.TimeZero   = datetime(filemetadata.AcquisitionTime,'Format','hh:mm:ss');
             filemetadata.ScanStart  = 0;     
             
             if ~isfield(filemetadata,'InjectionStart')
@@ -118,7 +126,7 @@ else % -------------- update ---------------
         filemetadata.InjectionStart = 0;
     end
     filemetadata = dcm2bids_internal(filemetadata);
-    
+        
     % -------------------------------------------------------------
     % possible dcm fields to recover - this part is truly empirical
     % going over different dcm files and figuring out fields
@@ -208,14 +216,42 @@ else % -------------- update ---------------
     all_bids{length(all_bids)+1} = 'ScatterCorrectionMethod';
     all_bids{length(all_bids)+1} = 'RandomsCorrectionMethod';
     
+    if isfield(filemetadata,'ScanDate')
+        try
+            filemetadata.ScanDate = datetime(filemetadata.ScanDate,'Format','hh:mm:ss');
+            warning('metadata ScanDate is deprecated')
+        catch err
+            warning(err.identifier,'ScanDate is not converted %s - not big deal this field is deprecated',err.message)
+            filemetadata = rmfield(filemetadata,'ScanDate');
+        end
+    end
+    
+    % fix possible field formatting errors
+    if isfield(filemetadata,'ReconFilterSize')
+        if ischar(filemetadata.ReconFilterSize)
+            filemetadata.ReconFilterSize = str2double(filemetadata.ReconFilterSize);
+        end
+    end
+
+    if isfield(filemetadata,'ImageDecayCorrected')
+        if ischar(filemetadata.ImageDecayCorrected)
+            if strcmpi(filemetadata.ImageDecayCorrected,'true')
+                filemetadata.ImageDecayCorrected = true; % bolean
+            else
+                filemetadata.ImageDecayCorrected = false; 
+            end
+        end
+    end
+    filemetadata = update_arrays(filemetadata);
+
+    % clean-up
     fn_check = fieldnames(filemetadata);
     for f=1:size(fn_check,1)
         if ~contains(fn_check{f},all_bids) 
             filemetadata = rmfield(filemetadata,fn_check{f});
         end
     end
-    
-    
+           
     %% recursive call to check status
     % -----------------------------
     status = updatejsonpetfile(filemetadata);
@@ -235,7 +271,7 @@ if isfield(filemetadata,'Unit')
     filemetadata.Units = filemetadata.Unit;
     filemetadata       = rmfield(filemetadata,'Unit');
     if strcmpi(filemetadata.Units,'BQML')
-        filemetadata.Units = 'Bq/mL';
+        filemetadata.Units = "Bq/mL";
     end
 end
 
@@ -280,9 +316,9 @@ if exist('iteration','var') && exist('subset','var')
         filemetadata.ReconMethodParameterUnits      = ["none","none"];
         filemetadata.ReconMethodParameterValues     = [str2double(subset),str2double(iteration)];
     else % returns none if actually seen as empty by get_recon_method
-        filemetadata.ReconMethodParameterLabels     = "none";
+        filemetadata.ReconMethodParameterLabels     = "none";  
         filemetadata.ReconMethodParameterUnits      = "none";
-        filemetadata.ReconMethodParameterValues     = "none";
+        filemetadata.ReconMethodParameterValues     = "null";
     end
 end
 
@@ -316,3 +352,25 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     end
 end
 
+function [filemetadata,updated] = update_arrays(filemetadata)
+% hack a la Anthony making sure the validtor is happy 
+% make some scalar an array (i.e. a cell in matlab writen as array in json)
+
+updated = 0;
+shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
+    'ReconFilterSize','ScatterFraction','ReconMethodParameterLabels',...
+    'ReconMethodParameterUnits','ReconMethodParameterValues'};
+
+for f = 1:length(shouldBarray)
+    if isfield(filemetadata,shouldBarray{f})
+        if isscalar(filemetadata.(shouldBarray{f}))
+            filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+            updated = 1;
+        elseif all(size(filemetadata.(shouldBarray{f})) == 1)
+            if any(contains(filemetadata.(shouldBarray{f}),{'none','null'}))
+                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+                updated = 1;
+            end
+        end
+    end
+end
