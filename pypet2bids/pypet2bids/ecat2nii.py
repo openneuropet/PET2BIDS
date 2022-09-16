@@ -20,7 +20,6 @@ def ecat2nii(ecat_main_header=None,
     """
     Converts an ECAT file into a nifti and a sidecar json, used in conjunction with read_ecat from pypet2bids.read_ecat.
     
-    :format:
     :param ecat_main_header: the main header of an ECAT file
     :param ecat_subheaders: the subheaders for each frame of the ECAT file
     :param ecat_pixel_data: the imaging/pixel data from the ECAT file

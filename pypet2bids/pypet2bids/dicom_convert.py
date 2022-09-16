@@ -1,9 +1,18 @@
+"""
+this function does
+
+:format:
+:param:
+:return:
+
+:Authors: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import os.path
 import importlib.util
 import subprocess
 import pandas
 import pandas as pd
-import sys
 from os.path import isdir, isfile
 from os import listdir, walk, makedirs
 import pathlib
@@ -14,20 +23,8 @@ import platform
 from numpy import cumsum
 from tempfile import TemporaryDirectory
 from pathlib import Path
-import shutil
 from argparse import ArgumentParser
 
-"""
-this fuinction does
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 class Convert:
     """
