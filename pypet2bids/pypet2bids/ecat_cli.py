@@ -3,6 +3,7 @@ import ast
 import os
 import pathlib
 import sys
+import textwrap
 from os.path import join
 from pypet2bids.ecat import Ecat
 from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
@@ -20,14 +21,28 @@ Copyright Open NeuroPET team
 """
 
 
+epilog = textwrap.dedent('''
+    
+    example usage:
+    
+    ecatpet2bids ecatfile.v --dump # dumps ecat header information
+    ecatpet2bids ecatfile.v --json # dumps header and subheader information to stdout
+    ecatpet2bids ecatfile.v --nifti sub-01_ses-example_pet.nii --convert --kwargs TimeZero="12:34:56" # convert to nii
+    ecatpet2bids ecatfile.v --scannerparams ge_parameters.txt --nifti sub-01_pet.nii --convert # load scanner specific \
+params
+    
+    For additional (highly verbose) example usage call this program with the --show-examples flag.
+''')
+
+
 def cli():
     """
     Builds an argparse.ArgumentParser() object to access the methods available in the Ecat class in pypet2bids.ecat.ECAT
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("ecat", metavar="ecat_file", help="Ecat image to collect info from.")
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,epilog=epilog)
+    parser.add_argument("ecat", nargs='?', metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
     parser.add_argument("--convert", "-c", required=False, action='store_true',
                         help="If supplied will attempt conversion.")
@@ -52,8 +67,59 @@ def cli():
                              "called.")
     parser.add_argument("--directory_table", '-t', help="Collect table/array of ECAT frame byte location map",
                         action="store_true", default=False)
+    parser.add_argument('--show-examples', '-E', '--HELP', '-H', help='Shows example usage of this cli.',
+                        action='store_true')
+
     args = parser.parse_args()
     return args
+
+
+example1 = textwrap.dedent('''
+    
+Usage examples are below, the first being the most brutish way of injecting BIDS required fields
+into the output from ecatpet2bids. Additional arguments/fields are passed via the kwargs flag
+in key value pairs.
+
+example 1 (Passing PET metadat via the --kwargs argument):
+    
+    # Note `#` denotes a comment
+    
+    # ecatfile -> SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v  
+    # nifti -> sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii
+    # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
+
+    ecatpet2bids SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v 
+    --nifti sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii --convert 
+    --kwargs
+    TimeZero="10:10:10"
+    Manufacturer=Siemens
+    ManufacturersModelName=HRRT
+    InstitutionName="Rigshospitalet, NRU, DK"
+    BodyPart=Phantom Units="Bq/mL"
+    Manufacturer=Siemens
+    ManufacturersModelName=HRRT
+    InstitutionName="Rigshospitalet, NRU, DK"
+    BodyPart="Phantom"
+    Units="Bq/mL"
+    TracerName=FDG
+    TracerRadionuclide=F18
+    InjectedRadioactivity=81.24
+    SpecificRadioactivity="1.3019e+04"
+    ModeOfAdministration="infusion"
+    InjectedMass=1
+    InjectedMassUnits=grams
+    AcquisitionMode="list mode"
+    ImageDecayCorrected="True"
+    ImageDecayCorrectionTime=0
+    ReconFilterType="None"
+    ReconFilterSize=0
+    AttenuationCorrection="10-min transmission scan"
+    SpecificRadioactivityUnits="Bq"
+    ScanStart=0
+    InjectionStart=0
+    InjectedRadioactivityUnits="Bq"
+    ReconFilterType="['n/a']"
+''')
 
 
 def main():
@@ -63,6 +129,11 @@ def main():
     :return: N/A
     """
     cli_args = cli()
+
+    if cli_args.show_examples:
+        print(example1)
+        sys.exit(0)
+
     collect_pixel_data = False
     if cli_args.convert:
         collect_pixel_data = True
@@ -87,25 +158,9 @@ def main():
 
         # if any additional non null values have been included in a scanner.txt include those in the sidecar,
         # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
-        if scanner_params and cli_args.kwargs:
-            for variable_name, value in cli_args.kwargs.items():
-                try:
-                    value = ast.literal_eval(value)
-                except ValueError:
-                    if str(value).lower() == 'none':
-                        value = None
-                    elif str(value).lower() == 'true':
-                        value = True
-                    elif str(value).lower() == 'false':
-                        value = False
-                    else:
-                        value = str(value)
-
-                cli_args.scannerparams[variable_name] = value
-            # update cli.kwargs
-            cli_args.kwargs = cli_args.scannerparams
-        else:
-            cli_args.kwargs = scanner_params
+        if scanner_params:
+            scanner_params.update(cli_args.kwargs)
+            cli_args.kwargs.update(scanner_params)
 
     ecat = Ecat(ecat_file=cli_args.ecat,
                 nifti_file=cli_args.nifti,

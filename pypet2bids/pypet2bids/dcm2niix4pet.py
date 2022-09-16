@@ -1,11 +1,12 @@
 import os
 import sys
+import textwrap
 import warnings
 import csv
 
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-from pypet2bids.helper_functions import get_recon_method
+from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
 import subprocess
 import pandas as pd
 from os.path import join
@@ -251,8 +252,6 @@ def update_json_with_dicom_value(
             pass
 
 
-
-
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
@@ -363,6 +362,8 @@ class Dcm2niix4PET:
 
         self.dicom_headers = self.extract_dicom_headers()
 
+        self.additional_arguments = additional_arguments
+
         self.spreadsheet_metadata = {}
         # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
         # spreadsheet
@@ -375,8 +376,12 @@ class Dcm2niix4PET:
                 self.extract_metadata()
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
+        elif metadata_path and not metadata_translation_script:
+            spread_sheet_values = single_spreadsheet_reader(metadata_path)
+            if not self.spreadsheet_metadata.get('nifti_json', None):
+                self.spreadsheet_metadata['nifti_json'] = {}
+            self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
 
-        self.additional_arguments = additional_arguments
         self.file_format = file_format
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
@@ -507,7 +512,13 @@ class Dcm2niix4PET:
                     update_json = JsonMAJ(json_path=str(created))
 
                     # should be list/array types in the json
-                    should_be_array = ['FrameDuration', 'ScatterFraction', 'FrameTimesStart', 'DecayCorrectionFactor']
+                    should_be_array = [
+                        'FrameDuration',
+                        'ScatterFraction',
+                        'FrameTimesStart',
+                        'DecayCorrectionFactor',
+                        'ReconFilterSize'
+                    ]
 
                     for should in should_be_array:
                         should_value = update_json.get(should)
@@ -556,13 +567,16 @@ class Dcm2niix4PET:
                             sidecar_json.remove('ConvolutionKernel')
 
                     # check the input args again as our logic get's applied after parsing user inputs
-                    recon_filter_user_input = {
-                        'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
-                        'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
-                    }
-                    for key, value in recon_filter_user_input.items():
-                        if value:
-                            sidecar_json.update({key: value})
+                    if self.additional_arguments:
+                        recon_filter_user_input = {
+                            'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
+                            'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
+                        }
+                        for key, value in recon_filter_user_input.items():
+                            if value:
+                                sidecar_json.update({key: value})
+                    else:
+                        pass
 
                     # tag json with additional conversion software
                     conversion_software = sidecar_json.get('ConversionSoftware')
@@ -746,7 +760,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMass'] = InjectedMass
         data_out['InjectedMassUnits'] = 'ug'
         # check for strings where there shouldn't be strings
-        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -767,7 +781,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedRadioactivityUnits'] = 'MBq'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [str(InjectedRadioactivity).isnumeric(), str(SpecificRadioactivity).isnumeric()]
+        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(SpecificRadioactivity))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -788,7 +802,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMassUnits'] = 'ug'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(InjectedMass).isnumeric()]
+        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedRadioactivity'] = 'n/a'
             data_out['InjectedRadioactivityUnits'] = 'n/a'
@@ -809,7 +823,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['MolarActivityUnits'] = 'GBq/umol'
         data_out['MolecularWeight'] = MolecularWeight
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [str(MolarActivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        numeric_check = [is_numeric(str(MolarActivity)), is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['SpecificRadioactivity'] = 'n/a'
             data_out['SpecificRadioactivityUnits'] = 'n/a'
@@ -853,7 +867,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
         data_out['MolecularWeight'] = MolarActivity
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(MolecularWeight).isnumeric()]
+        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['MolarActivity'] = 'n/a'
             data_out['MolarActivityUnits'] = 'n/a'
@@ -922,6 +936,17 @@ def get_radionuclide(pydicom_dicom):
     return radionuclide
 
 
+epilog = textwrap.dedent('''
+    
+    example usage:
+    
+    dcm2niix4pet folder_with_pet_dicoms/ --destinationp-path sub-ValidBidSSubject/pet # the simplest conversion
+    dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
+    # use with an input spreadsheet
+    
+''')
+
+
 def cli():
     """
     Collects arguments used to initiate a Dcm2niix4PET class, collects the following arguments from the user.
@@ -932,8 +957,8 @@ def cli():
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('folder', type=str, default=os.getcwd(),
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+    parser.add_argument('folder', nargs='?', type=str, default=os.getcwd(),
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
                         help="Path to metadata file for scan")
@@ -941,20 +966,139 @@ def cli():
                         help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +
                              " compliant text files (tsv and json)")
     parser.add_argument('--destination-path', '-d', type=str, default=None,
-                        help="Destination path to send converted imaging and metadata files to. If " +
+                        help="Destination path to send converted imaging and metadata files to. If subject id and "
+                             "session id is included in the path files created by dcm2niix4pet will be named as such. "
+                             "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If " +
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
-                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
+                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
+                             "Note: the value portion of the argument (right side of the equal's sign) should always"
+                             "be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
     parser.add_argument('--silent', '-s', type=bool, default=False, help="Display missing metadata warnings and errors"
                                                                          "to stdout/stderr")
+    parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
+                        action='store_true')
 
     args = parser.parse_args()
 
     return args
+
+
+example1 = textwrap.dedent('''
+
+Usage examples are below, the first being the most brutish way of making dcm2niix4pet to pass through the
+BIDS validator (with no errors, removing all warnings is left to the user as an exercise) see:
+
+example 1 (Passing PET metadata via the --kwargs argument): 
+    
+    # Note `#` denotes a comment
+    # dcm2niix4pet is called with the following arguments
+    
+    # folder -> GeneralElectricSignaPETMR-NIMH/
+    # destination-path -> sub-GeneralElectricSignaPETMRINIMH/pet
+    # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
+
+    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet 
+    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR" 
+    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate" 
+    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75 
+    ModeOfAdministration="infusion" FrameTimesStart=0 
+    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0 
+    ReconMethodParameterValues="[1, 1]" ReconFilterType="n/a" ReconFilterSize=1
+
+    # The output of the above command (given some GE phantoms from the NIMH) can be seen below with tree
+    
+    tree sub-GeneralElectricSignaPETMRNIMH 
+    sub-GeneralElectricSignaPETMRNIMH
+    └── pet
+        ├── sub-GeneralElectricSignaPETMRNIMH_pet.json
+        └── sub-GeneralElectricSignaPETMRNIMH_pet.nii.gz
+
+    # Further, when we examine the json output file we can see that all of our metadata supplied via kwargs was written
+    # into the sidecar json 
+    
+    cat sub-GeneralElectricSignalPETMRNIMH/pet/sub-GeneralElectricSignaPETMRNIMH_pet.json
+    {
+        "Modality": "PT",
+        "Manufacturer": "GE MEDICAL SYSTEMS",
+        "ManufacturersModelName": "SIGNA PET/MR",
+        "InstitutionName": "NIH Clinical Center, USA",
+        "StationName": "PETMR",
+        "PatientPosition": "HFS",
+        "SoftwareVersions": "61.00",
+        "SeriesDescription": "PET Scan for VQC Verification",
+        "ProtocolName": "PET Scan for VQC Verification",
+        "ImageType": [
+            "ORIGINAL",
+            "PRIMARY"
+        ],
+        "SeriesNumber": 2,
+        "Radiopharmaceutical": "Germanium",
+        "RadionuclidePositronFraction": 0.891,
+        "RadionuclideHalfLife": 23410100.0,
+        "Units": "Bq/mL",
+        "DecayCorrection": "NONE",
+        "AttenuationCorrectionMethod": "NONE, 0.000000 cm-1,",
+        "SliceThickness": 2.78,
+        "ImageOrientationPatientDICOM": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0
+        ],
+        "ConversionSoftware": [
+            "dcm2niix",
+            "pypet2bids"
+        ],
+        "ConversionSoftwareVersion": [
+            "v1.0.20220720",
+            "1.0.2"
+        ],
+        "FrameDuration": [
+            98000
+        ],
+        "ReconMethodName": "VPFX",
+        "ReconMethodParameterUnits": [
+            "none",
+            "none"
+        ],
+        "ReconMethodParameterLabels": [
+            "subsets",
+            "iterations"
+        ],
+        "ReconMethodParameterValues": [
+            1,
+            1
+        ],
+        "AttenuationCorrection": "NONE, 0.000000 cm-1,",
+        "TimeZero": "14:08:45",
+        "ScanStart": 0,
+        "InjectionStart": 0,
+        "TracerRadionuclide": "Germanium68",
+        "BodyPart": "Phantom",
+        "TracerName": "Gallium citrate",
+        "InjectedRadioactivity": 1,
+        "SpecificRadioactivity": 23423.75,
+        "ModeOfAdministration": "infusion",
+        "FrameTimesStart": [
+            0
+        ],
+        "AcquisitionMode": "list mode",
+        "ImageDecayCorrected": false,
+        "ImageDecayCorrectionTime": 0,
+        "ReconFilterType": "n/a",
+        "ReconFilterSize": 1,
+        "InjectedRadioactivityUnits": "MBq",
+        "SpecificRadioactivityUnits": "Bq/g",
+        "InjectedMass": "n/a",
+        "InjectedMassUnits": "n/a"
+        }''')
 
 
 def main():
@@ -967,16 +1111,19 @@ def main():
     # collect args
     cli_args = cli()
 
-    # instantiate class
-    converter = Dcm2niix4PET(
-        image_folder=expand_path(cli_args.folder),
-        destination_path=expand_path(cli_args.destination_path),
-        metadata_path=expand_path(cli_args.metadata_path),
-        metadata_translation_script=expand_path(cli_args.translation_script_path),
-        additional_arguments=cli_args.kwargs,
-        silent=cli_args.silent)
+    if cli_args.show_examples:
+        print(example1)
+    else:
+        # instantiate class
+        converter = Dcm2niix4PET(
+            image_folder=expand_path(cli_args.folder),
+            destination_path=expand_path(cli_args.destination_path),
+            metadata_path=expand_path(cli_args.metadata_path),
+            metadata_translation_script=expand_path(cli_args.translation_script_path),
+            additional_arguments=cli_args.kwargs,
+            silent=cli_args.silent)
 
-    converter.convert()
+        converter.convert()
 
 
 if __name__ == '__main__':

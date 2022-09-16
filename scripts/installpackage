@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+cd pypet2bids
+LATEST_PACKAGE=$(ls dist | sort -V -r | head -n 1)
+pip uninstall pypet2bids -y
+pip install dist/$LATEST_PACKAGE
