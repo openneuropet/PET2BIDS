@@ -9,7 +9,7 @@ import ast
 from pathlib import Path
 from os.path import join
 
-from pypet2bids.helper_functions import ParseKwargs, collect_bids_part
+from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
 
 epilog = textwrap.dedent('''
     
@@ -81,21 +81,21 @@ def cli():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "--whole-blood-path",
-        '-whole',
+        '-w',
         help="Path to pmod whole blood file.",
         required=False,
         type=Path
     )
     parser.add_argument(
         "--parent-fraction-path",
-        "-parent",
+        "-f",
         help="Path to pmod parent fraction path.",
         required=False,
         type=Path
     )
     parser.add_argument(
         "--plasma-activity-path",
-        "-plasma", help="Path to pmod plasma file.",
+        "-p", help="Path to pmod plasma file.",
         required=False,
         type=Path,
         default=None
@@ -229,6 +229,13 @@ class PmodToBlood:
             else:
                 self.data_collection[blood_sample] = kwargs.get(var)
 
+        for measure, collection_method in self.data_collection.items():
+            if collection_method == 'manual':
+                self.manually_sampled.append({'name': measure})
+            if collection_method == 'automatic':
+                self.auto_sampled.append({'name': measure})
+
+
         # scale time to seconds rename columns
         self.scale_time_rename_columns()
 
@@ -243,7 +250,7 @@ class PmodToBlood:
     @staticmethod
     def load_pmod_file(pmod_blood_file: Path, engine=''):
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
-            loaded_file = pd.read_excel(str(pmod_blood_file), engine=engine)
+            loaded_file = open_meta_data(pmod_blood_file)
             return loaded_file
         else:
             raise FileNotFoundError(str(pmod_blood_file))
@@ -329,13 +336,15 @@ class PmodToBlood:
             dataframe['time'] = dataframe['time'] * time_scalar
             self.blood_series[name] = dataframe
 
-            # locate radioactivity column
-            radioactivity_column_header_name = [header for header in dataframe.columns if
-                                                'bq' and 'cc' in str.lower(header)]
             # locate parent fraction column
             parent_fraction_column_header_name = [header for header in dataframe.columns if
                                                   'parent' in str.lower(header)]
-            # run through radio updating conversion if not percent parent
+
+            if not parent_fraction_column_header_name:
+                # locate radioactivity column
+                radioactivity_column_header_name = [header for header in dataframe.columns if
+                                                    'bq' and 'cc' in str.lower(header)]
+                # run through radio updating conversion if not percent parent
             if radioactivity_column_header_name and len(time_column_header_name) == 1:
                 sub_ml_for_cc = re.sub('cc', 'mL', radioactivity_column_header_name[0])
                 extracted_units = re.search(r'\[(.*?)\]', sub_ml_for_cc)

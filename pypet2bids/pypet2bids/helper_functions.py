@@ -238,7 +238,8 @@ def very_tolerant_literal_eval(value):
             value = str(value)
     return value
 
-def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
+
+def open_meta_data(metadata_path: Union[str, pathlib.Path], seperator=None) -> pandas.DataFrame:
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
@@ -254,7 +255,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
     else:
         raise FileExistsError(metadata_path)
 
-    # collect suffix from metadata an use the approriate pandas method to read the data
+    # collect suffix from metadata and use the approriate pandas method to read the data
     extension = metadata_path.suffix
 
     methods = {
@@ -262,16 +263,21 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
         'csv': read_csv
     }
 
-    if 'xls' in extension:
+    if 'xls' in extension or 'bld' in extension:
         proper_method = 'excel'
     else:
         proper_method = extension
 
     try:
+        warnings.filterwarnings('ignore', message='ParserWarning: Falling*')
         use_me_to_read = methods.get(proper_method, None)
         metadata_dataframe = use_me_to_read(metadata_path)
-    except IOError as err:
-        raise err(f"Problem opening {metadata_path}")
+    except (IOError, ValueError) as err:
+        try:
+            metadata_dataframe = pandas.read_csv(metadata_path, sep=seperator, engine='python')
+        except IOError:
+            logging.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
+            raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
 

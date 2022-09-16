@@ -504,7 +504,13 @@ class Dcm2niix4PET:
                     update_json = JsonMAJ(json_path=str(created))
 
                     # should be list/array types in the json
-                    should_be_array = ['FrameDuration', 'ScatterFraction', 'FrameTimesStart', 'DecayCorrectionFactor']
+                    should_be_array = [
+                        'FrameDuration',
+                        'ScatterFraction',
+                        'FrameTimesStart',
+                        'DecayCorrectionFactor',
+                        'ReconFilterSize'
+                    ]
 
                     for should in should_be_array:
                         should_value = update_json.get(should)
