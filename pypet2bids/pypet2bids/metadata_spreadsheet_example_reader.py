@@ -12,6 +12,17 @@ metadata_dir = join(project_dir, 'metadata')
 pet_metadata_json = join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
+"""
+This function does?
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
 
 def translate_metadata(metadata_dataframe, image_path=NotImplemented):
     """

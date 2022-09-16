@@ -11,6 +11,18 @@ from os.path import join
 
 from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
 
+"""
+this function does
+
+:format:
+:param:
+:return:
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
+
 epilog = textwrap.dedent('''
     
     example usage:
