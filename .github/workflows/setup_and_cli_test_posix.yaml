@@ -45,7 +45,7 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip3 install -r requirements.txt
+          pip3 install .
 
       - name: Install gdown and collect Ecat from Google Drive
         if: steps.cache-ecat.outputs.cache-hit != 'true'
