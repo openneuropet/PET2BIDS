@@ -32,9 +32,8 @@ def ecat2nii(ecat_main_header=None,
         nii image
     :return: a nibabel nifti object if one wishes to muddle with the object in python and not in a .nii file
 
-    Anthony Galassi
-    -----------------------------
-    Copyright Open NeuroPET team
+    :Author(s):Anthony Galassi
+    :Copyright: Open NeuroPET team
     """
 
     # if a nifti file/path is not included write a nifti next to the ecat file
