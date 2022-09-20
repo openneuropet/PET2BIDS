@@ -120,7 +120,7 @@ for v=1:length(renamed)
 end
 method = deblank(method);
 
-if isempty(method )
+if isempty(method)
     warning('the reconstruction method is not in our library, check metadata json (and get in touch to include it)')
     warning('using method %s',clean_name)
     method = clean_name;
