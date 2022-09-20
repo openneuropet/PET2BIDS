@@ -7,6 +7,7 @@ function status = updatejsonpetfile(varargin)
 % :format: status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
 % :param jsonfilename: json file to check or update update
+%                      can also be the json structure (add field filename to ensure update on disk)
 % :param newfields: (optional) a structure with the newfields to go into the json file
 % :param dcminfo: (optional) a dcmfile or the dicominfo structure from a representative
 %                    dicom file. This information is used to also update the json
@@ -47,6 +48,12 @@ end
 % current file metadata
 if isstruct(jsonfilename)
     filemetadata = jsonfilename;
+    if isfield(filemetadata,'filename')
+        jsonfilename = filemetadata.filename;
+        filemetadata = rmfield(filemetadata,'filename');
+    else
+        clear jsonfilename;
+    end
 else
     if exist(jsonfilename,'file')
         fr = fileread(jsonfilename);
@@ -71,9 +78,9 @@ end
 if nargin == 1
     % --------- update arrays if needed ---------------
     [filemetadata,updated] = update_arrays(filemetadata);
-    if updated
+    if updated && exist('jsonfilename','var')
         warning('some scalars were changed to array')
-        jsonwrite(jsonfilename,filemetadata)
+        jsonwrite(jsonfilename,filemetadata);
     end
     
     % -------------- only check ---------------
@@ -183,27 +190,39 @@ else % -------------- update ---------------
                     if ~strcmpi(dcminfo.(dcmfields{f}),filemetadata.(jsonfields{f}))
                         if isnumeric(filemetadata.(jsonfields{f}))
                             if isnumeric(dcminfo.(dcmfields{f}))
-                                if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
-                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}'))])
+                                if strcmp(jsonfields{f},'FrameDuration')
+                                    if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))/1000
+                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}')) '/1000'])
+                                    end
+                                else
+                                    if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
+                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}'))])
+                                    end
                                 end
                             else
                                 warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
                             end
                         else
                             if ischar(filemetadata.(jsonfields{f}))
-                                warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])                                
+                                if ~strcmp(dcminfo.(dcmfields{f}),'BQML') || ...
+                                        ~strcmp(dcminfo.(dcmfields{f}),'ReconstructionMethod') 
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                                end
                             else % also char but as array
                                 warning(['possible mismatch between json ' jsonfields{f} ': ' char(strjoin(filemetadata.(jsonfields{f}))) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                             end
                         end
                     end
                 else % otherwise set the field in the json file
-                    if isnumeric(dcminfo.(dcmfields{f}))
-                        warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})') ' from dicom field ' dcmfields{f}])
-                    else
-                        warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                    if ~any(strcmp(jsonfields{f},{'ReconMethodParameterLabels',...
+                            'ReconMethodParameterUnit', 'ReconMethodParameterValues'})) % set by get recon if value exist so do not force
+                        if isnumeric(dcminfo.(dcmfields{f}))
+                            warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})') ' from dicom field ' dcmfields{f}])
+                        else
+                            warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                        end
+                        filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                     end
-                    filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                 end
             end
         end
@@ -254,6 +273,7 @@ else % -------------- update ---------------
            
     %% recursive call to check status
     % -----------------------------
+    filemetadata.filename = jsonfilename;
     status = updatejsonpetfile(filemetadata);
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
@@ -318,7 +338,7 @@ if exist('iteration','var') && exist('subset','var')
     else % returns none if actually seen as empty by get_recon_method
         filemetadata.ReconMethodParameterLabels     = "none";  
         filemetadata.ReconMethodParameterUnits      = "none";
-        filemetadata.ReconMethodParameterValues     = "null";
+        % filemetadata.ReconMethodParameterValues   = "0"; % conditional on ReconMethodParameterLabels 
     end
 end
 
@@ -367,7 +387,7 @@ for f = 1:length(shouldBarray)
             filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
             updated = 1;
         elseif all(size(filemetadata.(shouldBarray{f})) == 1)
-            if any(contains(filemetadata.(shouldBarray{f}),{'none','null'}))
+            if any(contains(filemetadata.(shouldBarray{f}),{'none'}))
                 filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
                 updated = 1;
             end
