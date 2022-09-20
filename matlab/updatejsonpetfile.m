@@ -170,6 +170,8 @@ else % -------------- update ---------------
                     dcminfo.(fn{f}(max(strfind(fn{f},'_'))+1:end)) = dcminfo.(fn{f});
                 end
                 dcminfo = rmfield(dcminfo,fn{f});
+            elseif isempty(dcminfo.(fn{f}))
+                dcminfo = rmfield(dcminfo,fn{f});
             end
         end
         
@@ -320,7 +322,6 @@ if sum(input_check) ~= 0
             end
         end
     end
-
 end
 
 % check our libray from names we know
