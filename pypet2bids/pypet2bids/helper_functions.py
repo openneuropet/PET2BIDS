@@ -20,6 +20,9 @@ from typing import Union
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
+if 'PET2BIDS' not in project_dir.parts:
+    project_dir = parent_dir
+
 metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
@@ -70,7 +73,7 @@ def single_spreadsheet_reader(
         path_to_spreadsheet: Union[str, pathlib.Path],
         pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
         metadata={},
-        **kwargs):
+        **kwargs) -> dict:
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -171,8 +174,8 @@ def load_vars_from_config(path_to_config: str):
 
     for parameter, value in parameters.items():
         try:
-            parameters[parameter] = ast.literal_eval(value)
-        except ValueError:
+            parameters[parameter] = very_tolerant_literal_eval(value)
+        except (ValueError, SyntaxError):
             parameters[parameter] = str(value)
 
     return parameters
@@ -204,6 +207,15 @@ def get_version():
 
     return version
 
+
+def is_numeric(check_this_object: str) -> bool:
+    try:
+        converted_to_num = ast.literal_eval(check_this_object)
+        numeric_types = [int, float, pandas.NA]
+        if type(converted_to_num) in numeric_types:
+            return True
+    except (ValueError, TypeError):
+        return False
 
 class ParseKwargs(argparse.Action):
     """
@@ -237,7 +249,8 @@ def very_tolerant_literal_eval(value):
             value = str(value)
     return value
 
-def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
+
+def open_meta_data(metadata_path: Union[str, pathlib.Path], seperator=None) -> pandas.DataFrame:
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
@@ -253,7 +266,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
     else:
         raise FileExistsError(metadata_path)
 
-    # collect suffix from metadata an use the approriate pandas method to read the data
+    # collect suffix from metadata and use the approriate pandas method to read the data
     extension = metadata_path.suffix
 
     methods = {
@@ -261,16 +274,21 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
         'csv': read_csv
     }
 
-    if 'xls' in extension:
+    if 'xls' in extension or 'bld' in extension:
         proper_method = 'excel'
     else:
         proper_method = extension
 
     try:
+        warnings.filterwarnings('ignore', message='ParserWarning: Falling*')
         use_me_to_read = methods.get(proper_method, None)
         metadata_dataframe = use_me_to_read(metadata_path)
-    except IOError as err:
-        raise err(f"Problem opening {metadata_path}")
+    except (IOError, ValueError) as err:
+        try:
+            metadata_dataframe = pandas.read_csv(metadata_path, sep=seperator, engine='python')
+        except IOError:
+            logging.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
+            raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
 

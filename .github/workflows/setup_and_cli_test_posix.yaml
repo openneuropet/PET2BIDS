@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
-        #python: [3.5, 3.6, 3.7, 3.8, 3.9]
+        python: ['3.8', '3.9', '3.10']
 
     steps:
       - name: Checkout Repo
@@ -39,13 +39,13 @@ jobs:
       - name: Set up python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ matrix.python }}
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip3 install -r requirements.txt
+          pip3 install .
 
       - name: Install gdown and collect Ecat from Google Drive
         if: steps.cache-ecat.outputs.cache-hit != 'true'

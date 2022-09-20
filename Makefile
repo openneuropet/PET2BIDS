@@ -8,6 +8,7 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
 
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -28,3 +29,10 @@ buildpackage:
 	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
 	@cd pypet2bids && poetry build
+
+# installs latest package
+installpackage:
+	@scripts/installpackage
+
+testphantoms:
+	@scripts/testphantoms
