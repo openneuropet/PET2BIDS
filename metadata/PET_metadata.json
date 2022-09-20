@@ -23,7 +23,6 @@
     "ReconMethodName",
     "ReconMethodParameterLabels",
     "ReconMethodParameterUnits",
-    "ReconMethodParameterValues",
     "ReconFilterType",
     "ReconFilterSize",
     "AttenuationCorrection"
@@ -66,5 +65,8 @@
     "RandomRate",
     "SinglesRate"
   ],
-  "optional": ["Anaesthesia"]
+  "optional": [
+    "Anaesthesia",
+    "ReconMethodParameterValues"
+  ]
 }
