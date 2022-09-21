@@ -19,7 +19,6 @@ build:
     python: "3.9"
   jobs:
     post_create_environment:
-      - sudo apt-get install tree
       - tree $HOME
       - echo "ls ${HOME}" && ls $HOME
       # install poetry
