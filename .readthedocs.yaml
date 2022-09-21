@@ -23,9 +23,9 @@ build:
       # https://python-poetry.org/docs/#osx--linux--bashonwindows-install-instructions
       - curl -sSL https://install.python-poetry.org | python3 -
       # Tell poetry to not use a virtual environment
-      - $HOME/.poetry/bin/poetry config virtualenvs.create false
+      - $HOME/docs/.local/bin/poetry config virtualenvs.create false
       # Install project's dependencies
-      - $HOME/.poetry/bin/poetry install
+      - $HOME/docs/.local/bin/poetry install
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
