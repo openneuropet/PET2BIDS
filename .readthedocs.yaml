@@ -21,6 +21,9 @@ build:
     post_create_environment:
       - echo "ls ${HOME}" && ls $HOME
       - echo "ls ${HOME}/checkouts" && ls $HOME/checkouts/
+      - echo "get cwd" && pwd
+      - ls `pwd`
+
       # install poetry
       # https://python-poetry.org/docs/#osx--linux--bashonwindows-install-instructions
       - curl -sSL https://install.python-poetry.org | python3 -
