@@ -19,7 +19,6 @@ build:
     python: "3.9"
   jobs:
     post_create_environment:
-      - tree $HOME
       - echo "ls ${HOME}" && ls $HOME
       # install poetry
       # https://python-poetry.org/docs/#osx--linux--bashonwindows-install-instructions
