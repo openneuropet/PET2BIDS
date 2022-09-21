@@ -78,13 +78,13 @@ pypet2bids.sidecar module
    :undoc-members:
    :show-inheritance:
 
-pypet2bids.write\_ecat module
------------------------------
+pypet2bids.convert\_pmod\_to\_blood module
+------------------------------------------
 
-.. automodule:: pypet2bids.write_ecat
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automodule:: pypet2bids.convert_pmod_to_blood
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

@@ -1,3 +1,17 @@
+"""
+This module contains methods used to read ecat files (*.v), the primary method pulled/imported from this module
+is read_ecat which returns the contents of a singular ecat file divided into three parts:
+
+- main header
+- subheaders
+- pixel data
+
+The other functions primarily operate bitwise, so it's best not to use them outside of this module, unless you are a
+glutton or twisted in that sort of way.
+
+:Authors: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import json
 import os.path
 import struct
@@ -12,17 +26,6 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
 
-"""
-This program read an ecat files (*.v) 
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 # collect ecat header maps, this program will not work without these as ECAT data varies in the byte location of its
 # data depending on the version of ECAT it was formatted with.

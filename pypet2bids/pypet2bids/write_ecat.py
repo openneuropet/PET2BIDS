@@ -2,11 +2,7 @@
 This program will create an ecat file if provided an ecat schema and a dictionary of values to populate that schema
 with.
 
-:format:
-:param:
-:return:
-
-First this program collects the same schemas that read_ecat.py does, from read_ecat import ecat_header_maps. 
+First this program collects the same schemas that read_ecat.py does, from read_ecat import ecat_header_maps.
 Next this program selects one of the header maps as speficified by some input e.g. if given: ecat7.3 it would 
 select the standard image matrix at: ecat_header_maps['ecat_headers']['73']['mainheader'] 
 and the subheader map at: ecat_header_maps['ecat_headers']['73']['11'] or whatever number is corresponding to 
@@ -25,9 +21,10 @@ directory in lines 227 through 257 in ecat_read.
 After generating the table you should then be able to write the main header, write the directory table,
 then write each subheader and corresponding pixel data
 
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
+
+:Author: Anthony Galassi
+
+:Copyright: Open NeuroPET team
 """
 
 import struct
