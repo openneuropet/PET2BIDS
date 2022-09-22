@@ -25,6 +25,16 @@ Use pip to install the library via:
 pip install pypet2bids
 ```
 
+*Additional Windows setup*
+For a windows installation you will have to manually point pypet2bids to the location of dcm2niix via
+a configuration file at `$Home\.pet2bidsconfig`
+
+```powershell
+# using powershell create a file name .pet2bidsconfig at the users home directory
+'DCM2NIIX_PATH="C:\<path to dcm2niix.exe>"' | Out-File $Home\.pet2bidsconfig
+```
+
+
 ## A brief note about kwargs
 
 It's desirable for the user to be able to quickly provide additional metadata at the time of conversion to make the output of
