@@ -12,6 +12,7 @@ For more details see the CLI portion of this module or the documentation for the
 :Copyright: Open NeuroPET team
 """
 import os
+import sys
 import textwrap
 import warnings
 from json_maj.main import JsonMAJ, load_json_or_dict
