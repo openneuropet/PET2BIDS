@@ -8,9 +8,9 @@ is not a function or a `true` module. It's just two python dictionaries with key
     imaging data
 :return: sidecar_template_full, sidecar_template_short
 
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
+:Author: Anthony Galassi
+
+:Copyright: Open NeuroPET team
 """
 
 

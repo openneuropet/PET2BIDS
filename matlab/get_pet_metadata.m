@@ -7,15 +7,14 @@ function metadata = get_pet_metadata(varargin)
 % converters, ecat2nii.m or dcm2niix4pet.m allowing to have fully
 % compliant json files alongside the .nii files
 %
-% :param Default: (aquisition and reconstruction parameters) should be
-%   stored in a \*_parameters.txt seating on disk next to this function
-%   or passed as argument in. Replace * by the name of your scanner - for now we
-%   support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
-%   'PhillipsIngenuityPETMR','PhillipsIngenuityPETCT'.
-%   (see templates, as some info can be recovered from ecat or dcm - ie not
-%   all info is necessarily needed)
+% :param Default:  \(aquisition and reconstruction parameters\) should be
+%    stored in a \*_parameters.txt seating on disk next to this function
+%    or passed as argument in. Replace * by the name of your scanner \- for now we
+%    support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
+%    'PhillipsIngenuityPETMR','PhillipsIngenuityPETCT'.
+%    \(see templates, as some info can be recovered from ecat or dcm - ie not
+%    all info is necessarily needed\)
 % :param inputs: a series of key/value pairs are expected
-%
 % :returns metadata: is a structure with BIDS fields filled (such structure is ready to be writen as json file using e.g.
 %   the bids matlab jsonwrite function, typically associated with the *_pet.nii file)
 %
@@ -82,10 +81,9 @@ function metadata = get_pet_metadata(varargin)
 %   If TimeZero is not the scan time, we strongly advice to input
 %   ScanStart and InjectionStart making sure timing is correct
 %
-% Neurobiology Research Unit, Rigshospitalet
-% Martin Nørgaard & Cyril Pernet - 2021
-% ----------------------------------------------
-% Copyright Open NeuroPET team
+% | *Neurobiology Research Unit, Rigshospitalet*
+% | *Martin Nørgaard & Cyril Pernet - 2021*
+% | *Copyright Open NeuroPET team*
 
 %% defaults are loaded via the *_parameters.txt file
 

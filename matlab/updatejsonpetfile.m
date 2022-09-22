@@ -4,7 +4,7 @@ function status = updatejsonpetfile(varargin)
 % information, if only the jsonfile is provided, it only checks if valid
 % (and possibly updates some fields from scaler to array)
 %
-% :format: status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
+% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
 % :param jsonfilename: json file to check or update update
 %                      can also be the json structure (add field filename to ensure update on disk)
@@ -25,9 +25,8 @@ function status = updatejsonpetfile(varargin)
 %    dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
 %    status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
 %
-% Cyril Pernet 2022
-% ----------------------------
-% Copyright Open NeuroPET team
+% | *Cyril Pernet 2022*
+% | *Copyright Open NeuroPET team*
 
 warning on % set to off to ignore our usefull warnings
 status = struct('state',[],'messages',{''});

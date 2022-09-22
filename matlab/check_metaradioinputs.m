@@ -22,7 +22,6 @@ function dataout = check_metaradioinputs(varargin)
 %
 % .. note::
 %   Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021
-%   ----------------------------------------------------
 %   Copyright Open NeuroPET team
 
 %% check inputs
