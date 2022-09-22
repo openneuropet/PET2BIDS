@@ -414,6 +414,7 @@ class Dcm2niix4PET:
     @staticmethod
     def check_windows():
         # check to see if path to dcm2niix is in .env file
+        dcm2niix_path = None
         home_dir = Path.home()
         pypet2bids_config = home_dir / '.pet2bidsconfig'
         if pypet2bids_config.exists():
