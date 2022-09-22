@@ -192,8 +192,13 @@ else % -------------- update ---------------
                         if isnumeric(filemetadata.(jsonfields{f}))
                             if isnumeric(dcminfo.(dcmfields{f}))
                                 if strcmp(jsonfields{f},'FrameDuration')
-                                    if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))/1000
+                                    if all([single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))/1000 ...
+                                            single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))])
                                         warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}')) '/1000'])
+                                    end
+                                elseif strcmpi(jsonfields{f},'InjectedRadioactivity')
+                                    if filemetadata.(jsonfields{f}) ~= dcminfo.(dcmfields{f})/10^6
+                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ':' num2str(dcminfo.(dcmfields{f})) '/10^6'])
                                     end
                                 else
                                     if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
@@ -201,16 +206,23 @@ else % -------------- update ---------------
                                     end
                                 end
                             else
-                                warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
+                                if ischar(dcminfo.(dcmfields{f}))
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' dcminfo.(dcmfields{f})]) 
+                                else
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
+                                end
                             end
                         else
                             if ischar(filemetadata.(jsonfields{f}))
-                                if ~strcmp(dcminfo.(dcmfields{f}),'BQML') || ...
-                                        ~strcmp(dcminfo.(dcmfields{f}),'ReconstructionMethod') 
+                                if ~strcmp(dcminfo.(dcmfields{f}),'BQML') && ...
+                                        ~strcmp(dcmfields{f},'ReconstructionMethod')
                                     warning(['possible mismatch between json ' jsonfields{f} ': ' filemetadata.(jsonfields{f}) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
                                 end
                             else % also char but as array
-                                warning(['possible mismatch between json ' jsonfields{f} ': ' char(strjoin(filemetadata.(jsonfields{f}))) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                                if ~strcmp(dcminfo.(dcmfields{f}),'BQML') && ...
+                                        ~strcmp(dcmfields{f},'ReconstructionMethod')
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' char(strjoin(filemetadata.(jsonfields{f}))) ' and dicom ' dcmfields{f} ':' dcminfo.(dcmfields{f})])
+                                end
                             end
                         end
                     end
@@ -220,9 +232,14 @@ else % -------------- update ---------------
                         if isnumeric(dcminfo.(dcmfields{f}))
                             warning(['adding json info ' jsonfields{f} ': ' num2str(dcminfo.(dcmfields{f})') ' from dicom field ' dcmfields{f}])
                         else
-                            warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                            if ~strcmpi(dcmfields{f},'AcquisitionDate')
+                                warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
+                            end
                         end
-                        filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
+                        
+                        if ~strcmpi(dcmfields{f},'AcquisitionDate')
+                            filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
+                        end
                     end
                 end
             end
@@ -238,10 +255,15 @@ else % -------------- update ---------------
     
     if isfield(filemetadata,'ScanDate')
         try
-            filemetadata.ScanDate = datetime(filemetadata.ScanDate,'Format','hh:mm:ss');
-            warning('metadata ScanDate is deprecated')
+            if ~ischar(filemetadata.ScanDate)
+                filemetadata.ScanDate = datetime(filemetadata.ScanDate,'Format','hh:mm:ss');
+                warning('metadata ScanDate is deprecated')
+            else
+                warning('ScanDate is not converted - no big deal this field is deprecated')
+                filemetadata = rmfield(filemetadata,'ScanDate');
+            end
         catch err
-            warning(err.identifier,'ScanDate is not converted %s - not big deal this field is deprecated',err.message)
+            warning(err.identifier,'ScanDate is not converted %s - no big deal this field is deprecated',err.message)
             filemetadata = rmfield(filemetadata,'ScanDate');
         end
     end
@@ -343,33 +365,63 @@ if exist('iteration','var') && exist('subset','var')
 end
 
 if isfield(filemetadata,'ConvolutionKernel') || ...
-    isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
-       
-      if isfield(filemetadata,'ConvolutionKernel')
-          filtername = filemetadata.ConvolutionKernel;
-      elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
-          if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
-              filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
-          end
-      end
-       
-    if exist('filtername','var')
-        % might need to remove trailing .00 for regex to work
-        if contains(filtername,'.00') 
-            loc = strfind(filtername,'.00');
-            filtername(loc:loc+2) = [];
+        isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+    
+    if isfield(filemetadata,'ConvolutionKernel')
+        if contains(filemetadata.ConvolutionKernel,'/')
+            namesplit = strfind(filemetadata.ConvolutionKernel,'/');
+            filtername = deblank(filemetadata.ConvolutionKernel(1:namesplit(1)-1));
+        elseif contains(filemetadata.ConvolutionKernel,'\')
+            namesplit = strfind(filemetadata.ConvolutionKernel,'\');
+            filtername = deblank(filemetadata.ConvolutionKernel(1:namesplit(1)-1));
+        else
+            filtername = filemetadata.ConvolutionKernel;
         end
         
-        filtersize = regexp(filtername,'\d*','Match');
-        if ~isempty(filtersize)
-            filemetadata.ReconFilterSize = cell2mat(filtersize);
-            loc = strfind(filtername,filtersize{1});
-            filtername(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
+    elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
+        if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
+            filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
+        end
+    else
+        filemetadata.ReconFilterType = "none";
+        % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+    end
+    
+    if exist('filtername','var')
+        % known stuff vs regex
+        if any(strcmpi(filtername,{'rectangle','hanning'}))
             filemetadata.ReconFilterType = filtername;
+            FilterSize = filemetadata.ConvolutionKernel(namesplit(1)+1:namesplit(2)-2);
+            if isnan(str2double(FilterSize))
+                nums = regexp(FilterSize,'\d*','Match');
+                val = cellfun(@(x) eval(x), nums);
+                filemetadata.ReconFilterSize = val(val~=0);
+            else
+                filemetadata.ReconFilterSize = str2double(FilterSize);
+            end
         else
-            filemetadata.ReconFilterType = filtername;
+            
+            % might need to remove trailing .00 for regex to work
+            if contains(filtername,'.00') && ~contains(filtername,{'/','\'})
+                loc = strfind(filtername,'.00');
+                filtername(loc:loc+2) = [];
+            end
+            
+            filtersize = regexp(filtername,'\d*','Match');
+            if ~isempty(filtersize)
+                filemetadata.ReconFilterSize = cell2mat(filtersize);
+                loc = strfind(filtername,filtersize{1});
+                filtername(loc:loc+length(filemetadata.ReconFilterSize)-1) = [];
+                filemetadata.ReconFilterType = filtername;
+            else
+                filemetadata.ReconFilterType = filtername;
+                filemetadata.ReconFilterSize = 0;
+            end
         end
     end
+else
+    filemetadata.ReconFilterType = "none";
+    % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)
