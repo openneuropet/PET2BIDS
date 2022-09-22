@@ -10,10 +10,8 @@ function structout = flattenstruct(structin)
 %                  fields that are flattened is empty [] and their
 %                  subfileds start with the 1st letter of the parent
 %
-% .. note::
-%    Cyril Pernet Novembre 2021
-%    ----------------------------------------------
-%    Copyright Open NeuroPET team
+% | *Cyril Pernet Novembre 2021*
+% | *Copyright Open NeuroPET team*
 
 rootfields = fieldnames(structin); % root fieldnames
 for f=1:length(rootfields)
