@@ -14,10 +14,6 @@ For more details see the CLI portion of this module or the documentation for the
 import os
 import textwrap
 import warnings
-<<<<<<< HEAD
-
-=======
->>>>>>> 776afd7e2bd5aa379cc5946c6eb5128eb49cbd5e
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
 from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
