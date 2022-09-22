@@ -1,0 +1,17 @@
+*.py text eol=lf
+*.md text eol=lf
+*.rst text eol=lf
+* text eol=lf
+*.ps1 text eol=crlf
+
+# binary files that shouldn't be modified
+*.xlsx binary
+*.xls binary
+*.bld binary
+*.png binary
+*.pdf binary
+*.gz binary
+*.v binary
+*.nii binary
+*.mat binary
+*.avi binary
