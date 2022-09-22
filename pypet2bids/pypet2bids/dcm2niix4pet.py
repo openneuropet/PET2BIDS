@@ -1,4 +1,5 @@
 import os
+import sys
 import textwrap
 import warnings
 
@@ -1003,7 +1004,7 @@ def cli():
     :return: arguments collected from argument parser
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
-    parser.add_argument('folder', nargs='?', type=str, default=os.getcwd(),
+    parser.add_argument('folder', nargs='?', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
                         help="Path to metadata file for scan")
@@ -1028,9 +1029,7 @@ def cli():
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
                         action='store_true')
 
-    args = parser.parse_args()
-
-    return args
+    return parser
 
 
 example1 = textwrap.dedent('''
@@ -1154,11 +1153,17 @@ def main():
     """
 
     # collect args
-    cli_args = cli()
+    cli_parser = cli()
+
+    if len(sys.argv) == 1:
+        cli_parser.print_usage()
+        sys.exit(1)
+    else:
+        cli_args = cli_parser.parse_args()
 
     if cli_args.show_examples:
         print(example1)
-    else:
+    elif cli_args.folder:
         # instantiate class
         converter = Dcm2niix4PET(
             image_folder=expand_path(cli_args.folder),
@@ -1169,6 +1174,9 @@ def main():
             silent=cli_args.silent)
 
         converter.convert()
+    else:
+        print("folder is a required argument for running dcm2niix, see -h for more detailed usage.")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
