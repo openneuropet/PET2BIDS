@@ -1,12 +1,24 @@
+"""
+This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
+bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
+optionally, this module can collect blood or physiological data/metadata from spreadsheet files if the path of that
+spreadsheet file as well as a python module/script written to interpret it are provided in addition to relevant dcm2niix
+commands.
+
+For more details see the CLI portion of this module or the documentation for the main class Dcm2niix4PET
+
+
+:Author: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import os
 import sys
 import textwrap
 import warnings
-import csv
-
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
 from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
+from platform import system
 import subprocess
 import pandas as pd
 from os.path import join
@@ -21,23 +33,9 @@ from dateutil import parser
 from termcolor import colored
 import argparse
 import importlib
+import dotenv
 
 
-"""
-This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
-bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
-optionally, this module can collect blood or physiological data/metadata from spreadsheet files if the path of that
-spreadsheet file as well as a python module/script written to interpret it are provided in addition to relevant dcm2niix
-commands.
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 
 # fields to check for
@@ -349,7 +347,10 @@ class Dcm2niix4PET:
         # check to see if dcm2niix is installed
         self.blood_json = None
         self.blood_tsv = None
-        self.check_for_dcm2niix()
+
+        self.dcm2niix_path = self.check_for_dcm2niix()
+        if not self.dcm2niix_path:
+            raise FileNotFoundError("dcm2niix not found, this module depends on it for conversions, exiting.")
 
         self.image_folder = Path(image_folder)
         if destination_path:
@@ -392,21 +393,65 @@ class Dcm2niix4PET:
         self.silent = silent
 
     @staticmethod
-    def check_for_dcm2niix():
+    def check_posix():
+        check = subprocess.run("dcm2niix -h", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if check.returncode == 0:
+            dcm2niix_path = subprocess.run('which dcm2niix',
+                                           shell=True,
+                                           capture_output=True).stdout.decode('utf-8').strip()
+        else:
+            pkged = "https://github.com/rordenlab/dcm2niix/releases"
+            instructions = "https://github.com/rordenlab/dcm2niix#install"
+            no_dcm2niix = f"""Dcm2niix does not appear to be installed. Installation instructions can be found here 
+                       {instructions} and packaged versions can be found at {pkged}"""
+            warnings.warn(no_dcm2niix)
+            dcm2niix_path = None
+
+        return dcm2niix_path
+
+    @staticmethod
+    def check_windows():
+        # check to see if path to dcm2niix is in .env file
+        dcm2niix_path = None
+        home_dir = Path.home()
+        pypet2bids_config = home_dir / '.pet2bidsconfig'
+        if pypet2bids_config.exists():
+            dotenv.load_dotenv(pypet2bids_config)
+            dcm2niix_path = os.getenv('DCM2NIIX_PATH')
+            if dcm2niix_path:
+                # check dcm2niix path exists
+                dcm2niix_path = Path(dcm2niix_path)
+                check = subprocess.run(
+                    f"{dcm2niix_path} -h",
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                if check.returncode == 0:
+                    return dcm2niix_path
+            else:
+                warnings.warn(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
+                dcm2niix_path = None
+        else:
+            warnings.warn(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+                          f"have variable DCM2NIIX_PATH set to installed path of installed dcm2niix.")
+        return dcm2niix_path
+
+    def check_for_dcm2niix(self):
         """
         Just checks for dcm2niix using the system shell, returns 0 if dcm2niix is present.
 
         :return: status code of the command dcm2niix -h
         """
-        check = subprocess.run("dcm2niix -h", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        if check.returncode != 0:
-            pkged = "https://github.com/rordenlab/dcm2niix/releases"
-            instructions = "https://github.com/rordenlab/dcm2niix#install"
-            raise Exception(f"""Dcm2niix does not appear to be installed. Installation instructions can be found here 
-                   {instructions} and packaged versions can be found at {pkged}""")
+        if system().lower() != 'windows':
+            dcm2niix_path = self.check_posix()
+        elif system().lower() == 'windows':
+            dcm2niix_path = self.check_windows()
+        else:
+            dcm2niix_path = None
 
-        return check.returncode
+        return dcm2niix_path
 
     def extract_dicom_headers(self, depth=1):
         """
@@ -452,10 +497,8 @@ class Dcm2niix4PET:
             file_format_args = ""
         with TemporaryDirectory() as tempdir:
             tempdir_pathlike = Path(tempdir)
-
-            convert = subprocess.run(f"dcm2niix -w 1 -z y {file_format_args} -o {tempdir_pathlike} {self.image_folder}",
-                                     shell=True,
-                                     capture_output=True)
+            cmd = f"{self.dcm2niix_path} -w 1 -z y {file_format_args} -o {tempdir_pathlike} {self.image_folder}"
+            convert = subprocess.run(cmd, shell=True, capture_output=True)
 
             if convert.returncode != 0:
                 print("Check output .nii files, dcm2iix returned these errors during conversion:")
@@ -488,7 +531,7 @@ class Dcm2niix4PET:
                     # output of check_json silently
                     check_for_missing = check_json(created_path, silent=True)
 
-                    # we do our best to extrat information from the dicom header and insert theses values
+                    # we do our best to extrat information from the dicom header and insert these values
                     # into the sidecar json
 
                     # first do a reverse lookup of the key the json corresponds to
@@ -566,7 +609,7 @@ class Dcm2niix4PET:
                             # remove non bids field
                             sidecar_json.remove('ConvolutionKernel')
 
-                    # check the input args again as our logic get's applied after parsing user inputs
+                    # check the input args again as our logic is applied after parsing user inputs
                     if self.additional_arguments:
                         recon_filter_user_input = {
                             'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
@@ -746,6 +789,13 @@ class Dcm2niix4PET:
 
 
 def check_meta_radio_inputs(kwargs: dict) -> dict:
+    """
+    Executes very specific PET logic, author does not recall everything it does.
+    :param kwargs: metadata key pair's to examine
+    :type kwargs: dict
+    :return: fitted/massaged metadata corresponding to logic steps below, return type is an update on input `kwargs`
+    :rtype: dict
+    """
     InjectedRadioactivity = kwargs.get('InjectedRadioactivity', None)
     InjectedMass = kwargs.get("InjectedMass", None)
     SpecificRadioactivity = kwargs.get("SpecificRadioactivity", None)
@@ -958,7 +1008,7 @@ def cli():
     :return: arguments collected from argument parser
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
-    parser.add_argument('folder', nargs='?', type=str, default=os.getcwd(),
+    parser.add_argument('folder', nargs='?', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None,
                         help="Path to metadata file for scan")
@@ -983,9 +1033,7 @@ def cli():
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
                         action='store_true')
 
-    args = parser.parse_args()
-
-    return args
+    return parser
 
 
 example1 = textwrap.dedent('''
@@ -1109,11 +1157,17 @@ def main():
     """
 
     # collect args
-    cli_args = cli()
+    cli_parser = cli()
+
+    if len(sys.argv) == 1:
+        cli_parser.print_usage()
+        sys.exit(1)
+    else:
+        cli_args = cli_parser.parse_args()
 
     if cli_args.show_examples:
         print(example1)
-    else:
+    elif cli_args.folder:
         # instantiate class
         converter = Dcm2niix4PET(
             image_folder=expand_path(cli_args.folder),
@@ -1124,6 +1178,9 @@ def main():
             silent=cli_args.silent)
 
         converter.convert()
+    else:
+        print("folder is a required argument for running dcm2niix, see -h for more detailed usage.")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
