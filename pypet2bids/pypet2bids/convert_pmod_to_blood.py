@@ -1,6 +1,16 @@
+"""
+This module converts PMOD blood files (extension .bld) into BIDS compliant tsv and json files. It contains a class
+PmodToBlood and a cli that uses that class to interface with the user. This module currently exists solely to convert
+PMOD blood files and is not incorporated within any of the other conversion tools in PET2BIDS.
+
+The command line arguments are details below, for more information about how this module works see the documentation for
+PmodToBlood.
+
+:Authors: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import json
 import textwrap
-
 import pandas as pd
 import argparse
 import warnings
@@ -8,20 +18,7 @@ import re
 import ast
 from pathlib import Path
 from os.path import join
-
 from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
-
-"""
-this function does
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 epilog = textwrap.dedent('''
     
@@ -90,6 +87,24 @@ example 1 (passing the bare minimum):
 
 
 def cli():
+    """
+    Command line interface used to collect arguments for PmodToBlood class, note parameters defined below apply to the
+    invocation at the command line **not** the method cli itself which takes no argument in Python.
+
+    :param whole-blood-path: path to a PMOD .bld file containing the whole blood activity of a subject/run/scan
+    :param parent-fraction-path: path to a PMOD .bld file containing the parent fraction of a subject/run/scan
+    :param plasma-activity-path: path to a PMOD .bld file containing the plasma activity of a subject/run/scan
+    :param output-path: the desired output path for the converted tsv and json files, if the path contains BIDS subject id's
+        and session id's these will be extracted from the path and inserted into the filenames of the resultant tsv and json
+        files.
+    :param json: create a json sidecar/data-dictionary file along with output tsv's, default is set to True
+    :param engine: engine used to read excel files, ignore this option as it will most likely be deprecated in the future
+    :param kwargs: additional key pair arguments one wishes to include, such as extra entries for plasma or blood PET BIDS
+    fields that aren't in PMOD blood files
+    :param show-examples: shows an example of how to run this module as well as the outputs
+    :return: collected arguments
+    :rtype: argparse.namespace
+    """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "--whole-blood-path",
@@ -156,6 +171,14 @@ def cli():
 
 
 def type_cast_cli_input(kwarg_arg):
+    """
+    This method sanitizes collects inputs from the cli and casts them as native python data types.
+
+    :param kwarg_arg: a kwarg argument parsed from the command line, literal string
+    :type kwarg_arg: str
+    :return: kwarg argument evaluated to python datatype
+    :rtype: dict, list, str, int, float, bool
+    """
     try:
         var = ast.literal_eval(kwarg_arg)
         if type(var) in [dict, list, str, int, float, bool]:
@@ -171,6 +194,23 @@ def type_cast_cli_input(kwarg_arg):
 
 
 class PmodToBlood:
+    """
+    Converts PMOD blood files to PET BIDS compliant tsv's and json _blood.* files
+
+    :param whole_blood_activity: path to a PMOD whole blood activity file
+    :type whole_blood_activity: pathlib.Path
+    :param parent_fraction: path to a PMOD metabolite parent blood file
+    :type parent_fraction: pathlib.Path
+    :param output_path: path to write output tsv and jsons to, defaults to parent folder of whole blood input file
+    :type output_path: pathlib.Path
+    :param output_json: boolean specifying whether to output a json sidecar for the blood files, default is false
+    :type output_json: bool
+    :param engine: soon to be deprecated, determines what engine is used in pandas.read_excel
+    :type engine: str
+    :param kwargs: additional plasma/blood/radioactivity key/pair BIDS arguments, not required but if provided used during
+        logic phase and written to sidecar json
+    :type kwargs: dict
+    """
     def __init__(
             self,
             whole_blood_activity: Path,
@@ -261,6 +301,16 @@ class PmodToBlood:
 
     @staticmethod
     def load_pmod_file(pmod_blood_file: Path, engine=''):
+        """
+        Loads a pmod .bld blood file in with pandas.
+
+        :param pmod_blood_file: path to pmod blood file
+        :type pmod_blood_file: pathlib.Path
+        :param engine: python engine used to read excel sheet with pandas.read_excel,
+        :type engine: str
+        :return: contents of .bld file
+        :rtype: pandas.DataFrame
+        """
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
             loaded_file = open_meta_data(pmod_blood_file)
             return loaded_file
@@ -385,7 +435,12 @@ class PmodToBlood:
     def ask_recording_type(self, recording: str):
         """
         Prompt user about data collection to determine how data was collected for each
-        measure. e.g. auto-sampled, manually drawn, or a combination of the two
+        measure. e.g. auto-sampled, manually drawn, or a combination of the two.
+
+        :param recording: the name of the recording
+        :type: str
+        :return: None
+        :rtype: None
         """
         how = None
         while how != 'a' or how != 'm':
@@ -406,6 +461,13 @@ class PmodToBlood:
                 print(f"You entered {how}; please enter either M or A to exit this prompt")
 
     def write_out_tsvs(self):
+        """
+        Writes out blood data to tsv files corresponding to autosampled or manually sampled versions (dependent on user
+        input)
+
+        :return: None
+        :rtype: None
+        """
         # first we combine the various blood datas into one or two dataframes, the autosampled data goes into a
         # recording_autosample, and the manually sampled data goes into a recording_manual if they exist
         if self.subject_id:
@@ -439,6 +501,12 @@ class PmodToBlood:
             first_manually_sampled.to_csv(manual_path, sep='\t', index=False)
 
     def write_out_jsons(self):
+        """
+        Writes out sidecar json to correspond to _blood.tsv files
+
+        :return: None
+        :rtype: None
+        """
         if self.subject_id:
             file_path = join(self.output_path, self.subject_id + '_')
             if self.session_id:

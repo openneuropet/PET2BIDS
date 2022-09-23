@@ -1,31 +1,28 @@
+"""
+This module contains the Ecat class which uses collections of other functions in this library to read native ECAT files
+and write them out to Nifti files.
+
+Anthony Galassi
+-----------------------------
+Copyright Open NeuroPET team
+"""
 import datetime
 import re
 import nibabel
 import os
 import json
 import pypet2bids.helper_functions
-import tempfile
 from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
 from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
 from pypet2bids.ecat2nii import ecat2nii
 from pypet2bids.helper_functions import get_recon_method
 
-"""
-This function does?
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 def parse_this_date(date_like_object) -> str:
     """
-    Uses the dateutil.parser module to extract a date from a variety of differently formatted date strings
+    Uses the `dateutil.parser` module to extract a date from a variety of differently formatted date strings
+
     :param date_like_object: something that resembles a timestamp or a date time, could be integer, float, or string.
     :return: an hour minute second datetime string.
     """
@@ -49,10 +46,8 @@ class Ecat:
 
         :param ecat_file: path to a valid ecat file
         :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
-            to output the nevly generated nifti
+            to output the newly generated nifti
         :param decompress: attempt to decompress the ecat file, should probably be set to false
-        :param kwargs: used to manually override or insert information into the the nifti sidecare.json.
-            Useful for including information that isn't w/ in an ECAT file.
         """
         self.ecat_header = {}  # ecat header information is stored here
         self.subheaders = []  # subheader information is placed here
@@ -111,9 +106,11 @@ class Ecat:
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file.
-
         :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
+        :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
+        :type output_path:
         :return: the output path the nifti was written to, used later for placing metadata/sidecar files
+        :rtype:
         """
 
         # save nifti
@@ -173,10 +170,10 @@ class Ecat:
 
     def populate_sidecar(self, **kwargs):
         """
-        Creates a side car dictionary with any bids relevant information extracted from the ecat.
+        Creates a side-car dictionary with any bids relevant information extracted from the ecat.
 
         :param kwargs: Populates sidecar file with relevant PET information, additional information that is not in the
-            ECAT file can be supplied as a dictionar argument via kwargs.
+            ECAT file can be supplied as a dictionary argument via kwargs.
         :return: None
         """
 

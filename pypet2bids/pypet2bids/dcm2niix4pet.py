@@ -1,8 +1,20 @@
-import os
+"""
+This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
+bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
+optionally, this module can collect blood or physiological data/metadata from spreadsheet files if the path of that
+spreadsheet file as well as a python module/script written to interpret it are provided in addition to relevant dcm2niix
+commands.
+
+For more details see the CLI portion of this module or the documentation for the main class Dcm2niix4PET
+
+
+:Author: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import sys
+import os
 import textwrap
 import warnings
-
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
 from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
@@ -24,21 +36,6 @@ import importlib
 import dotenv
 
 
-"""
-This module acts as a simple wrapper around dcm2niix, it takes all of the same arguments as dcm2niix but does a little
-bit of extra work to conform the output nifti and json from dcm2niix to the PET BIDS specification. Additionally, but
-optionally, this module can collect blood or physiological data/metadata from spreadsheet files if the path of that
-spreadsheet file as well as a python module/script written to interpret it are provided in addition to relevant dcm2niix
-commands.
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 
 # fields to check for
@@ -415,6 +412,7 @@ class Dcm2niix4PET:
     @staticmethod
     def check_windows():
         # check to see if path to dcm2niix is in .env file
+        dcm2niix_path = None
         home_dir = Path.home()
         pypet2bids_config = home_dir / '.pet2bidsconfig'
         if pypet2bids_config.exists():
@@ -791,6 +789,13 @@ class Dcm2niix4PET:
 
 
 def check_meta_radio_inputs(kwargs: dict) -> dict:
+    """
+    Executes very specific PET logic, author does not recall everything it does.
+    :param kwargs: metadata key pair's to examine
+    :type kwargs: dict
+    :return: fitted/massaged metadata corresponding to logic steps below, return type is an update on input `kwargs`
+    :rtype: dict
+    """
     InjectedRadioactivity = kwargs.get('InjectedRadioactivity', None)
     InjectedMass = kwargs.get("InjectedMass", None)
     SpecificRadioactivity = kwargs.get("SpecificRadioactivity", None)

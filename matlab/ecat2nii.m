@@ -37,9 +37,8 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %
 %    See also get_pet_metadata.m to generate the metadata structure
 %
-%    Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021
-%    ----------------------------------------------------------------
-%    Copyright Open NeuroPET team
+% | *Claus Svarer, Martin Nørgaard, Chris Rorden & Cyril Pernet - 2021*
+% | *Copyright Open NeuroPET team*
 
 %% defaults
 % ---------

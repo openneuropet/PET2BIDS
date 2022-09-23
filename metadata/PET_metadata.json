@@ -24,7 +24,6 @@
     "ReconMethodParameterLabels",
     "ReconMethodParameterUnits",
     "ReconFilterType",
-    "ReconFilterSize",
     "AttenuationCorrection"
   ],
   "recommended": [
@@ -67,6 +66,7 @@
   ],
   "optional": [
     "Anaesthesia",
-    "ReconMethodParameterValues"
+    "ReconMethodParameterValues",
+    "ReconFilterSize"
   ]
 }

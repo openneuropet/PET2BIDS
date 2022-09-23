@@ -1,5 +1,10 @@
+"""
+Simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
+
+:Authors: Anthony Galassi
+:Copyright: Open NeuroPET team
+"""
 import argparse
-import ast
 import os
 import pathlib
 import sys
@@ -7,18 +12,6 @@ import textwrap
 from os.path import join
 from pypet2bids.ecat import Ecat
 from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
-
-"""
-simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 
 epilog = textwrap.dedent('''
@@ -38,6 +31,31 @@ params
 def cli():
     """
     Builds an argparse.ArgumentParser() object to access the methods available in the Ecat class in pypet2bids.ecat.ECAT
+
+    :param ecat: original ecat image to inspect or convert
+    :type ecat: path
+    :param --affine: display the affine matrix of the ecat
+    :type --affie: stdout
+    :param --convert: fattempt to convert the ecat file into a nifti defaults to False if flag isn't present
+    :type --convert: flag
+    :param --dump: dump the main header of the ecat file
+    :type --dump: flag
+    :param --json: output the entire header, subheaders, and affine matrix to stdout as jsan
+    :type --json: flag
+    :param --nifti: Name of the output nifti file
+    :type --nifti: path
+    :param --subheader: display just the subheaders to the stdout
+    :type --subheader: flag
+    :param --sidecar: output a bids formatted sidecar with the nifti, defalts to True
+    :type --sidecar: flag
+    :param --kwargs: include additional key/pair arguments to append to a sidecar file post conversion to nifti
+    :type --kwargs: strings, nargs
+    :param --scannerparams: a parameter.txt file to extract scanner specific kwargs/args/BIDS fields from; constant per scanner
+    :type --scanerparamas: path
+    :param --directory_table: collect directory table from ECAT, useful for poking around the ecat file bytewise by frame
+    :type --director_table: flag
+    :param --show-examples: shows verbose example usage of this cli
+    :type --show-examples: flag
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
