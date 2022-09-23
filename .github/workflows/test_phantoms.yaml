@@ -38,7 +38,7 @@ jobs:
         if: ${{ !env.ACT }} && runner.os == 'Windows'
         uses: actions/cache@v3
         with:
-          path: "$env.Home\AppData\npm\node_modules"
+          path: ${{ HOME }}\AppData\npm\node_modules
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
