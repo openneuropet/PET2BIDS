@@ -27,11 +27,18 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-      - name: Cache Node
-        if: ${{ !env.ACT }}
+      - name: Cache Node Posix
+        if: ${{ !env.ACT }} && runner.os != 'Windows'
         uses: actions/cache@v3
         with:
           path: ~/.npm
+          key: npm-${{ runner.os }}-${{ env.cache-name }}
+
+      - name: Cache Node Windows
+        if: ${{ !env.ACT }} && runner.os == 'Windows'
+        uses: actions/cache@v3
+        with:
+          path: %USERPROFILE%\AppData\npm\node_modules
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
