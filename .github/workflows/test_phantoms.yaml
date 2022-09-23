@@ -25,17 +25,40 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
+      - name: Cache Node
+        if: ${{ !env.ACT }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ env.cache-name }}
 
-      - name: Install dcm2niix
+      - name: Cache Phantoms
+        if: ${{ !env.ACT }}
+        id: phantom-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-phantoms
+        with:
+          path: PHANTOMS.zip
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('PHANTOMS.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}- 
+
+      - name: Install dcm2niix posix
+        if: '${{ RUNNER_OS }} != "Windows"'
         run: |
-          if [ "$RUNNER_OS" == "Linux"]; then
+          if [ "$RUNNER_OS" == "Linux" ]; then
             apt get-install dcm2niix
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
-            powershell -command "Expand-Archive dcm2niix_win.zip" 
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
+
+      - name: Install dcm2niix windows
+        if: '${{ RUNNER_OS }} == "Windows"'
+        run: |
+          curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
+          powershell -command "Expand-Archive dcm2niix_win.zip" 
 
       - name: Set up python
         uses: actions/setup-python@v4
@@ -57,29 +80,9 @@ jobs:
       - name: Install BIDS Validator
         run: npm install -g bids-validator
 
-      - name: Cache Node
-        if: ${{ !env.ACT }}
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ env.cache-name }}
-
       - name: Collect Phantoms from Google Drive
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
         run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
-
-      - name: Cache Phantoms
-        if: ${{ !env.ACT }}
-        id: phantom-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-phantoms
-        with:
-          path: PHANTOMS.zip
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('PHANTOMS.zip') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-
-            ${{ runner.os }}- 
 
       - name: Decompress dataset
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
