@@ -1,6 +1,7 @@
 name: Test On Phantoms
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   Download_Phantoms:
