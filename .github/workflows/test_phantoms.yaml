@@ -38,10 +38,12 @@ jobs:
           fi
 
       - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
           cache: 'pip'
+          cache-dependency-path: |
+            pypet2bids/pyproject.toml
 
       - name: Install Python Dependencies
         run: |
