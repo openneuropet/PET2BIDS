@@ -75,7 +75,7 @@ jobs:
         env:
           cache-name: cache-phantoms
         with:
-          path: PHANTOMS
+          path: PHANTOMS.zip
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('PHANTOMS.zip') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-
