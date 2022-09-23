@@ -574,11 +574,17 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     ReconMethodName = re.sub(r'[^a-zA-Z0-9]$', "", ReconMethodName)
     ReconMethodName = re.sub(r'^[^a-zA-Z0-9]', "", ReconMethodName)
 
-    # get everything in front of \d\di or \di or \d\ds or \ds
-
-    return {
+    reconstruction_dict = {
         "ReconMethodName": ReconMethodName,
         "ReconMethodParameterUnits": ReconMethodParameterUnits,
         "ReconMethodParameterLabels": ReconMethodParameterLabels,
         "ReconMethodParameterValues": [subsets, iterations]
     }
+
+    if None in reconstruction_dict['ReconMethodParameterValues']:
+        reconstruction_dict.pop('ReconMethodParameterValues')
+        reconstruction_dict.pop('ReconMethodParameterUnits')
+        for i in range(len(reconstruction_dict['ReconMethodParameterLabels'])):
+            reconstruction_dict['ReconMethodParameterLabels'][i] = "none"
+
+    return reconstruction_dict

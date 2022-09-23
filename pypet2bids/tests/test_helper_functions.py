@@ -205,18 +205,14 @@ def test_get_recon_method():
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
+            "ReconMethodParameterLabels": ["none", "none"],
         },
         {
             "contents": "3D-RAMLA",
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "3D-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
+            "ReconMethodParameterLabels": ["none", "none"],
         },
         {
             "contents": 'OSEM:i3s15',
@@ -232,13 +228,11 @@ def test_get_recon_method():
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
-        }
+            "ReconMethodParameterLabels": ["none", "none"],
+        },
     ]
 
-    for recon_data  in reconstruction_method_strings:
+    for recon_data in reconstruction_method_strings:
         recon = helper_functions.get_recon_method(recon_data['contents'])
         for key, value in recon_data.items():
             if key != "contents" and key != 'subsets' and key != 'iterations':
