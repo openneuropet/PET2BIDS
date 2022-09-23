@@ -51,6 +51,7 @@ jobs:
             apt get-install dcm2niix
           elif [ "$RUNNER_OS" == "Windows" ]; then
             curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
+            powershell -command "Expand-Archive dcm2niix_win.zip" 
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
@@ -64,7 +65,7 @@ jobs:
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          pip install -r requirements.txt
+          pip install .
           pip install gdown
 
       - name: Set Up Node
@@ -79,10 +80,10 @@ jobs:
 
       - name: Decompress dataset
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
-        run: unzip PHANTOMS.zip
+        run: powershell -command "Expand-Archive PHANTOMS.zip"
 
-      - name: Run Python Conversion on Dataset
-        run: |
-          cd OpenNeuroPET-Phantoms/code
-          bash python_conversions.sh
-          cd .. && bids-validator python
+      #- name: Run Python Conversion on Dataset
+      #  run: |
+      #    cd OpenNeuroPET-Phantoms/code
+      #    bash python_conversions.sh
+      #    cd .. && bids-validator python
