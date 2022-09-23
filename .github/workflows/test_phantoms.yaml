@@ -54,6 +54,9 @@ jobs:
       - name: Set Up Node
         uses: actions/setup-node@v3
 
+      - name: Install BIDS Validator
+        run: npm install -g bids-validator
+
       - name: Cache Node
         if: ${{ !env.ACT }}
         uses: actions/cache@v3
@@ -61,12 +64,9 @@ jobs:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
-      - name: Install BIDS Validator
-        run: npm install -g bids-validator
-
       - name: Collect Phantoms from Google Drive
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
-        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS }} -O PHANTOMS.zip
+        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
 
       - name: Cache Phantoms
         if: ${{ !env.ACT }}
