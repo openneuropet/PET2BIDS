@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-20.04]
+        os: [macOS-latest, ubuntu-20.04, windows-latest]
         python: [3.9, 3.10]
 
     steps:
@@ -46,7 +46,7 @@ jobs:
             ${{ runner.os }}- 
 
       - name: Install dcm2niix posix
-        if: '${{ RUNNER_OS }} != "Windows"'
+        if: '${{ runner.os }} != "Windows"'
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
             apt get-install dcm2niix
@@ -55,7 +55,7 @@ jobs:
           fi
 
       - name: Install dcm2niix windows
-        if: '${{ RUNNER_OS }} == "Windows"'
+        if: '${{ runner.os }} == "Windows"'
         run: |
           curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
           powershell -command "Expand-Archive dcm2niix_win.zip" 
