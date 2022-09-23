@@ -11,6 +11,7 @@ For more details see the CLI portion of this module or the documentation for the
 :Author: Anthony Galassi
 :Copyright: Open NeuroPET team
 """
+import sys
 import os
 import textwrap
 import warnings
@@ -194,6 +195,7 @@ def update_json_with_dicom_value(
                     reconstruction_method = dicom_header.ReconstructionMethod
                     json_updater.remove('ReconstructionMethod')
                     reconstruction_method = get_recon_method(reconstruction_method)
+
                     json_updater.update(reconstruction_method)
 
             elif dicom_field:
