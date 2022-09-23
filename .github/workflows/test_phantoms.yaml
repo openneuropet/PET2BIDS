@@ -21,6 +21,7 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-20.04, windows-latest]
         python: ["3.9", "3.10"]
+        fail-fast: false
 
     steps:
       - name: Checkout Repo
