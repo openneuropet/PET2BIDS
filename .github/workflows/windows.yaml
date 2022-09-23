@@ -1,9 +1,5 @@
 name: Windows Get Dcm2niix
 on:
-  push:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
