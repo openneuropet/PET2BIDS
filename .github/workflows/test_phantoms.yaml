@@ -87,11 +87,11 @@ jobs:
         run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
 
       - name: Decompress phantoms windows
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ runner.os == 'Windows' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
         run: powershell -command "Expand-Archive PHANTOMS.zip"
 
       - name: Decompress phantoms posix
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ runner.os != 'Windows' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT }} && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
 
