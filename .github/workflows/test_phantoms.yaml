@@ -1,12 +1,13 @@
-name: Test On Phantoms
+name: Collect Phantom, Setup Dcm2niix and BIDS-Validator
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  Download_Phantoms:
+  Collect_Phantoms_Setup_Dependencies:
     runs-on: ${{ matrix.os }}
-
     env:
       ECAT_TEST_FOLDER: "cimbi36"
       REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
@@ -78,8 +79,6 @@ jobs:
 
       - name: Set Up Node
         uses: actions/setup-node@v3
-        with:
-          cache: npm
 
       - name: Install BIDS Validator
         run: npm install -g bids-validator
