@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-20.04, windows-latest]
-        python: [3.9, 3.10]
+        python: ["3.9", "3.10"]
 
     steps:
       - name: Checkout Repo
@@ -50,7 +50,7 @@ jobs:
         if: '${{ runner.os }} != "Windows"'
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            apt get install dcm2niix
+            sudo apt-get install dcm2niix
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
