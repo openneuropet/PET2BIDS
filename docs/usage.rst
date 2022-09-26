@@ -68,11 +68,15 @@ See the `documentation <https://github.com/openneuropet/PET2BIDS/blob/main/matla
 Python
 ------
 
-The python library is available for use on Posix systems (OSX and Linux) only, and requires
-that dcm2niix be installed and findable on the system path. For more information on how to
+The python library is available for use on Posix systems (OSX and Linux) and Windows. Posix installation
+requires that dcm2niix be installed and findable on the system path. Windows requires the user to provide
+the path to dcm2niix within an environment variable in a config file.
+
+For more information on how to
 install dcm2niix see Dcm2niix_.
 
 .. _Dcm2niix: https://github.com/rordenlab/dcm2niix#install
+
 
 **Installation**
 
@@ -103,6 +107,27 @@ Or with `Poetry <https://python-poetry.org/>`_:
 
     cd PET2BIDS/pypet2bids
     poetry install
+
+**Windows Only**
+
+Windows requires the creation of a `.pet2bidsconfig` file at the users home directory.
+
+.. code-block::
+
+    # get the home directory
+    echo $Home
+
+    C:\Users\pet2bidsuser\
+
+    # then save a configuration file at the location $Home\.pet2bidsconfig containing the following line
+    DCM2NIIX_PATH="<path to dcm2niix exe>"
+
+    # e.g. when printing out the contents of the file at .pet2bidsconfig on should see something 
+    # resembling the following
+    cat C:\Users\pet2bidsuser\.pet2bidsconfig
+    DCM2NIIX_PATH="C:\Users\pet2biduser\dcm2niix.exe"
+    
+
 
 If successfully installed you should have access to 3 command line tools, check to see if they are available via your
 terminal/commandline:

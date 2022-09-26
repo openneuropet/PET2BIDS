@@ -1,4 +1,4 @@
-# PET to BIDS is a set of BIDS converter for your Brain PET data
+# PET to BIDS is a set of BIDS converter for your Brain PET data (see also https://pet2bids.readthedocs.io/en/latest/index.html)
 
 [![Python PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml) [![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml) [![Documentation Status](https://readthedocs.org/projects/pet2bids/badge/?version=latest)](https://pet2bids.readthedocs.io/en/latest/?badge=latest)
 
