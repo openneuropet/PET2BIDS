@@ -17,6 +17,7 @@ from pandas import read_csv, read_excel
 import importlib
 import argparse
 from typing import Union
+from platform import system
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
@@ -588,3 +589,33 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
             reconstruction_dict['ReconMethodParameterLabels'][i] = "none"
 
     return reconstruction_dict
+
+
+def set_dcm2niix_path(dc2niix_path: pathlib.Path):
+    """
+    Given a path (or a string it thinks might be a path), updates the config file to point to
+    a dcm2niix.exe file. Used on windows via dcm2niix command line
+    :param dc2niix_path: path to dcm2niix executable
+    :type dc2niix_path: path
+    :return: None
+    :rtype: None
+    """
+    # load dcm2niix file
+    config_file = pathlib.Path.home()
+    config_file = config_file / ".pet2bidsconfig"
+    if config_file.exists():
+        # open the file and read in all the lines
+        temp_file = pathlib.Path.home() / '.pet2bidsconfig.temp'
+        with open(config_file, 'r') as infile, open(temp_file, 'w') as outfile:
+            for line in infile:
+                if 'DCM2NIIX_PATH' in line:
+                    outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
+                else:
+                    outfile.write(line)
+        if system().lower() == 'windows':
+            config_file.unlink(missing_ok=True)
+        temp_file.replace(config_file)
+    else:
+        # create the file
+        with open(config_file, 'w') as outfile:
+            outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')

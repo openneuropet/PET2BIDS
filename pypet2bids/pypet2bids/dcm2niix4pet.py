@@ -11,13 +11,14 @@ For more details see the CLI portion of this module or the documentation for the
 :Author: Anthony Galassi
 :Copyright: Open NeuroPET team
 """
+import pathlib
 import sys
 import os
 import textwrap
 import warnings
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader
+from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader, set_dcm2niix_path
 from platform import system
 import subprocess
 import pandas as pd
@@ -34,8 +35,6 @@ from termcolor import colored
 import argparse
 import importlib
 import dotenv
-
-
 
 
 # fields to check for
@@ -1034,6 +1033,10 @@ def cli():
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
                         action='store_true')
 
+    parser.add_argument('--set-dcm2niix-path', help="Provide a path to a dcm2niix install/exe, writes path to config "
+                                                    f"file {Path.home()}/.pet2bidsconfig under the variable "
+                                                    f"DCM2NIIX_PATH", type=pathlib.Path)
+
     return parser
 
 
@@ -1168,6 +1171,12 @@ def main():
 
     if cli_args.show_examples:
         print(example1)
+        sys.exit(0)
+
+    if cli_args.set_dcm2niix_path:
+        set_dcm2niix_path(cli_args.set_dcm2niix_path)
+        sys.exit(0)
+
     elif cli_args.folder:
         # instantiate class
         converter = Dcm2niix4PET(
