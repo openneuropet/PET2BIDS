@@ -588,3 +588,23 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
             reconstruction_dict['ReconMethodParameterLabels'][i] = "none"
 
     return reconstruction_dict
+
+
+def set_dcm2niix_path(dc2niix_path: pathlib.Path):
+    # load dcm2niix file
+    config_file = pathlib.Path.home()
+    config_file = config_file / ".pet2bidsconfig"
+    if config_file.exists():
+        # open the file and read in all the lines
+        temp_file = pathlib.Path.home() / '.pet2bidsconfig.temp'
+        with open(config_file, 'r') as infile, open(temp_file, 'w') as outfile:
+            for line in infile:
+                if 'DCM2NIIX_PATH' in line:
+                    outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
+                else:
+                    outfile.write(line)
+        temp_file.rename(config_file)
+    else:
+        # create the file
+        with open(config_file, 'w') as outfile:
+            outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
