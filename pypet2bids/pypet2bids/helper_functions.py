@@ -17,6 +17,7 @@ from pandas import read_csv, read_excel
 import importlib
 import argparse
 from typing import Union
+from platform import system
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
@@ -603,7 +604,9 @@ def set_dcm2niix_path(dc2niix_path: pathlib.Path):
                     outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
                 else:
                     outfile.write(line)
-        temp_file.rename(config_file)
+        if system().lower() == 'windows':
+            config_file.unlink(missing_ok=True)
+        temp_file.replace(config_file)
     else:
         # create the file
         with open(config_file, 'w') as outfile:
