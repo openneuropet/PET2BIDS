@@ -592,6 +592,14 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
 
 
 def set_dcm2niix_path(dc2niix_path: pathlib.Path):
+    """
+    Given a path (or a string it thinks might be a path), updates the config file to point to
+    a dcm2niix.exe file. Used on windows via dcm2niix command line
+    :param dc2niix_path: path to dcm2niix executable
+    :type dc2niix_path: path
+    :return: None
+    :rtype: None
+    """
     # load dcm2niix file
     config_file = pathlib.Path.home()
     config_file = config_file / ".pet2bidsconfig"
