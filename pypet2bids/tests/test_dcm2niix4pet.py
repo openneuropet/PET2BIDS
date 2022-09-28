@@ -293,7 +293,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF",
+            "ReconMethodName": "PSF+TOF3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -302,7 +302,7 @@ def test_get_recon_method():
             "contents": "OP-OSEM3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "OP-OSEM",
+            "ReconMethodName": "OP-OSEM3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -311,7 +311,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF",
+            "ReconMethodName": "PSF+TOF3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -321,24 +321,24 @@ def test_get_recon_method():
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
+            #"ReconMethodParameterUnits": ["none", "none"],
+            #"ReconMethodParameterLabels": ["subsets", "iterations"],
+            #"ReconMethodParameterValues": [None, None]
         },
         {
             "contents": "3D-RAMLA",
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "3D-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
+            #"ReconMethodParameterUnits": ["none", "none"],
+            #"ReconMethodParameterLabels": ["subsets", "iterations"],
+            #ReconMethodParameterValues": [None, None]
         },
         {
             "contents": 'OSEM:i3s15',
             "subsets": 15,
             "iterations": 3,
-            "ReconMethodName": "OSEM",
+            "ReconMethodName": "OSEM:i3s15",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [15, 3]
@@ -348,9 +348,9 @@ def test_get_recon_method():
             "subsets": None,
             "iterations": None,
             "ReconMethodName": "LOR-RAMLA",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [None, None]
+            #"ReconMethodParameterUnits": ["none", "none"],
+            #"ReconMethodParameterLabels": ["subsets", "iterations"],
+            #"ReconMethodParameterValues": [None, None]
         }
     ]
 
@@ -398,6 +398,46 @@ def test_check_meta_radio_inputs():
     this = check_meta_radio_inputs(given)
     TestCase().assertEqual(this, solution)
 
+    # test SpecificRadioactivity is okay
+    given = {"InjectedRadioactivity": 44.4, "InjectedMass": 6240}
+    solution = {"InjectedRadioactivityUnits": 'Bq/g',
+                "InjectedMass": given['InjectedMass'],
+                "InjectedMassUnits": 'ug',
+                "SpecificRadioactivityUnits": 'Bq/g',
+                "SpecificRadioactivity": (given['InjectedRadioactivity']*(10**6)) / (given['InjectedMass']*(10**6))
+    }
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['SpecificRadioactivity'], solution['SpecificRadioactivity'])
+
+    # check calc injected mass is okay
+    given = {'InjectedRadioactivity': 44, 'SpecificRadioactivity': 7.1154*(10**9)}
+    InjectedMass = ((given['InjectedRadioactivity']*(10**6))/(given['SpecificRadioactivity'])*(10**6))
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['InjectedMass'], InjectedMass)
+
+    # check InjectedRadioactivity is okay
+    given = {'SpecificRadioactivity': 7.1154*(10**9), 'InjectedMass': 6240}
+    InjectedRadioactivity = ((given['InjectedMass']/(10**6)) * given['SpecificRadioactivity']) / 10**6
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['InjectedRadioactivity'], InjectedRadioactivity)
+
+    # check SpecificRadioactivity is okay
+    given = {'MolarActivity': 135192600, 'MolecularWeight': 19}
+    SpecificRadioactivity = (given['MolarActivity']*1000)/given['MolecularWeight']
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['SpecificRadioactivity'], SpecificRadioactivity)
+
+    # check MolecularWeight is okay
+    given = {'MolarActivity': 135192600, 'SpecificRadioactivity': 7.1154*(10**9)}
+    MolecularWeight = (given['MolarActivity']*1000)/SpecificRadioactivity
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['MolecularWeight'], MolecularWeight)
+
+    # check MolarActivity is okay
+    given = {'MolecularWeight': 19, 'SpecificRadioactivity': 7.1154*(10**9)}
+    MolarActivity = (given['MolecularWeight']*given['SpecificRadioactivity'])/1000
+    this = check_meta_radio_inputs(given)
+    TestCase().assertEqual(this['MolarActivity'], MolarActivity)
 
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
