@@ -88,8 +88,7 @@ def cli():
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help='Shows example usage of this cli.',
                         action='store_true')
 
-    args = parser.parse_args()
-    return args
+    return parser
 
 
 example1 = textwrap.dedent('''
@@ -146,7 +145,13 @@ def main():
 
     :return: N/A
     """
-    cli_args = cli()
+    cli_parser = cli()
+
+    if len(sys.argv) == 1:
+        cli_parser.print_usage()
+        sys.exit(1)
+    else:
+        cli_args = cli_parser.parse_args()
 
     if cli_args.show_examples:
         print(example1)

@@ -80,7 +80,8 @@ install dcm2niix see Dcm2niix_.
 
 **Installation**
 
-The python version of PET2BIDS (from herein refrenced by it's library name *pypet2bids*) can be installed via pip for Python versions >3.7.1,<3.10
+The python version of PET2BIDS (from herein referenced by it's library name *pypet2bids*) can be installed
+via pip for Python versions >3.7.1,<3.10
 
 .. code-block::
 
@@ -110,7 +111,10 @@ Or with `Poetry <https://python-poetry.org/>`_:
 
 **Windows Only**
 
-Windows requires the creation of a `.pet2bidsconfig` file at the users home directory.
+Windows requires the creation of a `.pet2bidsconfig` file at the users home directory. It's important that python
+be on your windows path; when installing Python be sure to select **Add Python 3.XXX** to PATH:
+
+.. image:: media/check_python_path_windows_install.png
 
 .. code-block::
 
@@ -131,6 +135,24 @@ Windows requires the creation of a `.pet2bidsconfig` file at the users home dire
 
 If successfully installed you should have access to 3 command line tools, check to see if they are available via your
 terminal/commandline:
+
+.. code-block::
+
+    Microsoft Windows [Version 10.0.19042.2006]
+    (c) Microsoft Corporation. All rights reserved.
+
+    H:\>dcm2niix4pet
+    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--translation-script-path TRANSLATION_SCRIPT_PATH]
+                        [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent SILENT] [--show-examples]
+                        [--set-dcm2niix-path SET_DCM2NIIX_PATH]
+                        [folder]
+
+    H:\>ecatpet2bids
+    usage: ecat_cli.py [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar]
+                       [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table]
+                       [--show-examples]
+                       [ecat_file]
+
 
 ecatpet2bids for converting ecat data into nii & json
 
