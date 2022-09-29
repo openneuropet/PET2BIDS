@@ -44,23 +44,47 @@ The get_pet_metadata function can be called in a much simpler way if you have a 
 
 1. Use the `updatejsonpetfile.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/updatejsonpetfile.m>`_ function. Arguments in are the json file to update and metadata to add as a structure (using a get_metadata.m function for instance) and possibly a dicom file to check additional fields. This is show below for data from the biograph.
 
-``jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')``
-your SiemensBiographparameters.txt file is stored next to get_pet_metadata.m
+.. code-block::
 
-``metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','AZ10416936','TracerRadionuclide','C11',           'ModeOfAdministration','bolus','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66); dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm'); status = updatejsonpetfile(jsonfilename,metadata,dcminfo)``
+    jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json')
+    # your SiemensBiographparameters.txt file is stored next to get_pet_metadata.m
+
+    metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',
+    'TracerName','AZ10416936','TracerRadionuclide','C11',
+    'ModeOfAdministration','bolus','InjectedRadioactivity', 605.3220,
+    'InjectedMass', 1.5934,'MolarActivity', 107.66);
+
+    dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm');
+    status = updatejsonpetfile(jsonfilename,metadata,dcminfo)``
 
 2. Add the metadata 'manually' to the json file, shown below for GE Advance data. 
 
-`` metadata1 = jsondecode(textread(myjsonfile.json)); % or use jsonread from the matlab BIDS library``
-your GEAdvance.txt file is stored next to get_pet_metadata.m
-``metadata2 = get_pet_metadata('Scanner', 'GEAdvance','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11',                   'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66); metadata  = [metadata2;metadata1]; jsonwrite('mynewjsonfile.json'],metadata)``
+.. code-block::
+
+    metadata1 = jsondecode(textread(myjsonfile.json)); % or use jsonread from the matlab BIDS library
+
+    %your GEAdvance.txt file is stored next to get_pet_metadata.m
+
+    metadata2 = get_pet_metadata('Scanner', 'GEAdvance','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11',
+    'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+
+    metadata  = [metadata2;metadata1];
+    jsonwrite('mynewjsonfile.json'],metadata)
 
 **Converting ecat files**
 
 If you have ecat (.v) instead of dicom (.dcm), we have build a dedicated converter. Arguments in are the file to convert and some metadata as a structure (using the get_pet_metadata.m function for instance). This is shown below for HRRT data.
 
 Your SiemensHRRT.txt file is stored next to get_pet_metadata.m
-``metadata = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11', 'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66); ecat2nii({full_file_name},{metadata})``
+
+.. code-block::
+
+    metadata = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','XXX',
+    'TracerName','DASB','TracerRadionuclide', 'C11',
+    'ModeOfAdministration','bolus', 'InjectedRadioactivity',605.3220,
+    'InjectedMass', 1.5934,'MolarActivity', 107.66);
+
+    ecat2nii({full_file_name},{metadata})
  
 See the `documentation <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/Readme.md>`_ for further details on ecat conversion
 
@@ -133,7 +157,7 @@ be on your windows path; when installing Python be sure to select **Add Python 3
     
 
 
-If successfully installed you should have access to 3 command line tools, check to see if they are available via your
+If successfully installed you should have access to 2 command line tools, check to see if they are available via your
 terminal/commandline:
 
 .. code-block::
@@ -233,83 +257,9 @@ In the most simple use case one can convert a folder full of dicoms into a NIFTI
 
 
 However, more often than not the information required to create a valid PET BIDS nifti and json isn't present
-w/ in the dicom headers of the PET Image files. Extra information can be extracted at the time of conversion by
-including a spreadsheet file (tsv, xlsx, etc) and an extraction script
+w/ in the dicom headers of the PET Image files.
 
-.. code-block::
-
-    dcm2niix /folder/with/PET/dicoms/ --destination /folder/with/PET/nifti_jsons --metadatapath /file/with/PET_metadata.xlsx --translation-script translate.py
-
-It this point you may be asking self what is a metadata translation script? It's a python script designed to collect
-relevant PET metadata from a spreadsheet. There are two approaches to extracting additional PET metadata from a spreasheet.
-
-    - Format a spreadsheet to be more BIDS like and read use that data in the conversion:
-
-      .. image:: media/image_example_bids_spreadsheet.png
-
-    - Create a translation script that will extract and transform data from an existing spreadsheet. This method has the
-      benefit of better preserving the original data, but the cost is that it requires more fiddling directly in Python.
-      An example can be see below
-
-      .. code-block::
-
-            def translate_metadata(metadata_dataframe, image_path=NotImplemented):
-
-            nifti_json = {
-                'Manufacturer': '',
-                'ManufacturersModelName': '',
-                'Units': 'Bq/mL',
-                'TracerName': '[11C]PS13',
-                'TracerRadionuclide': '11C',
-                'InjectedRadioactivity': metadata_dataframe['Analyzed:'][32]*(1/1000)*(37*10**9), # mCi convert to Bq -> (mCi /1000) *  37000000000
-                'InjectedRadioactivityUnits': 'Bq',
-                'InjectedMass': metadata_dataframe['Met365a.xls - 011104'][35] * metadata_dataframe['Analyzed:'][38] , #provided in nmol/kg for subject
-                'InjectedMassUnits': 'nmol',
-                'SpecificRadioactivity': 9218*37*10**9, # c11 is maximum 9218 Ci/umol,
-                'SpecificRadioactivityUnits': 'Bq/mol',
-                'ModeOfAdministration': 'bolus',
-                'TimeZero': 0,
-                'ScanStart': 0,
-                'InjectionStart': 0,
-                'FrameTimesStart': [],
-                'FrameDuration': [],
-                'AcquisitionMode': '',
-                'ImageDecayCorrected': '',
-                'ImageDecayCorrectionTime': 0,
-                'ReconMethodName': '',
-                'ReconMethodParameterLabels': [],
-                'ReconMethodParameterUnits': [],
-                'ReconMethodParameterValues': [],
-                'ReconFilterType': '',
-                'ReconFilterSize': 0,
-                'AttenuationCorrection': '',
-                'InstitutionName': '',
-                'InstitutionalDepartmentName': ''
-            }
-
-If you're thinking it's to much to ask you to generate this script from scratch, you're absolutely right. You can generate a
-template script by running the following command:
-
-.. code-block::
-
-    pet2bids-spreadsheet-template /path/to/save/template/script.py
-    ls /path/to/save/template/script.py
-    script.py
-
-Now assuming you've located your dicom images, set up your template script/and or your metadata spreadsheet you should
-be able produce the output resembling the following:
-
-.. code-block::
-
-    machine:folder user$ ls ~/Desktop/testdcm2niix4pet/
-    PET_Brain_Dyn_TOF_7801580_20180322104003_5.json         PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.json
-    PET_Brain_Dyn_TOF_7801580_20180322104003_5.nii.gz       PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.tsv
-
-
-
-
-
-Pypet2bids can be run via the command line after being installed, often additional radiological information will need to
+Often additional radiological information will need to
 be passed to pypet2bids in addition to PET imaging data. Passing this data can be done in a number of increasingly
 complex ways. The simplest method to pass on information is directly at the command line when calling either
 **dcm2niix4pet** or **ecatpet2bids**. Both of these tools accept additional arguments via key pair's separated by the
@@ -363,4 +313,16 @@ And similarly, extra key pair values can be passed to ecatpet2bids:
     AttenuationCorrection="10-min transmission scan"
 
 
+And additional method to Extract/inject information at the time of conversion involves the use of a spreadsheet. By
+including a spreadsheet file (tsv, xlsx, etc) that has been formatted like the following:
+
+.. image:: media/image_example_bids_spreadsheet.png
+
+Then point the optional `metadatapath` flag at the spreadsheet location:
+
+.. code-block::
+
+    dcm2niix4pet /folder/containing/PET/dicoms/
+    --destination /folder/containing/PET/nifti_jsons
+    --metadatapath /file/PET_metadata.xlsx
 
