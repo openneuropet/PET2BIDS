@@ -154,9 +154,16 @@ for i=length(filein):-1:1
 end
 clear filename datain
 
-if any([~exist('ParentFraction','var') ...
-        ~exist('Wholeblood','var')])
-    error('ParentFraction and/or WholebloodActivity files did not load successfully')
+if ~exist('Wholeblood','var')
+    error('WholebloodActivity file missing / not recognized')
+end
+
+% dirty check of parent variable
+if any(ParentFraction.(ParentFraction.Properties.VariableNames{2}) > 1) && ...
+        ~exist('Plasma','var')
+    warning('Parent fraction seen as > 1 ?? assuming this is plasma')
+    Plasma = ParentFraction;
+    clear ParentFraction
 end
 
 % fix the time info to the right format
@@ -169,13 +176,15 @@ elseif any(contains(Wholeblood.Properties.VariableNames,{'seconds','sec'},'Ignor
     WBtime = Wholeblood.(cell2mat(varname));
 end
 
-if any(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
-    varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
-    ParentFraction.(cell2mat(varname)) = seconds(minutes(ParentFraction.(cell2mat(varname))));
-    PFtime = ParentFraction.(cell2mat(varname));
-elseif any(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
-    varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
-    WBtime = ParentFraction.(cell2mat(varname));
+if exist('ParentFraction','var')
+    if any(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true))
+        varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'minutes','min'},'IgnoreCase',true)));
+        ParentFraction.(cell2mat(varname)) = seconds(minutes(ParentFraction.(cell2mat(varname))));
+        PFtime = ParentFraction.(cell2mat(varname));
+    elseif any(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
+        varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
+        WBtime = ParentFraction.(cell2mat(varname));
+    end
 end
 
 if exist('Plasma','var')
@@ -192,8 +201,10 @@ end
 % check time information across files
 % if all manual or autosampler, it make sense to have the same time points
 if ~strcmpi(type,'both')
-    if length(PFtime) ~= length(WBtime) || ~all(PFtime == WBtime)
-        error('ParentActivity and Whole blood have different time values - this seems impossible')
+    if exist('PFtime','var')
+        if length(PFtime) ~= length(WBtime) || ~all(PFtime == WBtime)
+            error('ParentActivity and Whole blood have different time values - this seems impossible')
+        end
     end
     
     if exist('Ptime','var')
@@ -246,7 +257,11 @@ if ~exist('outputname','var')
 end
 
 whole_blood_radioactivity  = Wholeblood.(Wholeblood.Properties.VariableNames{2});
-metabolite_parent_fraction = ParentFraction.(ParentFraction.Properties.VariableNames{2});
+
+if exist('ParentFraction','var')
+    metabolite_parent_fraction = ParentFraction.(ParentFraction.Properties.VariableNames{2});
+end
+
 if strcmpi(type,'both')
     if strcmpi(manual{1},'Parent')
         time  = ParentFraction.(ParentFraction.Properties.VariableNames{1});
@@ -304,8 +319,13 @@ else
     time  = Wholeblood.(Wholeblood.Properties.VariableNames{1});
     if exist('Plasma','var')
         plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
-        t = table(time,whole_blood_radioactivity,metabolite_parent_fraction,plasma_radioactivity,...
-            'VariableNames',{'time','whole_blood_radioactivity','metabolite_parent_fraction','plasma_radioactivity'});
+        if exist('metabolite_parent_fraction','var')
+            t = table(time,whole_blood_radioactivity,metabolite_parent_fraction,plasma_radioactivity,...
+                'VariableNames',{'time','whole_blood_radioactivity','metabolite_parent_fraction','plasma_radioactivity'});
+        else
+            t = table(time,whole_blood_radioactivity,plasma_radioactivity,...
+                'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity'});
+        end
     else
         t = table(time,whole_blood_radioactivity,metabolite_parent_fraction,...
             'VariableNames',{'time','whole_blood_radioactivity','metabolite_parent_fraction'});
