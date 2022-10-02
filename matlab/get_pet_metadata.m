@@ -105,15 +105,35 @@ else
         elseif contains(varargin{n},'Administration','IgnoreCase',true)
             ModeOfAdministration = varargin{n+1};
         elseif contains(varargin{n},{'InjectedRadioactivity','Injected Radioactivity'},'IgnoreCase',true)
-            InjectedRadioactivity = varargin{n+1};
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                warning('Argument InjectedRadioactivityUnits is ignored, BIDS indicates it must be in MBq');
+            else
+                InjectedRadioactivity = varargin{n+1};
+            end
         elseif contains(varargin{n},{'SpecificRadioactivity','Specific Radioactivity'},'IgnoreCase',true)
-            SpecificRadioactivity = varargin{n+1};
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                warning('Argument SpecificRadioactivityUnits is ignored, BIDS indicates it must be in Bq/g or MBq/ug');
+            else
+                SpecificRadioactivity = varargin{n+1};
+            end
         elseif contains(varargin{n},'Mass','IgnoreCase',true)
-            InjectedMass = varargin{n+1};
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                warning('Argument InjectedMassUnits is ignored, BIDS indicates it must be in ug');
+            else
+                InjectedMass = varargin{n+1};
+            end
         elseif any(strcmpi(varargin{n},{'MolarActivity','Molar Activity'}))
-            MolarActivity = varargin{n+1};
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                warning('Argument MolarActivityUnits is ignored, BIDS indicates it must be in GBq/umolug');
+            else
+                MolarActivity = varargin{n+1};
+            end
         elseif contains(varargin{n},'Weight','IgnoreCase',true)
-            MolecularWeight = varargin{n+1};
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                warning('Argument MolecularWeightUnits is ignored, BIDS indicates it must be in g/mol');
+            else
+                MolecularWeight = varargin{n+1};
+            end
         end
     end
     
