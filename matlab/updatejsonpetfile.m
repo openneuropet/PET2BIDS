@@ -65,7 +65,7 @@ end
 
 % expected metadata from the BIDS specification
 current    = which('updatejsonpetfile.m');
-root       = current(1:strfind(current,'matlab')-1);
+root       = current(1:max(strfind(current,'matlab'))-1);
 jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
 if exist(jsontoload,'file')
     petmetadata = jsondecode(fileread(jsontoload));
