@@ -79,7 +79,7 @@ if nargin == 1
     [filemetadata,updated] = update_arrays(filemetadata);
     if updated && exist('jsonfilename','var')
         warning('some scalars were changed to array')
-        jsonwrite(jsonfilename,filemetadata);
+        jsonwrite(jsonfilename,orderfields(filemetadata));
     end
     
     % -------------- only check ---------------
