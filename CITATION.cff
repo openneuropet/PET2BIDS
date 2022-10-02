@@ -16,11 +16,20 @@ authors:
 - family-names: "Svarer"
   given-names: "Claus"   
   orcid: "https://orcid.org/0000-0001-7811-1825"
+- family-names: "Rorden"
+  given-names: "Chris"   
+  orcid: "https://orcid.org/0000-0002-7554-6142"
+ family-names: "Matheson"
+  given-names: "Granville"   
+  orcid: "https://orcid.org/0000-0002-5646-4547"
+- family-names: "Ganz-Benjaminsen"
+  given-names: "Melanie"
+  orcid: "https://orcid.org/0000-0002-9120-8098"
 - family-names: "Pernet"
   given-names: "Cyril"
   orcid: "https://orcid.org/0000-0003-4010-4632"
 title: "PET2BIDS"
 version: 1.0.0
 url: "https://github.com/openneuropet/PET2BIDS"
-date-released: 2022-08-01
+date-released: 2022-10-01
 license: MIT
