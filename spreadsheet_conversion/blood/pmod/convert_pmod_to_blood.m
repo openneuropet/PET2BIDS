@@ -350,7 +350,7 @@ if strcmpi(addjson,'on')
     
     info.time.Description                       = 'Time in relation to time zero defined by the _pet.json';
     info.time.Units                             = 's';
-    info.whole_blood_radioactivity.Description  = 'Radioactivity in whole blood samples. Measured using COBRA counter.';
+    info.whole_blood_radioactivity.Description  = 'Radioactivity in whole blood samples.';
     info.whole_blood_radioactivity.Units        = 'kBq/mL';
     info.metabolite_parent_fraction.Description = 'Parent fraction of the radiotracer';
     info.metabolite_parent_fraction.Units       = 'arbitrary';
