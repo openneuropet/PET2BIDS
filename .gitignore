@@ -53,8 +53,6 @@ D:\\BIDS*
 
 # spreadsheet outputs from testing
 /spreadsheet_conversion/blood/pmod/recording-*!/spreadsheet_conversion/blood/.pytest_cache/
-*recording-manual*
-*recording-automatic*
 
 # test data
 *OpenNeuroPET-Phantoms*
