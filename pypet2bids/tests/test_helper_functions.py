@@ -177,7 +177,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF",
+            "ReconMethodName": "PSF+TOF3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -186,7 +186,7 @@ def test_get_recon_method():
             "contents": "OP-OSEM3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "OP-OSEM",
+            "ReconMethodName": "OP-OSEM3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -195,7 +195,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF",
+            "ReconMethodName": "PSF+TOF3i21s",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -218,7 +218,7 @@ def test_get_recon_method():
             "contents": 'OSEM:i3s15',
             "subsets": 15,
             "iterations": 3,
-            "ReconMethodName": "OSEM",
+            "ReconMethodName": "OSEM:i3s15",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [15, 3]

@@ -566,10 +566,12 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
             # test_dcm2niix4pet.py may. Will be updated when non-conforming data is obtained
             pass  # do nothing, this case shouldn't fire.....
 
-    if iteration_subset_string:
-        ReconMethodName = re.sub(iteration_subset_string, "", contents)
-    else:
-        ReconMethodName = contents
+
+    #if iteration_subset_string:
+    #    ReconMethodName = re.sub(iteration_subset_string, "", contents)
+    #else:
+    #    ReconMethodName = contents
+    ReconMethodName = contents
 
     # cleaning up weird chars at end or start of name
     ReconMethodName = re.sub(r'[^a-zA-Z0-9]$', "", ReconMethodName)

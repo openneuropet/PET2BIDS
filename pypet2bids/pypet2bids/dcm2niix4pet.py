@@ -836,10 +836,10 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
         else:
-            tmp = ((InjectedRadioactivity*10**6)/SpecificRadioactivity)*10**6
+            tmp = ((InjectedRadioactivity*(10**6)/SpecificRadioactivity)*(10**6))
             if InjectedMass:
                 if InjectedMass != tmp:
-                    print(colored("WARNING Infered InjectedMass in ug doesn''t match InjectedRadioactivity and "
+                    print(colored("WARNING Infered InjectedMass in ug doesn't match InjectedRadioactivity and "
                                   "InjectedMass, could be a unit issue", "yellow"))
                 data_out['InjectedMass'] = InjectedMass
                 data_out['InjectedMassUnits'] = kwargs.get('InjectedMassUnits', 'n/a')
@@ -857,10 +857,10 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedRadioactivity'] = 'n/a'
             data_out['InjectedRadioactivityUnits'] = 'n/a'
         else:
-            tmp = ((InjectedMass / 10 ** 6) / SpecificRadioactivity) / 10 ** 6  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
+            tmp = ((InjectedMass / (10**6)) * SpecificRadioactivity) / (10**6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
             if InjectedRadioactivity:
                 if InjectedRadioactivity != tmp:
-                    print(colored("WARNING infered InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
+                    print(colored("WARNING inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
                                   "and InjectedMass, could be a unit issue", "yellow"))
                 data_out['InjectedRadioactivity'] = InjectedRadioactivity
                 data_out['InjectedRadioactivityUnits'] = kwargs.get('InjectedRadioactivityUnits', 'n/a')
@@ -878,12 +878,11 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['SpecificRadioactivity'] = 'n/a'
             data_out['SpecificRadioactivityUnits'] = 'n/a'
         else:
-            tmp = (MolarActivity * 10 ** 6) / (
-                        MolecularWeight / 10 ** 6)  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
+            tmp = (MolarActivity*(10**3)) / MolecularWeight  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
-                    print(colored('infered SpecificRadioactivity in MBq/ug doesn''t match Molar Activity and Molecular '
-                                  'Weight, could be a unit issue', 'yellow'))
+                    print(colored("inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
+                                  "Weight, could be a unit issue", 'yellow'))
                 data_out['SpecificRadioactivity'] = SpecificRadioactivity
                 data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
             else:
@@ -895,22 +894,22 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
         data_out['MolarActivity'] = MolarActivity
         data_out['MolarActivityUnits'] = 'GBq/umol'
-        numeric_check = [str(SpecificRadioactivity).isnumeric(), str(MolarActivity).isnumeric()]
+        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(MolarActivity))]
         if False in numeric_check:
             data_out['MolecularWeight'] = 'n/a'
             data_out['MolecularWeightUnits'] = 'n/a'
         else:
-            tmp = (SpecificRadioactivity / 1000) / MolarActivity  # (MBq / ug / 1000) / (GBq / umol) = g / mol
+            tmp = (MolarActivity * 1000) / SpecificRadioactivity  # (MBq / ug / 1000) / (GBq / umol) = g / mol
             if MolecularWeight:
                 if MolecularWeight != tmp:
-                    print(colored("WARNING Infered MolecularWeight in MBq/ug doesn't match Molar Activity and "
+                    print(colored("WARNING Inferred MolecularWeight in MBq/ug doesn't match Molar Activity and "
                                   "Molecular Weight, could be a unit issue", 'yellow'))
 
-                data_out['MolecularWeight'] = MolecularWeight
+                data_out['MolecularWeight'] = tmp
                 data_out['MolecularWeightUnits'] = kwargs.get('MolecularWeightUnits', 'n/a')
             else:
-                data_out.MolecularWeight = tmp
-                data_out.MolecularWeightUnits = 'g/mol'
+                data_out['MolecularWeight'] = tmp
+                data_out['MolecularWeightUnits'] = 'g/mol'
 
     if MolecularWeight and SpecificRadioactivity:
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
@@ -925,7 +924,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = MolecularWeight * (SpecificRadioactivity / 1000)  # g / mol * (MBq / ug / 1000) = GBq / umol
             if MolarActivity:
                 if MolarActivity != tmp:
-                    print(colored("WARNING infered MolarActivity in GBq/umol doesn''t match Specific Radioactivity and "
+                    print(colored("WARNING inferred MolarActivity in GBq/umol doesn't match Specific Radioactivity and "
                                   "Molecular Weight, could be a unit issue", "yellow"))
                 data_out['MolarActivity'] = MolarActivity
                 data_out['MolarActivityUnits'] = kwargs.get('MolarActivityUnits', 'n/a')
