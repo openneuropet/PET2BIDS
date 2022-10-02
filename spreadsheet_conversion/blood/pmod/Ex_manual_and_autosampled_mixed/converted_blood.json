@@ -6,7 +6,7 @@
     "Units": "s"
   },
   "whole_blood_radioactivity": {
-    "Description": "Radioactivity in whole blood samples. Measured using COBRA counter.",
+    "Description": "Radioactivity in whole blood samples.",
     "Units": "kBq/mL"
   },
   "metabolite_parent_fraction": {
