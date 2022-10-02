@@ -4,13 +4,14 @@ The following individuals have contributed to the PET2BIDS project (in alphabeti
 some icons needs to be added or your name is not listed, please add it.
 
 Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️  
-Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
-Chris Rorden 💻 🐛 📖  
-Adam G Thomas  🔍 🤔  
-Claus Svarer 💻 ⚠️  
-Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
 Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋  
+Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
+Granville Matheson 📝 🐛 ✅  
+Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
 Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️  
+Chris Rorden 💻 🐛 📖 
+Claus Svarer 💻 ⚠️   
+Adam G Thomas  🔍 🤔  
 
 Legend (source:
 [https://github.com/kentcdodds/all-contributors](https://github.com/kentcdodds/all-contributors))
