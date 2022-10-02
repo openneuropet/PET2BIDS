@@ -333,7 +333,13 @@ else
     tsvname = [outputname '_recording-' type '_blood.tsv'];
     writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
 end
-        
+ 
+if exist('plasma_radioactivity','var') && exist('metabolite_parent_fraction','var')
+    if length(plasma_radioactivity) == length(whole_blood_radioactivity)
+        warning('plasma values may have been interpolated?? BIDS prefers raw data if you have them')
+    end
+end
+
 %% export json
 
 if strcmpi(addjson,'on')
