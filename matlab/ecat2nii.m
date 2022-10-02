@@ -168,7 +168,8 @@ for j=1:length(FileListIn)
         end
         
         % rescale to 16 bits
-        if range(img_temp(:)) ~= 32767
+        rg = max(img_temp(:))-min(img_temp(:));
+        if rg ~= 32767 % same as range(img_temp(:)) but no need of stats toolbox
             MaxImg       = max(img_temp(:));
             img_temp     = img_temp/MaxImg*32767;
             Sca          = MaxImg/32767;
