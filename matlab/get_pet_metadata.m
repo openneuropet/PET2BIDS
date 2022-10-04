@@ -61,17 +61,17 @@ function metadata = get_pet_metadata(varargin)
 %
 %   - *Scanner* name of scanner, map to a *parameters.txt file  e.g. 'Scanner', 'SiemensBiograph'
 %   - *TimeZero* when was the tracer injected                   e.g. 'TimeZero','11:05:01'
-%   - *ModeOfAdministration*                                     e.g. 'ModeOfAdministration', 'bolus'
+%   - *ModeOfAdministration*                                    e.g. 'ModeOfAdministration', 'bolus'
 %   - *TracerName* which tracer was used                        e.g. 'TracerName','DASB'
 %   - *TracerRadionuclide* which nuclide was used               e.g. 'TracerRadionuclide','C11'
+%
+%    **\+ at least 2 of those key/value arguments to infer others:**
+%
 %   - *InjectedRadioactivity* value in MBq                      e.g. 'InjectedRadioactivity', 605.3220
 %   - *InjectedMass* Value in ug                                e.g. 'InjectedMass', 1.5934
-%
-%    **\+ at least 2 of those key/value arguments:**
-%
 %   - *MolarActivity* value in GBq/umol                         e.g. 'MolarActivity', 107.66
 %   - *MolecularWeight* value in g/mol                          e.g. 'MolecularWeight', 15.02
-%   - *SpecificRadioactivity* in Bq/g or Bq/mol                  e.g. 'SpecificRadioactivity', 3.7989e+14
+%   - *SpecificRadioactivity* in Bq/g or Bq/mol                 e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 % .. note::
 %   the TimeZero can also be [] or 'ScanStart' indicating that the scanning time should be used as TimeZero
@@ -171,9 +171,9 @@ else
         mandatory{length(mandatory)+1} = setval{r}; % add to mandatory list
         if isfield(dataout,setval{r})
             if isnumeric(dataout.(setval{r}))
-                eval([setval{r} '=' num2str(dataout.(setval{r}))])
+                eval([setval{r} '=' num2str(dataout.(setval{r}))]);
             else
-                eval([setval{r} '=''' dataout.(setval{r}) ''''])
+                eval([setval{r} '=''' dataout.(setval{r}) '''']);
             end
         end
     end
@@ -232,12 +232,12 @@ else
             for opt = 1:length(setmetadata)
                 if contains(setmetadata{opt},'=')
                     try
-                        eval(setmetadata{opt}); % shoul evaluate the = sign, creating name/value pairs                end
+                        eval(setmetadata{opt}); % shoul evaluate the = sign, creating name/value pairs
                         if isempty(setmetadata{opt})
                             error('''%s'' from %sparameters.txt is empty\n',optional{opt},Scanner)
                         end
                     catch evalerr
-                        error('''%s'' from %sparameters.txt is empty\n',setmetadata{opt},Scanner)% --> error for optional inputs
+                        error('''%s'' from %sparameters.txt is empty\n',setmetadata{opt},Scanner) % --> error for optional inputs
                     end
                 end
             end
@@ -346,7 +346,8 @@ if exist('MolarActivity', 'var')
     metadata.MolarActivityUnits         = 'GBq/umol';
 end
 
-% run through option setting dynamic fields
+
+% run through optional var (actually all BIDS fields) setting dynamic fields
 for f=1:length(optional)
     if exist(optional{f},'var')
         metadata.(optional{f}) = eval(optional{f});
