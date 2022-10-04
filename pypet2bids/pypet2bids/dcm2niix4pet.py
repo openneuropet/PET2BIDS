@@ -8,8 +8,8 @@ commands.
 For more details see the CLI portion of this module or the documentation for the main class Dcm2niix4PET
 
 
-:Author: Anthony Galassi
-:Copyright: Open NeuroPET team
+| *Authors: Anthony Galassi*
+| *Copyright OpenNeuroPET team*
 """
 import pathlib
 import sys

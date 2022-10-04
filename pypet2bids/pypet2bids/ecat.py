@@ -2,9 +2,9 @@
 This module contains the Ecat class which uses collections of other functions in this library to read native ECAT files
 and write them out to Nifti files.
 
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
+
+| *Anthony Galassi*
+| *Copyright Open NeuroPET team*
 """
 import datetime
 import re

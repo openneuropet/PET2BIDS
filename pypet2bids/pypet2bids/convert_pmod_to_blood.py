@@ -6,8 +6,8 @@ PMOD blood files and is not incorporated within any of the other conversion tool
 The command line arguments are details below, for more information about how this module works see the documentation for
 PmodToBlood.
 
-:Authors: Anthony Galassi
-:Copyright: Open NeuroPET team
+| *Authors: Anthony Galassi*
+| *Copyright: OpenNeuroPET team*
 """
 import json
 import textwrap

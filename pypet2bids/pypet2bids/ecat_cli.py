@@ -1,8 +1,8 @@
 """
 Simple command line tool to extract header and pixel information from ecat files and convert ecat to nifti.
 
-:Authors: Anthony Galassi
-:Copyright: Open NeuroPET team
+| *Authors: Anthony Galassi*
+| *Copyright OpenNeuroPET team*
 """
 import argparse
 import os

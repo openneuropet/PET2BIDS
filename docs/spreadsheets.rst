@@ -1,4 +1,4 @@
-.. _spreadsheets
+.. _spreadsheets:
 
 ============
 Spreadsheets
@@ -23,23 +23,32 @@ Handled Types of Spreadsheets (known)
   `Many Subject Spreadsheet <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_example.xlsx>`_
   paired with a `single subject spreadsheet  <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subject_>`_
 
+------------------------------------------------------------------------------------------------------------------------
+
 **PMOD**
 
 - `Example 1 from PMOD <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/blood/pmod/Ex_frompmod>`_
 - `Example 2 Manual and Autosampled Mixed data <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/blood/pmod/Ex_manual_and_autosampled_mixed/>`_
 - `Example 3 Whole Blood and Plasma Only <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/blood/pmod/Ex_wholeblood_and_plasma_only/>`_
 
+------------------------------------------------------------------------------------------------------------------------
+
 **Auto Sampled Data**
 
 - #TODO upload autosampled example or add to repo
 
+------------------------------------------------------------------------------------------------------------------------
 
 PET2BIDS Methods and Tools
 --------------------------
 
 **Matlab**
 
+------------------------------------------------------------------------------------------------------------------------
+
 **Python**
+
+------------------------------------------------------------------------------------------------------------------------
 
 *Custom Spreadsheet Data Extractor*
 
@@ -55,10 +64,10 @@ more fiddling directly in Python.
 
 An example can be see below:
 
-
 .. code-block::
 
-    dcm2niix4pet /folder/with/PET/dicoms/ --destination /folder/with/PET/nifti_jsons --metadatapath /file/with/PET_metadata.xlsx --translation-script translate.py
+    dcm2niix4pet /folder/with/PET/dicoms/ --destination /folder/with/PET/nifti_jsons
+    --metadatapath /file/with/PET_metadata.xlsx --translation-script translate.py
 
 It this point you may be asking self what is a metadata translation script? It's a python script designed to collect
 relevant PET metadata from a spreadsheet. There are two approaches to extracting additional PET metadata from a
@@ -105,8 +114,8 @@ spreadsheet.
                 'InstitutionalDepartmentName': ''
             }
 
-If you're thinking it's to much to ask you to generate this script from scratch, you're absolutely right. You can generate a
-template script by running the following command:
+If you're thinking it's to much to ask you to generate this script from scratch, you're absolutely right. You can
+generate a template script by running the following command:
 
 .. code-block::
 
@@ -123,5 +132,6 @@ be able produce the output resembling the following:
     PET_Brain_Dyn_TOF_7801580_20180322104003_5.json         PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.json
     PET_Brain_Dyn_TOF_7801580_20180322104003_5.nii.gz       PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.tsv
 
+------------------------------------------------------------------------------------------------------------------------
 
-
+end doc

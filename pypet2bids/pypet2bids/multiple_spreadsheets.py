@@ -16,10 +16,9 @@ def read_multi_subject_spreadsheets(
     """
     Reads in two spreadsheets as formatted in PET2BIDS/spreadsheet_conversion/many_subject_sheets,
     generic (scanner or subject independent data is supplied via the first argument and subject
-    specific data is suppiled via the second argument.
+    specific data is supplied via the second argument.
 
-    :format:
-    :param general_metadata_spreadsheet: path to a metadatspread sheet containing bids fields as columns
+    :param general_metadata_spreadsheet: path to a metadata spreadsheet containing bids fields as columns
     with values below
     :type general_metadata_spreadsheet: file path
     :param multiple_subject_spreadsheet: path to multi subject spreadsheet containing a subject id, participant id,

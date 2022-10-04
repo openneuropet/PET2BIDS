@@ -22,14 +22,6 @@ pypet2bids.dcm2niix4pet module
    :undoc-members:
    :show-inheritance:
 
-pypet2bids.dicom\_convert module
---------------------------------
-
-.. automodule:: pypet2bids.dicom_convert
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pypet2bids.ecat module
 ----------------------
 
@@ -46,13 +38,6 @@ pypet2bids.ecat2nii module
    :undoc-members:
    :show-inheritance:
 
-pypet2bids.golden\_ecat module
-------------------------------
-
-.. automodule:: pypet2bids.golden_ecat
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 pypet2bids.helper\_functions module
 -----------------------------------
@@ -82,6 +67,14 @@ pypet2bids.convert\_pmod\_to\_blood module
 ------------------------------------------
 
 .. automodule:: pypet2bids.convert_pmod_to_blood
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pypet2bids.multiple\_spreadsheets module
+----------------------------------------
+
+.. automodule:: pypet2bids.multiple_spreadsheets
     :members:
     :undoc-members:
     :show-inheritance:
