@@ -1,16 +1,25 @@
 # convert_pmod_to_blood
 
-PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
+PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner
+(see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files
+according to BIDS. By default (although this can be turned off), the accompagning json file is also created
+(but requires more user input).
 
-_Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains information indicating what the columns are. 
+## Matlab
 
-_Reminder_ *Wholeblood* is the overall blood radioactivity *Plasma* is the overall radioactivity in the plasma (i.e. blood minus red cells) *ParentFraction* is the free unchanged tracer from plasma relative to whole blood
+_Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains
+information indicating what the columns are.
 
-## Input files with user prompt
+_Reminder_ *Wholeblood* is the overall blood radioactivity *Plasma* is the overall radioactivity in the plasma
+(i.e. blood minus red cells) *ParentFraction* is the free unchanged tracer from plasma relative to whole blood
 
-Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files. Because no other information is provided, it will create the json file along with some warning messages since this will not be BIDS compliant.
+### Input files with user prompt
 
-## function call with arguments
+Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files.
+Because no other information is provided, it will create the json file along with some warning messages since this will
+not be BIDS compliant.
+
+### function call with arguments
 
 ```matlab
 file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
@@ -20,7 +29,23 @@ convert_pmod_to_blood(file1,file2,file3,'type','both','outputname','sub01-',...
                 'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
                 'DispersionCorrected','false')
 ```
-Using the command line, aditional arguments can be provided to create fully compliant BIDS json files. If some information is missing, warnings will be issues.
+
+Using the command line, additional arguments can be provided to create fully compliant BIDS json files.
+If some information is missing, warnings will be issued.
+
+## Python
+
+```bash
+convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld # simplest use case
+convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld --plasma-activity-path plasma.bld
+convert-pmod-to-blood --whole blood-path wholeblood.bld --parent-fraction parentfraction.bld --outputh-path sub-01/pet
+```
+
+Below shows the output generated when running `convert_pmod_to_blood` on some of the example files contained in this
+repository/folder:
+
+```bash
+Note: lines prepended with # denote comments/notes where as lines without # denote data or input arguments
 
 example 1 (passing the bare minimum):
 
