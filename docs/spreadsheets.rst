@@ -19,10 +19,11 @@ Handled Types of Spreadsheets (known)
 **Excel**
 
 - `Ideal single subject example <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx>`_
-- #TODO Here is an example of a
+- Here is an example of a
   `Many Subject Spreadsheet <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_example.xlsx>`_
   paired with a `single subject spreadsheet  <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subject_>`_
-
+  these can be used when updating BIDS datasets w/ homogenous scanner/experiment data along with heterogeneous (subject)
+  data.
 ------------------------------------------------------------------------------------------------------------------------
 
 **PMOD**
@@ -35,7 +36,29 @@ Handled Types of Spreadsheets (known)
 
 **Auto Sampled Data**
 
-- #TODO upload autosampled example or add to repo
+In some scans an auto-sampler is used in conjunction with manual sampling. The data collected from these auto-samplers
+is often provided in the form of a time column along with a whole blood count or calculated radioactivity column.
+
+An example of a bids compliant auto-sampled tsv can be seen
+`here <https://github.com/openneuropet/PET2BIDS/blob/653f0612da5a65c7dc6b8b112d17ae77d41af858/spreadsheet_conversion/blood/pmod/Ex_manual_and_autosampled_mixed/converted_recording-autosampler_blood.tsv>`_
+
+These types of recordings are stored along side manually sampled blood data within the BIDS tree. In order to
+differentiate between auto-sampled and manually sampled files the `recording <>'_ entity is used. e.g. this file would
+be saved as:
+
+.. code-block::
+
+    sub-<label>_ses-<label>_recording-autosampler_blood.tsv
+    sub-<label>_ses-<label>_recording-autosampler_blood.json
+    sub-<label>_ses-<label>_recording-manual_blood.tsv
+    sub-<label>_ses-<label>_recording-manual_blood.json
+
+There is currently no language limiting the number of columns within an auto-sampled spreadsheet, however it is
+required to contain the whole_blood data along with a corresponding time column. Interpolated data can be included as
+well, such as plasma_radioactivity, but again this is considered by some to be calculated data since it is not collected
+from the auto-sampler itself. Additional commentary and description over the merits and continually on going discussion
+concerning raw vs. derived data are deliberately omitted at this time from this document; it could fill volumes the
+writer is choosing to spare himself and the reader.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +76,7 @@ PET2BIDS Methods and Tools
 *Custom Spreadsheet Data Extractor*
 
 Using the metadata translation script is not recommended, but remains as an option to the adventurous and not so easily
-deterred users. This method is not recommended as it requires very homogeneously formatted data (which is most likely
+deterred users. This method requires very homogeneously formatted data (which is most likely
 not the use case, hence the conversion to BIDS) and some programming knowledge. Further, there are a million and one
 ways that it can go wrong. That said, one can create a custom extraction script to parse, convert, and update BIDS
 fields at the time of conversion by including a spreadsheet file (tsv, xlsx, etc) and an extraction script to manipulate
@@ -131,7 +154,3 @@ be able produce the output resembling the following:
     machine:folder user$ ls ~/Desktop/testdcm2niix4pet/
     PET_Brain_Dyn_TOF_7801580_20180322104003_5.json         PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.json
     PET_Brain_Dyn_TOF_7801580_20180322104003_5.nii.gz       PET_Brain_Dyn_TOF_7801580_20180322104003_5_blood.tsv
-
-------------------------------------------------------------------------------------------------------------------------
-
-end doc
