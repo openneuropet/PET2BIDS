@@ -206,46 +206,43 @@ if ~strcmpi(type,'both')
             error('ParentActivity and Whole blood have different time values - this seems impossible')
         end
     end
-    
+
     if exist('Ptime','var')
         if ~all(Ptime == WBtime)
             error('Whole blood and Plasma have different time values - this seems impossible')
         end
     end
-    
+
     if strcmpi(type,'manual')
-        if exist('Plasma','var')
-            manual = [{'Wholeblood'},{'Parent'},{'Plasma'}];
+        if exist('Parent','var')
+            manual = [{'Wholeblood'},{'Plasma'},{'Parent'}];
         else
-            manual = [{'Wholeblood'},{'Parent'}];
+            manual = [{'Wholeblood'},{'Plasma'}];
         end
         autosampler = [];
     else % autosampler
-        if exist('Plasma','var')
-            autosampler = [{'Wholeblood'},{'Parent'},{'Plasma'}];
+        if exist('Plasma','var') || exist('Parent','var')
+            error('sorry, the function does not expect to see plasma or parent fraction from autosampling')
         else
-            autosampler = [{'Wholeblood'},{'Parent'}];
-        end
-        manual = [];
+            autosampler = 'Wholeblood';
+            manual = [];
+       end
     end
-    
-else % assume the autosampling has more data points
-    if length(WBtime) ~= length(PFtime)
-        [~,pos] = min([length(WBtime) length(PFtime)]);
-        manual = [{'Wholeblood'},{'Parent'}]; manual = manual(pos);
-        autosampler = [{'Wholeblood'},{'Parent'}]; autosampler = autosampler(find([1 2] ~= pos));
-        if exist('Ptime','var')
-            if strcmpi(autosampler{1},'Wholeblood') && length(Ptime) == length(WBtime)
-                autosampler{2} = 'Plasma'; % the most likely, plasma and whole blood activity autosampled
-            elseif strcmpi(autosampler{1},'Parent') && length(Ptime) == length(PFtime)
-            elseif strcmpi(manual{1},'Parent') && length(Ptime) == length(PFtime)
-                manual{2} = 'Plasma'; % autosampler does whole blood only
-            elseif strcmpi(manual{1},'Wholeblood') && length(Ptime) == length(WBtime)
-                error('It is infered autosampled Plasma but manual whole blood activity and ParentFraction, which makes no sense, error importing files')
-            end
+
+else % mixed case - assume the autosampling has more data points
+    % possible that pmod exported file mixing time info
+    % we simply clean up the data
+    if length(WBtime) == length(Ptime) && exist('PFtime','var')
+        warning('time data between whole blood and plasma are mixed, trying to fix it based on parent fraction - do check tsv files')
+        duplicates = arrayfun(@(x) find(WBtime == x), PFtime);
+        if ~isempty(duplicates)
+            Ptime = Ptime(duplicates);
+            notduplicates = 1:length(WBtime);
+            notduplicates(duplicates) = [];
+            WBtime = WBtime(notduplicates);
         end
-    else % ParentFraction and WholeBlood have the same number of data point
-        error('sampling is supposed to be manual and autosampled but parent and whole blood are identical, hard to figure this out, bids conversion aborded')
+    else
+        duplicates = [];
     end
 end
 
@@ -262,66 +259,45 @@ if exist('ParentFraction','var')
     metabolite_parent_fraction = ParentFraction.(ParentFraction.Properties.VariableNames{2});
 end
 
+if exist('ParentFraction','var')
+    plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
+end
+
 if strcmpi(type,'both')
-    if strcmpi(manual{1},'Parent')
-        time  = ParentFraction.(ParentFraction.Properties.VariableNames{1});
-        if length(manual) == 1
-            t = table(time,metabolite_parent_fraction,...
-                'VariableNames',{'time','metabolite_parent_fraction'});
-        else % strcmpi(manual{2},'Plasma')
-            plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
-            t = table(time,metabolite_parent_fraction,plasma_radioactivity,...
-                'VariableNames',{'time','metabolite_parent_fraction','plasma_radioactivity'});
+    if exist('PFtime','var')
+        if ~isempty(duplicates)
+            t = table(PFtime,whole_blood_radioactivity(duplicates),plasma_radioactivity(duplicates),...
+                metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...
+                'plasma_radioactivity','metabolite_parent_fraction'});
+        else
+            t = table(PFtime,whole_blood_radioactivity,plasma_radioactivity,...
+                metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...
+                'plasma_radioactivity','metabolite_parent_fraction'});
         end
-        tsvname = [outputname '_recording-manual_blood.tsv'];
-        writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
-    else % strcmpi(manual{1},'Wholeblood')
-        time  = Wholeblood.(Wholeblood.Properties.VariableNames{1});
-        if length(manual) == 1
-            t = table(time,whole_blood_radioactivity,...
-                'VariableNames',{'time','whole_blood_radioactivity'});
-        else % strcmpi(manual{2},'Plasma')
-            plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
-            t = table(time,whole_blood_radioactivity,plasma_radioactivity,...
-                'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity'});
-        end
-        tsvname = [outputname '_recording-manual_blood.tsv'];
-        writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
+    else
+        t = table(WBtime,whole_blood_radioactivity,plasma_radioactivity,...
+            'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity'});
     end
-    
-    if strcmpi(autosampler{1},'Parent')
-        time  = ParentFraction.(ParentFraction.Properties.VariableNames{1});
-        if length(autosampler) == 1
-            t = table(time,metabolite_parent_fraction,...
-                'VariableNames',{'time','metabolite_parent_fraction'});
-        else % strcmpi(autosampler{2},'Plasma')
-            plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
-            t = table(time,metabolite_parent_fraction,plasma_radioactivity,...
-                'VariableNames',{'time','metabolite_parent_fraction','plasma_radioactivity'});
-        end
-        tsvname = [outputname '_recording-autosampler_blood.tsv'];
-        writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
-    else % strcmpi(autosampler{1},'Wholeblood')
-        time  = Wholeblood.(Wholeblood.Properties.VariableNames{1});
-        if length(autosampler) == 1
-            t = table(time,whole_blood_radioactivity,...
-                'VariableNames',{'time','whole_blood_radioactivity'});
-        else % strcmpi(autosampler{2},'Plasma')
-            plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
-            t = table(time,whole_blood_radioactivity,plasma_radioactivity,...
-                'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity'});
-        end
-        tsvname = [outputname '_recording-autosampler_blood.tsv'];
-        writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
+    tsvname = [outputname '_recording-manual_blood.tsv'];
+    writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
+
+    if exist('notduplicates','var')
+        t = table(WBtime,whole_blood_radioactivity(notduplicates),...
+            'VariableNames',{'time','whole_blood_radioactivity'});
+    else
+        t = table(WBtime,whole_blood_radioactivity,...
+            'VariableNames',{'time','whole_blood_radioactivity'});
     end
-    
+    tsvname = [outputname '_recording-autosampler_blood.tsv'];
+    writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
+
 else
     time  = Wholeblood.(Wholeblood.Properties.VariableNames{1});
     if exist('Plasma','var')
         plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
         if exist('metabolite_parent_fraction','var')
-            t = table(time,whole_blood_radioactivity,metabolite_parent_fraction,plasma_radioactivity,...
-                'VariableNames',{'time','whole_blood_radioactivity','metabolite_parent_fraction','plasma_radioactivity'});
+            t = table(time,whole_blood_radioactivity,plasma_radioactivity,metabolite_parent_fraction,...
+                'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity','metabolite_parent_fraction'});
         else
             t = table(time,whole_blood_radioactivity,plasma_radioactivity,...
                 'VariableNames',{'time','whole_blood_radioactivity','plasma_radioactivity'});
@@ -334,12 +310,6 @@ else
     writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
 end
  
-if exist('plasma_radioactivity','var') && exist('metabolite_parent_fraction','var')
-    if length(plasma_radioactivity) == length(whole_blood_radioactivity)
-        warning('plasma values may have been interpolated?? BIDS prefers raw data if you have them')
-    end
-end
-
 %% export json
 
 if strcmpi(addjson,'on')
