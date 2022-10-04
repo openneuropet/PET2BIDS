@@ -44,15 +44,17 @@ convert-pmod-to-blood --whole blood-path wholeblood.bld --parent-fraction parent
 Below shows the output generated when running `convert_pmod_to_blood` on some of the example files contained in this
 repository/folder:
 
+**example 1** (passing the bare minimum):
+
+Running the following
+
 ```bash
-Note: lines prepended with # denote comments/notes where as lines without # denote data or input arguments
+convert-pmod-to-blood -whole whole_blood.bld -parent plasma_parent.bld
+```
 
-example 1 (passing the bare minimum):
+Will result in outputting a tsv like the following:
 
-    # running the following
-    convert-pmod-to-blood -whole whole_blood.bld -parent plasma_parent.bld
-    # will result in outputting a tsv like the following:
-
+```bash
     time	whole_blood_radioactivity	metabolite_parent_fraction
     25.2	0.000885	0.000874
     43.2	0.0192	0.00603
@@ -73,8 +75,11 @@ example 1 (passing the bare minimum):
     3607.2	4.798934663	2.48197381
     5419.8	3.898890497	2.05348682
     7207.2	3.772252717	1.77176473
+```
 
-    # and a json data dictionary as well
+and a json data dictionary as well
+
+```json
     {
       "WholeBloodAvail": "true",
       "MetaboliteAvail": "true",
