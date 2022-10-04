@@ -711,3 +711,5 @@ def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_check
             # this will remove an entity from metadata form dictionary if it's not good
             if modify_input and not units_are_good:
                 metadata.pop(entity)
+
+    return metadata
