@@ -40,7 +40,9 @@ Converting PMOD blood files can be done from the command line via the `convert_p
 Help menu:
 
 ```bash
-usage: convert_pmod_to_blood.py [-h] [--whole-blood-path WHOLE_BLOOD_PATH] [--parent-fraction-path PARENT_FRACTION_PATH] [--plasma-activity-path PLASMA_ACTIVITY_PATH] [--output-path OUTPUT_PATH] [--json JSON] [--engine ENGINE] [--kwargs [KWARGS [KWARGS ...]]] [--show-examples]   write_ecat.py
+usage: convert_pmod_to_blood.py [-h] [--whole-blood-path WHOLE_BLOOD_PATH] [--parent-fraction-path PARENT_FRACTION_PATH]
+ [--plasma-activity-path PLASMA_ACTIVITY_PATH] [--output-path OUTPUT_PATH] [--json JSON] [--engine ENGINE]
+ [--kwargs [KWARGS [KWARGS ...]]] [--show-examples]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -51,12 +53,15 @@ optional arguments:
   --plasma-activity-path PLASMA_ACTIVITY_PATH, -p PLASMA_ACTIVITY_PATH
                         Path to pmod plasma file.
   --output-path OUTPUT_PATH, -o OUTPUT_PATH
-                        Output path for output files (tsv and json) provide an existing folder path, if the output path is a BIDS path containing subject id and session id those values will be extracted an used to name the output files.
+                        Output path for output files (tsv and json) provide an existing folder path, if the output path
+                        is a BIDS path containing subject id and session id those values will be extracted an used to
+                        name the output files.
   --json JSON, -j JSON  Output a json data dictionary along with tsv files (default True)
   --engine ENGINE, -e ENGINE
                         Engine for loading PMOD files, see options for pandas.read_excel. Defaults to None.
   --kwargs [KWARGS [KWARGS ...]], -k [KWARGS [KWARGS ...]]
-                        Pass additional arguments not enumerated in this help menu, see documentation online for more details.
+                        Pass additional arguments not enumerated in this help menu, see documentation online for more
+                        details.
   --show-examples       Show additional examples (verbose) of how to use this interface.
 ```
 
