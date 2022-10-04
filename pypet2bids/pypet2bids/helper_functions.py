@@ -638,3 +638,76 @@ def set_dcm2niix_path(dc2niix_path: pathlib.Path):
         # create the file
         with open(config_file, 'w') as outfile:
             outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
+
+
+def check_units(entity_key: str, entity_value: str, accepted_units: Union[list, str]):
+    """
+    Given an entity's name, value, and an accepted range of values (accepted units), check whether those units are
+    valid/in accepted units. Raises warning and returns False if units in entity value don't intersect with any entry
+    in accepted_units
+
+    :param entity_key: key/name of the entity
+    :type entity_key: str
+    :param entity_value: units value; some sort of SI unit(s) see (GBq, g, etc)
+    :type entity_value: str
+    :param accepted_units: a range of accepted units for the BIDS entity
+    :type accepted_units: str or list
+    :return: Whether the units in entity value ar allowed or not
+    :rtype: bool
+    """
+    allowed = False
+    for accepted in accepted_units:
+        if entity_value.lower() == accepted.lower:
+            allowed = True
+            break
+
+    if allowed:
+        pass
+    else:
+        if type(accepted_units) is str or (type(accepted_units) is list and len(accepted_units) == 1):
+            warning = f"{entity_key} must have units as {accepted_units}, ignoring given units {entity_value}"
+        elif type(accepted_units) is list and len(accepted_units) > 1:
+            warning = f"{entity_key} must have units as on of  {accepted_units}, ignoring given units {entity_value}"
+
+        logging.warning(warning)
+
+    return allowed
+
+
+def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_checked=None):
+    """
+    Check to run on PET BIDS metadata to evaluate whether input is acceptable or not, this function will most likely be
+    refactored to use the schema instead of relying on hardcoded checks as listed in items_that_should_be_checked
+    :param metadata:
+    :type metadata:
+    :param modify_input:
+    :type modify_input:
+    :param items_that_should_be_checked: items to check, hardcoded at the moment, but can accept a dict as input
+    :type items_that_should_be_checked: dict
+    :return:
+    :rtype:
+    """
+    # dictionary of entities and their acceptable units to check
+    if items_that_should_be_checked is None:
+        items_that_should_be_checked = {}
+    hardcoded_items = {
+        'InjectedRadioactivityUnits': 'MBq',
+        'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
+        'InjectedMassUnits': 'ug',
+        'MolarActivityUnits': 'GBq/umolug',
+        'MolecularWeightUnits': 'g/mol'
+    }
+
+    # if none are
+    items_that_should_be_checked.update(**hardcoded_items)
+
+    # iterate through ad hoc items_that_should_be_checked that exist in our metadata
+    for entity, units in items_that_should_be_checked.items():
+        check_input_entity = metadata.get(entity, None)
+        if check_input_entity:
+            # this will raise a warning if the units aren't acceptable
+            units_are_good = check_units(entity_key=entity, entity_value=check_input_entity, accepted_units=units)
+
+            # this will remove an entity from metadata form dictionary if it's not good
+            if modify_input and not units_are_good:
+                metadata.pop(entity)
