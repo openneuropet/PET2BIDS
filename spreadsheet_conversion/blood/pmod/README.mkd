@@ -1,16 +1,25 @@
 # convert_pmod_to_blood
 
-PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files according to BIDS. By default (although this can be turned off), the accompagning json file is also created (but requires more user input).
+PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner
+(see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files
+according to BIDS. By default (although this can be turned off), the accompagning json file is also created
+(but requires more user input).
 
-_Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains information indicating what the columns are. 
+## Matlab
 
-_Reminder_ *Wholeblood* is the overall blood radioactivity *Plasma* is the overall radioactivity in the plasma (i.e. blood minus red cells) *ParentFraction* is the free unchanged tracer from plasma relative to whole blood
+_Usage note_ files can be imported in any order because the function uses the 1st line of PMOD files that contains
+information indicating what the columns are.
 
-## Input files with user prompt
+_Reminder_ *Wholeblood* is the overall blood radioactivity *Plasma* is the overall radioactivity in the plasma
+(i.e. blood minus red cells) *ParentFraction* is the free unchanged tracer from plasma relative to whole blood
 
-Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files. Because no other information is provided, it will create the json file along with some warning messages since this will not be BIDS compliant.
+### Input files with user prompt
 
-## function call with arguments
+Calling the function directly will prompt the user to select bld files, and it should be able to export the tsv files.
+Because no other information is provided, it will create the json file along with some warning messages since this will
+not be BIDS compliant.
+
+### function call with arguments
 
 ```matlab
 file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
@@ -20,5 +29,103 @@ convert_pmod_to_blood(file1,file2,file3,'type','both','outputname','sub01-',...
                 'MetaboliteMethod','HPLC','MetaboliteRecoveryCorrectionApplied','false',...
                 'DispersionCorrected','false')
 ```
-Using the command line, aditional arguments can be provided to create fully compliant BIDS json files. If some information is missing, warnings will be issues.
 
+Using the command line, additional arguments can be provided to create fully compliant BIDS json files.
+If some information is missing, warnings will be issued.
+
+## Python
+
+Converting PMOD blood files can be done from the command line via the `convert_pmod_to_blood` command.
+
+Help menu:
+
+```bash
+usage: convert_pmod_to_blood.py [-h] [--whole-blood-path WHOLE_BLOOD_PATH] [--parent-fraction-path PARENT_FRACTION_PATH]
+ [--plasma-activity-path PLASMA_ACTIVITY_PATH] [--output-path OUTPUT_PATH] [--json JSON] [--engine ENGINE]
+ [--kwargs [KWARGS [KWARGS ...]]] [--show-examples]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --whole-blood-path WHOLE_BLOOD_PATH, -w WHOLE_BLOOD_PATH
+                        Path to pmod whole blood file.
+  --parent-fraction-path PARENT_FRACTION_PATH, -f PARENT_FRACTION_PATH
+                        Path to pmod parent fraction path.
+  --plasma-activity-path PLASMA_ACTIVITY_PATH, -p PLASMA_ACTIVITY_PATH
+                        Path to pmod plasma file.
+  --output-path OUTPUT_PATH, -o OUTPUT_PATH
+                        Output path for output files (tsv and json) provide an existing folder path, if the output path
+                        is a BIDS path containing subject id and session id those values will be extracted an used to
+                        name the output files.
+  --json JSON, -j JSON  Output a json data dictionary along with tsv files (default True)
+  --engine ENGINE, -e ENGINE
+                        Engine for loading PMOD files, see options for pandas.read_excel. Defaults to None.
+  --kwargs [KWARGS [KWARGS ...]], -k [KWARGS [KWARGS ...]]
+                        Pass additional arguments not enumerated in this help menu, see documentation online for more
+                        details.
+  --show-examples       Show additional examples (verbose) of how to use this interface.
+```
+
+Simple use cases
+
+```bash
+convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld # simplest use case
+convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld --plasma-activity-path plasma.bld
+convert-pmod-to-blood --whole blood-path wholeblood.bld --parent-fraction parentfraction.bld --output-path sub-01/pet
+```
+
+Below shows the output generated when running `convert_pmod_to_blood` on some of the example files contained in this
+repository/folder:
+
+**example 1** (passing the bare minimum):
+
+Running the following
+
+```bash
+convert-pmod-to-blood -whole whole_blood.bld -parent plasma_parent.bld
+```
+
+Will result in outputting a tsv like the following:
+
+```bash
+    time	whole_blood_radioactivity	metabolite_parent_fraction
+    25.2	0.000885	0.000874
+    43.2	0.0192	0.00603
+    51	0.92	1.38
+    63	18.34858412	26.44553306
+    90	51.96910035	73.40036984
+    109.2	59.02807247	83.01412114
+    130.8	74.9568219	106.0071338
+    148.2	88.02307965	124.3830225
+    171	86.93918061	120.924026
+    189	47.18244008	65.42298506
+    214.8	28.06571066	38.95386252
+    319.2	10.22288119	14.11052535
+    613.8	6.586049482	7.581724865
+    919.2	7.448797008	5.784621668
+    1810.2	6.49534108	4.294965789
+    2719.2	5.373595253	2.836715768
+    3607.2	4.798934663	2.48197381
+    5419.8	3.898890497	2.05348682
+    7207.2	3.772252717	1.77176473
+```
+
+and a json data dictionary as well
+
+```json
+    {
+      "WholeBloodAvail": "true",
+      "MetaboliteAvail": "true",
+      "time": {
+        "Description": "Time in relation to time zero defined by the _pet.json",
+        "Units": "s"
+      },
+      "whole_blood_radioactivity": {
+        "Description": "Radioactivity in whole blood samples. Measured using COBRA counter.",
+        "Units": "kBq/mL"
+      },
+      "metabolite_parent_fraction": {
+        "Description": "Parent fraction of the radiotracer",
+        "Units": "arbitrary"
+      }
+    }
+```

@@ -1,15 +1,29 @@
-import gzip
+"""
+This module contains a collection of general functions used across this library, that is to say if a method ends up here
+it is because it is useful in more than one context.
+
+Some of the modules in this library that depend on this module are:
+
+- :meth:`pypet2bids.convert_pmod_to_blood`
+- :meth:`pypet2bids.dcm2niix4pet`
+- :meth:`pyet2bids.read_ecat`
+- :meth:`pypet2bids.ecat`
+- :meth:`pypet2bids.ecat2nii`
+- :meth:`pypet2bids.multiple_spreadsheets`
+
+| *Authors: Anthony Galassi*
+| *Copyright OpenNeuroPET team*
+"""
 import os
+import gzip
 import re
 import shutil
 import typing
 import json
 import warnings
 import logging
-
 import dotenv
 import ast
-
 import pandas
 import toml
 import pathlib
@@ -28,17 +42,6 @@ metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
-"""
-This function does?
-
-:format:
-:param:
-:return:
-
-Anthony Galassi
------------------------------
-Copyright Open NeuroPET team
-"""
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:
@@ -218,6 +221,7 @@ def is_numeric(check_this_object: str) -> bool:
     except (ValueError, TypeError):
         return False
 
+
 class ParseKwargs(argparse.Action):
     """
     Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
@@ -237,6 +241,14 @@ class ParseKwargs(argparse.Action):
 
 
 def very_tolerant_literal_eval(value):
+    """
+    Evaluates a string or string like input into a python datatype. Provides a lazy way to extract True from 'true',
+    None from 'none', [0] from '[0'], etc. etc.
+    :param value: the value you wish to convert to a python type
+    :type value: string like, could be anything that can be evaluated as valid python
+    :return: the value converted into a python object
+    :rtype: depends on what ast.literal_eval determines the object to be
+    """
     try:
         value = ast.literal_eval(value)
     except (SyntaxError, ValueError):
@@ -255,7 +267,10 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], seperator=None) -> p
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
-    :param extension: The extension of the file
+    :param metadata_path: Path or pathlike object/string to a spreadsheet file
+    :type metadata_path: Path or str
+    :param seperator: Optional seperator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
+    :type seperator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
 
@@ -345,8 +360,10 @@ def write_out_module(module: str = 'pypet2bids.metadata_spreadsheet_example_read
 def expand_path(path_like: str) -> str:
     """
     Expands relative ~ paths to full paths
+
     :param path_like: path like string
     :type path_like: string
+
     :return: full path string
     :rtype: string
     """

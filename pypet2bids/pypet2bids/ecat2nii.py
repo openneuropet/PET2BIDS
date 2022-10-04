@@ -1,5 +1,11 @@
-import datetime
+"""
+Contains class ecat2ii, used to write ecat information out to a nifti file, depends on
+`nibabel <https://nipy.org/nibabel/>`_ and  :func:`pypet2bids.read_ecat.read_ecat`.
 
+| *Authors: Anthony Galassi*
+| *Copyright OpenNeuroPET team*
+"""
+import datetime
 import nibabel
 import numpy
 import pathlib
@@ -18,7 +24,8 @@ def ecat2nii(ecat_main_header=None,
              save_binary=False,
              **kwargs):
     """
-    Converts an ECAT file into a nifti and a sidecar json, used in conjunction with read_ecat from pypet2bids.read_ecat.
+    Converts an ECAT file into a nifti and a sidecar json, used in conjunction with
+    :func:`pypet2bids.read_ecat.read_ecat`
     
     :param ecat_main_header: the main header of an ECAT file
     :param ecat_subheaders: the subheaders for each frame of the ECAT file
@@ -32,8 +39,6 @@ def ecat2nii(ecat_main_header=None,
         nii image
     :return: a nibabel nifti object if one wishes to muddle with the object in python and not in a .nii file
 
-    :Author(s):Anthony Galassi
-    :Copyright: Open NeuroPET team
     """
 
     # if a nifti file/path is not included write a nifti next to the ecat file
