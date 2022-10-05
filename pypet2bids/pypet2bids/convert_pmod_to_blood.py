@@ -10,7 +10,10 @@ PmodToBlood.
 | *Copyright: OpenNeuroPET team*
 """
 import json
+import logging
 import textwrap
+
+import pandas
 import pandas as pd
 import argparse
 import warnings
@@ -287,12 +290,14 @@ class PmodToBlood:
             if collection_method == 'automatic':
                 self.auto_sampled.append({'name': measure})
 
-
         # scale time to seconds rename columns
         self.scale_time_rename_columns()
 
         # check blood files for consistency
         self.check_time_info()
+
+        # warn if plasma data may be interpolated
+        self.check_for_interpolated_data()
 
         self.write_out_tsvs()
 
@@ -521,7 +526,7 @@ class PmodToBlood:
                 "Units": "s"
             },
             "whole_blood_radioactivity": {
-                "Description": 'Radioactivity in whole blood samples. Measured using COBRA counter.',
+                "Description": 'Radioactivity in whole blood samples.',
                 "Units": self.units
             },
             "metabolite_parent_fraction": {
@@ -561,6 +566,45 @@ class PmodToBlood:
 
         with open(file_path, 'w') as out_json:
             json.dump(side_car_template, out_json, indent=4)
+
+    def check_for_interpolated_data(self):
+        # check to see if there may exist (emphasis on may) interpolated plasma values
+        if self.blood_series.get('plasma_activity', None):
+            # extract parent fraction/metabolite fraction as series from dataframes
+            metabolite_parent_fraction_series = pandas.Series(dtype='float64')
+            for name, dataframe in self.blood_series.items():
+                columns = dataframe.columns
+                for entry in columns:
+                    if 'parent' in str.lower(entry) or 'fraction' in str.lower(entry):
+                        metabolite_parent_fraction_series = dataframe[str(entry)]
+                        break
+            # check dataframes for plasma activity
+            plasma_activity_series = pandas.Series(dtype='float64')
+            for name, dataframe in self.blood_series.items():
+                columns = dataframe.columns
+                for entry in columns:
+                    if 'plasma_radioactivity' in entry:
+                        plasma_activity_series = dataframe[str(entry)]
+
+            if len(plasma_activity_series) > 0 and len(metabolite_parent_fraction_series) > 0:
+                if len(plasma_activity_series) == len(metabolite_parent_fraction_series):
+                    logging.warning(f"plasma_activity_series and metabolite_parent_fraction have same "
+                                    f"length {len(plasma_activity_series)}, plasma data may be interpolated, BIDS "
+                                    f"prefers raw data.")
+
+    def check_fraction_is_fraction(self):
+        # collect parent fractions wherever they may exist
+        fraction_series = []
+        for name, dataframe in self.blood_series.items():
+            for column in dataframe.columns:
+                if 'fraction' in str(column).lower():
+                    fraction_series.append({name: dataframe[column]})
+
+        for fraction_column in fraction_series:
+            for name, values in fraction_column.items():
+                for value in values:
+                    logging.warning(f"No, no my friend parent/metabolite fraction must be less than or equal to 1,"
+                                    f" found {value} in {name}.")
 
 
 def main():
