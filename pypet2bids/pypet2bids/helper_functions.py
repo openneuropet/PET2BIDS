@@ -640,7 +640,7 @@ def set_dcm2niix_path(dc2niix_path: pathlib.Path):
             outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
 
 
-def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> str:
+def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.Path]:
     if ' ' in str(bad_path):
         return f"'{bad_path}'"
     else:
