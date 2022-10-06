@@ -52,6 +52,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
             sudo apt-get install dcm2niix
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
