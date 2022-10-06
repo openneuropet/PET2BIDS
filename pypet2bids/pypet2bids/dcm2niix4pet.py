@@ -19,6 +19,7 @@ import warnings
 from json_maj.main import JsonMAJ, load_json_or_dict
 from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
 from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader, set_dcm2niix_path
+from pypet2bids.helper_functions import sanitize_bad_path
 from platform import system
 import subprocess
 import pandas as pd
@@ -497,7 +498,9 @@ class Dcm2niix4PET:
             file_format_args = ""
         with TemporaryDirectory() as tempdir:
             tempdir_pathlike = Path(tempdir)
-            cmd = f"{self.dcm2niix_path} -w 1 -z y {file_format_args} -o {tempdir_pathlike} {self.image_folder}"
+            # people use screwy paths, we do this before running dcm2niix to account for that
+            image_folder = sanitize_bad_path(self.image_folder)
+            cmd = f"{self.dcm2niix_path} -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
 
             if convert.returncode != 0:
