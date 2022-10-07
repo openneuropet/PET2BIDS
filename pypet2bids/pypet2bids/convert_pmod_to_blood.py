@@ -21,7 +21,12 @@ import re
 import ast
 from pathlib import Path
 from os.path import join
-from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
+# from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
+
+try:
+    import helper_functions
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
 
 epilog = textwrap.dedent('''
     
@@ -157,7 +162,7 @@ def cli():
         '--kwargs',
         '-k',
         nargs='*',
-        action=ParseKwargs,
+        action=helper_functions.ParseKwargs,
         help="Pass additional arguments not enumerated in this help menu, see documentation online" +
              " for more details.",
         default={}
@@ -249,14 +254,14 @@ class PmodToBlood:
             self.output_path = Path(whole_blood_activity).parent
 
         # check the output name for subject and session id
-        if collect_bids_part('sub', str(self.output_path)):
-            self.subject_id = collect_bids_part('sub', self.output_path)
+        if helper_functions.collect_bids_part('sub', str(self.output_path)):
+            self.subject_id = helper_functions.collect_bids_part('sub', self.output_path)
         else:
             print("Subject id not found in output_path, checking key pair input.")
             self.subject_id = self.kwargs.get('subject_id', '')
 
-        if collect_bids_part('ses', str(self.output_path)):
-            self.session_id = collect_bids_part('ses', self.output_path)
+        if helper_functions.collect_bids_part('ses', str(self.output_path)):
+            self.session_id = helper_functions.collect_bids_part('ses', self.output_path)
         else:
             print("Session id not found in output_path, checking key pair input.")
             self.session_id = self.kwargs.get('session_id', '')
@@ -317,7 +322,7 @@ class PmodToBlood:
         :rtype: pandas.DataFrame
         """
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
-            loaded_file = open_meta_data(pmod_blood_file)
+            loaded_file = helper_functions.open_meta_data(pmod_blood_file)
             return loaded_file
         else:
             raise FileNotFoundError(str(pmod_blood_file))

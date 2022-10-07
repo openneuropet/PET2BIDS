@@ -17,8 +17,6 @@ import os
 import textwrap
 import warnings
 from json_maj.main import JsonMAJ, load_json_or_dict
-from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader, set_dcm2niix_path
 from platform import system
 import subprocess
 import pandas as pd
@@ -36,6 +34,15 @@ import argparse
 import importlib
 import dotenv
 
+
+try:
+    import helper_functions
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
+
+# import project modules
+#from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
+#from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader, set_dcm2niix_path
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -193,7 +200,7 @@ def update_json_with_dicom_value(
                 if dicom_header.get('ReconstructionMethod', None):
                     reconstruction_method = dicom_header.ReconstructionMethod
                     json_updater.remove('ReconstructionMethod')
-                    reconstruction_method = get_recon_method(reconstruction_method)
+                    reconstruction_method = helper_functions.get_recon_method(reconstruction_method)
 
                     json_updater.update(reconstruction_method)
 
@@ -358,8 +365,8 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
-        self.subject_id = collect_bids_part('sub', str(self.destination_path))
-        self.session_id = collect_bids_part('ses', str(self.destination_path))
+        self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
+        self.session_id = helper_functions.collect_bids_part('ses', str(self.destination_path))
 
         self.dicom_headers = self.extract_dicom_headers()
 
@@ -378,7 +385,7 @@ class Dcm2niix4PET:
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
         elif metadata_path and not metadata_translation_script:
-            spread_sheet_values = single_spreadsheet_reader(metadata_path)
+            spread_sheet_values = helper_functions.single_spreadsheet_reader(metadata_path)
             if not self.spreadsheet_metadata.get('nifti_json', None):
                 self.spreadsheet_metadata['nifti_json'] = {}
             self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
@@ -626,7 +633,7 @@ class Dcm2niix4PET:
                     conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
 
                     sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
-                    sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, get_version()]})
+                    sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]})
 
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
@@ -677,7 +684,7 @@ class Dcm2niix4PET:
                         outfile.writelines(blood_tsv_data)
                 else:
                     raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
-                           f"pandas.DataFrame or str\nCheck return type of {translate_metadata} in "
+                           f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
                            f"{self.metadata_translation_script}")
             if self.spreadsheet_metadata.get('blood_json', {}) != {}:
                 blood_json_data = self.spreadsheet_metadata.get('blood_json')
@@ -689,7 +696,7 @@ class Dcm2niix4PET:
                     blood_json_data = json.loads(blood_json_data)
                 else:
                     raise (f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
-                           f"pandas.DataFrame or str\nCheck return type of {translate_metadata} in "
+                           f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
                            f"{self.metadata_translation_script}")
 
                 with open(join(tempdir_path, blood_file_name_w_out_extension + '.json'), 'w') as outfile:
@@ -810,7 +817,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMass'] = InjectedMass
         data_out['InjectedMassUnits'] = 'ug'
         # check for strings where there shouldn't be strings
-        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(InjectedMass))]
+        numeric_check = [helper_functions.is_numeric(str(InjectedRadioactivity)),
+                         helper_functions.is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -831,7 +839,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedRadioactivityUnits'] = 'MBq'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [is_numeric(str(InjectedRadioactivity)), is_numeric(str(SpecificRadioactivity))]
+        numeric_check = [helper_functions.is_numeric(str(InjectedRadioactivity)),
+                         helper_functions.is_numeric(str(SpecificRadioactivity))]
         if False in numeric_check:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
@@ -852,7 +861,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['InjectedMassUnits'] = 'ug'
         data_out['SpecificRadioactivity'] = SpecificRadioactivity
         data_out['SpecificRadioactivityUnits'] = 'Bq/g'
-        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(InjectedMass))]
+        numeric_check = [helper_functions.is_numeric(str(SpecificRadioactivity)),
+                         helper_functions.is_numeric(str(InjectedMass))]
         if False in numeric_check:
             data_out['InjectedRadioactivity'] = 'n/a'
             data_out['InjectedRadioactivityUnits'] = 'n/a'
@@ -873,7 +883,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['MolarActivityUnits'] = 'GBq/umol'
         data_out['MolecularWeight'] = MolecularWeight
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [is_numeric(str(MolarActivity)), is_numeric(str(MolecularWeight))]
+        numeric_check = [helper_functions.is_numeric(str(MolarActivity)),
+                         helper_functions.is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['SpecificRadioactivity'] = 'n/a'
             data_out['SpecificRadioactivityUnits'] = 'n/a'
@@ -894,7 +905,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
         data_out['MolarActivity'] = MolarActivity
         data_out['MolarActivityUnits'] = 'GBq/umol'
-        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(MolarActivity))]
+        numeric_check = [helper_functions.is_numeric(str(SpecificRadioactivity)),
+                         helper_functions.is_numeric(str(MolarActivity))]
         if False in numeric_check:
             data_out['MolecularWeight'] = 'n/a'
             data_out['MolecularWeightUnits'] = 'n/a'
@@ -916,7 +928,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
         data_out['SpecificRadioactivityUnits'] = 'MBq/ug'
         data_out['MolecularWeight'] = MolarActivity
         data_out['MolecularWeightUnits'] = 'g/mol'
-        numeric_check = [is_numeric(str(SpecificRadioactivity)), is_numeric(str(MolecularWeight))]
+        numeric_check = [helper_functions.is_numeric(str(SpecificRadioactivity)),
+                         helper_functions.is_numeric(str(MolecularWeight))]
         if False in numeric_check:
             data_out['MolarActivity'] = 'n/a'
             data_out['MolarActivityUnits'] = 'n/a'
@@ -1020,7 +1033,7 @@ def cli():
                              "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If " +
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
-    parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
+    parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
@@ -1173,16 +1186,16 @@ def main():
         sys.exit(0)
 
     if cli_args.set_dcm2niix_path:
-        set_dcm2niix_path(cli_args.set_dcm2niix_path)
+        helper_functions.set_dcm2niix_path(cli_args.set_dcm2niix_path)
         sys.exit(0)
 
     elif cli_args.folder:
         # instantiate class
         converter = Dcm2niix4PET(
-            image_folder=expand_path(cli_args.folder),
-            destination_path=expand_path(cli_args.destination_path),
-            metadata_path=expand_path(cli_args.metadata_path),
-            metadata_translation_script=expand_path(cli_args.translation_script_path),
+            image_folder=helper_functions.expand_path(cli_args.folder),
+            destination_path=helper_functions.expand_path(cli_args.destination_path),
+            metadata_path=helper_functions.expand_path(cli_args.metadata_path),
+            metadata_translation_script=helper_functions.expand_path(cli_args.translation_script_path),
             additional_arguments=cli_args.kwargs,
             silent=cli_args.silent)
 

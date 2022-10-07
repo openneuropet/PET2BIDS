@@ -5,8 +5,14 @@ import argparse
 import logging
 import numpy
 from json_maj.main import JsonMAJ
-from helper_functions import single_spreadsheet_reader, get_coordinates_containing, \
-    collect_bids_part, transform_row_to_dict, open_meta_data, load_pet_bids_requirements_json
+
+try:
+    from pypet2bids.helper_functions import *
+except ModuleNotFoundError:
+    from helper_functions import *
+
+#from pypet2bids.helper_functions import single_spreadsheet_reader, get_coordinates_containing, \
+#    collect_bids_part, transform_row_to_dict, open_meta_data, load_pet_bids_requirements_json
 
 
 def read_multi_subject_spreadsheets(

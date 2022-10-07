@@ -1,5 +1,7 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
-from pypet2bids.dcm2niix4pet import get_recon_method, check_meta_radio_inputs
+from pypet2bids.dcm2niix4pet import  check_meta_radio_inputs
+
+
 import dotenv
 import os
 from pathlib import Path
@@ -8,6 +10,7 @@ import json
 from os.path import join
 import pydicom
 from unittest import TestCase
+
 
 # collect config files
 # fields to check for

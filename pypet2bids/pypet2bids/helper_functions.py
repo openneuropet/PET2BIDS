@@ -227,7 +227,7 @@ class ParseKwargs(argparse.Action):
     Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
     Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
     This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
-    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={})`
+    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={})`
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
