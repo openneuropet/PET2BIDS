@@ -1,6 +1,7 @@
 name: Collect Phantom, Setup Dcm2niix and BIDS-Validator
 on:
   workflow_dispatch:
+  workflow_call:
   pull_request:
     branches:
       - main
@@ -9,14 +10,6 @@ jobs:
   Collect_Phantoms_Setup_Dependencies:
     runs-on: ${{ matrix.os }}
     env:
-      ECAT_TEST_FOLDER: "cimbi36"
-      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
-      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
-      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
-      MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
 
     strategy:
       matrix:
@@ -52,6 +45,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
             sudo apt-get install dcm2niix
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix

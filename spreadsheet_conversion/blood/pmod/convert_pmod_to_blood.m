@@ -79,7 +79,7 @@ end
 
 %% deal with input file
 if nargin == 0
-    [filenames, pathnames] = uigetfile({'*.bld'}, 'Pick the pmod files (N=3)', 'multiselect','on');
+    [filenames, pathnames] = uigetfile({'*.bld','speadsheet';'*.txt','text'}, 'Pick the pmod files (N=2 or 3)', 'multiselect','on');
     if isequal(filenames, 0) || isequal(pathnames, 0)
         disp('Selection cancelled');
         return
@@ -132,24 +132,50 @@ end
 % garbage)
 
 for i=length(filein):-1:1
-    movefile(filein{i},[filein{i}(1:end-3) 'xlsx']); % fool matlab
-    try
-        datain{i} = readtable([filein{i}(1:end-3) 'xlsx'],'FileType','spreadsheet','VariableNamingRule','preserve');
-        movefile([filein{i}(1:end-3) 'xlsx'],filein{i}); % back to normal
-    catch % xlsxerr
-        movefile([filein{i}(1:end-3) 'xlsx'],[filein{i}(1:end-3) 'tsv']);
+    if strcmpi(filein{i}(end-3:end),'.txt')
+        movefile(filein{i},[filein{i}(1:end-3) 'tsv']);
         datain{i} = readtable([filein{i}(1:end-3) 'tsv'],'FileType','text','VariableNamingRule','preserve');
         movefile([filein{i}(1:end-3) 'tsv'],filein{i}); % back to normal
+    else
+        movefile(filein{i},[filein{i}(1:end-3) 'xlsx']); % fool matlab
+        try
+            datain{i} = readtable([filein{i}(1:end-3) 'xlsx'],'FileType','spreadsheet','VariableNamingRule','preserve');
+            movefile([filein{i}(1:end-3) 'xlsx'],filein{i}); % back to normal
+        catch % xlsxerr
+            movefile([filein{i}(1:end-3) 'xlsx'],[filein{i}(1:end-3) 'tsv']);
+            datain{i} = readtable([filein{i}(1:end-3) 'tsv'],'FileType','text','VariableNamingRule','preserve');
+            movefile([filein{i}(1:end-3) 'tsv'],filein{i}); % back to normal
+        end
     end
 end
 
 for i=length(filein):-1:1
-    if any(contains(datain{i}.Properties.VariableNames,'parent','IgnoreCase',true))
-        ParentFraction = datain{i};
-    elseif any(contains(datain{i}.Properties.VariableNames,{'whole-blood','whole blood'},'IgnoreCase',true))
-        Wholeblood     = datain{i};
-    elseif any(contains(datain{i}.Properties.VariableNames,'plasma','IgnoreCase',true))
-        Plasma         = datain{i};
+    if any(contains(datain{i}.Properties.VariableNames,'value','IgnoreCase',true))
+        [~,name] = fileparts(filein{i});
+        warning('no variable name in %s, infering from file name',name)
+        if any(contains(name,'Fraction','IgnoreCase',true))
+            ParentFraction = datain{i};
+        elseif any(contains(name,'Whole','IgnoreCase',true)) && ...
+                ~contains(name,'Plasma','IgnoreCase',true)
+            Wholeblood     = datain{i};
+        elseif any(contains(name,'Plasma','IgnoreCase',true))
+            Plasma         = datain{i};
+            if contains(name,'Whole','IgnoreCase',true) && contains(name,'Ratio','IgnoreCase',true) && ...
+                any(Plasma.(Plasma.Properties.VariableNames{2}) < 1)
+                warning('Plasma values seem to be ratio to whole blood data are being converted, check the tsv file')
+                multiplyplasma = true;
+            else
+                multiplyplasma = false;
+            end
+        end
+    else
+        if any(contains(datain{i}.Properties.VariableNames,'parent','IgnoreCase',true))
+            ParentFraction = datain{i};
+        elseif any(contains(datain{i}.Properties.VariableNames,{'whole-blood','whole blood'},'IgnoreCase',true))
+            Wholeblood     = datain{i};
+        elseif any(contains(datain{i}.Properties.VariableNames,'plasma','IgnoreCase',true))
+            Plasma         = datain{i};
+        end
     end
 end
 clear filename datain
@@ -183,7 +209,7 @@ if exist('ParentFraction','var')
         PFtime = ParentFraction.(cell2mat(varname));
     elseif any(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
         varname = ParentFraction.Properties.VariableNames(find(contains(ParentFraction.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
-        WBtime = ParentFraction.(cell2mat(varname));
+        PFtime = ParentFraction.(cell2mat(varname));
     end
 end
 
@@ -194,7 +220,7 @@ if exist('Plasma','var')
         Ptime = Plasma.(cell2mat(varname));
     elseif any(contains(Plasma.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true))
         varname = Plasma.Properties.VariableNames(find(contains(Plasma.Properties.VariableNames,{'seconds','sec'},'IgnoreCase',true)));
-        WBtime = Plasma.(cell2mat(varname));
+        Ptime = Plasma.(cell2mat(varname));
     end
 end
 
@@ -213,19 +239,9 @@ if ~strcmpi(type,'both')
         end
     end
 
-    if strcmpi(type,'manual')
-        if exist('Parent','var')
-            manual = [{'Wholeblood'},{'Plasma'},{'Parent'}];
-        else
-            manual = [{'Wholeblood'},{'Plasma'}];
-        end
-        autosampler = [];
-    else % autosampler
+    if strcmpi(type,'autosampler')
         if exist('Plasma','var') || exist('Parent','var')
             error('sorry, the function does not expect to see plasma or parent fraction from autosampling')
-        else
-            autosampler = 'Wholeblood';
-            manual = [];
        end
     end
 
@@ -236,10 +252,54 @@ else % mixed case - assume the autosampling has more data points
         warning('time data between whole blood and plasma are mixed, trying to fix it based on parent fraction - do check tsv files')
         duplicates = arrayfun(@(x) find(WBtime == x), PFtime);
         if ~isempty(duplicates)
-            Ptime = Ptime(duplicates);
-            notduplicates = 1:length(WBtime);
+            Ptime                     = Ptime(duplicates);  
+            notduplicates             = 1:length(WBtime);
             notduplicates(duplicates) = [];
-            WBtime = WBtime(notduplicates);
+            WBtime                    = WBtime(notduplicates);
+        end
+    elseif length(WBtime) > length(Ptime) && exist('PFtime','var')
+        warning('time data between whole blood and plasma are mixed, trying to fix it based on parent fraction - do check tsv files')
+        if length(Ptime) ~= length(PFtime)
+            if PFtime(1) == WBtime(1) && PFtime(1) == 0
+                Ptime = [0;Ptime];                 
+            else
+                error('Parent fraction and Plasma times do not match, we cannot figure out which time points to extract in whole blood')
+            end
+        end
+        
+        duplicates = arrayfun(@(x) find(WBtime == x), PFtime, 'UniformOutput', false);
+        if ~isempty(duplicates)
+            emptyduplicates = find(cellfun(@(x) isempty(x),duplicates)); 
+            if ~isempty(emptyduplicates)
+                % strategy 1, is the missing index between two adjacent
+                % integer, if so just used the value e.g. 183, [], 185
+                for e=1:length(emptyduplicates)
+                    position = emptyduplicates(e);
+                    if position > 1 || position < length(duplicates)
+                        if duplicates{position-1}+2 == duplicates{position+1}
+                            duplicates{position} = duplicates{position-1}+1;
+                        end
+                    end
+                end
+            end
+
+           emptyduplicates = find(cellfun(@(x) isempty(x),duplicates)); 
+           if ~isempty(emptyduplicates)
+               % strategy 2, try figuring out the closest time
+                warning('whole blood times do not match perfectly parent fraction times - using closest match')
+                missingtimes = PFtime(emptyduplicates);
+                for m=1:length(missingtimes)
+                    timevalue = min(WBtime((WBtime - missingtimes(m))>=0));
+                    duplicates{emptyduplicates(m)} = find(WBtime == timevalue);
+                end
+            end
+         
+            if iscell(duplicates)
+                duplicates = cell2mat(duplicates);
+            end
+            notduplicates             = 1:length(WBtime);
+            notduplicates(duplicates) = [];
+            WBtime                    = WBtime(notduplicates);
         end
     else
         duplicates = [];
@@ -261,14 +321,34 @@ end
 
 if exist('ParentFraction','var')
     plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
+    % Ptime adjusted adding time 0, therefore adjust data as well
+    if exist('metabolite_parent_fraction','var')
+        if Ptime(1) == 0 && length(plasma_radioactivity) == length(metabolite_parent_fraction)-1
+            plasma_radioactivity = [0;plasma_radioactivity];
+        end
+    end
+    % Turns out we have a ratio rather the actual concentration so remultiply
+    if multiplyplasma
+        if ~isempty(duplicates)
+            plasma_radioactivity = plasma_radioactivity.*whole_blood_radioactivity(duplicates);
+        else
+            plasma_radioactivity = plasma_radioactivity.*whole_blood_radioactivity;
+        end
+    end
 end
 
 if strcmpi(type,'both')
     if exist('PFtime','var')
         if ~isempty(duplicates)
-            t = table(PFtime,whole_blood_radioactivity(duplicates),plasma_radioactivity(duplicates),...
-                metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...
-                'plasma_radioactivity','metabolite_parent_fraction'});
+            if length(plasma_radioactivity) == length(PFtime)
+                t = table(PFtime,whole_blood_radioactivity(duplicates),plasma_radioactivity,...
+                    metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...
+                    'plasma_radioactivity','metabolite_parent_fraction'});
+            else
+                t = table(PFtime,whole_blood_radioactivity(duplicates),plasma_radioactivity(duplicates),...
+                    metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...
+                    'plasma_radioactivity','metabolite_parent_fraction'});
+            end
         else
             t = table(PFtime,whole_blood_radioactivity,plasma_radioactivity,...
                 metabolite_parent_fraction,'VariableNames',{'time','whole_blood_radioactivity',...

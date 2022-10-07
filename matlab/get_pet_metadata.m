@@ -264,6 +264,8 @@ end
 
 %% make the metadata structure
 
+% this part is not really usefull for BIDS, but helps users know which
+% scanner we tested -- 
 if contains(Scanner,'Siemens','IgnoreCase',true)
     metadata.Manufacturer = 'Siemens';
     if contains(Scanner,'Biograph','IgnoreCase',true)
@@ -280,6 +282,10 @@ elseif contains(Scanner,'GE','IgnoreCase',true)
     metadata.Manufacturer = 'General Electric';
     if contains(Scanner,'Advance','IgnoreCase',true)
         metadata.ManufacturersModelName = 'Advance';
+    elseif contains(Scanner,'Discovery','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Discovery PET/CT';
+    elseif contains(Scanner,'Signa','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Signa PET/MR';
     else
         loc = find([strfind(Scanner,{'GE'}) strfind(Scanner,{'ge'})]);
         Scanner(loc:loc+length('GE')-1) = [];
@@ -298,6 +304,8 @@ elseif contains(Scanner,'Philips','IgnoreCase',true)
         else
             metadata.ManufacturersModelName = 'Ingenuity';
         end
+    elseif contains(Scanner,'Gemini','IgnoreCase',true)
+        metadata.ManufacturersModelName = 'Gemini PET/MR';
     else
         loc = find([strfind(Scanner,{'Philips'}) strfind(Scanner,{'philips'})]);
         Scanner(loc:loc+length('Philips')-1) = [];

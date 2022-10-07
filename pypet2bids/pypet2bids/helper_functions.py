@@ -713,3 +713,9 @@ def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_check
                 metadata.pop(entity)
 
     return metadata
+    
+def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.Path]:
+    if ' ' in str(bad_path):
+        return f'"{bad_path}"'.rstrip().strip()
+    else:
+        return bad_path
