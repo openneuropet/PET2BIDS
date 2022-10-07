@@ -4,8 +4,14 @@ import pathlib
 import argparse
 import logging
 from json_maj.main import JsonMAJ
-from helper_functions import single_spreadsheet_reader, \
-    collect_bids_part, open_meta_data, load_pet_bids_requirements_json, ParseKwargs
+
+try:
+    import helper_functions
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
+
+#from pypet2bids.helper_functions import single_spreadsheet_reader, \
+#    collect_bids_part, open_meta_data, load_pet_bids_requirements_json, ParseKwargs
 
 
 def read_single_subject_spreadsheets(
@@ -31,22 +37,22 @@ def read_single_subject_spreadsheets(
     Copyright Open NeuroPET team
     """
 
-    required_fields = load_pet_bids_requirements_json()
+    required_fields = helper_functions.load_pet_bids_requirements_json()
 
     subject_id = kwargs.get('subject_id', None)
     session_id = kwargs.get('session_id', None)
 
     if general_metadata_spreadsheet.is_file():
-        general_metadata = single_spreadsheet_reader(general_metadata_spreadsheet)
+        general_metadata = helper_functions.single_spreadsheet_reader(general_metadata_spreadsheet)
         if not subject_id:
-            subject_id = collect_bids_part('sub', str(general_metadata_spreadsheet))
+            subject_id = helper_functions.collect_bids_part('sub', str(general_metadata_spreadsheet))
             if subject_id:
                 general_metadata['subject_id'] = subject_id
         else:
             general_metadata['subject_id'] = subject_id
 
         if not session_id:
-            session_id = collect_bids_part('ses', str(general_metadata_spreadsheet))
+            session_id = helper_functions.collect_bids_part('ses', str(general_metadata_spreadsheet))
             if session_id:
                 general_metadata['session_id'] = session_id
         else:
@@ -69,7 +75,7 @@ def read_single_subject_spreadsheets(
 
         # check to see if there's a subject column in the multi subject data
         accepted_column_names = ['participant_id', 'participant', 'subject', 'subject_id']
-        columns = open_meta_data(metadata_path=general_metadata_spreadsheet).columns
+        columns = helper_functions.open_meta_data(metadata_path=general_metadata_spreadsheet).columns
         found_column_names = []
         for acceptable in accepted_column_names:
             if acceptable in columns:
@@ -120,13 +126,13 @@ def write_single_subject_spreadsheets(subject_metadata: dict, output_path: typin
     if subject_id:
         subject_metadata.pop('subject_id')
     else:
-        subject_id = collect_bids_part('sub', output_path)
+        subject_id = helper_functions.collect_bids_part('sub', output_path)
 
     session_id = subject_metadata.get('session_id', None)
     if session_id:
         subject_metadata.pop('session_id')
     else:
-        session_id = collect_bids_part('ses', output_path)
+        session_id = helper_functions.collect_bids_part('ses', output_path)
 
     if create_bids_tree:
         if subject_id not in output_path.parts:
@@ -169,7 +175,7 @@ def cli():
                         help="Path to a spreadsheet with data applicable to mulitiple subjects")
     parser.add_argument("--output-path", "-o", type=pathlib.Path)
     parser.add_argument("--bids-tree", "-b", action='store_true')
-    parser.add_argument("--kwargs", "-k", nargs="*", action=ParseKwargs, default={})
+    parser.add_argument("--kwargs", "-k", nargs="*", action=helper_functions.ParseKwargs, default={})
     args = parser.parse_args()
     subject = read_single_subject_spreadsheets(
         general_metadata_spreadsheet=args.spreadsheet,

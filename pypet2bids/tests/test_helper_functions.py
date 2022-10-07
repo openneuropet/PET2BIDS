@@ -1,7 +1,11 @@
 import collections
 import tempfile
 import unittest
-import pypet2bids.helper_functions as helper_functions
+try:
+    import pypet2bids.helper_functions as helper_functions
+except ModuleNotFoundError:
+    raise ModuleNotFoundError
+
 from os import remove
 import pandas
 from pathlib import Path

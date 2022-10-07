@@ -4,7 +4,12 @@ import pathlib
 from typing import Union
 from os.path import join
 import json
-from helper_functions import open_meta_data, flatten_series
+try:
+    from helper_functions import  *
+except ModuleNotFoundError:
+    from pypet2bids.helper_functions import *
+
+#from pypet2bids.helper_functions import open_meta_data, flatten_series
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent

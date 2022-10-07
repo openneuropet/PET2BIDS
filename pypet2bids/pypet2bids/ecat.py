@@ -11,12 +11,24 @@ import re
 import nibabel
 import os
 import json
-import pypet2bids.helper_functions
-from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
+
+try:
+    import helper_functions
+    import sidecar
+    import read_ecat
+    import ecat2nii
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
+    import pypet2bids.sidecar as sidecar
+    import pypet2bids.read_ecat as read_ecat
+    import pypet2bids.ecat2nii as ecat2nii
+
+#from pypet2bids.helper_functions import get_recon_method
+#from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
-from pypet2bids.ecat2nii import ecat2nii
-from pypet2bids.helper_functions import get_recon_method
+#from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
+#from pypet2bids.ecat2nii import ecat2nii
+
 
 
 def parse_this_date(date_like_object) -> str:
@@ -56,8 +68,8 @@ class Ecat:
         self.frame_start_times = []  # frame_start_times, frame_durations, and decay_factors are all
         self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
-        self.sidecar_template = sidecar_template_full  # bids approved sidecar file with ALL bids fields
-        self.sidecar_template_short = sidecar_template_short  # bids approved sidecar with only required bids fields
+        self.sidecar_template = sidecar.sidecar_template_full  # bids approved sidecar file with ALL bids fields
+        self.sidecar_template_short = sidecar.sidecar_template_short  # bids approved sidecar with only required bids fields
         self.directory_table = None
         if os.path.isfile(ecat_file):
             self.ecat_file = ecat_file
@@ -78,19 +90,19 @@ class Ecat:
             print("\nFailed to load ecat image.\n")
             raise err
 
-        directory_byte_block = read_bytes(
+        directory_byte_block = read_ecat.read_bytes(
             path_to_bytes=self.ecat_file,
             byte_start=512,
             byte_stop=1024)
 
-        self.directory_table = get_directory_data(directory_byte_block, self.ecat_file)
+        self.directory_table = read_ecat.get_directory_data(directory_byte_block, self.ecat_file)
 
         # extract ecat info
         self.extract_affine()
         if collect_pixel_data:
-            self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file)
+            self.ecat_header, self.subheaders, self.data = read_ecat.read_ecat(self.ecat_file)
         else:
-            self.ecat_header, self.subheaders, self.data = read_ecat(self.ecat_file, collect_pixel_data=False)
+            self.ecat_header, self.subheaders, self.data = read_ecat.read_ecat(self.ecat_file, collect_pixel_data=False)
 
         # aggregate ecat info into ecat_info dictionary
         self.ecat_info['header'] = self.ecat_header
@@ -118,7 +130,7 @@ class Ecat:
             output = self.nifti_file
         else:
             output = output_path
-        ecat2nii(ecat_main_header=self.ecat_header, ecat_subheaders=self.subheaders, ecat_pixel_data=self.data,
+        ecat2nii.ecat2nii(ecat_main_header=self.ecat_header, ecat_subheaders=self.subheaders, ecat_pixel_data=self.data,
                  nifti_file=output, affine=self.affine)
 
         return output
@@ -199,7 +211,7 @@ class Ecat:
             self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE', None))
 
         # collect possible reconstruction method from subheader
-        recon_method = get_recon_method(self.subheaders[0].get('ANNOTATION'))
+        recon_method = helper_functions.get_recon_method(self.subheaders[0].get('ANNOTATION'))
         if recon_method:
             self.sidecar_template.update(**recon_method)
 
@@ -241,7 +253,7 @@ class Ecat:
 
         # add tag for conversion software
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
-        self.sidecar_template['ConversionSoftwareVersion'] = pypet2bids.helper_functions.get_version()
+        self.sidecar_template['ConversionSoftwareVersion'] = pypet2bids.helper_functions.helper_functions.get_version()
 
         # include any additional values
         if kwargs:

@@ -11,7 +11,13 @@ import sys
 import textwrap
 from os.path import join
 from pypet2bids.ecat import Ecat
-from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
+
+try:
+    import helper_functions
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
+
+#from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
 
 
 epilog = textwrap.dedent('''
@@ -72,7 +78,7 @@ def cli():
     parser.add_argument("--subheader", '-s', help="Display subheaders", action="store_true", default=False)
     parser.add_argument("--sidecar", action="store_true", help="Output a bids formatted sidecar for pairing with"
                                                                "a nifti.")
-    parser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={},
+    parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help="Include additional values int the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
@@ -177,7 +183,7 @@ def main():
                 raise Exception(error_string)
         else:
             scanner_txt = cli_args.scannerparams[0]
-        scanner_params = load_vars_from_config(scanner_txt)
+        scanner_params = helper_functions.load_vars_from_config(scanner_txt)
 
         # if any additional non null values have been included in a scanner.txt include those in the sidecar,
         # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
