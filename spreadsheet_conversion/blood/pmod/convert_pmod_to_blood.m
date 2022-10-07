@@ -160,7 +160,9 @@ for i=length(filein):-1:1
             Wholeblood     = datain{i};
         elseif any(contains(name,'Plasma','IgnoreCase',true))
             Plasma         = datain{i};
-            if contains(name,'Whole','IgnoreCase',true) && contains(name,'Ratio','IgnoreCase',true)
+            if contains(name,'Whole','IgnoreCase',true) && contains(name,'Ratio','IgnoreCase',true) && ...
+                any(Plasma.(Plasma.Properties.VariableNames{2}) < 1)
+                warning('Plasma values seem to be ratio to whole blood data are being converted, check the tsv file')
                 multiplyplasma = true;
             else
                 multiplyplasma = false;
