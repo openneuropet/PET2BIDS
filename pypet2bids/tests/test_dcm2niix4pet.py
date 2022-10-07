@@ -278,92 +278,6 @@ def test_additional_arguments():
             assert json_contents.get(key, "") == value
 
 
-def test_get_recon_method():
-    """
-    Given an input from a dicom such as
-    (0054,1103) LO [PSF+TOF 3i21s]                          #  14, 1 ReconstructionMethod
-    returns a ReconMethodName, ReconMethodParameterLabels, ReconMethodParameterUnits, ReconMethodParameterValues
-    e.g.
-    ReconMethodName="PSF+TOF"
-    ReconMethodParameterLabels=["subsets", "iterations"]
-    ReconMethodParameterUnits=["none", "none"]
-    ReconMethodParameterValues=[21, 3]
-    :return:
-    """
-
-    reconstruction_method_strings = [
-        {
-            "contents": "PSF+TOF 3i21s",
-            "subsets": 21,
-            "iterations": 3,
-            "ReconMethodName": "PSF+TOF3i21s",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [21, 3]
-        },
-        {
-            "contents": "OP-OSEM3i21s",
-            "subsets": 21,
-            "iterations": 3,
-            "ReconMethodName": "OP-OSEM3i21s",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [21, 3]
-        },
-        {
-            "contents": "PSF+TOF 3i21s",
-            "subsets": 21,
-            "iterations": 3,
-            "ReconMethodName": "PSF+TOF3i21s",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [21, 3]
-        },
-        {
-            "contents": "LOR-RAMLA",
-            "subsets": None,
-            "iterations": None,
-            "ReconMethodName": "LOR-RAMLA",
-            #"ReconMethodParameterUnits": ["none", "none"],
-            #"ReconMethodParameterLabels": ["subsets", "iterations"],
-            #"ReconMethodParameterValues": [None, None]
-        },
-        {
-            "contents": "3D-RAMLA",
-            "subsets": None,
-            "iterations": None,
-            "ReconMethodName": "3D-RAMLA",
-            #"ReconMethodParameterUnits": ["none", "none"],
-            #"ReconMethodParameterLabels": ["subsets", "iterations"],
-            #ReconMethodParameterValues": [None, None]
-        },
-        {
-            "contents": 'OSEM:i3s15',
-            "subsets": 15,
-            "iterations": 3,
-            "ReconMethodName": "OSEM:i3s15",
-            "ReconMethodParameterUnits": ["none", "none"],
-            "ReconMethodParameterLabels": ["subsets", "iterations"],
-            "ReconMethodParameterValues": [15, 3]
-        },
-        {
-            "contents": "LOR-RAMLA",
-            "subsets": None,
-            "iterations": None,
-            "ReconMethodName": "LOR-RAMLA",
-            #"ReconMethodParameterUnits": ["none", "none"],
-            #"ReconMethodParameterLabels": ["subsets", "iterations"],
-            #"ReconMethodParameterValues": [None, None]
-        }
-    ]
-
-    for recon_data  in reconstruction_method_strings:
-        recon = get_recon_method(recon_data['contents'])
-        for key, value in recon_data.items():
-            if key != "contents" and key != 'subsets' and key != 'iterations':
-                assert value == recon[key]
-
-
 def test_check_meta_radio_inputs():
     # test first conditional given InjectedRadioactivity and InjectedMass
     given = {'InjectedRadioactivity': 10, 'InjectedMass': 10}
@@ -384,7 +298,7 @@ def test_check_meta_radio_inputs():
     this = check_meta_radio_inputs(given)
     TestCase().assertEqual(this, solution)
 
-    # second case + SpecificRadioactivityUnits adde to to given
+    # second case + SpecificRadioactivityUnits adde to given
     solution.update({'SpecificRadioactivityUnits': 'Bq/g'})
     given.update({'SpecificRadioactivityUnits': 'Bq/g'})
     this = check_meta_radio_inputs(given)

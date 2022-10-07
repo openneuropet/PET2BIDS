@@ -68,8 +68,8 @@ class Ecat:
         self.frame_start_times = []  # frame_start_times, frame_durations, and decay_factors are all
         self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
-        self.sidecar_template = sidecar_template_full  # bids approved sidecar file with ALL bids fields
-        self.sidecar_template_short = sidecar_template_short  # bids approved sidecar with only required bids fields
+        self.sidecar_template = sidecar.sidecar_template_full  # bids approved sidecar file with ALL bids fields
+        self.sidecar_template_short = sidecar.sidecar_template_short  # bids approved sidecar with only required bids fields
         self.directory_table = None
         if os.path.isfile(ecat_file):
             self.ecat_file = ecat_file
@@ -211,7 +211,7 @@ class Ecat:
             self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE', None))
 
         # collect possible reconstruction method from subheader
-        recon_method = get_recon_method(self.subheaders[0].get('ANNOTATION'))
+        recon_method = helper_functions.get_recon_method(self.subheaders[0].get('ANNOTATION'))
         if recon_method:
             self.sidecar_template.update(**recon_method)
 
@@ -253,7 +253,7 @@ class Ecat:
 
         # add tag for conversion software
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
-        self.sidecar_template['ConversionSoftwareVersion'] = pypet2bids.helper_functions.get_version()
+        self.sidecar_template['ConversionSoftwareVersion'] = pypet2bids.helper_functions.helper_functions.get_version()
 
         # include any additional values
         if kwargs:

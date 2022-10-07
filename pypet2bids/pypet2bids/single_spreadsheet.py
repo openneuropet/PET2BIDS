@@ -37,15 +37,15 @@ def read_single_subject_spreadsheets(
     Copyright Open NeuroPET team
     """
 
-    required_fields = load_pet_bids_requirements_json()
+    required_fields = helper_functions.load_pet_bids_requirements_json()
 
     subject_id = kwargs.get('subject_id', None)
     session_id = kwargs.get('session_id', None)
 
     if general_metadata_spreadsheet.is_file():
-        general_metadata = single_spreadsheet_reader(general_metadata_spreadsheet)
+        general_metadata = helper_functions.single_spreadsheet_reader(general_metadata_spreadsheet)
         if not subject_id:
-            subject_id = collect_bids_part('sub', str(general_metadata_spreadsheet))
+            subject_id = helper_functions.collect_bids_part('sub', str(general_metadata_spreadsheet))
             if subject_id:
                 general_metadata['subject_id'] = subject_id
         else:
