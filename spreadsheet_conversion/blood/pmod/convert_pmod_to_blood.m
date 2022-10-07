@@ -160,6 +160,11 @@ for i=length(filein):-1:1
             Wholeblood     = datain{i};
         elseif any(contains(name,'Plasma','IgnoreCase',true))
             Plasma         = datain{i};
+            if contains(name,'Whole','IgnoreCase',true) && contains(name,'Ratio','IgnoreCase',true)
+                multiplyplasma = true;
+            else
+                multiplyplasma = false;
+            end
         end
     else
         if any(contains(datain{i}.Properties.VariableNames,'parent','IgnoreCase',true))
@@ -314,9 +319,18 @@ end
 
 if exist('ParentFraction','var')
     plasma_radioactivity = Plasma.(Plasma.Properties.VariableNames{2});
+    % Ptime adjusted adding time 0, therefore adjust data as well
     if exist('metabolite_parent_fraction','var')
         if Ptime(1) == 0 && length(plasma_radioactivity) == length(metabolite_parent_fraction)-1
             plasma_radioactivity = [0;plasma_radioactivity];
+        end
+    end
+    % Turns out we have a ratio rather the actual concentration so remultiply
+    if multiplyplasma
+        if ~isempty(duplicates)
+            plasma_radioactivity = plasma_radioactivity.*whole_blood_radioactivity(duplicates);
+        else
+            plasma_radioactivity = plasma_radioactivity.*whole_blood_radioactivity;
         end
     end
 end
