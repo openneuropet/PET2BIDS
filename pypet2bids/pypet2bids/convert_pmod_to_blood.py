@@ -391,6 +391,9 @@ class PmodToBlood:
         """
         # scale time info to seconds if it's minutes
         for name, dataframe in self.blood_series.items():
+            time_column_header_name = []
+            radioactivity_column_header_name = []
+            parent_fraction_column_header_name = []
             time_scalar = 1.0
             time_column_header_name = [header for header in list(dataframe.columns) if 'sec' in str.lower(header)]
             if not time_column_header_name:
@@ -411,8 +414,15 @@ class PmodToBlood:
             # locate parent fraction column
             parent_fraction_column_header_name = [header for header in dataframe.columns if
                                                   'parent' in str.lower(header)]
+            parent_fraction_is_suspicous = False
+            if len(parent_fraction_column_header_name) >= 1:
+                pf = str(parent_fraction_column_header_name[0]).lower()
+                if 'bq' in pf or 'ml' in pf:
+                    logging.warning(f"Found {parent_fraction_column_header_name[0]} in {name} input file, this column "
+                                    f"must be unitless")
+                    parent_fraction_is_suspicous = True
 
-            if not parent_fraction_column_header_name:
+            if not parent_fraction_column_header_name or parent_fraction_is_suspicous:
                 # locate radioactivity column
                 radioactivity_column_header_name = [header for header in dataframe.columns if
                                                     'bq' and 'cc' in str.lower(header)]
@@ -421,14 +431,17 @@ class PmodToBlood:
                 sub_ml_for_cc = re.sub('cc', 'mL', radioactivity_column_header_name[0])
                 extracted_units = re.search(r'\[(.*?)\]', sub_ml_for_cc)
                 second_column_name = None
-                if 'plasma' in str.lower(radioactivity_column_header_name[0]):
+                if 'plasma' in str.lower(radioactivity_column_header_name[0]) or \
+                        ('bq/cc' in str.lower(radioactivity_column_header_name[0]) and name == 'plasma_activity'):
                     second_column_name = 'plasma_radioactivity'
-                if 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(
-                        radioactivity_column_header_name[0]):
-                    second_column_name = 'whole_blood_radioactivity'
+
+                if name == 'whole_blood_activity':
+                    if 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(
+                            radioactivity_column_header_name[0]):
+                        second_column_name = 'whole_blood_radioactivity'
 
                 if second_column_name:
-                    dataframe.rename(columns={radioactivity_column_header_name[0]: second_column_name}, inplace=True)
+                    dataframe = dataframe.rename({radioactivity_column_header_name[0]: second_column_name},axis='columns')
 
                 if extracted_units:
                     self.units = extracted_units.group(1)
@@ -437,10 +450,9 @@ class PmodToBlood:
                         "Unable to determine radioactivity entries from .bld column name. Column name/units must be in "
                         "Bq/cc or Bq/mL")
             # if percent parent rename column accordingly
-            elif parent_fraction_column_header_name and len(parent_fraction_column_header_name) == 1:
-                dataframe.rename(columns={parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'},
-                                 inplace=True)
-            self.blood_series[name] = dataframe
+            if parent_fraction_column_header_name and len(parent_fraction_column_header_name) == 1 and name != 'plasma_activity':
+                dataframe = dataframe.rename({parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'}, axis='columns')
+            self.blood_series[name] = dataframe.copy(deep=True)
 
     def ask_recording_type(self, recording: str):
         """
@@ -494,7 +506,7 @@ class PmodToBlood:
         if self.auto_sampled:
             first_auto_sampled = self.blood_series[self.auto_sampled.pop()['name']]
             for remaining_auto in self.auto_sampled:
-                remaining_auto = self.blood_series[remaining_auto]
+                remaining_auto = self.blood_series[remaining_auto['name']]
                 column_difference = remaining_auto.columns.difference(first_auto_sampled.columns)
                 for column in list(column_difference):
                     first_auto_sampled[column] = remaining_auto[column]
@@ -574,7 +586,7 @@ class PmodToBlood:
 
     def check_for_interpolated_data(self):
         # check to see if there may exist (emphasis on may) interpolated plasma values
-        if self.blood_series.get('plasma_activity', None):
+        if type(self.blood_series.get('plasma_activity', None)) is not None:
             # extract parent fraction/metabolite fraction as series from dataframes
             metabolite_parent_fraction_series = pandas.Series(dtype='float64')
             for name, dataframe in self.blood_series.items():
@@ -583,6 +595,9 @@ class PmodToBlood:
                     if 'parent' in str.lower(entry) or 'fraction' in str.lower(entry):
                         metabolite_parent_fraction_series = dataframe[str(entry)]
                         break
+                if len(metabolite_parent_fraction_series) > 0:
+                    break
+
             # check dataframes for plasma activity
             plasma_activity_series = pandas.Series(dtype='float64')
             for name, dataframe in self.blood_series.items():
@@ -590,6 +605,9 @@ class PmodToBlood:
                 for entry in columns:
                     if 'plasma_radioactivity' in entry:
                         plasma_activity_series = dataframe[str(entry)]
+                        break
+                if len(plasma_activity_series) > 0:
+                    break
 
             if len(plasma_activity_series) > 0 and len(metabolite_parent_fraction_series) > 0:
                 if len(plasma_activity_series) == len(metabolite_parent_fraction_series):

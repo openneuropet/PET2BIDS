@@ -1,6 +1,7 @@
 import pytest
 import pathlib
 import os
+
 from pypet2bids.convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
 
 
@@ -22,29 +23,32 @@ def test_type_cast_cli_input():
 
 
 @pytest.fixture()
-def good_blood_files():
+def Ex_bld_whole_blood_only_files():
     this_files_parent_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = pathlib.Path(this_files_parent_dir).parent.parent
-    pmod_blood_dir = os.path.join(project_dir, 'spreadsheet_conversion', 'blood', 'pmod')
+    pmod_blood_dir = os.path.join(
+        project_dir,
+        'spreadsheet_conversion',
+        'blood',
+        'pmod',
+        'Ex_bld_wholeblood_and_plasma_only')
     bld_files = [os.path.join(pmod_blood_dir, bld) for bld in os.listdir(pmod_blood_dir) if pathlib.Path(bld).suffix == '.bld']
-    good_blood_files = {'parent': [], 'plasma': [], 'whole': []}
+    blood_files = {'parent': [], 'plasma': [], 'whole': []}
     for index, bld_file in enumerate(bld_files):
-        for key in good_blood_files.keys():
-            if key in bld_file:
-                good_blood_files[key].append(bld_file)   
+        for key in blood_files.keys():
+            if key in pathlib.Path(bld_file).name:
+                blood_files[key].append(bld_file)
         
-    yield good_blood_files
+    yield blood_files
 
 
 class TestPmodToBlood:
     # requires manual input, don't run in actions
-
-
-    def test_load_files(self, good_blood_files):
-        print(good_blood_files)
-        assert len(good_blood_files) > 1
+    def test_load_files(self, Ex_bld_whole_blood_only_files):
+        print(Ex_bld_whole_blood_only_files)
+        #assert len(Ex_bld_whole_blood_only_files) > 1
         pmod_to_blood = PmodToBlood(
-            whole_blood_activity=pathlib.Path(good_blood_files['whole'][0]),
-            parent_fraction=pathlib.Path(good_blood_files['parent'][0]),
-            plasma_activity = pathlib.Path(good_blood_files['plasma'][0])
+            whole_blood_activity=pathlib.Path(Ex_bld_whole_blood_only_files['whole'][0]),
+            parent_fraction=pathlib.Path(Ex_bld_whole_blood_only_files['parent'][0]),
+            plasma_activity = pathlib.Path(Ex_bld_whole_blood_only_files['plasma'][0])
         )
