@@ -34,15 +34,10 @@ import argparse
 import importlib
 import dotenv
 
-
 try:
     import helper_functions
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-
-# import project modules
-#from pypet2bids.helper_functions import ParseKwargs, get_version, translate_metadata, expand_path, collect_bids_part
-#from pypet2bids.helper_functions import get_recon_method, is_numeric, single_spreadsheet_reader, set_dcm2niix_path
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -251,8 +246,8 @@ def update_json_with_dicom_value(
             json_field = updated_values.get(key)
             dicom_field = dicom_header.__getattr__(key)
             if json_field != dicom_field:
-                print(colored(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value of {dicom_field}",
-                              "yellow"))
+                print(colored(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value "
+                              f"of {dicom_field}", "yellow"))
         except AttributeError:
             pass
 
@@ -269,6 +264,8 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
     :return: a datetime string that corresponds to the converted filenames from dcm2niix when used with the `-f %t` flag
     """
+    parsed_time = ''
+    parsed_date = ''
     if dicom:
         if type(dicom) is pydicom.dataset.FileDataset:
             # do nothing
@@ -505,7 +502,7 @@ class Dcm2niix4PET:
         with TemporaryDirectory() as tempdir:
             tempdir_pathlike = Path(tempdir)
             # people use screwy paths, we do this before running dcm2niix to account for that
-            image_folder = sanitize_bad_path(self.image_folder)
+            image_folder = helper_functions.sanitize_bad_path(self.image_folder)
             cmd = f"{self.dcm2niix_path} -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
 
@@ -608,7 +605,8 @@ class Dcm2niix4PET:
                                 recon_filter_size = float(recon_filter_size)
                                 sidecar_json.update({'ReconFilterSize': float(recon_filter_size)})
                             # collect just the filter type by popping out the filter size if it exists
-                            recon_filter_type = re.sub(str(recon_filter_size), '', sidecar_json.get('ConvolutionKernel'))
+                            recon_filter_type = re.sub(str(recon_filter_size), '',
+                                                       sidecar_json.get('ConvolutionKernel'))
                             # further sanitize the recon filter type string
                             recon_filter_type = re.sub(r'[^a-zA-Z0-9]', ' ', recon_filter_type)
                             recon_filter_type = re.sub(r' +', ' ', recon_filter_type)
@@ -635,7 +633,10 @@ class Dcm2niix4PET:
                     conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
 
                     sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
-                    sidecar_json.update({'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]})
+                    sidecar_json.update(
+                        {
+                            'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
+                        })
 
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
@@ -678,8 +679,8 @@ class Dcm2niix4PET:
                         blood_tsv_data = pd.DataFrame(blood_tsv_data)
                     # write out blood_tsv using pandas csv write
                     blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
-                                              , sep='\t',
-                                              index=False)
+                                          , sep='\t',
+                                          index=False)
                 elif type(blood_tsv_data) is str:
                     # write out with write
                     with open(join(tempdir_path, blood_file_name_w_out_extension + ".tsv"), 'w') as outfile:
@@ -825,7 +826,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
         else:
-            tmp = (InjectedRadioactivity*10**6)/(InjectedMass*10**6)
+            tmp = (InjectedRadioactivity * 10 ** 6) / (InjectedMass * 10 ** 6)
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
                     print(colored("WARNING inferred SpecificRadioactivity in Bq/g doesn't match InjectedRadioactivity "
@@ -847,7 +848,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedMass'] = 'n/a'
             data_out['InjectedMassUnits'] = 'n/a'
         else:
-            tmp = ((InjectedRadioactivity*(10**6)/SpecificRadioactivity)*(10**6))
+            tmp = ((InjectedRadioactivity * (10 ** 6) / SpecificRadioactivity) * (10 ** 6))
             if InjectedMass:
                 if InjectedMass != tmp:
                     print(colored("WARNING Infered InjectedMass in ug doesn't match InjectedRadioactivity and "
@@ -869,7 +870,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedRadioactivity'] = 'n/a'
             data_out['InjectedRadioactivityUnits'] = 'n/a'
         else:
-            tmp = ((InjectedMass / (10**6)) * SpecificRadioactivity) / (10**6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
+            tmp = ((InjectedMass / (10 ** 6)) * SpecificRadioactivity) / (
+                        10 ** 6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
             if InjectedRadioactivity:
                 if InjectedRadioactivity != tmp:
                     print(colored("WARNING inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
@@ -891,7 +893,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['SpecificRadioactivity'] = 'n/a'
             data_out['SpecificRadioactivityUnits'] = 'n/a'
         else:
-            tmp = (MolarActivity*(10**3)) / MolecularWeight  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
+            tmp = (MolarActivity * (10 ** 3)) / MolecularWeight  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
                     print(colored("inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
@@ -994,8 +996,9 @@ def get_radionuclide(pydicom_dicom):
         if check_code_meaning and check_code_value:
             pass
         else:
-            warnings.warn(f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
-                          f"header")
+            warnings.warn(
+                f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
+                f"header")
 
     return radionuclide
 

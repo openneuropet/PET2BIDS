@@ -222,8 +222,8 @@ class PmodToBlood:
     def __init__(
             self,
             whole_blood_activity: Path,
-            parent_fraction: Path,
-            plasma_activity: Path = None,
+            parent_fraction: Path = Path(),
+            plasma_activity: Path = Path(),
             output_path: Path = None,
             output_json: bool = False,
             engine='',
@@ -270,13 +270,16 @@ class PmodToBlood:
 
         self.auto_sampled = []
         self.manually_sampled = []
+        self.blood_series = {}
 
-        # whole blood and parent fraction are required, always attempt to load
-        self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity, engine=self.engine),
-                             'parent_fraction': self.load_pmod_file(parent_fraction, engine=self.engine)}
+        if whole_blood_activity.is_file():
+            self.blood_series['whole_blood_activity'] = self.load_pmod_file(whole_blood_activity, engine=self.engine)
+
+        if parent_fraction.is_file():
+            self.blood_series['parent_fraction'] = self.load_pmod_file(parent_fraction, engine=self.engine)
 
         # plasma activity is not required, but is used if provided
-        if plasma_activity:
+        if plasma_activity.is_file():
             self.blood_series['plasma_activity'] = self.load_pmod_file(plasma_activity, engine=self.engine)
 
         # one may encounter data collected manually and/or automatically, we vary our logic depending on the case
