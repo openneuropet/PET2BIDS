@@ -13,6 +13,7 @@ import json
 import logging
 import textwrap
 
+import numpy
 import pandas
 import pandas as pd
 import argparse
@@ -21,6 +22,7 @@ import re
 import ast
 from pathlib import Path
 from os.path import join
+
 # from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
 
 try:
@@ -219,6 +221,7 @@ class PmodToBlood:
         logic phase and written to sidecar json
     :type kwargs: dict
     """
+
     def __init__(
             self,
             whole_blood_activity: Path,
@@ -390,6 +393,48 @@ class PmodToBlood:
                               and Manually sampled input has {len({manual['sample_length']})}. Autosampled blood "
                             f"files \n should have more rows than manually sampled input files. Check .bld inputs.")
 
+            # we want to make sure that in the case of mixed data we don't include manual time points in the autosampled
+            # curves, first we find duplicates.
+
+            whole_blood = self.blood_series.get('whole_blood_activity', [])
+            plasma = self.blood_series.get('plasma_activity', [])
+            parent_fraction = self.blood_series.get('parent_fraction', [])
+
+            # case 1 whole blood time == plasma time && parent fraction time exists
+            if len(whole_blood) == len(plasma) and parent_fraction:
+                # get ready for duplicates
+                duplicates = []
+
+                # get the times out of parent fraction
+                pf_times = [str(time) for time in parent_fraction['time']]
+
+                for df in [whole_blood['time'], plasma['time']]:
+                    for pf_time in pf_times:
+                        for df_time in df:
+                            if numpy.isclose(pf_time, df_time):
+                                duplicates.append(df_time)
+
+            # case 2 whole blood time > plasma time && parent fraction time exists
+            elif len(whole_blood) > len(plasma) and parent_fraction is not None:
+                if len(plasma) == (len(parent_fraction) - 1):
+                    if parent_fraction['time'][0] == whole_blood['time'][0] and parent_fraction['time'][0] == 0:
+                        plasma.loc[-1] = [0, 0]
+                    else:
+                        raise Exception(f"Parent fraction and plasma times do not match, we cannot figure out which "
+                                        f"time points to extract in whole blood.")
+
+
+
+            # end else w/ no duplicates
+            else:
+                duplicates = []
+
+            # collect the manually sampled data and the time points they are collected at
+            for manual_sample in manually_sampled:
+                manual_data = self.blood_series.get(manual_sample.get('name'))
+                manual_times = manual_data['time']
+                # now that we have the times measurements were taken manually we collect duplicates out of
+
     def scale_time_rename_columns(self):
         """
         Scales time info if it's not in seconds and renames dataframe column to 'time' instead of given column name in 
@@ -447,7 +492,8 @@ class PmodToBlood:
                         second_column_name = 'whole_blood_radioactivity'
 
                 if second_column_name:
-                    dataframe = dataframe.rename({radioactivity_column_header_name[0]: second_column_name},axis='columns')
+                    dataframe = dataframe.rename({radioactivity_column_header_name[0]: second_column_name},
+                                                 axis='columns')
 
                 if extracted_units:
                     self.units = extracted_units.group(1)
@@ -456,8 +502,10 @@ class PmodToBlood:
                         "Unable to determine radioactivity entries from .bld column name. Column name/units must be in "
                         "Bq/cc or Bq/mL")
             # if percent parent rename column accordingly
-            if parent_fraction_column_header_name and len(parent_fraction_column_header_name) == 1 and name != 'plasma_activity':
-                dataframe = dataframe.rename({parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'}, axis='columns')
+            if parent_fraction_column_header_name and len(
+                    parent_fraction_column_header_name) == 1 and name != 'plasma_activity':
+                dataframe = dataframe.rename({parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'},
+                                             axis='columns')
             self.blood_series[name] = dataframe.copy(deep=True)
 
     def ask_recording_type(self, recording: str):

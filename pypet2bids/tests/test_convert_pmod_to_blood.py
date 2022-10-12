@@ -110,9 +110,8 @@ def Ex_txt_manual_and_autosampled_mixed():
 
     yield blood_files
 
-class TestPmodToBlood:
-    # requires manual input, don't run in actions
 
+class TestPmodToBlood:
     def test_load_bld_files_blood_only(self, Ex_bld_whole_blood_only_files):
         print(Ex_bld_whole_blood_only_files)
         kwargs_input = {
