@@ -326,6 +326,8 @@ class PmodToBlood:
         """
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
             loaded_file = helper_functions.open_meta_data(pmod_blood_file)
+            # drop unnamed columns
+            loaded_file = loaded_file.loc[:, ~loaded_file.columns.str.contains('^Unnamed')]
             return loaded_file
         else:
             raise FileNotFoundError(str(pmod_blood_file))
@@ -373,14 +375,15 @@ class PmodToBlood:
                 compare_lengths.append(
                     {'name': key, 'sampling_type': sampling_type, 'sample_length': len(self.blood_series[key])})
 
+            auto_sampled, manually_sampled = [], []
             for each in compare_lengths:
                 if 'auto' in str.lower(each['sampling_type']):
-                    self.auto_sampled.append(each)
+                    auto_sampled.append(each)
                 elif 'manual' in str.lower(each['sampling_type']):
-                    self.manually_sampled.append(each)
+                    manually_sampled.append(each)
 
-            for auto in self.auto_sampled:
-                for manual in self.manually_sampled:
+            for auto in auto_sampled:
+                for manual in manually_sampled:
                     if auto['sample_length'] < manual['sample_length']:
                         warnings.warn(
                             f"Autosampled .bld input for {list(auto.keys())[0]} has {len(auto['sample_length'])} rows\n\

@@ -263,20 +263,21 @@ def very_tolerant_literal_eval(value):
     return value
 
 
-def open_meta_data(metadata_path: Union[str, pathlib.Path], seperator=None) -> pandas.DataFrame:
+def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> pandas.DataFrame:
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
     :param metadata_path: Path or pathlike object/string to a spreadsheet file
     :type metadata_path: Path or str
-    :param seperator: Optional seperator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
-    :type seperator: str
+    :param separator: Optional seperator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
+    :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
 
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
+    separators_present = []
     if metadata_path.exists():
         pass
     else:
@@ -287,21 +288,37 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], seperator=None) -> p
 
     methods = {
         'excel': read_excel,
-        'csv': read_csv
+        'csv': read_csv,
+        'txt': read_csv
     }
 
     if 'xls' in extension or 'bld' in extension:
         proper_method = 'excel'
     else:
-        proper_method = extension
+        proper_method = extension.replace('.', '')
+        with open(metadata_path, 'r') as infile:
+            first_line = infile.read()
+            # check for separators in line
+            separators = ['\t', ',']
+            for sep in separators:
+                if sep in first_line:
+                    separators_present.append(sep)
 
     try:
         warnings.filterwarnings('ignore', message='ParserWarning: Falling*')
         use_me_to_read = methods.get(proper_method, None)
-        metadata_dataframe = use_me_to_read(metadata_path)
+        if proper_method != 'excel':
+            if '\t' in separators_present:
+                separator = '\t'
+            else:
+                separator = ','
+            metadata_dataframe = use_me_to_read(metadata_path, sep=separator)
+        else:
+            metadata_dataframe = use_me_to_read(metadata_path)
+
     except (IOError, ValueError) as err:
         try:
-            metadata_dataframe = pandas.read_csv(metadata_path, sep=seperator, engine='python')
+            metadata_dataframe = pandas.read_csv(metadata_path, sep=separator, engine='python')
         except IOError:
             logging.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
             raise err(f"Problem opening {metadata_path}")
