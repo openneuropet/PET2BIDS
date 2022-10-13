@@ -1,5 +1,6 @@
 import tempfile
 
+import pandas
 import pytest
 import pathlib
 import os
@@ -113,7 +114,6 @@ def Ex_txt_manual_and_autosampled_mixed():
 
 class TestPmodToBlood:
     def test_load_bld_files_blood_only(self, Ex_bld_whole_blood_only_files):
-        print(Ex_bld_whole_blood_only_files)
         kwargs_input = {
             'whole_blood_activity_collection_method': 'automatic',
             'parent_fraction_collection_method': 'automatic',
@@ -143,6 +143,34 @@ class TestPmodToBlood:
                 **kwargs_input
             )
 
+    def test_bld_output_manual_popped_values(self, Ex_bld_manual_and_autosampled_mixed):
+        kwargs_input = {
+            'whole_blood_activity_collection_method': 'automatic',
+            'parent_fraction_collection_method': 'manual',
+            'plasma_activity_collection_method': 'automatic'
+        }
+
+        # test bld (pmod files first)
+        with tempfile.TemporaryDirectory() as tempdir:
+            pmod_to_blood = PmodToBlood(
+                whole_blood_activity=pathlib.Path(Ex_bld_manual_and_autosampled_mixed['whole'][0]),
+                plasma_activity=pathlib.Path(Ex_bld_manual_and_autosampled_mixed['plasma'][0]),
+                parent_fraction=pathlib.Path(Ex_bld_manual_and_autosampled_mixed['parent'][0]),
+                output_path=tempdir,
+                **kwargs_input
+            )
+
+            created_files = [pathlib.Path(os.path.join(tempdir, created)) for created in  os.listdir(pathlib.Path(tempdir))]
+            assert len([created for created in created_files if 'automatic' in created.name]) >= 1
+            assert len([created for created in created_files if 'manual' in created.name]) >= 1
+
+            for f in created_files:
+                if 'manual' in f.name and f.suffix == '.tsv':
+                    manual_df = pandas.read_csv(f, sep='\t')
+
+                    assert 'plasma_radioactivity' in manual_df.columns
+                    assert 'whole_blood_radioactivity' in manual_df.columns
+
     def test_load_txt_files_mixed(self, Ex_txt_manual_and_autosampled_mixed):
         kwargs_input = {
             'whole_blood_activity_collection_method': 'automatic',
@@ -157,3 +185,36 @@ class TestPmodToBlood:
                 output_path=tempdir,
                 **kwargs_input
             )
+
+    def test_txt_output_manual_popped_values(self, Ex_txt_manual_and_autosampled_mixed):
+        kwargs_input = {
+            'whole_blood_activity_collection_method': 'automatic',
+            'parent_fraction_collection_method': 'manual',
+            'plasma_activity_collection_method': 'manual'
+        }
+        # next test txt files
+        with tempfile.TemporaryDirectory() as tempdir:
+            pmod_to_blood = PmodToBlood(
+                whole_blood_activity=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['whole'][0]),
+                #plasma_activity=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['plasma'][0]),
+                parent_fraction=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['parent'][0]),
+                output_path=tempdir,
+                **kwargs_input
+            )
+
+            created_files = [pathlib.Path(os.path.join(tempdir, created)) for created in  os.listdir(pathlib.Path(tempdir))]
+            assert len([created for created in created_files if 'automatic' in created.name]) >= 1
+            assert len([created for created in created_files if 'manual' in created.name]) >= 1
+
+            for f in created_files:
+                if 'manual' in f.name and f.suffix == '.tsv':
+                    manual_df = pandas.read_csv(f, sep='\t')
+
+                    # we want to calculate plasma radioactivity if we have whole blood and parent fraction, for the
+                    # manual blood file at least
+                    assert 'plasma_radioactivity' in manual_df.columns
+                    assert 'whole_blood_radioactivity' in manual_df.columns
+
+                if 'auto' in f.name and f.suffix == '.tsv':
+                    automatic_df = pandas.read_csv(f, sep='\t')
+                    assert 'whole_blood_radioactivity' in manual_df.columns

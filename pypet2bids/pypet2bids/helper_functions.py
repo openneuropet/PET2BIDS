@@ -736,3 +736,9 @@ def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.
         return f'"{bad_path}"'.rstrip().strip()
     else:
         return bad_path
+
+
+def drop_row(dataframe: pandas.DataFrame, index: int):
+    row = dataframe.loc[index]
+    dataframe.drop(index, inplace=True)
+    return row

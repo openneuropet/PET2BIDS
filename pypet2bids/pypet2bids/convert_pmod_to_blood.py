@@ -274,6 +274,7 @@ class PmodToBlood:
         self.auto_sampled = []
         self.manually_sampled = []
         self.blood_series = {}
+        self.duplicates = {}  # list of times that are duplicated across manual and automatic samples
 
         if whole_blood_activity.is_file():
             self.blood_series['whole_blood_activity'] = self.load_pmod_file(whole_blood_activity, engine=self.engine)
@@ -309,6 +310,10 @@ class PmodToBlood:
 
         # warn if plasma data may be interpolated
         self.check_for_interpolated_data()
+
+        # remove duplicates from automatically sampled data, this data will then be written out to manual versions
+        # of each recording
+        #self.deduplicate()
 
         self.write_out_tsvs()
 
@@ -388,52 +393,107 @@ class PmodToBlood:
             for auto in auto_sampled:
                 for manual in manually_sampled:
                     if auto['sample_length'] < manual['sample_length']:
-                        warnings.warn(
-                            f"Autosampled .bld input for {list(auto.keys())[0]} has {len(auto['sample_length'])} rows\n\
-                              and Manually sampled input has {len({manual['sample_length']})}. Autosampled blood "
-                            f"files \n should have more rows than manually sampled input files. Check .bld inputs.")
+                        logging.warning(
+                            f"Autosampled .bld input for {auto['name']} has {auto['sample_length']} rows"
+                            f" and Manually sampled input has {manual['sample_length']} rows. Autosampled blood "
+                            f"files should have more rows than manually sampled input files. Check .bld inputs.")
 
             # we want to make sure that in the case of mixed data we don't include manual time points in the autosampled
             # curves, first we find duplicates.
 
-            whole_blood = self.blood_series.get('whole_blood_activity', [])
-            plasma = self.blood_series.get('plasma_activity', [])
-            parent_fraction = self.blood_series.get('parent_fraction', [])
+            whole_blood_activity = self.blood_series.get('whole_blood_activity', pandas.DataFrame())
+            plasma_activity = self.blood_series.get('plasma_activity', pandas.DataFrame())
+            parent_fraction = self.blood_series.get('parent_fraction', pandas.DataFrame())
+            duplicates = {}
+
+            # wp is short for whole blood and plasma activity, we're just using wp to make our conditional statements
+            # look a bit cleaner while retaining the namespace from which activity series come from. Hanging onto these
+            # names in this dictionary makes creating manual files later during de-duplication
+            wp = {
+                    'whole_blood_activity': whole_blood_activity,
+                    'plasma_activity': plasma_activity
+                    }
 
             # case 1 whole blood time == plasma time && parent fraction time exists
-            if len(whole_blood) == len(plasma) and parent_fraction:
+            if len(wp['whole_blood_activity']) == len(wp['plasma_activity']) and parent_fraction:
                 # get ready for duplicates
-                duplicates = []
+                for key in wp.keys():
+                    duplicates[key] = []
 
-                # get the times out of parent fraction
-                pf_times = [str(time) for time in parent_fraction['time']]
-
-                for df in [whole_blood['time'], plasma['time']]:
-                    for pf_time in pf_times:
-                        for df_time in df:
-                            if numpy.isclose(pf_time, df_time):
-                                duplicates.append(df_time)
+                for activity_series, activity_data in wp.items():
+                    for pf_time in parent_fraction.get('time', []):
+                        for activity_time in activity_data.get('time', []):
+                            if numpy.isclose(pf_time, activity_time, rtol=0.01):
+                                duplicates[activity_series].append(activity_time)
 
             # case 2 whole blood time > plasma time && parent fraction time exists
-            elif len(whole_blood) > len(plasma) and parent_fraction is not None:
-                if len(plasma) == (len(parent_fraction) - 1):
-                    if parent_fraction['time'][0] == whole_blood['time'][0] and parent_fraction['time'][0] == 0:
-                        plasma.loc[-1] = [0, 0]
+            elif len(wp['whole_blood_activity']) > len(wp['plasma_activity']) and parent_fraction is not None:
+                # get ready for duplicates
+                for key in wp.keys():
+                    duplicates[key] = []
+
+                if len(wp['plasma_activity']) == (len(parent_fraction) - 1):
+                    if parent_fraction['time'][0] == wp['whole_blood_activity']['time'][0] and parent_fraction['time'][0] == 0:
+                        wp['plasma_activity'].loc[-1] = [0, 0]
                     else:
                         raise Exception(f"Parent fraction and plasma times do not match, we cannot figure out which "
                                         f"time points to extract in whole blood.")
 
-
+                for activity_series, activity_data in wp.items():
+                    for pf_time in parent_fraction.get('time', []):
+                        for df_time in activity_data.get('time', []):
+                            if numpy.isclose(pf_time, df_time, rtol=0.01):
+                                duplicates[activity_series].append(df_time)
 
             # end else w/ no duplicates
             else:
-                duplicates = []
+                pass
 
-            # collect the manually sampled data and the time points they are collected at
-            for manual_sample in manually_sampled:
-                manual_data = self.blood_series.get(manual_sample.get('name'))
-                manual_times = manual_data['time']
-                # now that we have the times measurements were taken manually we collect duplicates out of
+            # catch only unique duplicates
+            for k, v in duplicates.items():
+                if v != []:
+                    self.duplicates[k] = list(set(v))
+
+            # now we go ahead and remove any duplicates that exist in existing blood data
+            for activity_series, duplicate_times in self.duplicates.items():
+                series_is_auto_sampled = False
+                for name, sample_type in self.data_collection.items():
+                    if activity_series == name and sample_type == 'automatic':
+                        series_is_auto_sampled = True
+
+                # we only want to remove rows if they exist in autosampled data, but are clearly manually sampled
+                if series_is_auto_sampled:
+                    removed_rows = pandas.DataFrame(
+                        columns=self.blood_series.get(activity_series, pandas.DataFrame()).columns)
+
+                    indexes = []
+                    for time in duplicate_times:
+                        index = helper_functions.get_coordinates_containing(time, self.blood_series[activity_series],
+                                                                            exact=True)[0]
+
+                        dropped_row = helper_functions.drop_row(self.blood_series[activity_series], index[0])
+
+                        # using the loc indexer, append the series to the end of the df
+                        removed_rows.loc[len(removed_rows)] = dropped_row
+
+                # update the blood series object with the popped/dropped row
+                new_string = f"{activity_series}_manually_popped"
+                self.blood_series[new_string] = removed_rows.sort_values('time').reset_index(drop=True)
+                self.manually_sampled.append({'name': new_string})
+                self.data_collection[new_string] = 'manual'
+
+
+                if len(self.blood_series[new_string]) == (len(parent_fraction) - 1):
+                    if (self.blood_series['parent_fraction']['time'][0] != self.blood_series[new_string]['time'][0]
+                            and parent_fraction['time'][0] == 0):
+
+                        self.blood_series[new_string].loc[-1] = [0, 0]
+                        self.blood_series[new_string].index = self.blood_series[new_string].index + 1
+                        self.blood_series[new_string] = self.blood_series[new_string].sort_values('time').reset_index(drop=True)
+
+                    else:
+                        raise Exception(f"Parent fraction and plasma times do not match, we cannot figure out which "
+                                        f"time points to extract in whole blood.")
 
     def scale_time_rename_columns(self):
         """
