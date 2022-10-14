@@ -6,6 +6,7 @@ import pathlib
 import os
 from unittest.mock import Mock, patch
 from pypet2bids.convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
+from pypet2bids.helper_functions import open_meta_data
 
 # resolving paths for the opening of test data, for this module test data is contained in the spreadsheet_conversion
 # folder at the top level of the project repository
@@ -215,7 +216,11 @@ class TestPmodToBlood:
                     # manual blood file at least
                     assert 'plasma_radioactivity' in manual_df.columns
                     assert 'whole_blood_radioactivity' in manual_df.columns
+                    assert 'metabolite_parent_fraction' in manual_df.columns
+                    assert len(manual_df['plasma_radioactivity']) == len(manual_df['metabolite_parent_fraction'])
 
                 if 'auto' in f.name and f.suffix == '.tsv':
                     automatic_df = pandas.read_csv(f, sep='\t')
+                    original_whole_blood = open_meta_data(Ex_txt_manual_and_autosampled_mixed['whole'][0])
                     assert 'whole_blood_radioactivity' in automatic_df.columns
+                    assert len(automatic_df) + len(manual_df) == len(original_whole_blood)

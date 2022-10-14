@@ -460,11 +460,7 @@ class PmodToBlood:
                 for activity_series in duplicates.keys():
                     for pf_time in parent_fraction.get('time', []):
                         for df_time in wp.get(key).get('time', []):
-                            print(df_time)
                             if numpy.isclose(pf_time, df_time, atol=self.atol):
-                                if 94 <= df_time <= 95:
-                                    print('debug')
-                                print(f"df_time {df_time} is close to pftime {pf_time} ")
                                 duplicates[activity_series].append(df_time)
 
             # end else w/ no duplicates
@@ -531,8 +527,11 @@ class PmodToBlood:
                 wba = self.blood_series['whole_blood_activity_manually_popped']
                 new_plasma = wba['whole_blood_radioactivity'] * self.blood_series['plasma_activity']['plasma_radioactivity']
 
+                temp = pandas.DataFrame({'time': self.blood_series['plasma_activity']['time'],
+                                         'plasma_radioactivity': new_plasma})
 
-                self.blood_series['plasma_activity'] = self.blood_series['plasma_activity'] * self.blood_series['whole_blood_activity_manually_popped']
+                self.blood_series['plasma_activity'] = temp
+
             else:
                 self.blood_series['plasma_activity'] = self.blood_series['plasma_activity'] * self.blood_series['whole_blood']
 
