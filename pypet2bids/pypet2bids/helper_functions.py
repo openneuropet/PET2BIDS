@@ -24,6 +24,8 @@ import warnings
 import logging
 import dotenv
 import ast
+
+import numpy
 import pandas
 import toml
 import pathlib
@@ -486,6 +488,7 @@ def get_coordinates_containing(
     :rtype: tuple or list of tuples
     """
 
+    percent_tolerance = 0.001
     coordinates = []
     for row_index, row in dataframe.iterrows():
         for column_index, value in row.items():
@@ -493,6 +496,8 @@ def get_coordinates_containing(
                 if exact:
                     if value == containing:
                         coordinates.append((row_index, column_index))
+                elif not exact and numpy.isclose(value, containing, rtol=percent_tolerance):
+                    coordinates.append((row_index, column_index))
                 elif not exact and type(value) is str:
                     if str(containing) in value:
                         coordinates.append((row_index, column_index))

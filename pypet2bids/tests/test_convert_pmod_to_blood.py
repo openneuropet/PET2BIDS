@@ -12,6 +12,7 @@ from pypet2bids.convert_pmod_to_blood import PmodToBlood, type_cast_cli_input
 this_files_parent_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = pathlib.Path(this_files_parent_dir).parent.parent
 
+
 def test_type_cast_cli_input():
     assert True == type_cast_cli_input('true')
     assert True == type_cast_cli_input('t')
@@ -196,7 +197,7 @@ class TestPmodToBlood:
         with tempfile.TemporaryDirectory() as tempdir:
             pmod_to_blood = PmodToBlood(
                 whole_blood_activity=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['whole'][0]),
-                #plasma_activity=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['plasma'][0]),
+                plasma_activity=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['plasma'][0]),
                 parent_fraction=pathlib.Path(Ex_txt_manual_and_autosampled_mixed['parent'][0]),
                 output_path=tempdir,
                 **kwargs_input
@@ -217,4 +218,4 @@ class TestPmodToBlood:
 
                 if 'auto' in f.name and f.suffix == '.tsv':
                     automatic_df = pandas.read_csv(f, sep='\t')
-                    assert 'whole_blood_radioactivity' in manual_df.columns
+                    assert 'whole_blood_radioactivity' in automatic_df.columns
