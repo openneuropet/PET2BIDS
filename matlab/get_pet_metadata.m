@@ -143,7 +143,7 @@ else
     radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
         'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
     input_check = cellfun(@exist,radioinputs);
-    if isempty(input_check)
+    if isempty(input_check) || sum(input_check)==0
         error('radioactivity related input are necessary - see help')
     end
     
