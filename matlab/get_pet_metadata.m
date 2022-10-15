@@ -41,7 +41,7 @@ function metadata = get_pet_metadata(varargin)
 %   Example
 %   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
 %                         'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%         --> fails unless you move the template/SiemensBiographparameters.txt next to this function
+%         --> fails unless you have a SiemensBiographparameters.txt next to the executable
 %
 %   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
 %             'TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration',...
@@ -93,46 +93,46 @@ if nargin == 0
     help get_pet_metadata
     return
 else
-    for n=1:2:nargin % check the mandatory variables
-        if strcmpi(varargin{n},'Scanner')
-            Scanner = varargin{n+1};
-        elseif any(strcmpi(varargin{n},{'TimeZero','Time Zero'}))
-            TimeZero = varargin{n+1};
-        elseif strcmpi(varargin{n},'TracerName')
-            TracerName = varargin{n+1};
-        elseif strcmpi(varargin{n},'TracerRadionuclide')
-            TracerRadionuclide = varargin{n+1};
-        elseif contains(varargin{n},'Administration','IgnoreCase',true)
-            ModeOfAdministration = varargin{n+1};
-        elseif contains(varargin{n},{'InjectedRadioactivity','Injected Radioactivity'},'IgnoreCase',true)
-            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+    for n=1:2:size(varargin{1},2) % check the mandatory variables
+        if strcmpi(varargin{1}{n},'Scanner')
+            Scanner = varargin{1}{n+1};
+        elseif any(strcmpi(varargin{1}{n},{'TimeZero','Time Zero'}))
+            TimeZero = varargin{1}{n+1};
+        elseif strcmpi(varargin{1}{n},'TracerName')
+            TracerName = varargin{1}{n+1};
+        elseif strcmpi(varargin{1}{n},'TracerRadionuclide')
+            TracerRadionuclide = varargin{1}{n+1};
+        elseif contains(varargin{1}{n},'Administration','IgnoreCase',true)
+            ModeOfAdministration = varargin{1}{n+1};
+        elseif contains(varargin{1}{n},{'InjectedRadioactivity','Injected Radioactivity'},'IgnoreCase',true)
+            if contains(varargin{1}{n},{'Units','Unit'},'IgnoreCase',true)
                 warning('Argument InjectedRadioactivityUnits is ignored, BIDS indicates it must be in MBq');
             else
-                InjectedRadioactivity = varargin{n+1};
+                InjectedRadioactivity = varargin{1}{n+1};
             end
-        elseif contains(varargin{n},{'SpecificRadioactivity','Specific Radioactivity'},'IgnoreCase',true)
-            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+        elseif contains(varargin{1}{n},{'SpecificRadioactivity','Specific Radioactivity'},'IgnoreCase',true)
+            if contains(varargin{1}{n},{'Units','Unit'},'IgnoreCase',true)
                 warning('Argument SpecificRadioactivityUnits is ignored, BIDS indicates it must be in Bq/g or MBq/ug');
             else
-                SpecificRadioactivity = varargin{n+1};
+                SpecificRadioactivity = varargin{1}{n+1};
             end
-        elseif contains(varargin{n},'Mass','IgnoreCase',true)
-            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+        elseif contains(varargin{1}{n},'Mass','IgnoreCase',true)
+            if contains(varargin{1}{n},{'Units','Unit'},'IgnoreCase',true)
                 warning('Argument InjectedMassUnits is ignored, BIDS indicates it must be in ug');
             else
-                InjectedMass = varargin{n+1};
+                InjectedMass = varargin{1}{n+1};
             end
-        elseif any(strcmpi(varargin{n},{'MolarActivity','Molar Activity'}))
-            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+        elseif any(strcmpi(varargin{1}{n},{'MolarActivity','Molar Activity'}))
+            if contains(varargin{1}{n},{'Units','Unit'},'IgnoreCase',true)
                 warning('Argument MolarActivityUnits is ignored, BIDS indicates it must be in GBq/umolug');
             else
-                MolarActivity = varargin{n+1};
+                MolarActivity = varargin{1}{n+1};
             end
-        elseif contains(varargin{n},'Weight','IgnoreCase',true)
-            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+        elseif contains(varargin{1}{n},'Weight','IgnoreCase',true)
+            if contains(varargin{1}{n},{'Units','Unit'},'IgnoreCase',true)
                 warning('Argument MolecularWeightUnits is ignored, BIDS indicates it must be in g/mol');
             else
-                MolecularWeight = varargin{n+1};
+                MolecularWeight = varargin{1}{n+1};
             end
         end
     end
@@ -143,7 +143,7 @@ else
     radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
         'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
     input_check = cellfun(@exist,radioinputs);
-    if isempty(input_check)
+    if isempty(input_check) || sum(input_check)==0
         error('radioactivity related input are necessary - see help')
     end
     
@@ -186,7 +186,6 @@ else
     
     current    = which('get_pet_metadata.m');
     root       = fileparts(fileparts(current));
-    %root       = current(1:strfind(current,'converter')+length('converter'));
     jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
     if exist(jsontoload,'file')
         petmetadata = jsondecode(fileread(jsontoload));
@@ -203,29 +202,30 @@ else
     
     % evaluate key-value pairs for optional arguments in
     for n=1:2:nargin 
-        if any(strcmpi(varargin{n},optional))
-            if isnumeric(varargin{n+1})
-                if length(varargin{n+1}) == 1 
-                    eval([varargin{n} '=' num2str(varargin{n+1})]);
+        if any(strcmpi(varargin{1}{n},optional))
+            if isnumeric(varargin{1}{n+1})
+                if length(varargin{1}{n+1}) == 1 
+                    eval([varargin{1}{n} '=' num2str(varargin{1}{n+1})]);
                 else 
-                    eval([varargin{n} '=[' num2str(varargin{n+1}) ']']);
+                    eval([varargin{1}{n} '=[' num2str(varargin{1}{n+1}) ']']);
                 end
             else
-                if iscell(varargin{n+1})
-                    frameval = [varargin{n} '={']; 
-                    for f=1:length(varargin{n+1})
-                        frameval = [frameval '''' varargin{n+1}{f} ''' ']; %#ok<AGROW>
+                if iscell(varargin{1}{n+1})
+                    frameval = [varargin{1}{n} '={']; 
+                    for f=1:length(varargin{1}{n+1})
+                        frameval = [frameval '''' varargin{1}{n+1}{f} ''' ']; %#ok<AGROW>
                     end
                     eval([frameval(1:end-1) '}']);
                 else
-                    eval([varargin{n} '=''' varargin{n+1} '''']);
+                    eval([varargin{1}{n} '=''' varargin{1}{n+1} '''']);
                 end
             end
         end
     end
      
     % evaluate key-value pairs for optional arguments from txt file
-    parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
+    current = fileparts(which('get_pet_metadata.m')); 
+    parameter_file = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),[Scanner 'parameters.txt']);
     if ~any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);
@@ -320,7 +320,7 @@ metadata.Units                          = 'Bq/mL';
 metadata.BodyPart                       = 'Brain';
 if isempty(TimeZero)
     metadata.TimeZero                   = [];
-elseif strcmpi(varargin{n},{'ScanStart','Scan Start'})
+elseif strcmpi(varargin{1}{n},{'ScanStart','Scan Start'})
     metadata.TimeZero                   = 'ScanStart';
 else
     metadata.TimeZero                   = TimeZero;
