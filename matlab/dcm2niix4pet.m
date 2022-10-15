@@ -48,7 +48,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   Copyright Open NeuroPET team
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
-if ispc && ~exist('dcm2niixpath','var')
+if ispc && ~exist(dcm2niixpath,'file')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
 
