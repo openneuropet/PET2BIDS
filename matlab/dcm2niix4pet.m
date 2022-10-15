@@ -47,8 +47,11 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   Cyril Pernet - 2021
 %   Copyright Open NeuroPET team
 
-dcm2niixpath = fullfile(pwd,'dcm2niix.exe'); % requires the compile code and dcm2niix to be in the same folder
-if ispc && ~exist('dcm2niixpath','var')
+current = fileparts(which('dcm2niix4pet.m')); cd(current); 
+dcm2niixpath = fullfile(fileparts(current(1:max(strfind(pwd,'matlab'))-2)),'dcm2niix.exe'); 
+% requires the compile code and dcm2niix to be in the same folder -
+% distribute together in a zip folder
+if ispc && ~exist('dcm2niixpath','file')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
 
