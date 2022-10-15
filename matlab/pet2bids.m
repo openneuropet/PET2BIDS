@@ -11,11 +11,18 @@ function pet2bids(datain,varargin)
 % 'InjectedRadioactivity', 'InjectedMass', 'MolarActivity' 
 % Since get_pet_metadata is used, a txt file of parameter can seat next to
 % the compiled code allowing common parameters to be used
+%
+% example usage 
+% source      = 'D:\BIDS\ONP\OpenNeuroPET-Phantoms\sourcedata\';
+% pet2bids(fullfile(source,['SiemensHRRT-NRU' filesep 'XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v']),...
+%    'Scanner','SiemensHRRT','TimeZero','ScanStart','TracerName',...
+%    'FDG','TracerRadionuclide','F18','SpecificRadioactivity',1.3019e+04,...
+%    'InjectedRadioactivity', 81.24,'ModeOfAdministration','infusion')
 
 %% datain
 if isfile(datain)
     [~,~,ext] = fileparts(datain);
-    if ~strcmpi(ext,'v')
+    if ~strcmpi(ext,'.v')
         error('not an ecat file, for dicom indicate folder name')
     end
 elseif isfolder(datain)
