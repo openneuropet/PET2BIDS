@@ -6,11 +6,12 @@ function [method,iteration,subset] = get_recon_method(headervalue)
 % :format: - [method,iteration,subset] = get_recon_method(headervalue)
 %
 % :param headervalue: the name in the ecat or dicom field of the reconstrusction method
-%                     typically includes i and s for iteration and subset (unless bach projection was used)
-%
 % :returns method: the full name of the reconstrucrtion method or empty if no match found
 % :returns iteration: the number of iterations or 'none'
 % :returns subset: the number of subsets or 'none'
+%
+% | *Cyril Pernet 2022*
+% | *Copyright Open NeuroPET team*
 
 
 %% defaults

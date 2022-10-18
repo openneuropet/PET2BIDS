@@ -3,57 +3,40 @@ function metadata = get_pet_metadata(varargin)
 % Routine that outputs PET scanner metadata following
 % `BIDS <https://bids.neuroimaging.io/ BIDS>`_.
 %
-% Such PET scanner metadata are passed along imaging data to the
-% converters, ecat2nii.m or dcm2niix4pet.m allowing to have fully
-% compliant json files alongside the .nii files
+% The metadata generated here are passed along imaging data to the
+% converters, ecat2nii.m or dcm2niix4pet.m allowing to produce a .nii
+% file with a BIDS compliant json file.
 %
-% :param Default:  \(aquisition and reconstruction parameters\) should be
+% :param Default:  \(aquisition and reconstruction parameters\) can be
 %    stored in a \*_parameters.txt seating on disk next to this function
 %    or passed as argument in. Replace * by the name of your scanner \- for now we
-%    support 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
+%    tested 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
 %    'PhillipsIngenuityPETMR','PhillipsIngenuityPETCT'.
 %    \(see templates, as some info can be recovered from ecat or dcm - ie not
 %    all info is necessarily needed\)
+%
 % :param inputs: a series of key/value pairs are expected
-% :returns metadata: is a structure with BIDS fields filled (such structure is ready to be writen as json file using e.g.
-%   the bids matlab jsonwrite function, typically associated with the *_pet.nii file)
+%
+% :returns metadata: a structure with BIDS fields filled (such structure is ready
+%                   to be writen as json file using e.g. the bids matlab jsonwrite 
+%                   function, typically associated with the *_pet.nii file)
 %
 % Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
 %
 % .. code-block::
 %
-%   InstitutionName                = 'Rigshospitalet, NRU, DK';
-%   AcquisitionMode                = 'list mode';
-%   ImageDecayCorrected            = true;
-%   ImageDecayCorrectionTime       = 0;
-%   ReconMethodName                = 'OP-OSEM';
-%   ReconMethodParameterLabels     = {'subsets','iterations'};
-%   ReconMethodParameterUnits      = {'none','none'};
-%   ReconMethodParameterValues     = [21, 3];,
-%   ReconFilterType                = 'XYZGAUSSIAN';
-%   ReconFilterSize                = 2;
-%   AttenuationCorrection          = 'CT-based attenuation correction';
+%    InstitutionName            = 'Rigshospitalet, NRU, DK';
+%    BodyPart                   = 'Phantom';
+%    AcquisitionMode            = 'list mode';
+%    ImageDecayCorrected        = 'true';
+%    ImageDecayCorrectionTime   = 0;
+%    ReconFilterType            = 'none';
+%    ReconFilterSize            = 0;
+%    AttenuationCorrection      = '10-min transmission scan';
+%    FrameDuration              = 1200; 
+%    FrameTimesStart            = 0;
 %
 % :format:  metadata = get_pet_metadata(key,value)
-%
-% .. code-block::
-%
-%   Example
-%   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
-%                         'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
-%         --> fails unless you move the template/SiemensBiographparameters.txt next to this function
-%
-%   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
-%             'TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration',...
-%             'infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,...
-%             'MolarActivity', 107.66, 'InstitutionName','Rigshospitalet, NRU, DK',...
-%             'AcquisitionMode','list mode','ImageDecayCorrected','true',...
-%             'ImageDecayCorrectionTime' ,0,'ReconMethodName','OP-OSEM',...
-%             'ReconMethodParameterLabels',{'subsets','iterations'},...
-%             'ReconMethodParameterUnits',{'none','none'}, ...
-%             'ReconMethodParameterValues',[21 3], 'ReconFilterType','XYZGAUSSIAN',...
-%             'ReconFilterSize',2, 'AttenuationCorrection','CT-based attenuation correction');
-%             --> works without txt file because all arguments are passed
 %
 % .. note::
 %
@@ -74,18 +57,39 @@ function metadata = get_pet_metadata(varargin)
 %   - *SpecificRadioactivity* in Bq/g or Bq/mol                 e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 % .. note::
-%   the TimeZero can also be [] or 'ScanStart' indicating that the scanning time should be used as TimeZero
+%   TimeZero also can be [] or 'ScanStart' indicating that the scanning time 
+%   should be used as TimeZero. If TimeZero is not the scan time, we strongly
+%   advice to input ScanStart and InjectionStart making sure timing is correct
 %
 % .. note::
 %   OPTIONAL INPUTS ARE ALL OTHER BIDS FIELDS
-%   If TimeZero is not the scan time, we strongly advice to input
-%   ScanStart and InjectionStart making sure timing is correct
+%
+% .. code-block::
+%
+%   Example
+%   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
+%                         'TracerName','CB36','TracerRadionuclide','C11', ...
+%                         'ModeOfAdministration','infusion','SpecificRadioactivity', ...
+%                          605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+%         --> will issue warnings without a SiemensBiographparameters.txt next to this function
+%
+%   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
+%             'TracerName','CB36','TracerRadionuclide','C11', 'ModeOfAdministration',...
+%             'infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,...
+%             'MolarActivity', 107.66, 'InstitutionName','Rigshospitalet, NRU, DK',...
+%             'AcquisitionMode','list mode','ImageDecayCorrected','true',...
+%             'ImageDecayCorrectionTime' ,0,'ReconMethodName','OP-OSEM',...
+%             'ReconMethodParameterLabels',{'subsets','iterations'},...
+%             'ReconMethodParameterUnits',{'none','none'}, ...
+%             'ReconMethodParameterValues',[21 3], 'ReconFilterType','XYZGAUSSIAN',...
+%             'ReconFilterSize',2, 'AttenuationCorrection','MR-based attenuation correction');
+%        --> works without txt file because all arguments are passed
 %
 % | *Neurobiology Research Unit, Rigshospitalet*
 % | *Martin Nørgaard & Cyril Pernet - 2021*
 % | *Copyright Open NeuroPET team*
 
-%% defaults are loaded via the *_parameters.txt file
+% defaults are loaded via the *_parameters.txt file
 
 %% check inputs
 
