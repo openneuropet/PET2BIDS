@@ -66,7 +66,7 @@ elseif isfolder(datain)
 end
 
 %% metadata
-meta = get_pet_metadata(varargin);
+meta = get_pet_metadata(varargin{:});
 
 %% convert
 if isfile(datain)
