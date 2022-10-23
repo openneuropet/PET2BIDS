@@ -47,7 +47,14 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   Cyril Pernet - 2021
 %   Copyright Open NeuroPET team
 
-current = fileparts(which('dcm2niix4pet.m')); 
+global G_PETS2BIDS_EXE_PATH % Global path needed for MCR pointing to dcm2niix directory
+
+if isdeployed
+    current = G_PETS2BIDS_EXE_PATH;
+else
+    current = fileparts(which('dcm2niix4pet.m')); 
+end
+    
 dcm2niixpath = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),'dcm2niix.exe'); 
 % requires the compile code and dcm2niix to be in the same folder -
 % distribute together in a zip folder

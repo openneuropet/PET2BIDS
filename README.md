@@ -4,7 +4,7 @@ A stripped down version of PET2BIDS with matlab code and metadata only.
 This branch is used to compile pet2bids.m (include the matlab kernel so nothing else needs to be downloaded).
 
 ## notes
-- _dcm2niix_ must be located next to the executable (in the uncompiled version the code is something like `D:\PET2BIDS\...` and dcm2niix should be in `D:\`)
+- _dcm2niix.exe_ must be located in directory above the executable (e.g., `D:\PET2BIDS\pet2bids_exe_script.exe` and dcm2niix.exe should be in `D:\`)
 - similarly use .txt files to pass generic metadata and place them next to the executable 
 
 ## example
