@@ -9,7 +9,7 @@ Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀
 Granville Matheson 📝 🐛 ✅  
 Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
 Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️  
-Chris Rorden 💻 🐛 📖 
+Chris Rorden 💻 🐛 📖  
 Claus Svarer 💻 ⚠️   
 Adam G Thomas  🔍 🤔  
 

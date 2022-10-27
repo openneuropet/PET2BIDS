@@ -33,7 +33,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 % .. code-block::
 %
-%    %Example
+%    Example
 %    meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','CB36','TracerRadionuclide','C11', ...
 %                'ModeOfAdministration','infusion','SpecificRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
 %    dcm2niix4pet(folder1,meta,'gz',9,'o','mynewfolder','v',1); % change dcm2nii default
@@ -43,12 +43,13 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %.. note::
 %
 %   See also get_pet_metadata.m to generate the metadata structure
+%            updatejsonpetfile to see how the json file gets updated and checked agains DICOM tags
 %
-%   Cyril Pernet - 2021
-%   Copyright Open NeuroPET team
+% | *Cyril Pernet 2022*
+% | *Copyright Open NeuroPET team*
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
-if ispc && ~exist('dcm2niixpath','var')
+if ispc && ~exist(dcm2niixpath,'file')
     error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
 end
 

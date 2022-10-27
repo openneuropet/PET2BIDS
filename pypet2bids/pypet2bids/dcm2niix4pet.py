@@ -681,6 +681,7 @@ class Dcm2niix4PET:
                     blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
                                           , sep='\t',
                                           index=False)
+
                 elif type(blood_tsv_data) is str:
                     # write out with write
                     with open(join(tempdir_path, blood_file_name_w_out_extension + ".tsv"), 'w') as outfile:

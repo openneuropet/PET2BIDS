@@ -3,12 +3,15 @@ function structout = flattenstruct(structin)
 % routine that take a structure with nested subfileds
 % and output all fields in a flat structure
 %
-% :format: - structout = flattendcm(structin)
+% :format: - structout = flattenstruct(structin)
 %
 % :param structin: a structure with nested fields
-% :returns structout: a flat sructure with all the dcm fields
-%                  fields that are flattened is empty [] and their
-%                  subfileds start with the 1st letter of the parent
+% :returns structout: a flat sructure with all the fields
+%                  
+%.. note::
+%
+%   there is an exception handling for the fieldname 'Item_1'
+%   which is a DICOM name used by manufacturers to store various items
 %
 % | *Cyril Pernet Novembre 2021*
 % | *Copyright Open NeuroPET team*
