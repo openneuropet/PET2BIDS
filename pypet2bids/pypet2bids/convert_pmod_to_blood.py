@@ -13,6 +13,7 @@ import json
 import logging
 import textwrap
 
+import numpy
 import pandas
 import pandas as pd
 import argparse
@@ -21,6 +22,7 @@ import re
 import ast
 from pathlib import Path
 from os.path import join
+
 # from pypet2bids.helper_functions import ParseKwargs, collect_bids_part, open_meta_data
 
 try:
@@ -219,11 +221,12 @@ class PmodToBlood:
         logic phase and written to sidecar json
     :type kwargs: dict
     """
+
     def __init__(
             self,
             whole_blood_activity: Path,
-            parent_fraction: Path,
-            plasma_activity: Path = None,
+            parent_fraction: Path = Path(),
+            plasma_activity: Path = Path(),
             output_path: Path = None,
             output_json: bool = False,
             engine='',
@@ -236,6 +239,10 @@ class PmodToBlood:
                 self.kwargs = kwargs
         else:
             self.kwargs = {}
+
+        # relative closeness when comparing dataframes/inputs, default is set below
+        self.rtol = 0.01
+        self.atol = 0.02
 
         # cast input from kwargs
         for key, value in self.kwargs.items():
@@ -270,14 +277,21 @@ class PmodToBlood:
 
         self.auto_sampled = []
         self.manually_sampled = []
+        self.blood_series = {}
+        self.duplicates = {}  # list of times that are duplicated across manual and automatic samples
 
-        # whole blood and parent fraction are required, always attempt to load
-        self.blood_series = {'whole_blood_activity': self.load_pmod_file(whole_blood_activity, engine=self.engine),
-                             'parent_fraction': self.load_pmod_file(parent_fraction, engine=self.engine)}
+        if whole_blood_activity.is_file():
+            self.blood_series['whole_blood_activity'] = self.load_pmod_file(whole_blood_activity, engine=self.engine)
 
+        if parent_fraction.is_file():
+            self.blood_series['parent_fraction'] = self.load_pmod_file(parent_fraction, engine=self.engine)
+
+        self.multiply_plasma = False
         # plasma activity is not required, but is used if provided
-        if plasma_activity:
+        if plasma_activity.is_file():
             self.blood_series['plasma_activity'] = self.load_pmod_file(plasma_activity, engine=self.engine)
+            if 'whole' in str.lower(plasma_activity.name) and 'ratio' in str.lower(plasma_activity.name):
+                self.multiply_plasma = True
 
         # one may encounter data collected manually and/or automatically, we vary our logic depending on the case
         self.data_collection = {}
@@ -304,6 +318,10 @@ class PmodToBlood:
         # warn if plasma data may be interpolated
         self.check_for_interpolated_data()
 
+        # remove duplicates from automatically sampled data, this data will then be written out to manual versions
+        # of each recording
+        #self.deduplicate()
+
         self.write_out_tsvs()
 
         if self.output_json:
@@ -323,6 +341,8 @@ class PmodToBlood:
         """
         if pmod_blood_file.is_file() and pmod_blood_file.exists():
             loaded_file = helper_functions.open_meta_data(pmod_blood_file)
+            # drop unnamed columns
+            loaded_file = loaded_file.loc[:, ~loaded_file.columns.str.contains('^Unnamed')]
             return loaded_file
         else:
             raise FileNotFoundError(str(pmod_blood_file))
@@ -331,7 +351,8 @@ class PmodToBlood:
         """
         Checks for time units, and time information between .bld files, number of rows and the values
         in the time index must be the same across each input .bld file. Additionally, renames time column
-        to 'time' instead of what it's defined as in the pmod file.
+        to 'time' instead of what it's defined as in the pmod file. Does some more checks and scaling of plasma data,
+        de-duplication etc.
         """
         # if there is only a single input do nothing, else go through each file. This shouldn't get reached
         # as whole_blood_activity and plasma_activity are required
@@ -370,19 +391,150 @@ class PmodToBlood:
                 compare_lengths.append(
                     {'name': key, 'sampling_type': sampling_type, 'sample_length': len(self.blood_series[key])})
 
+            auto_sampled, manually_sampled = [], []
             for each in compare_lengths:
                 if 'auto' in str.lower(each['sampling_type']):
-                    self.auto_sampled.append(each)
+                    auto_sampled.append(each)
                 elif 'manual' in str.lower(each['sampling_type']):
-                    self.manually_sampled.append(each)
+                    manually_sampled.append(each)
 
-            for auto in self.auto_sampled:
-                for manual in self.manually_sampled:
+            for auto in auto_sampled:
+                for manual in manually_sampled:
                     if auto['sample_length'] < manual['sample_length']:
-                        warnings.warn(
-                            f"Autosampled .bld input for {list(auto.keys())[0]} has {len(auto['sample_length'])} rows\n\
-                              and Manually sampled input has {len({manual['sample_length']})}. Autosampled blood "
-                            f"files \n should have more rows than manually sampled input files. Check .bld inputs.")
+                        logging.warning(
+                            f"Autosampled .bld input for {auto['name']} has {auto['sample_length']} rows"
+                            f" and Manually sampled input has {manual['sample_length']} rows. Autosampled blood "
+                            f"files should have more rows than manually sampled input files. Check .bld inputs.")
+
+            # we want to make sure that in the case of mixed data we don't include manual time points in the autosampled
+            # curves, first we find duplicates.
+
+            whole_blood_activity = self.blood_series.get('whole_blood_activity', pandas.DataFrame())
+            plasma_activity = self.blood_series.get('plasma_activity', pandas.DataFrame())
+            parent_fraction = self.blood_series.get('parent_fraction', pandas.DataFrame())
+            duplicates = {}
+
+            # wp is short for whole blood and plasma activity, we're just using wp to make our conditional statements
+            # look a bit cleaner while retaining the namespace from which activity series come from. Hanging onto these
+            # names in this dictionary makes creating manual files later during de-duplication
+            wp = {
+                    'whole_blood_activity': whole_blood_activity,
+                    'plasma_activity': plasma_activity
+                    }
+
+            # case 1 whole blood time == plasma time && parent fraction time exists
+            if len(wp['whole_blood_activity']) == len(wp['plasma_activity']) and parent_fraction:
+                # get ready for duplicates
+                for key in wp.keys():
+                    if self.data_collection.get(key) == 'automatic':
+                        duplicates[key] = []
+
+                for activity_series in duplicates.keys():
+                    for pf_time in parent_fraction.get('time', []):
+                        for activity_time in wp.get(key).get('time', []):
+                            if numpy.isclose(pf_time, activity_time, atol=self.atol):
+                                duplicates[activity_series].append(activity_time)
+
+            # case 2 whole blood time > plasma time && parent fraction time exists
+            elif len(wp['whole_blood_activity']) > len(wp['plasma_activity']) and parent_fraction is not None:
+                # get ready for duplicates
+                for key in wp.keys():
+                    if self.data_collection.get(key) == 'automatic':
+                        duplicates[key] = []
+
+
+                if len(wp['plasma_activity']) == (len(parent_fraction) - 1):
+                    if parent_fraction['time'][0] == wp['whole_blood_activity']['time'][0] and parent_fraction['time'][0] == 0:
+                        if self.multiply_plasma:
+                            wp['plasma_activity'].loc[-1] = [0, 1]
+                        else:
+                            wp['plasma_activity'].loc[-1] = [0, 0]
+
+                        wp['plasma_activity'].index = wp['plasma_activity'].index + 1
+                        wp['plasma_activity'] = wp['plasma_activity'].sort_values('time').reset_index(drop=True)
+                        self.blood_series['plasma_activity'] = wp['plasma_activity']
+                    else:
+                        raise Exception(f"Parent fraction and plasma times do not match, we cannot figure out which "
+                                        f"time points to extract in whole blood.")
+
+                for activity_series in duplicates.keys():
+                    for pf_time in parent_fraction.get('time', []):
+                        for df_time in wp.get(key).get('time', []):
+                            if numpy.isclose(pf_time, df_time, atol=self.atol):
+                                duplicates[activity_series].append(df_time)
+
+            # end else w/ no duplicates
+            else:
+                pass
+
+            # catch only unique duplicates
+            for k, v in duplicates.items():
+                if v != []:
+                    self.duplicates[k] = v
+
+            # now we go ahead and remove any duplicates that exist in existing blood data
+            for activity_series, duplicate_times in self.duplicates.items():
+                # for name, sample_type in self.data_collection.items():
+                #     if activity_series == name and sample_type == 'automatic':
+                #         series_is_auto_sampled = True
+                #     else:
+                #         series_is_auto_sampled = False
+
+                # we only want to remove rows if they exist in autosampled data, but are clearly manually sampled
+                if self.data_collection.get(activity_series) == 'automatic':
+                    removed_rows = pandas.DataFrame(
+                        columns=self.blood_series.get(activity_series, pandas.DataFrame()).columns)
+
+                    for time in duplicate_times:
+                        index = helper_functions.get_coordinates_containing(time, self.blood_series[activity_series],
+                                                                            exact=False)
+
+                        if index:
+                            row = index[0][0]
+
+                            dropped_row = helper_functions.drop_row(self.blood_series[activity_series], row)
+
+                            # using the loc indexer, append the series to the end of the df
+                            removed_rows.loc[len(removed_rows)] = dropped_row
+
+                # update the blood series object with the popped/dropped row
+                new_string = f"{activity_series}_manually_popped"
+                self.blood_series[new_string] = removed_rows.sort_values('time').reset_index(drop=True)
+                self.manually_sampled.append({'name': new_string})
+                self.data_collection[new_string] = 'manual'
+
+                if len(self.blood_series[new_string]) == (len(parent_fraction) - 1):
+                    if (self.blood_series['parent_fraction']['time'][0] != self.blood_series[new_string]['time'][0]
+                            and parent_fraction['time'][0] == 0):
+
+                        self.blood_series[new_string].loc[-1] = [0, 0]
+                        self.blood_series[new_string].index = self.blood_series[new_string].index + 1
+                        self.blood_series[new_string] = self.blood_series[new_string].sort_values('time').reset_index(drop=True)
+
+                    else:
+                        raise Exception(f"Parent fraction and plasma times do not match, we cannot figure out which "
+                                        f"time points to extract in whole blood.")
+
+        # if provided with the plasma ratio we multiply the whole blood by it, math time
+        if self.multiply_plasma:
+            # get our plasma activity, we get the manually popped if it exists
+            pa = self.blood_series.get(
+                'plasma_activity_manually_popped',
+                self.blood_series['plasma_activity'])
+
+            if self.blood_series.get('whole_blood_activity_manually_popped', pandas.DataFrame()).shape[0] != 0:
+
+                wba = self.blood_series['whole_blood_activity_manually_popped']
+                new_plasma = wba['whole_blood_radioactivity'] * self.blood_series['plasma_activity']['plasma_radioactivity']
+
+                temp = pandas.DataFrame({'time': self.blood_series['plasma_activity']['time'],
+                                         'plasma_radioactivity': new_plasma})
+
+                self.blood_series['plasma_activity'] = temp
+
+            else:
+                self.blood_series['plasma_activity'] = self.blood_series['plasma_activity'] * self.blood_series['whole_blood']
+
 
     def scale_time_rename_columns(self):
         """
@@ -391,6 +543,9 @@ class PmodToBlood:
         """
         # scale time info to seconds if it's minutes
         for name, dataframe in self.blood_series.items():
+            time_column_header_name = []
+            radioactivity_column_header_name = []
+            parent_fraction_column_header_name = []
             time_scalar = 1.0
             time_column_header_name = [header for header in list(dataframe.columns) if 'sec' in str.lower(header)]
             if not time_column_header_name:
@@ -411,8 +566,15 @@ class PmodToBlood:
             # locate parent fraction column
             parent_fraction_column_header_name = [header for header in dataframe.columns if
                                                   'parent' in str.lower(header)]
+            parent_fraction_is_suspicous = False
+            if len(parent_fraction_column_header_name) >= 1:
+                pf = str(parent_fraction_column_header_name[0]).lower()
+                if 'bq' in pf or 'ml' in pf:
+                    logging.warning(f"Found {parent_fraction_column_header_name[0]} in {name} input file, this column "
+                                    f"must be unitless")
+                    parent_fraction_is_suspicous = True
 
-            if not parent_fraction_column_header_name:
+            if not parent_fraction_column_header_name or parent_fraction_is_suspicous:
                 # locate radioactivity column
                 radioactivity_column_header_name = [header for header in dataframe.columns if
                                                     'bq' and 'cc' in str.lower(header)]
@@ -421,14 +583,18 @@ class PmodToBlood:
                 sub_ml_for_cc = re.sub('cc', 'mL', radioactivity_column_header_name[0])
                 extracted_units = re.search(r'\[(.*?)\]', sub_ml_for_cc)
                 second_column_name = None
-                if 'plasma' in str.lower(radioactivity_column_header_name[0]):
+                if 'plasma' in str.lower(radioactivity_column_header_name[0]) or \
+                        ('bq/cc' in str.lower(radioactivity_column_header_name[0]) and name == 'plasma_activity'):
                     second_column_name = 'plasma_radioactivity'
-                if 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(
-                        radioactivity_column_header_name[0]):
-                    second_column_name = 'whole_blood_radioactivity'
+
+                if name == 'whole_blood_activity':
+                    if 'whole' in str.lower(radioactivity_column_header_name[0]) or 'blood' in str.lower(
+                            radioactivity_column_header_name[0]):
+                        second_column_name = 'whole_blood_radioactivity'
 
                 if second_column_name:
-                    dataframe.rename(columns={radioactivity_column_header_name[0]: second_column_name}, inplace=True)
+                    dataframe = dataframe.rename({radioactivity_column_header_name[0]: second_column_name},
+                                                 axis='columns')
 
                 if extracted_units:
                     self.units = extracted_units.group(1)
@@ -437,10 +603,11 @@ class PmodToBlood:
                         "Unable to determine radioactivity entries from .bld column name. Column name/units must be in "
                         "Bq/cc or Bq/mL")
             # if percent parent rename column accordingly
-            elif parent_fraction_column_header_name and len(parent_fraction_column_header_name) == 1:
-                dataframe.rename(columns={parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'},
-                                 inplace=True)
-            self.blood_series[name] = dataframe
+            if parent_fraction_column_header_name and len(
+                    parent_fraction_column_header_name) == 1 and name != 'plasma_activity':
+                dataframe = dataframe.rename({parent_fraction_column_header_name[0]: 'metabolite_parent_fraction'},
+                                             axis='columns')
+            self.blood_series[name] = dataframe.copy(deep=True)
 
     def ask_recording_type(self, recording: str):
         """
@@ -494,7 +661,7 @@ class PmodToBlood:
         if self.auto_sampled:
             first_auto_sampled = self.blood_series[self.auto_sampled.pop()['name']]
             for remaining_auto in self.auto_sampled:
-                remaining_auto = self.blood_series[remaining_auto]
+                remaining_auto = self.blood_series[remaining_auto['name']]
                 column_difference = remaining_auto.columns.difference(first_auto_sampled.columns)
                 for column in list(column_difference):
                     first_auto_sampled[column] = remaining_auto[column]
@@ -574,7 +741,7 @@ class PmodToBlood:
 
     def check_for_interpolated_data(self):
         # check to see if there may exist (emphasis on may) interpolated plasma values
-        if self.blood_series.get('plasma_activity', None):
+        if type(self.blood_series.get('plasma_activity', None)) is not None:
             # extract parent fraction/metabolite fraction as series from dataframes
             metabolite_parent_fraction_series = pandas.Series(dtype='float64')
             for name, dataframe in self.blood_series.items():
@@ -583,6 +750,9 @@ class PmodToBlood:
                     if 'parent' in str.lower(entry) or 'fraction' in str.lower(entry):
                         metabolite_parent_fraction_series = dataframe[str(entry)]
                         break
+                if len(metabolite_parent_fraction_series) > 0:
+                    break
+
             # check dataframes for plasma activity
             plasma_activity_series = pandas.Series(dtype='float64')
             for name, dataframe in self.blood_series.items():
@@ -590,6 +760,9 @@ class PmodToBlood:
                 for entry in columns:
                     if 'plasma_radioactivity' in entry:
                         plasma_activity_series = dataframe[str(entry)]
+                        break
+                if len(plasma_activity_series) > 0:
+                    break
 
             if len(plasma_activity_series) > 0 and len(metabolite_parent_fraction_series) > 0:
                 if len(plasma_activity_series) == len(metabolite_parent_fraction_series):
