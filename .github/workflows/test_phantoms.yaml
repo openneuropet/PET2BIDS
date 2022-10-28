@@ -7,8 +7,8 @@ on:
         - main
 
 jobs:
-  run_setup_workflow:
-    uses: ./.github/workflows/setup_phantoms_and_deps.yaml
+  run_setup:
+    uses: ./.github/workflows/setup.yaml
     secrets: inherit
 
   run_conversions:
@@ -22,6 +22,9 @@ jobs:
     steps:
       - name: List Directory
         run: ls .
+
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
 
   matlab:
     needs: run_setup_workflow

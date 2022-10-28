@@ -7,7 +7,7 @@ on:
   #    - main
 
 jobs:
-  Collect_Phantoms_Setup_Dependencies:
+  SETUP:
     runs-on: ${{ matrix.os }}
     env:
       dcm2niix_win_path: dcm2niix_win/dcm2niix.exe
