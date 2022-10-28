@@ -1,5 +1,6 @@
 name: test phantoms
 on:
+  push:
   workflow_dispatch:
     inputs:
       debug_enabled:
