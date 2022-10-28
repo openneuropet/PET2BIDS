@@ -13,21 +13,11 @@ on:
         default: false
 
 jobs:
-  run_setup:
+  phantoms_test:
     uses: ./.github/workflows/setup.yaml
     secrets: inherit
 
-
-  run_conversions:
-    runs-on: ${{ matrix.os }}
-    needs: run_setup
-    strategy:
-      matrix:
-        os: [macOS-latest, ubuntu-20.04, windows-latest]
-        python: ["3.9", "3.10"]
-
     steps:
-
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
@@ -35,16 +25,10 @@ jobs:
         with:
           limit-access-to-actor: true
 
-      - name: List Directory
-        run: ls .
+      - name: matlab
+        uses: ./.github/workflows/matlab.yaml
+        secrets: inherit
 
-
-  matlab:
-    needs: run_setup
-    uses: ./.github/workflows/matlab.yaml
-    secrets: inherit
-
-  setup_and_cli_test_posix:
-    needs: run_setup
-    uses: ./.github/workflows/setup_and_cli_test_posix.yaml
-    secrets: inherit
+      - name: setup_and_cli_test_posix
+        uses: ./.github/workflows/setup_and_cli_test_posix.yaml
+        secrets: inherit
