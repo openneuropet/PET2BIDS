@@ -26,6 +26,6 @@ jobs:
     needs: run_setup_workflow
     uses: ./.github/workflows/matlab.yaml
 
-  setup_and_cli_test_posix.yaml:
+  setup_and_cli_test_posix:
     needs: run_setup_workflow
     uses: ./.github/workflows/setup_and_cli_test_posix.yaml
