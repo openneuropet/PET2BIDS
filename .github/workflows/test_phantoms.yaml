@@ -9,6 +9,7 @@ on:
 jobs:
   run_setup_workflow:
     uses: ./.github/workflows/setup_phantoms_and_deps.yaml
+    secrets: inherit
 
   run_conversions:
     runs-on: ${{ matrix.os }}
@@ -25,7 +26,9 @@ jobs:
   matlab:
     needs: run_setup_workflow
     uses: ./.github/workflows/matlab.yaml
+    secrets: inherit
 
   setup_and_cli_test_posix:
     needs: run_setup_workflow
     uses: ./.github/workflows/setup_and_cli_test_posix.yaml
+    secrets: inherit
