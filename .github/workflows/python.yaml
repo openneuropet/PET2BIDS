@@ -1,4 +1,4 @@
-name: Python PET2BIDS Tests
+name: python
 on:
   push:
   pull_request:
@@ -14,7 +14,7 @@ on:
         default: false
 
 jobs:
-  Collect-Data-and-Test:
+  Python-Collect-Data-and-Test:
     runs-on: ${{ matrix.os }}
 
     env:

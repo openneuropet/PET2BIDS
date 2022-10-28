@@ -1,4 +1,4 @@
-name: Matlab PET2BIDS Tests
+name: matlab
 on:
   push:
   pull_request:

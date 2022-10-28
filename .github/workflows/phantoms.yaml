@@ -1,4 +1,4 @@
-name: Collect Phantoms, Setup Dcm2niix and BIDS-Validator
+name: phantoms
 on:
   workflow_call:
   #pull_request:

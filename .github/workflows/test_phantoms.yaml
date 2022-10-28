@@ -1,4 +1,4 @@
-name: Test On Phantoms
+name: test phantoms
 on:
   workflow_dispatch:
     inputs:
