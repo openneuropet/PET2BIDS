@@ -14,7 +14,6 @@ on:
 
 jobs:
   phantoms_test:
-    secrets: inherit
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -24,6 +23,7 @@ jobs:
     steps:
       - name: SETUP
         uses: ./.github/workflows/setup.yaml
+        secrets: inherit
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
