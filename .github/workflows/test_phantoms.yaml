@@ -13,7 +13,7 @@ jobs:
 
   run_conversions:
     runs-on: ${{ matrix.os }}
-    needs: run_setup_workflow
+    needs: run_setup
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-20.04, windows-latest]
@@ -27,11 +27,11 @@ jobs:
         uses: csexton/debugger-action@master
 
   matlab:
-    needs: run_setup_workflow
+    needs: run_setup
     uses: ./.github/workflows/matlab.yaml
     secrets: inherit
 
   setup_and_cli_test_posix:
-    needs: run_setup_workflow
+    needs: run_setup
     uses: ./.github/workflows/setup_and_cli_test_posix.yaml
     secrets: inherit
