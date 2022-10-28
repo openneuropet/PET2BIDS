@@ -15,6 +15,11 @@ on:
 jobs:
   phantoms_test:
     secrets: inherit
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-20.04, windows-latest]
 
     steps:
       - name: SETUP
