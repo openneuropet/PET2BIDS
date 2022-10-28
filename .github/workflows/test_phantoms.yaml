@@ -21,3 +21,13 @@ jobs:
     steps:
       - name: List Directory
         run: ls .
+
+  matlab:
+    runs-on: ubuntu-20.04
+    needs: run_setup_workflow
+    uses: ./.github/workflows/matlab.yaml
+
+  setup_and_cli_test_posix.yaml:
+    runs-on: ${{ matrix.os }}
+    needs: run_setup_workflow
+    uses: ./.github/workflows/setup_and_cli_test_posix.yaml

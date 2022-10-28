@@ -2,9 +2,9 @@ name: Collect Phantoms, Setup Dcm2niix and BIDS-Validator
 on:
   workflow_dispatch:
   workflow_call:
-  pull_request:
-    branches:
-      - main
+  #pull_request:
+  #  branches:
+  #    - main
 
 jobs:
   Collect_Phantoms_Setup_Dependencies:
