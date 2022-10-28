@@ -1,9 +1,5 @@
 name: Test On Phantoms
 on:
-  push:
-  pull_request:
-      branches:
-        - main
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -22,8 +18,7 @@ jobs:
 
     steps:
       - name: SETUP
-        uses: ./.github/workflows/setup.yaml
-        secrets: inherit
+        uses: ./.github/workflows/phantoms.yaml
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -31,14 +26,3 @@ jobs:
         timeout-minutes: 15
         with:
           limit-access-to-actor: true
-
-      - name: List Directory
-        run: ls .
-
-      - name: matlab
-        uses: ./.github/workflows/matlab.yaml
-        secrets: inherit
-
-      - name: setup_and_cli_test_posix
-        uses: ./.github/workflows/setup_and_cli_test_posix.yaml
-        secrets: inherit

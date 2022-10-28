@@ -1,14 +1,20 @@
 name: Collect Phantoms, Setup Dcm2niix and BIDS-Validator
 on:
-  workflow_dispatch:
   workflow_call:
   #pull_request:
   #  branches:
   #    - main
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 
 jobs:
   SETUP:
-    #runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     env:
       dcm2niix_win_path: dcm2niix_win/dcm2niix.exe
 
@@ -89,3 +95,10 @@ jobs:
       - name: Decompress phantoms posix
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
