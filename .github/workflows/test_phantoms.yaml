@@ -9,15 +9,14 @@ on:
 jobs:
   run_setup_workflow:
     uses: ./.github/workflows/setup_phantoms_and_deps.yaml
-    runs-on: ${{ matrix.os }}
 
+  run_conversions:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-20.04, windows-latest]
         python: ["3.9", "3.10"]
 
-
-  run_conversions:
     steps:
       - name: List Directory
         run: ls .
