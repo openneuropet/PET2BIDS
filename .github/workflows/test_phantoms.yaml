@@ -14,16 +14,21 @@ on:
 
 jobs:
   phantoms_test:
-    uses: ./.github/workflows/setup.yaml
     secrets: inherit
 
     steps:
+      - name: SETUP
+        uses: ./.github/workflows/setup.yaml
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         timeout-minutes: 15
         with:
           limit-access-to-actor: true
+
+      - name: List Directory
+        run: ls .
 
       - name: matlab
         uses: ./.github/workflows/matlab.yaml
