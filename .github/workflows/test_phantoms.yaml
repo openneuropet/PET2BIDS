@@ -12,7 +12,7 @@ jobs:
     matrix:
       os: [macOS-latest, ubuntu-20.04, windows-latest]
       python: ["3.9", "3.10"]
-    uses: "openneuropet/PET2BIDs/.github/workflows/setup_phantoms_and_deps.yaml@${{ github.ref_name }}"
+    uses: ./.github/workflows/setup_phantoms_and_deps.yaml
 
   run_conversions:
     steps:
