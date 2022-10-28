@@ -8,11 +8,14 @@ on:
 
 jobs:
   run_setup_workflow:
-    runs-on: ${{ matrix.os }}
-    matrix:
-      os: [macOS-latest, ubuntu-20.04, windows-latest]
-      python: ["3.9", "3.10"]
     uses: ./.github/workflows/setup_phantoms_and_deps.yaml
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-20.04, windows-latest]
+        python: ["3.9", "3.10"]
+
 
   run_conversions:
     steps:
