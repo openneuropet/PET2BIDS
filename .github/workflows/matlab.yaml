@@ -14,7 +14,7 @@ on:
         default: false
 
 jobs:
-  Collect-Data-and-Test:
+  Matlab-Unit-Tests:
     runs-on: ${{ matrix.os }}
 
     env:
