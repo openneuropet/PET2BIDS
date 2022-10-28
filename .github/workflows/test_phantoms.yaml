@@ -12,6 +12,7 @@ jobs:
 
   run_conversions:
     runs-on: ${{ matrix.os }}
+    needs: run_setup_workflow
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-20.04, windows-latest]
