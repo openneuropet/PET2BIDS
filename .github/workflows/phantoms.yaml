@@ -1,0 +1,116 @@
+name: phantoms
+on:
+  workflow_call:
+  push:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+jobs:
+  SETUP:
+    runs-on: ${{ matrix.os }}
+    env:
+      dcm2niix_win_path: dcm2niix_win/dcm2niix.exe
+
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-20.04, windows-latest]
+        python: ["3.9", "3.10"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Cache Node Posix
+        if: runner.os != 'Windows' && !env.ACT
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ env.cache-name }}
+
+      - name: Cache Phantoms
+        if: ${{ !env.ACT }}
+        id: phantom-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-phantoms
+        with:
+          path: PHANTOMS.zip
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('PHANTOMS.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}- 
+
+      - name: Install dcm2niix posix
+        if: runner.os != 'Windows'
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install dcm2niix
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install dcm2niix
+          fi
+
+      - name: Install dcm2niix windows
+        if: runner.os == 'Windows'
+        run: |
+          curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
+          powershell -command "Expand-Archive dcm2niix_win.zip"
+          
+      - name: Set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          cache: 'pip'
+          cache-dependency-path: |
+            pypet2bids/pyproject.toml
+
+      - name: Install Python Dependencies
+        run: |
+          cd pypet2bids
+          pip install .
+          pip install gdown
+
+      - name: Install Poetry Build Package
+        run: |
+          make installpoetry
+          make buildpackage
+          make installpackage
+          dcm2niix4pet -h
+
+      - name: Set Up Node
+        uses: actions/setup-node@v3
+
+      - name: Install BIDS Validator
+        run: npm install -g bids-validator
+
+      - name: Collect Phantoms from Google Drive
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
+        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
+
+      - name: Decompress phantoms windows
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        run: powershell -command "Expand-Archive PHANTOMS.zip"
+
+      - name: Decompress phantoms posix
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
+        run: unzip PHANTOMS.zip
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
+
+      - name: Run Python Conversion Script on Phantoms
+        run: |
+          cd OpenNeuroPET-Phantoms/code
+          bash python_conversions.sh
+
+      
