@@ -79,6 +79,13 @@ jobs:
           pip install .
           pip install gdown
 
+      - name: Install Poetry Build Package
+        run: |
+          make installpoetry
+          make buildpackage
+          make installpackage
+          dcm2niix4pet -h
+
       - name: Set Up Node
         uses: actions/setup-node@v3
 
