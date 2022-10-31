@@ -12,7 +12,6 @@ function [method,iteration,subset] = get_recon_method(headervalue)
 % :returns iteration: the number of iterations or 'none'
 % :returns subset: the number of subsets or 'none'
 
-
 %% defaults
 method    = [];
 iteration = [];

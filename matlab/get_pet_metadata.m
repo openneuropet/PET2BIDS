@@ -227,11 +227,13 @@ else
      
     % evaluate key-value pairs for optional arguments from txt file
     if isdeployed
-        current = G_PETS2BIDS_EXE_PATH;
+        current = fileparts(G_PETS2BIDS_EXE_PATH);
+        parameter_file = fullfile(((current)),[Scanner 'parameters.txt']);
     else
         current = fileparts(which('get_pet_metadata.m')); 
+        parameter_file = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),[Scanner 'parameters.txt']);
     end
-    parameter_file = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),[Scanner 'parameters.txt']);
+    
     if ~any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);

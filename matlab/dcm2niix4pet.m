@@ -48,23 +48,29 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   Copyright Open NeuroPET team
 
 global G_PETS2BIDS_EXE_PATH % Global path needed for MCR pointing to dcm2niix directory
+disp(['the global is:' G_PETS2BIDS_EXE_PATH]);
 
 if isdeployed
     current = G_PETS2BIDS_EXE_PATH;
+    dcm2niixpath = fullfile(fileparts(G_PETS2BIDS_EXE_PATH),'dcm2niix.exe'); 
 else
     current = fileparts(which('dcm2niix4pet.m')); 
+    dcm2niixpath = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),'dcm2niix.exe'); 
 end
     
-dcm2niixpath = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),'dcm2niix.exe'); 
+% dcm2niixpath = 'C:\Users\cyrus\Documents\trends\work\101722cyrma\101822comp\dcm2niix.exe' %ce102322
+%disp(['the dir for dcm:' dcm2niixpath]);
+%disp(['fileparts:' fileparts(current(1:max(strfind(current,'matlab'))-2))]);
 % requires the compile code and dcm2niix to be in the same folder -
 % distribute together in a zip folder
-if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
-end
+%if ispc && ~exist(dcm2niixpath,'file')
+    [aa bb] = system('dir %HOMEPATH%\forPet2bids102322');
+%    error(['for windows machine please edit the function line 42 and indicate the dcm2niix path, currently having path ' current ' and global was ' G_PETS2BIDS_EXE_PATH 'system dir:' bb])
+%end
 
-if ~ispc % overwrite if not windows (as it should be in the computer path)
-    dcm2niixpath = 'dcm2niix';
-end
+% % % % % % if ~ispc % overwrite if not windows (as it should be in the computer path)
+% % % % % %     dcm2niixpath = 'dcm2niix';
+% % % % % % end
 
 %% defaults
 % ---------
@@ -216,7 +222,6 @@ if ~iscell(outputdir)
         error('outputdir must be a cell array of directory names')
     end
 end
-
 %% convert
 % ----------
 for folder = 1:size(FolderList,1)
