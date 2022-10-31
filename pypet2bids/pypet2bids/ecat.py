@@ -248,7 +248,7 @@ class Ecat:
 
         # add tag for conversion software
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
-        self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.helper_functions.get_version()
+        self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.get_version()
 
         # include any additional values
         if kwargs:
