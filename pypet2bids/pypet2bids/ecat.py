@@ -23,12 +23,7 @@ except ModuleNotFoundError:
     import pypet2bids.read_ecat as read_ecat
     import pypet2bids.ecat2nii as ecat2nii
 
-#from pypet2bids.helper_functions import get_recon_method
-#from pypet2bids.sidecar import sidecar_template_full, sidecar_template_short
 from dateutil import parser
-#from pypet2bids.read_ecat import read_ecat, read_bytes, get_directory_data
-#from pypet2bids.ecat2nii import ecat2nii
-
 
 
 def parse_this_date(date_like_object) -> str:
@@ -78,7 +73,7 @@ class Ecat:
 
         if '.gz' in self.ecat_file and decompress is True:
             uncompressed_ecat_file = re.sub('.gz', '', self.ecat_file)
-            pypet2bids.helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
+            helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
             self.ecat_file = uncompressed_ecat_file
 
         if '.gz' in self.ecat_file and decompress is False:
@@ -253,7 +248,7 @@ class Ecat:
 
         # add tag for conversion software
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
-        self.sidecar_template['ConversionSoftwareVersion'] = pypet2bids.helper_functions.helper_functions.get_version()
+        self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.helper_functions.get_version()
 
         # include any additional values
         if kwargs:
