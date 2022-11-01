@@ -10,7 +10,7 @@ on:
         default: false
 
 jobs:
-  SETUP:
+  phantoms:
     runs-on: ${{ matrix.os }}
     env:
       DCM2NIIX_WIN_PATH: dcm2niix_win/dcm2niix.exe
