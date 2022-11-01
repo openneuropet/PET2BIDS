@@ -130,6 +130,3 @@ jobs:
             addpath('${{ env.SMALLER_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
             matlab_conversions
-            
-
-      
