@@ -16,11 +16,10 @@ jobs:
       DCM2NIIX_WIN_PATH: dcm2niix_win/dcm2niix.exe
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
-      UBUNTU_VERSION: ubuntu-20.04
 
     strategy:
       matrix:
-        os: [macOS-latest, env.UBUNTU_VERSION, windows-latest]
+        os: [macOS-latest, ubuntu-20.04, windows-latest]
         python: ["3.9", "3.10"]
       fail-fast: false
 
@@ -109,11 +108,11 @@ jobs:
           bash python_conversions.sh
 
       - name: SetupMatlab
-        if: matrix.os == ${{ env.UBUNTU_VERSION }}
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
         uses: matlab-actions/setup-matlab@v1
 
       - name: Run Matlab Conversion Script on Phantoms
-        if: matrix.os == ${{ env.UBUNTU_VERSION }}
+        if: ${{ matrix.os == 'ubuntu-20.04 }}
         uses: matlab-actions/run-command@v1
         with:
           command: |
