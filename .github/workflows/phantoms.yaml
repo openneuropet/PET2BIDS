@@ -16,10 +16,11 @@ jobs:
       DCM2NIIX_WIN_PATH: dcm2niix_win/dcm2niix.exe
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
+      UBUNTU_VERSION: ubuntu-20.04
 
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-20.04, windows-latest]
+        os: [macOS-latest, env.UBUNTU_VERSION, windows-latest]
         python: ["3.9", "3.10"]
       fail-fast: false
 
@@ -102,24 +103,17 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
-
       - name: Run Python Conversion Script on Phantoms
         run: |
           cd OpenNeuroPET-Phantoms/code
           bash python_conversions.sh
 
       - name: SetupMatlab
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == ${{ env.UBUNTU_VERSION }}
         uses: matlab-actions/setup-matlab@v1
 
       - name: Run Matlab Conversion Script on Phantoms
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == ${{ env.UBUNTU_VERSION }}
         uses: matlab-actions/run-command@v1
         with:
           command: |
@@ -130,3 +124,10 @@ jobs:
             addpath('${{ env.SMALLER_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
             matlab_conversions
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
