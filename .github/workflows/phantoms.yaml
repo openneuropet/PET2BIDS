@@ -116,7 +116,7 @@ jobs:
 
       - name: SetupMatlab
         if: matrix.os == 'ubuntu-latest'
-        uses: matlab-actions/setup-matlab@vi
+        uses: matlab-actions/setup-matlab@v1
 
       - name: Run Matlab Conversion Script on Phantoms
         if: matrix.os == 'ubuntu-latest'
