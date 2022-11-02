@@ -1,6 +1,6 @@
 name: matlab
 on:
-  push:
+  #push:
   pull_request:
     branches:
       - main
