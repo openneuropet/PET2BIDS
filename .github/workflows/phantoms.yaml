@@ -105,6 +105,13 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
+
       - name: Run Python Conversion Script on Phantoms
         run: |
           cd OpenNeuroPET-Phantoms/code
@@ -135,9 +142,3 @@ jobs:
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
