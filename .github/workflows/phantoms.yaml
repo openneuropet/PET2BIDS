@@ -1,6 +1,9 @@
 name: phantoms
 on:
   workflow_call:
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
