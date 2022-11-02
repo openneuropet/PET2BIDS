@@ -30,6 +30,9 @@ buildpackage:
 	@cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
 	@cd pypet2bids && poetry build
 
+installpoetry:
+	@cd scripts && ./installpoetry
+
 # installs latest package
 installpackage:
 	@scripts/installpackage

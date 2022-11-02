@@ -1,7 +1,9 @@
 name: phantoms
 on:
   workflow_call:
-  push:
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -11,15 +13,17 @@ on:
         default: false
 
 jobs:
-  SETUP:
+  phantoms:
     runs-on: ${{ matrix.os }}
     env:
-      dcm2niix_win_path: dcm2niix_win/dcm2niix.exe
+      DCM2NIIX_WIN_PATH: dcm2niix_win/dcm2niix.exe
+      MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
+      METADATA_PATH: ${{ github.workspace }}/metadata/
 
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-20.04, windows-latest]
-        python: ["3.9", "3.10"]
+        os: [ubuntu-20.04]
+        python: ["3.10"]
       fail-fast: false
 
     steps:
@@ -113,4 +117,28 @@ jobs:
           cd OpenNeuroPET-Phantoms/code
           bash python_conversions.sh
 
-      
+      - name: Validate Python Conversion
+        run: |
+          bids-validator OpenNeuroPET-Phantoms/python
+
+      - name: SetupMatlab
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        uses: matlab-actions/setup-matlab@v1
+
+      - name: Run Matlab Conversion Script on Phantoms
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        uses: matlab-actions/run-command@v1
+        with:
+          command: |
+            addpath('${{ github.workspace }}/OpenNeuroPET-Phantoms/code')
+            addpath('${{ env.MATLAB_CODE_PATH }}');
+            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
+            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
+            addpath('${{ env.SMALLER_ECAT_PATH }}');
+            addpath('${{ env.METADATA_PATH }}');
+            matlab_conversions
+
+      - name: Validate Matlab Conversion
+        run: |
+          bids-validator OpenNeuroPET-Phantoms/matlab
+
