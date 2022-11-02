@@ -1,6 +1,5 @@
 name: windows
 on:
-  push:
   workflow_dispatch:
     inputs:
       debug_enabled:
