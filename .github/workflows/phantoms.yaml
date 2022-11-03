@@ -105,6 +105,12 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
+      - name: Copy Conversion Scripts from Version Control
+        run: |
+          mkdir -p OpenNeuroPET-Phantoms/code/
+          cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
+          cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
+
       - name: Debug
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
