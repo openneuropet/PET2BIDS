@@ -25,6 +25,7 @@ gdown $GDRIVE_PHANTOM_ID -O PHANTOMS.zip
 unzip -oq PHANTOMS.zip
 
 # run conversions on phantoms dataset
+cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 bash OpenNeuroPET-Phantoms/code/python_conversions.sh
 
 # copy dataset description file over

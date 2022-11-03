@@ -103,7 +103,10 @@ ReconMethodParameterValues="[1, 1]" \
 ReconFilterSize=1 \
 ReconFilterType='unknown' \
 FrameTimesStart=[0] \
-DecayCorrectionFactor="[1]"
+DecayCorrectionFactor="[1]" \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
 echo "${SOURCE_FOLDER}/GeneralElectricSignaPETMR-Aarhus"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricSignaPETMR-Aarhus --destination-path $DESTINATION/sub-GeneralElectricSignaAarhus/pet \
@@ -126,7 +129,10 @@ ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
 ReconMethodParameterValues="[1, 1]" \
 ReconFilterType='unknown' \
-ReconFilterSize=1
+ReconFilterSize=1 \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
 # Johannes Gutenberg University of Mainz
 # --------------------------------------
@@ -212,7 +218,10 @@ ReconMethodParameterValues=[1] \
 AttenuationCorrection="CTAC-SG" \
 RandomsCorrectionMethod="DLYD" \
 ScatterCorrectionMethod="SS-SIMUL" \
-ReconstructionMethod="BLOB-OS-TF" 
+ReconstructionMethod="BLOB-OS-TF" \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
 
 # Philips Ingenuity PET-MRI
@@ -241,7 +250,10 @@ ScatterCorrectionMethod="SS-SIMUL" \
 ReconstructionMethod="LOR-RAMLA" \
 ReconMethodParameterValues="[1, 1]" \
 ReconFilterType="['n/a', 'n/a']" \
-DecayCorrectionFactor=[1] 
+DecayCorrectionFactor=[1] \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
 # philipsVereosPET-CT
 # -------------------
@@ -267,7 +279,9 @@ AttenuationCorrection="CTAC-SG" \
 ScatterCorrectionMethod="SS-SIMUL" \
 RandomsCorrectionMethod="DLYD" \
 ReconstructionMethod="OSEMi3s15" \
+TimeZero="11:40:24"
 #FrameDuration=[1221]
+
 
 # National Institute of Mental Health, Bethesda
 # ----------------------------------------------
@@ -318,9 +332,11 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="False" \
 FrameTimesStart="[0]" \
 ImageDecayCorrectionTime=0 \
-ReconMethodParameterValues="[1, 1]" \
 ReconFilterType="n/a" \
-ReconFilterSize=1
+ReconFilterSize=1 \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
 
 # General Electric Medical Systems Advance
@@ -340,13 +356,16 @@ InjectionStart=0 \
 SpecificRadioactivity=418713.8 \
 ModeOfAdministration="infusion" \
 FrameTimesStart="[0]" \
-ReconMethodParameterValues="[1, 1]" \
 ImageDecayCorrected='false' \
 AttenuationCorrection='n/a' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
 ScatterCorrectionMethod="Gaussian Fit" \
-ScanStart="0"
+ScanStart="0" \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
+
 
 echo "${SOURCE_FOLDER}/GeneralElectricAdvance-NIMH"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans --destination-path $DESTINATION/sub-GeneralElectricAdvanceLongNIMH/pet --kwargs \
@@ -363,11 +382,13 @@ InjectionStart=0 \
 SpecificRadioactivity=418713.8 \
 ModeOfAdministration="infusion" \
 FrameTimesStart="[0]" \
-ReconMethodParameterValues="[1, 1]" \
 ImageDecayCorrected='false' \
 AttenuationCorrection='measured' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
 ScatterCorrectionMethod="Gaussian Fit" \
 ScanStart="0" \
+ReconMethodParameterLabels="[none, none]" \
+ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterValues="[0, 0]"
 
