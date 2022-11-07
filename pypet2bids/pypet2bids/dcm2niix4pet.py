@@ -153,10 +153,10 @@ def update_json_with_dicom_value(
         try:
             # Units is missing, check to see if Unit is present
             if sidecar_json.get('Unit', None):
-                temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')})
+                temp = JsonMAJ(path_to_json, {'Units': sidecar_json.get('Unit')}, bids_null=True)
                 temp.remove('Unit')
             else:  # we source the Units value from the dicom header and update the json
-                JsonMAJ(path_to_json, {'Units': dicom_header.Units})
+                JsonMAJ(path_to_json, {'Units': dicom_header.Units}, bids_null=True)
         except AttributeError:
             print(f"Dicom is missing Unit(s) field, are you sure this is a PET dicom?")
     # pair up dicom fields with bids sidecar json field, we do this in a separate json file
@@ -174,7 +174,7 @@ def update_json_with_dicom_value(
 
     print("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
-    json_updater = JsonMAJ(json_path=path_to_json)
+    json_updater = JsonMAJ(json_path=path_to_json, bids_null=True)
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
@@ -227,7 +227,7 @@ def update_json_with_dicom_value(
         json_updater.update({'InjectionStart': 0})
 
     # check to see if units are BQML
-    json_updater = JsonMAJ(str(path_to_json))
+    json_updater = JsonMAJ(str(path_to_json), bids_null=True)
     if json_updater.get('Units') == 'BQML':
         json_updater.update({'Units': 'Bq/mL'})
 
@@ -554,11 +554,12 @@ class Dcm2niix4PET:
                     # if we have entities in our metadata spreadsheet that we've used we update
                     if self.spreadsheet_metadata.get('nifti_json', None):
                         update_json = JsonMAJ(json_path=str(created),
-                                              update_values=self.spreadsheet_metadata['nifti_json'])
+                                              update_values=self.spreadsheet_metadata['nifti_json'],
+                                              bids_null=True)
                         update_json.update()
 
                     # check to see if frame duration is a single value, if so convert it to list
-                    update_json = JsonMAJ(json_path=str(created))
+                    update_json = JsonMAJ(json_path=str(created), bids_null=True)
 
                     # should be list/array types in the json
                     should_be_array = [
@@ -578,7 +579,8 @@ class Dcm2niix4PET:
                     # any of the missing tags in our sidecars
                     if self.additional_arguments:
                         update_json = JsonMAJ(json_path=str(created),
-                                              update_values=self.additional_arguments)
+                                              update_values=self.additional_arguments,
+                                              bids_null=True)
                         update_json.update()
 
                     # there are some additional updates that depend on some PET BIDS logic that we do next, since these
@@ -586,14 +588,15 @@ class Dcm2niix4PET:
                     # additional arguments we run this step after updating the sidecar with those additional user
                     # arguments
 
-                    sidecar_json = JsonMAJ(json_path=str(created))  # load all supplied and now written sidecar data in
+                    sidecar_json = JsonMAJ(json_path=str(created),
+                                           bids_null=True)  # load all supplied and now written sidecar data in
 
                     check_metadata_radio_inputs = check_meta_radio_inputs(sidecar_json.json_data)  # run logic
 
                     sidecar_json.update(check_metadata_radio_inputs)  # update sidecar json with results of logic
 
                     # check to see if convolution kernel is present
-                    sidecar_json = JsonMAJ(json_path=str(created))
+                    sidecar_json = JsonMAJ(json_path=str(created), bids_null=True)
                     if sidecar_json.get('ConvolutionKernel'):
                         if sidecar_json.get('ReconFilterType') and sidecar_json.get('ReconFilterSize'):
                             sidecar_json.remove('ConvolutionKernel')

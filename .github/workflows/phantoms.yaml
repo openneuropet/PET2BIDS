@@ -54,8 +54,10 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt-get update
-            sudo apt-get install dcm2niix
+            mkdir dcm2niix_install/ && cd dcm2niix_install/
+            curl -fLO https://github.com/rordenlab/dcm2niix/releases/download/v1.0.20220720/dcm2niix_lnx.zip
+            unzip dcm2niix*.zip
+            echo "${{ github.workspace }}/dcm2niix_install/" >> $GITHUB_PATH
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
@@ -105,6 +107,12 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
+      - name: Copy Conversion Scripts from Version Control
+        run: |
+          mkdir -p OpenNeuroPET-Phantoms/code/
+          cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
+          cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
+
       - name: Debug
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
@@ -116,10 +124,6 @@ jobs:
         run: |
           cd OpenNeuroPET-Phantoms/code
           bash python_conversions.sh
-
-      - name: Validate Python Conversion
-        run: |
-          bids-validator OpenNeuroPET-Phantoms/python
 
       - name: SetupMatlab
         if: ${{ matrix.os == 'ubuntu-20.04' }}
@@ -138,7 +142,14 @@ jobs:
             addpath('${{ env.METADATA_PATH }}');
             matlab_conversions
 
+      - name: Check Parity
+        run: |
+          python scripts/compare_jsons.py OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
+
+      - name: Validate Python Conversion
+        run: |
+          bids-validator OpenNeuroPET-Phantoms/python
+
       - name: Validate Matlab Conversion
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
-

@@ -260,6 +260,12 @@ def very_tolerant_literal_eval(value):
             value = True
         elif str(value).lower() == 'false':
             value = False
+        elif str(value)[0] == '[' and str(value)[-1] == ']':
+            array_contents = str(value).replace('[', '').replace(']', '')
+            array_contents = array_contents.split(',')
+            array_contents = [str.strip(content) for content in array_contents]
+            # evaluate array contents one by one
+            value = [very_tolerant_literal_eval(v) for v in array_contents]
         else:
             value = str(value)
     return value

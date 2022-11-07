@@ -25,10 +25,16 @@ gdown $GDRIVE_PHANTOM_ID -O PHANTOMS.zip
 unzip -oq PHANTOMS.zip
 
 # run conversions on phantoms dataset
-bash OpenNeuroPET-Phantoms/code/python_conversions.sh
+cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
+cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
+pushd OpenNeuroPET-Phantoms/code/
+bash python_conversions.sh
+popd
 
 # copy dataset description file over
-cp OpenNeuroPET-Phantoms/dataset_description.json OpenNeuroPET-Phantoms/python
+pushd OpenNeuroPET-Phantoms
+cp dataset_description.json python/
+popd
 
 # Validate 
 bids-validator OpenNeuroPET-Phantoms/python
