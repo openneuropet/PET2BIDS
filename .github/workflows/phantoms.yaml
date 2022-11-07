@@ -125,10 +125,6 @@ jobs:
           cd OpenNeuroPET-Phantoms/code
           bash python_conversions.sh
 
-      - name: Validate Python Conversion
-        run: |
-          bids-validator OpenNeuroPET-Phantoms/python
-
       - name: SetupMatlab
         if: ${{ matrix.os == 'ubuntu-20.04' }}
         uses: matlab-actions/setup-matlab@v1
@@ -146,7 +142,14 @@ jobs:
             addpath('${{ env.METADATA_PATH }}');
             matlab_conversions
 
+      - name: Check Parity
+        run: |
+          python scripts/compare_jsons OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
+
+      - name: Validate Python Conversion
+        run: |
+          bids-validator OpenNeuroPET-Phantoms/python
+
       - name: Validate Matlab Conversion
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
-
