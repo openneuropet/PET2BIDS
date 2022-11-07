@@ -102,8 +102,5 @@ if __name__ == "__main__":
     x = fetch_pairs_of_jsons(
         args.leftpath, args.right_path)
 
-    #    "/Users/galassiae/Projects/PET2BIDS/OpenNeuroPET-Phantoms/python/",
-    #    "/Users/galassiae/Projects/PET2BIDS/OpenNeuroPET-Phantoms/matlab"
-    #)
 
     y = compare_jsons(x)
