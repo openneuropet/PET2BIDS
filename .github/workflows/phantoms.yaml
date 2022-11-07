@@ -144,7 +144,7 @@ jobs:
 
       - name: Check Parity
         run: |
-          python scripts/compare_jsons OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
+          python scripts/compare_jsons.py OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
 
       - name: Validate Python Conversion
         run: |
