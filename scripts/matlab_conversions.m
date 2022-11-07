@@ -407,6 +407,9 @@ end
 
 try
 meta.AttenuationCorrection = 'measured' ; % some how the field is not there
+meta.ReconMethodParameterLabels = ["none", "none"];
+meta.ReconMethodParameterUnits = ["none", "none"];
+meta.ReconMethodParameterValues = [0, 0];
 dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
     'long_trans']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceLongNIMH' filesep 'pet'])); 
 catch
