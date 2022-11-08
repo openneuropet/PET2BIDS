@@ -181,7 +181,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF3i21s",
+            "ReconMethodName": "Point-Spread Function modelling Time Of Flight",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -190,7 +190,7 @@ def test_get_recon_method():
             "contents": "OP-OSEM3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "OP-OSEM3i21s",
+            "ReconMethodName": "Ordinary Poisson Ordered Subset Expectation Maximization",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -199,7 +199,7 @@ def test_get_recon_method():
             "contents": "PSF+TOF 3i21s",
             "subsets": 21,
             "iterations": 3,
-            "ReconMethodName": "PSF+TOF3i21s",
+            "ReconMethodName": "Point-Spread Function modelling Time Of Flight",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [21, 3]
@@ -208,21 +208,21 @@ def test_get_recon_method():
             "contents": "LOR-RAMLA",
             "subsets": None,
             "iterations": None,
-            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodName": "Line Of Response Row Action Maximum Likelihood",
             "ReconMethodParameterLabels": ["none", "none"],
         },
         {
             "contents": "3D-RAMLA",
             "subsets": None,
             "iterations": None,
-            "ReconMethodName": "3D-RAMLA",
+            "ReconMethodName": "3D Row Action Maximum Likelihood",
             "ReconMethodParameterLabels": ["none", "none"],
         },
         {
             "contents": 'OSEM:i3s15',
             "subsets": 15,
             "iterations": 3,
-            "ReconMethodName": "OSEM:i3s15",
+            "ReconMethodName": "Ordered Subset Expectation Maximization",
             "ReconMethodParameterUnits": ["none", "none"],
             "ReconMethodParameterLabels": ["subsets", "iterations"],
             "ReconMethodParameterValues": [15, 3]
@@ -231,16 +231,42 @@ def test_get_recon_method():
             "contents": "LOR-RAMLA",
             "subsets": None,
             "iterations": None,
-            "ReconMethodName": "LOR-RAMLA",
+            "ReconMethodName": "Line Of Response Row Action Maximum Likelihood",
             "ReconMethodParameterLabels": ["none", "none"],
         },
+        {
+            "contents": "VPFXS",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "VUE Point HD using Time Of Flight with Point-Spread Function modelling",
+            "ReconMethodParameterLabels": ["none", "none"]
+        },
+        {
+            "contents": "VPFX",
+            "subsets": None,
+            "iterations": None,
+            "ReconMethodName": "VUE Point HD using Time Of Flight",
+            "ReconMethodParameterLabels": ["none", "none"]
+        },
+        {
+            "contents": "inki-2006-may-OSEM3D-OP-PSFi10s16",
+            "subsets": 16,
+            "iterations": 10,
+            "ReconMethodName": "3D Ordered Subset Expectation Maximization Ordinary Poisson Point-Spread Function modelling",
+            #"ReconMethodParameterLabels": ["subsets", "iterations", "lower_threshold", "upper_threshold"],
+            #"ReconMethodParameterUnits": ["none", "none", "keV", "keV"],
+            #"ReconMethodParameterValues": [16, 10, 400, 600]
+        }
     ]
 
     for recon_data in reconstruction_method_strings:
         recon = helper_functions.get_recon_method(recon_data['contents'])
         for key, value in recon_data.items():
             if key != "contents" and key != 'subsets' and key != 'iterations':
-                assert value == recon[key]
+                if key == 'ReconMethodName':
+                    assert set(value.split(" ")) == set(recon[key].split(" "))
+                else:
+                    assert value == recon[key]
 
 
 if __name__ == '__main__':

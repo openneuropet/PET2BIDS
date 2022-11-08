@@ -29,11 +29,6 @@ cp $repo_path/dataset_description.json $DESTINATION/dataset_description.json
 # ------------
 echo "${SOURCE_FOLDER}/SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v"
 ecatpet2bids $SOURCE_FOLDER/SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v --nifti $DESTINATION/sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii --convert --kwargs \
-TimeZero="10:10:10" \
-Manufacturer=Siemens \
-ManufacturersModelName=HRRT \
-InstitutionName="Rigshospitalet, NRU, DK" \
-BodyPart=Phantom Units="Bq/mL" \
 Manufacturer=Siemens \
 ManufacturersModelName=HRRT \
 InstitutionName="Rigshospitalet, NRU, DK" \
@@ -44,10 +39,8 @@ TracerRadionuclide=F18 \
 InjectedRadioactivity=81.24 \
 SpecificRadioactivity="1.3019e+04" \
 ModeOfAdministration=infusion \
-InjectedMass=1 \
-InjectedMassUnits=grams \
 AcquisitionMode="list mode" \
-ImageDecayCorrected="True" \
+ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 ReconFilterType=None \
 ReconFilterSize=0 \
@@ -57,6 +50,9 @@ ScanStart=0 \
 InjectionStart=0 \
 InjectedRadioactivityUnits='Bq' \
 ReconFilterType=['n/a']
+#TimeZero="10:10:10" \
+#InjectedMass=1 \
+#InjectedMassUnits=g \
 
 # Siemens Biograph
 # ---------------------------
@@ -101,12 +97,12 @@ ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
 ReconMethodParameterValues="[1, 1]" \
 ReconFilterSize=1 \
-ReconFilterType='unknown' \
+ReconFilterType='none' \
 FrameTimesStart=[0] \
-DecayCorrectionFactor="[1]" \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
 ReconMethodParameterValues="[0, 0]"
+#DecayCorrectionFactor="[1]" \
 
 echo "${SOURCE_FOLDER}/GeneralElectricSignaPETMR-Aarhus"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricSignaPETMR-Aarhus --destination-path $DESTINATION/sub-GeneralElectricSignaAarhus/pet \
