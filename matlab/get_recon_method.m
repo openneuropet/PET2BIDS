@@ -120,6 +120,11 @@ for v=1:length(renamed)
     end
 end
 method = deblank(method);
+% trim duplicate white space
+expression = '[ ]{2,}';
+replacement = ' ';
+method = regexprep(method, expression, replacement);
+
 
 if isempty(method)
     warning('the reconstruction method is not in our library, check metadata json (and get in touch to include it)')
