@@ -235,7 +235,7 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD'; % field added in our library
     meta.ScatterCorrectionMethod    = 'SS-SIMUL';  % field added in our library
     meta.ReconstructionMethod       = 'BLOB-OS-TF'; 
-    meta.FrameDuration              = repmat(122.238007,20,1);
+    %meta.FrameDuration              = repmat(122.238007,20,1);
     meta.FrameTimesStart            = 0;
     
     dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETCT-AmsterdamUMC'),meta,...
@@ -268,7 +268,7 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD'; 
     meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
     meta.ReconstructionMethod       = 'LOR-RAMLA'; 
-    meta.FrameDuration              = repmat(122.238007,40,1);
+    %meta.FrameDuration              = repmat(122.238007,40,1);
     meta.FrameTimesStart            = 0;
     
     dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETMR-AmsterdamUMC'),meta,...
@@ -299,7 +299,7 @@ try
     meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
     meta.RandomsCorrectionMethod    = 'DLYD'; 
     meta.ReconstructionMethod       = 'OSEM:i3s15'; 
-    meta.FrameDuration              = repmat(1221.780029,40,1);
+    %meta.FrameDuration              = repmat(1221.780029,40,1);
     meta.FrameTimesStart            = 0;
     
     dcm2niix4pet(fullfile(source,'PhillipsVereosPETCT-AmsterdamUMC'),meta,...
@@ -353,12 +353,12 @@ try
     meta.Units                      = 'Bq/mL';
     meta.TracerName                 = 'Gallium citrate';
     meta.TracerRadionuclide         = 'Germanium68';
-    meta.InjectedRadioactivity      = 44.4; % Mbq
-    meta.SpecificRadioactivity      = 7.1154e+03; % ~ 44400000 Bq/ 6240 g
+    meta.InjectedRadioactivity      = 1; % Mbq
+    meta.SpecificRadioactivity      = 23423.75; % ~ 44400000 Bq/ 6240 g
     meta.ModeOfAdministration       = 'infusion';
     meta.FrameTimesStart            = 0;
     meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
+    meta.ImageDecayCorrected        = 'false';
     meta.ImageDecayCorrectionTime   = 0;
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
@@ -382,13 +382,13 @@ try
     meta.TracerName                 = 'FDG';
     meta.TracerRadionuclide         = 'F18';
     meta.InjectedRadioactivity      = 75.8500; % Mbq
-    meta.SpecificRadioactivity      = 1.2155e+04; % ~ 75850000 Bq/ 6240 g
+    meta.SpecificRadioactivity      = 418713.8; % ~ 75850000 Bq/ 6240 g
     meta.ModeOfAdministration       = 'infusion';
     meta.FrameTimesStart            = 0;
     meta.AcquisitionMode            = 'list mode';
     meta.ImageDecayCorrected        = 'true';
     meta.ImageDecayCorrectionTime   = 0;
-    meta.ScatterCorrectionMethod    = 'Convolution subtraction';
+    meta.ScatterCorrectionMethod    = 'Gaussian Fit';
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
     
@@ -410,6 +410,7 @@ meta.AttenuationCorrection = 'measured' ; % some how the field is not there
 meta.ReconMethodParameterLabels = ["none", "none"];
 meta.ReconMethodParameterUnits = ["none", "none"];
 meta.ReconMethodParameterValues = [0, 0];
+meta.FrameDuration = 98000
 dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
     'long_trans']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceLongNIMH' filesep 'pet'])); 
 catch
