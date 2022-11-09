@@ -147,6 +147,10 @@
     {
       "value": "BLOB",
       "name": "3D spherically symmetric basis function"
+    },
+    {
+      "value": "FilteredBackProjection",
+      "name": "Filtered Back Projection"
     }
   ]
 }
