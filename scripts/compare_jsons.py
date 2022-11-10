@@ -75,16 +75,25 @@ def compare_jsons(json_paths, show_matches=True):
 
 
         comparison_string = f"\nComparison between {json_files[0]} and {json_files[1]}"
-        print(comparison_string)
+        print(Style.RESET + comparison_string)
         # print out a header/column names
         header = "   keyname".ljust(name_padding, ' ') + "    \tleft".ljust(left_padding, ' ') + "    \tright"
-        print(header)
+        print(Style.RESET + header)
         for i in list(intersection):
+            print(Style.RESET, end="")
             left_value, right_value = left[i], right[i]
+            approximate=False
+            if type(left_value) is str and type(right_value) is str:
+                if left_value == right_value and show_matches:
+                    print(Style.GREEN + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+                elif set(left_value.lower().split(" ")) == set(right_value.lower().split(" ")) and show_matches:
+                    print(Style.YELLOW + f"~= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+                    approximate = True
             if left_value == right_value and show_matches:
                 print(Style.GREEN + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
-            else:
+            elif not approximate:
                 print(Style.RED + f"!= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+            print(Style.RESET, end="")
 
         # record where sets differ
 

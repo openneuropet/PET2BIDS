@@ -209,9 +209,9 @@ def update_json_with_dicom_value(
     if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
         time_parser = parser
         if sidecar_json.get('AcquisitionTime', None):
-            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().isoformat()
+            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().strftime("%H:%M:%S")
         else:
-            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().isoformat()
+            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().strftime("%H:%M:%S")
 
         json_updater.update({'TimeZero': acquisition_time})
         json_updater.remove('AcquisitionTime')
@@ -640,6 +640,7 @@ class Dcm2niix4PET:
                         {
                             'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
                         })
+
 
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:

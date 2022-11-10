@@ -43,7 +43,7 @@ if 'PET2BIDS' not in project_dir.parts:
 metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
-
+pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:
@@ -128,8 +128,15 @@ def compress(file_like_object, output_path: str = None):
         file_like_object path
     :return: output_path on successful completion of compression
     """
-    if os.path.isfile(file_like_object) and not output_path:
-        output_path = os.path.join(file_like_object, '.gz')
+    file_like_object = pathlib.Path(file_like_object)
+
+    if file_like_object.exists() and not output_path:
+        old_suffix = file_like_object.suffix
+        if '.gz' not in old_suffix:
+            output_path = file_like_object.with_suffix(old_suffix + '.gz')
+        else:
+            output_path = file_like_object
+
     elif not os.path.isfile(file_like_object):
         raise Exception(f"{file_like_object} is not a valid file to compress.")
     else:
@@ -141,6 +148,9 @@ def compress(file_like_object, output_path: str = None):
     output = gzip.GzipFile(output_path, 'wb')
     output.write(input_data)
     output.close()
+
+    if output_path.exists():
+        file_like_object.unlink(missing_ok=True)
 
     return output_path
 
@@ -611,16 +621,41 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
             # test_dcm2niix4pet.py may. Will be updated when non-conforming data is obtained
             pass  # do nothing, this case shouldn't fire.....
 
-
-    #if iteration_subset_string:
-    #    ReconMethodName = re.sub(iteration_subset_string, "", contents)
-    #else:
-    #    ReconMethodName = contents
-    ReconMethodName = contents
+    if iteration_subset_string:
+        ReconMethodName = re.sub(iteration_subset_string, "", contents)
+    else:
+        ReconMethodName = contents
 
     # cleaning up weird chars at end or start of name
     ReconMethodName = re.sub(r'[^a-zA-Z0-9]$', "", ReconMethodName)
     ReconMethodName = re.sub(r'^[^a-zA-Z0-9]', "", ReconMethodName)
+
+    expanded_name = ""
+    # get the dimension as it's often somewhere in the name
+    dimension = ""
+
+    search_criteria = r'[1-4][D-d]'
+    if re.search(search_criteria, ReconMethodName):
+        dimension = re.search(search_criteria, ReconMethodName)[0]
+
+    # doing some more manipulation of the recon method name to expand it from not so helpful acronyms
+    possible_names = load_pet_bids_requirements_json(pet_reconstruction_metadata_json)['reconstruction_names']
+
+    # we want to sort the possible names by longest first that we don't break up an acronym prematurely
+    sorted_df = pandas.DataFrame(possible_names).sort_values(by='value', key=lambda x: x.str.len(), ascending=False)
+
+    possible_names = []
+    for row in sorted_df.iterrows():
+        possible_names.append({'value': row[1]['value'], 'name': row[1]['name']})
+
+    for name in possible_names:
+        if name['value'] in ReconMethodName:
+            expanded_name += name['name'] + " "
+            ReconMethodName = re.sub(name['value'], "", ReconMethodName)
+
+    if expanded_name != "":
+        ReconMethodName = dimension + " "*len(dimension) + expanded_name.rstrip()
+        ReconMethodName = " ".join(ReconMethodName.split())
 
     reconstruction_dict = {
         "ReconMethodName": ReconMethodName,
@@ -753,3 +788,10 @@ def drop_row(dataframe: pandas.DataFrame, index: int):
     row = dataframe.loc[index]
     dataframe.drop(index, inplace=True)
     return row
+
+
+def replace_nones(dictionary):
+    json_string = json.dumps(dictionary)
+    # sub nulls
+    json_fixed = re.sub('null', '"none"', json_string)
+    return json.loads(json_fixed)

@@ -29,11 +29,6 @@ cp $repo_path/dataset_description.json $DESTINATION/dataset_description.json
 # ------------
 echo "${SOURCE_FOLDER}/SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v"
 ecatpet2bids $SOURCE_FOLDER/SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v --nifti $DESTINATION/sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii --convert --kwargs \
-TimeZero="10:10:10" \
-Manufacturer=Siemens \
-ManufacturersModelName=HRRT \
-InstitutionName="Rigshospitalet, NRU, DK" \
-BodyPart=Phantom Units="Bq/mL" \
 Manufacturer=Siemens \
 ManufacturersModelName=HRRT \
 InstitutionName="Rigshospitalet, NRU, DK" \
@@ -44,19 +39,19 @@ TracerRadionuclide=F18 \
 InjectedRadioactivity=81.24 \
 SpecificRadioactivity="1.3019e+04" \
 ModeOfAdministration=infusion \
-InjectedMass=1 \
-InjectedMassUnits=grams \
 AcquisitionMode="list mode" \
-ImageDecayCorrected="True" \
+ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
-ReconFilterType=None \
 ReconFilterSize=0 \
 AttenuationCorrection="10-min transmission scan" \
 SpecificRadioactivityUnits="Bq" \
 ScanStart=0 \
 InjectionStart=0 \
 InjectedRadioactivityUnits='Bq' \
-ReconFilterType=['n/a']
+ReconFilterType="none"
+#TimeZero="10:10:10" \
+#InjectedMass=1 \
+#InjectedMassUnits=g \
 
 # Siemens Biograph
 # ---------------------------
@@ -74,7 +69,8 @@ SpecificRadioactivity=1.3019e+04 \
 ModeOfAdministration="infusion" \
 AcquisitionMode="list mode" \
 FrameTimesStart="[0]" \
-ImageDecayCorrected="True" \
+FrameDuration=[300] \
+ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 DecayCorrectionFactor=[1] \
 AttenuationCorrection="MR-corrected" \
@@ -99,14 +95,14 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected=True \
 ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
-ReconMethodParameterValues="[1, 1]" \
-ReconFilterSize=1 \
-ReconFilterType='unknown' \
+FrameDuration=[1200] \
+ReconFilterSize=0 \
+ReconFilterType='none' \
 FrameTimesStart=[0] \
-DecayCorrectionFactor="[1]" \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]"
+#DecayCorrectionFactor="[1]" \
 
 echo "${SOURCE_FOLDER}/GeneralElectricSignaPETMR-Aarhus"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricSignaPETMR-Aarhus --destination-path $DESTINATION/sub-GeneralElectricSignaAarhus/pet \
@@ -127,7 +123,6 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
-ReconMethodParameterValues="[1, 1]" \
 ReconFilterType='unknown' \
 ReconFilterSize=1 \
 ReconMethodParameterLabels="[none, none]" \
@@ -197,7 +192,6 @@ ReconMethodParameterValues="[0, 0]"
 echo "${SOURCE_FOLDER}/PhilipsIngenuityPETCT-AmsterdamUMC"
 dcm2niix4pet $SOURCE_FOLDER/PhilipsIngenuityPETCT-AmsterdamUMC --destination-path $DESTINATION/sub-PhilipsIngenuityPETCTAmsterdamUMC/pet \
 --kwargs \
-TimeZero="12:12:12" \
 Manufacturer="Philips Medical Systems" \
 ManufacturersModelName="Ingenuity TF PET/CT" \
 InstitutionName="AmsterdamUMC,VUmc" \
@@ -209,10 +203,9 @@ InjectedRadioactivity=185 \
 SpecificRadioactivity=1.9907e+04 \
 ModeOfAdministration="infusion" \
 AcquisitionMode="list mode" \
-ImageDecayCorrected="True" \
+ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 DecayCorrectionFactor=[1] \
-ReconFilterType="n/a" \
 ReconFilterSize=0 \
 ReconMethodParameterValues=[1] \
 AttenuationCorrection="CTAC-SG" \
@@ -221,7 +214,10 @@ ScatterCorrectionMethod="SS-SIMUL" \
 ReconstructionMethod="BLOB-OS-TF" \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+ReconFilterType="none" \
+#FrameTimesStart=[0]
+#TimeZero="12:12:12" \
 
 
 # Philips Ingenuity PET-MRI
@@ -305,10 +301,11 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="True" \
 ImageDecayCorrectionTime=0 \
 FrameTimesStart=[0] \
-DecayCorrectionFactor="[1]" \
+FrameDuration=[300] \
 AttenuationCorrection="MR-corrected" \
 RandomsCorrectionMethod="DLYD" \
 ReconFilterSize=1 
+#DecayCorrectionFactor="[1]" \
 
 # General Electric Medical Systems Signa PET-MR
 # ----------------------------------------------
@@ -343,7 +340,6 @@ ReconMethodParameterValues="[0, 0]"
 # -----------------------------------------
 echo "${SOURCE_FOLDER}/GeneralElectricAdvance-NIMH"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/2d_unif_lt_ramp --destination-path $DESTINATION/sub-GeneralElectricAdvanceNIMH/pet --kwargs \
-TimeZero="13:39:41" \
 Manufacturer="GE MEDICAL SYSTEMS" \
 ManufacturersModelName="GE Advance" \
 InstitutionName="NIH Clinical Center, USA" \
@@ -356,20 +352,21 @@ InjectionStart=0 \
 SpecificRadioactivity=418713.8 \
 ModeOfAdministration="infusion" \
 FrameTimesStart="[0]" \
-ImageDecayCorrected='false' \
-AttenuationCorrection='n/a' \
+ImageDecayCorrected='true' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
-ScatterCorrectionMethod="Gaussian Fit" \
+ScatterCorrectionMethod="Convolution subtraction" \
+FrameDuration=[98000] \
 ScanStart="0" \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
 ReconMethodParameterValues="[0, 0]"
+#TimeZero="13:39:41" \
+#AttenuationCorrection='n/a' \
 
 
 echo "${SOURCE_FOLDER}/GeneralElectricAdvance-NIMH"
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans --destination-path $DESTINATION/sub-GeneralElectricAdvanceLongNIMH/pet --kwargs \
-TimeZero="13:39:41" \
 Manufacturer="GE MEDICAL SYSTEMS" \
 ManufacturersModelName="GE Advance" \
 InstitutionName="NIH Clinical Center, USA" \
@@ -386,6 +383,7 @@ ImageDecayCorrected='false' \
 AttenuationCorrection='measured' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
+FrameDuration=[98000] \
 ScatterCorrectionMethod="Gaussian Fit" \
 ScanStart="0" \
 ReconMethodParameterLabels="[none, none]" \

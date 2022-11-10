@@ -215,7 +215,7 @@ def main():
         output_path = pathlib.Path(ecat.make_nifti())
         ecat.populate_sidecar(**cli_args.kwargs)
         ecat.prune_sidecar()
-        sidecar_path = join(str(output_path.parent), output_path.stem + '.json')
+        sidecar_path = pathlib.Path(join(str(output_path.parent), output_path.stem + '.json'))
         ecat.show_sidecar(output_path=sidecar_path)
 
 

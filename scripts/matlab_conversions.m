@@ -68,7 +68,7 @@ try
     meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
     meta.ModeOfAdministration       = 'infusion';   
     meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
+    meta.ImageDecayCorrected        = true; % when passing this as string it fails validation
     meta.ImageDecayCorrectionTime   = 0;
     meta.ReconFilterType            = 'none';
     meta.ReconFilterSize            = 0;
@@ -105,7 +105,9 @@ try
     meta.AttenuationCorrection      = 'MR-corrected';
     meta.FrameDuration              = 300;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,'SiemensBiographPETMR-NRU'),meta,...
         'o',fullfile(destination,['sub-SiemensBiographNRU' filesep 'pet'])); % note we only need to use folders here
 catch
@@ -134,7 +136,12 @@ try
     meta.AttenuationCorrection      = 'MR-corrected';
     meta.FrameDuration              = 1200;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconMethodParameterLabels = ["none"];
+    meta.ReconMethodParameterUnits  = ["none"];
+    meta.ReconParameterValues       = [0];
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 0;
+
     dcm2niix4pet(fullfile(source,'GeneralElectricDiscoveryPETCT-Aarhus'),meta,...
         'o',fullfile(destination,['sub-GeneralElectricDiscoveryAarhus' filesep 'pet'])); % note we only need to use folders here
 
@@ -162,6 +169,12 @@ try
     meta.AttenuationCorrection      = 'MR-corrected';
     meta.FrameDuration              = 600;
     meta.FrameTimesStart            = 0;
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 0;
+    meta.ReconMethodParameterLabels = ["none"];
+    meta.ReconMethodParameterUnits  = ["none"];
+    meta.ReconMethodParameterValues = [0];
+    meta.InjectionEnd               = [10];
     
     dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-Aarhus'),meta,...
         'o',fullfile(destination,['sub-GeneralElectricSignaAarhus' filesep 'pet'])); % note we only need to use folders here
@@ -195,7 +208,9 @@ try
     meta.ReconstructionMethod       = 'LOR-RAMLA'; 
     meta.FrameDuration              = 1798;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 1;
+
     %dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
     %    'o',fullfile(destination,['sub-PhilipsGeminiUnimedizinMainz' filesep 'pet']));
     
@@ -235,9 +250,11 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD'; % field added in our library
     meta.ScatterCorrectionMethod    = 'SS-SIMUL';  % field added in our library
     meta.ReconstructionMethod       = 'BLOB-OS-TF'; 
-    meta.FrameDuration              = repmat(122.238007,20,1);
+    %meta.FrameDuration              = repmat(122.238007,20,1);
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "unknown";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETCT-AmsterdamUMC'),meta,...
         'o',fullfile(destination,['sub-PhilipsIngenuityPETCTAmsterdamUMC' filesep 'pet']));
 catch
@@ -268,9 +285,11 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD'; 
     meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
     meta.ReconstructionMethod       = 'LOR-RAMLA'; 
-    meta.FrameDuration              = repmat(122.238007,40,1);
+    %meta.FrameDuration              = repmat(122.238007,40,1);
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "unknown";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETMR-AmsterdamUMC'),meta,...
         'o',fullfile(destination,['sub-PhilipsIngenuityPETMRAmsterdamUMC' filesep 'pet'])); 
 catch
@@ -299,9 +318,11 @@ try
     meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
     meta.RandomsCorrectionMethod    = 'DLYD'; 
     meta.ReconstructionMethod       = 'OSEM:i3s15'; 
-    meta.FrameDuration              = repmat(1221.780029,40,1);
+    %meta.FrameDuration              = repmat(1221.780029,40,1);
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "unknown";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,'PhillipsVereosPETCT-AmsterdamUMC'),meta,...
         'o',fullfile(destination,['sub-PhillipsVereosAmsterdamUMC' filesep 'pet'])); 
 catch
@@ -334,7 +355,9 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD';
     meta.FrameDuration              = 300;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "unknown";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,['SiemensBiographPETMR-NIMH' filesep 'AC_TOF']),meta,...
          'o',fullfile(destination,['sub-SiemensBiographNIMH' filesep 'pet'])); 
 catch
@@ -353,16 +376,18 @@ try
     meta.Units                      = 'Bq/mL';
     meta.TracerName                 = 'Gallium citrate';
     meta.TracerRadionuclide         = 'Germanium68';
-    meta.InjectedRadioactivity      = 44.4; % Mbq
-    meta.SpecificRadioactivity      = 7.1154e+03; % ~ 44400000 Bq/ 6240 g
+    meta.InjectedRadioactivity      = 1; % Mbq
+    meta.SpecificRadioactivity      = 23423.75; % ~ 44400000 Bq/ 6240 g
     meta.ModeOfAdministration       = 'infusion';
     meta.FrameTimesStart            = 0;
     meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
+    meta.ImageDecayCorrected        = 'false';
     meta.ImageDecayCorrectionTime   = 0;
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-NIMH'),meta,...
         'o',fullfile(destination,['sub-GeneralElectricSignaNIMH' filesep 'pet'])); 
 catch
@@ -382,16 +407,21 @@ try
     meta.TracerName                 = 'FDG';
     meta.TracerRadionuclide         = 'F18';
     meta.InjectedRadioactivity      = 75.8500; % Mbq
-    meta.SpecificRadioactivity      = 1.2155e+04; % ~ 75850000 Bq/ 6240 g
+    meta.SpecificRadioactivity      = 418713.8; % ~ 75850000 Bq/ 6240 g
     meta.ModeOfAdministration       = 'infusion';
     meta.FrameTimesStart            = 0;
     meta.AcquisitionMode            = 'list mode';
     meta.ImageDecayCorrected        = 'true';
     meta.ImageDecayCorrectionTime   = 0;
-    meta.ScatterCorrectionMethod    = 'Convolution subtraction';
+    meta.ScatterCorrectionMethod    = 'Gaussian Fit';
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
-    
+    meta.ReconMethodParameterLabels = ["none"];
+    meta.ReconParameterUnits        = ["none"];
+    meta.ReconMethodParameterValues = [0];
+    meta.ReconFilterType            = "none";
+    meta.ReconFilterSize            = 1;
+
     dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
         '2d_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceNIMH' filesep 'pet'])); 
      
@@ -410,6 +440,7 @@ meta.AttenuationCorrection = 'measured' ; % some how the field is not there
 meta.ReconMethodParameterLabels = ["none", "none"];
 meta.ReconMethodParameterUnits = ["none", "none"];
 meta.ReconMethodParameterValues = [0, 0];
+meta.FrameDuration = 98000
 dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
     'long_trans']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceLongNIMH' filesep 'pet'])); 
 catch

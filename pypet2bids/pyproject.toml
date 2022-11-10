@@ -10,6 +10,7 @@ include = [
     'pypet2bids/metadata/dicom2bids.json',
     'pypet2bids/metadata/PET_metadata.json',
     'pypet2bids/metadata/PET_Radionuclide.mkd',
+    'pypet2bids/metadata/PET_reconstruction_methods.json',
     'pypet2bids/pyproject.toml',
     ]
 
