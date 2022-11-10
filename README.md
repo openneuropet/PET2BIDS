@@ -3,7 +3,7 @@
 [![python](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml)
 [![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml) 
 [![Documentation Status](https://readthedocs.org/projects/pet2bids/badge/?version=latest)](https://pet2bids.readthedocs.io/en/latest/?badge=latest)
-[![phantoms](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml)
+[![phantoms](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml/badge.svg?event=push)](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml)
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). The work to create these tools is funded by [Novo Nordisk fonden](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the [BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
 
