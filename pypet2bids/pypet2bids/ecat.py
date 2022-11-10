@@ -11,17 +11,20 @@ import re
 import nibabel
 import os
 import json
+import pathlib
 
 try:
     import helper_functions
     import sidecar
     import read_ecat
     import ecat2nii
+    import dcm2niix4pet
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.sidecar as sidecar
     import pypet2bids.read_ecat as read_ecat
     import pypet2bids.ecat2nii as ecat2nii
+    import pypet2bids.dcm2niix4pet as dcm2niix4pet
 
 from dateutil import parser
 
@@ -127,6 +130,9 @@ class Ecat:
             output = output_path
         ecat2nii.ecat2nii(ecat_main_header=self.ecat_header, ecat_subheaders=self.subheaders, ecat_pixel_data=self.data,
                  nifti_file=output, affine=self.affine)
+
+        if 'nii.gz' not in output:
+            output = helper_functions.compress(output)
 
         return output
 
@@ -250,9 +256,25 @@ class Ecat:
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
         self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.get_version()
 
+
+
         # include any additional values
         if kwargs:
             self.sidecar_template.update(**kwargs)
+
+        if not self.sidecar_template.get('TimeZero', None):
+            if not self.sidecar_template.get('AcquisitionTime', None):
+                print(f"Unable to determine TimeZero for {self.ecat_file}, you need will need to provide this"
+                      f" for a valid BIDS sidecar.")
+            else:
+                self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']
+
+        # lastly infer radio data if we have it
+        meta_radio_inputs = dcm2niix4pet.check_meta_radio_inputs(self.sidecar_template)
+        self.sidecar_template.update(**meta_radio_inputs)
+
+        # clear any nulls from json sidecar and replace with none's
+        self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 
     def prune_sidecar(self):
         """
@@ -293,11 +315,21 @@ class Ecat:
         :return: None
         """
         self.prune_sidecar()
+        self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
         if output_path:
+            if not isinstance(output_path, pathlib.Path):
+                output_path = pathlib.Path(output_path)
+
+            if len(output_path.suffixes) > 1:
+                temp_output_path = str(output_path)
+                for suffix in output_path.suffixes:
+                    temp_output_path = re.sub(suffix, '', temp_output_path)
+                output_path = pathlib.Path(temp_output_path).with_suffix('.json')
+
             with open(output_path, 'w') as outfile:
-                json.dump(self.sidecar_template, outfile, indent=4)
+                json.dump(helper_functions.replace_nones(self.sidecar_template), outfile, indent=4)
         else:
-            print(json.dumps(self.sidecar_template, indent=4))
+            print(json.dumps(helper_functions.replace_nones(self.sidecar_template), indent=4))
 
     def json_out(self):
         """

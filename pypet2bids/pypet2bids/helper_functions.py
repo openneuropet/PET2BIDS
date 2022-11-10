@@ -128,8 +128,15 @@ def compress(file_like_object, output_path: str = None):
         file_like_object path
     :return: output_path on successful completion of compression
     """
-    if os.path.isfile(file_like_object) and not output_path:
-        output_path = os.path.join(file_like_object, '.gz')
+    file_like_object = pathlib.Path(file_like_object)
+
+    if file_like_object.exists() and not output_path:
+        old_suffix = file_like_object.suffix
+        if '.gz' not in old_suffix:
+            output_path = file_like_object.with_suffix(old_suffix + '.gz')
+        else:
+            output_path = file_like_object
+
     elif not os.path.isfile(file_like_object):
         raise Exception(f"{file_like_object} is not a valid file to compress.")
     else:
@@ -141,6 +148,9 @@ def compress(file_like_object, output_path: str = None):
     output = gzip.GzipFile(output_path, 'wb')
     output.write(input_data)
     output.close()
+
+    if output_path.exists():
+        file_like_object.unlink(missing_ok=True)
 
     return output_path
 
@@ -778,3 +788,10 @@ def drop_row(dataframe: pandas.DataFrame, index: int):
     row = dataframe.loc[index]
     dataframe.drop(index, inplace=True)
     return row
+
+
+def replace_nones(dictionary):
+    json_string = json.dumps(dictionary)
+    # sub nulls
+    json_fixed = re.sub('null', '"none"', json_string)
+    return json.loads(json_fixed)

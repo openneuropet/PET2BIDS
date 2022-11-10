@@ -641,6 +641,7 @@ class Dcm2niix4PET:
                             'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
                         })
 
+
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
                     if 'nii.gz' in created_path.name:
