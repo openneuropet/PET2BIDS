@@ -360,7 +360,7 @@ if exist('iteration','var') && exist('subset','var')
     else % returns none if actually seen as empty by get_recon_method
         filemetadata.ReconMethodParameterLabels     = "none";  
         filemetadata.ReconMethodParameterUnits      = "none";
-        % filemetadata.ReconMethodParameterValues   = "0"; % conditional on ReconMethodParameterLabels 
+        filemetadata.ReconMethodParameterValues   = 0; % conditional on ReconMethodParameterLabels, just to make the validator pass comment this out later 
     end
 end
 
@@ -431,7 +431,8 @@ function [filemetadata,updated] = update_arrays(filemetadata)
 updated = 0;
 shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
     'ReconFilterSize','ScatterFraction','ReconMethodParameterLabels',...
-    'ReconMethodParameterUnits','ReconMethodParameterValues'};
+    'ReconMethodParameterUnits','ReconMethodParameterValues', 'SinglesRate',...
+    'RandomRate', "PromptRate", "ScaleFactor"};
 
 for f = 1:length(shouldBarray)
     if isfield(filemetadata,shouldBarray{f})

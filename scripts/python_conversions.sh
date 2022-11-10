@@ -96,13 +96,12 @@ ImageDecayCorrected=True \
 ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
 FrameDuration=[1200] \
-ReconMethodParameterValues="[1, 1]" \
-ReconFilterSize=1 \
+ReconFilterSize=0 \
 ReconFilterType='none' \
 FrameTimesStart=[0] \
 ReconMethodParameterLabels="[none]" \
 ReconMethodParameterUnits="[none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0]"
 #DecayCorrectionFactor="[1]" \
 
 echo "${SOURCE_FOLDER}/GeneralElectricSignaPETMR-Aarhus"
@@ -124,7 +123,6 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
-ReconMethodParameterValues="[1, 1]" \
 ReconFilterType='unknown' \
 ReconFilterSize=1 \
 ReconMethodParameterLabels="[none, none]" \
