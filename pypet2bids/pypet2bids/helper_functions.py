@@ -512,8 +512,9 @@ def get_coordinates_containing(
                 if exact:
                     if value == containing:
                         coordinates.append((row_index, column_index))
-                elif not exact and numpy.isclose(value, containing, rtol=percent_tolerance):
-                    coordinates.append((row_index, column_index))
+                elif not exact and not isinstance(value, str) and not isinstance(containing, str):
+                    if numpy.isclose(value, containing, rtol=percent_tolerance):
+                        coordinates.append((row_index, column_index))
                 elif not exact and type(value) is str:
                     if str(containing) in value:
                         coordinates.append((row_index, column_index))
