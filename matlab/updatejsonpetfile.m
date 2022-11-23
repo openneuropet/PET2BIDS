@@ -2,7 +2,7 @@ function status = updatejsonpetfile(varargin)
 
 % generic function that updates PET json file with missing PET-BIDS
 % information, if only the jsonfile is provided, it only checks if valid
-% (and possibly updates some fields from scalar to array)
+% (and possibly updates some fields from scaler to array)
 %
 % :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %

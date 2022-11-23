@@ -43,17 +43,21 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %.. note::
 %
 %   See also get_pet_metadata.m to generate the metadata structure
-%            updatejsonpetfile to see how the json file gets updated and checked agains DICOM tags
 %
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+if isdeployed
+    dcm2niixpath = fullfile(G_PETS2BIDS_EXE_PATH,'dcm2niix.exe'); 
+else
+    dcm2niixpath = fullfile(which('dcm2niix4pet.m'),'dcm2niix.exe'); 
+end
+    
 if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
+   error(['dcm2niix path not found, currently having path ' dcm2niixpath ' and global was ' G_PETS2BIDS_EXE_PATH])
 end
 
-if ~ispc % overwrite if not windowns (as it should be in the computer path)
+if ~ispc % overwrite if not windows (as it should be in the computer path)
     dcm2niixpath = 'dcm2niix';
 end
 
