@@ -86,7 +86,7 @@ function metadata = get_pet_metadata(varargin)
 % | *Copyright Open NeuroPET team*
 
 global G_PETS2BIDS_EXE_PATH % Global path needed for MCR pointing to dcm2niix directory
-
+disp(['Work path is:' G_PETS2BIDS_EXE_PATH]);
 %% defaults are loaded via the *_parameters.txt file
 
 %% check inputs
@@ -227,13 +227,11 @@ else
      
     % evaluate key-value pairs for optional arguments from txt file
     if isdeployed
-        current = fileparts(G_PETS2BIDS_EXE_PATH);
-        parameter_file = fullfile(((current)),[Scanner 'parameters.txt']);
+        parameter_file = fullfile(G_PETS2BIDS_EXE_PATH,[Scanner 'parameters.txt']);
     else
-        current = fileparts(which('get_pet_metadata.m')); 
-        parameter_file = fullfile(fileparts(current(1:max(strfind(current,'matlab'))-2)),[Scanner 'parameters.txt']);
+        parameter_file = fullfile(which('get_pet_metadata.m'),[Scanner 'parameters.txt']);
     end
-    
+
     if ~any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);

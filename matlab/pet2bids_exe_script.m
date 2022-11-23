@@ -34,7 +34,7 @@ if (isdeployed)
         end
     end
     
-    % Path to dcm2niix is expected to be same as the script directory
+    % All files of compiled version, including dcm2niix.exe needs to be same mother of all directory
     [G_PETS2BIDS_EXE_PATH, fName, extn] = fileparts(file_name);
     if isempty(G_PETS2BIDS_EXE_PATH)
         G_PETS2BIDS_EXE_PATH = pwd;

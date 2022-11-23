@@ -5,7 +5,7 @@ This branch is used to compile pet2bids.m (include the matlab kernel so nothing 
 
 ## notes
 - _dcm2niix.exe_ must be located in directory above the executable (e.g., `D:\PET2BIDS\pet2bids_exe_script.exe` and dcm2niix.exe should be in `D:\`)
-- similarly use .txt files to pass generic metadata and place them next to the executable 
+- similarly use .txt files to pass generic metadata and place them next to dcm2niix.exe. 
 
 ## example
 
