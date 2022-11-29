@@ -1,0 +1,2 @@
+source='C:\Users\cyrus\Documents\trends\OpenPetBids\source';
+pet2bids(fullfile(source,['SiemensHRRT-NRU' filesep 'XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v']),'Scanner','SiemensHRRT','TimeZero','ScanStart','TracerName','FDG','TracerRadionuclide','F18','SpecificRadioactivity',1.3019e+04,'InjectedRadioactivity', 81.24,'ModeOfAdministration','infusion')

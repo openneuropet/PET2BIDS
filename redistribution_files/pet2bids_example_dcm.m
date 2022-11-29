@@ -1,0 +1,2 @@
+source='C:\Users\cyrus\Documents\trends\OpenPetBids\source';
+pet2bids(fullfile(source,'SiemensBiographPETMR-NRU'),'Scanner','SiemensBiograph','TimeZero','ScanStart','TracerName','AZ10416936','TracerRadionuclide','C11','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66,'ModeOfAdministration','bolus')

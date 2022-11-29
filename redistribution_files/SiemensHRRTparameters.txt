@@ -1,0 +1,10 @@
+InstitutionName            = 'Rigshospitalet, NRU, DK';
+BodyPart                   = 'Phantom';
+AcquisitionMode            = 'list mode';
+ImageDecayCorrected        = 'true';
+ImageDecayCorrectionTime   = 0;
+ReconFilterType            = 'none';
+ReconFilterSize            = 0;
+AttenuationCorrection      = '10-min transmission scan';
+FrameDuration              = 1200;
+FrameTimesStart            = 0;
