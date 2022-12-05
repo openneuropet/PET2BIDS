@@ -53,7 +53,7 @@ disp(['dcm2niix path is:' G_PETS2BIDS_EXE_PATH]);
 if isdeployed
     dcm2niixpath = fullfile(G_PETS2BIDS_EXE_PATH,'dcm2niix.exe'); 
 else
-    dcm2niixpath = fullfile(which('dcm2niix4pet.m'),'dcm2niix.exe'); 
+    dcm2niixpath = fullfile(pwd,'dcm2niix.exe'); 
 end
     
 if ispc && ~exist(dcm2niixpath,'file')

@@ -229,7 +229,7 @@ else
     if isdeployed
         parameter_file = fullfile(G_PETS2BIDS_EXE_PATH,[Scanner 'parameters.txt']);
     else
-        parameter_file = fullfile(which('get_pet_metadata.m'),[Scanner 'parameters.txt']);
+        parameter_file = fullfile(pwd,[Scanner 'parameters.txt']);
     end
 
     if ~any(cellfun(@exist, optional))
