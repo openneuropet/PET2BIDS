@@ -7,7 +7,7 @@ This branch is used to compile pet2bids.m (include the matlab kernel so nothing 
 - The default scanner parameter file uses .txt files to pass generic metadata.
 
 ## A short demo may be downloaded and run the following way:
-- First you need raw data to convert to dcm and you may download raw demo DICOM data using instructions from the following link: [https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view](https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view)
+- First you need raw data to convert to dcm and you may download raw demo DICOM data using the following link: [https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view](https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view)
 - Unzip the raw data and remember what folder you have the raw dcm files in (*)
 - Download installation file from <DOWNLOAD LINK WILL SOON COME>
 - From your Windows explorer, double click the exe-file you downloaded and follow instructions (to install the  compiled PET2BIDS)
