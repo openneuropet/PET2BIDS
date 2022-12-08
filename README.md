@@ -10,7 +10,8 @@ This branch is used to compile pet2bids.m (include the matlab kernel so nothing 
 ## A short demo may be downloaded and run the following way:
 - First you need raw data to convert to dcm and you may download raw demo DICOM data using the following link: [https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view](https://drive.google.com/file/d/10S0H7HAnMmxHNpZLlifR14ykIuiXcBAD/view)
 - Unzip the raw data and remember what folder you have the raw dcm files in (*)
-- Download installation file from <DOWNLOAD LINK WILL SOON COME>
+- Download installation file from the following link: [https://drive.google.com/file/d/1iJW6UP0FjM86wbEx5IskPQDPVNGVCCsV/view](https://drive.google.com/file/d/1iJW6UP0FjM86wbEx5IskPQDPVNGVCCsV/view)
+  - Please note that several internet browsers blocks exe files to be downloaded (e.g., MS Edge sometimes gives a "isn't commonly downloaded warning"). If you are being blocked, you may need to try to download the file using a different browser or machine.
 - From your Windows explorer, double click the exe-file you downloaded and follow instructions (to install the  compiled PET2BIDS)
 - Open a DOS command window (cmd.exe)
 - cd to the directory you chose as Destination folder during the installation above and choose the directory containing pet2bids_exe_script.exe (e.g., cd "C:\Program Files\pet2bids_exe_script\application")
