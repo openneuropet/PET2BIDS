@@ -8,6 +8,7 @@ Welcome to PET2BIDS's documentation!
 
 .. toctree::
    about
+   installation
    usage
    modules
    matlab

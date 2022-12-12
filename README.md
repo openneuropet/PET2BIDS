@@ -27,7 +27,12 @@ Simply download the repository - follow the specific Matlab or Python explanatio
 
 ### pypet2bids
 
-Under the /pypet2bids folder,  you will find the source code to use - follow the installation instruction in /pypet2bids/pypet2bids/README.md.
+Use pip:
+
+[![asciicast](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.svg)](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy)
+
+Or run from this source under the /pypet2bids folder, follow the installation instruction in 
+/pypet2bids/pypet2bids/README.md for more details.
 
 ### spreadsheet_conversion (custom and pmod)
 

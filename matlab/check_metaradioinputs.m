@@ -8,8 +8,8 @@ function dataout = check_metaradioinputs(varargin)
 %
 % .. note:: arguments in are provided via the following params (key/value pairs)
 %   e.g.
-%    - 'InjectedRadioctivity',81.24
-%    - 'SpecificRadioactivity',1.3019e+04
+%   - 'InjectedRadioctivity',81.24
+%   - 'SpecificRadioactivity',1.3019e+04
 %
 % :param InjectedRadioactivity: in MBq
 % :param InjectedMass:          in ug
@@ -20,7 +20,6 @@ function dataout = check_metaradioinputs(varargin)
 % :return: a structure with the original and updated field,
 %         including expected units
 %
-% .. note::
 %
 % | *Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021*
 % | *Copyright Open NeuroPET team*

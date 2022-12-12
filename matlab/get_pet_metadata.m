@@ -9,38 +9,21 @@ function metadata = get_pet_metadata(varargin)
 %
 % :param Default:  \(aquisition and reconstruction parameters\) can be
 %    stored in a \*_parameters.txt seating on disk next to this function
-%    or passed as argument in. Replace * by the name of your scanner \- for now we
+%    or passed as argument in. Replace \* by the name of your scanner \- for now we
 %    tested 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
 %    'PhillipsIngenuityPETMR','PhillipsIngenuityPETCT'.
 %    \(see templates, as some info can be recovered from ecat or dcm - ie not
 %    all info is necessarily needed\)
-%
 % :param inputs: a series of key/value pairs are expected
-%
-% :returns metadata: a structure with BIDS fields filled (such structure is ready
+% :returns metadata: a structure with BIDS fields filled \(such structure is ready
 %                   to be writen as json file using e.g. the bids matlab jsonwrite 
-%                   function, typically associated with the *_pet.nii file)
-%
-% Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
-%
-% .. code-block::
-%
-%    InstitutionName            = 'Rigshospitalet, NRU, DK';
-%    BodyPart                   = 'Phantom';
-%    AcquisitionMode            = 'list mode';
-%    ImageDecayCorrected        = 'true';
-%    ImageDecayCorrectionTime   = 0;
-%    ReconFilterType            = 'none';
-%    ReconFilterSize            = 0;
-%    AttenuationCorrection      = '10-min transmission scan';
-%    FrameDuration              = 1200; 
-%    FrameTimesStart            = 0;
+%                   function, typically associated with the *_pet.nii file\)
 %
 % :format:  metadata = get_pet_metadata(key,value)
 %
 % .. note::
 %
-%   Mandatory inputs are as follows:
+%  Mandatory inputs are as follows\:
 %
 %   - *Scanner* name of scanner, map to a *parameters.txt file  e.g. 'Scanner', 'SiemensBiograph'
 %   - *TimeZero* when was the tracer injected                   e.g. 'TimeZero','11:05:01'
@@ -56,6 +39,21 @@ function metadata = get_pet_metadata(varargin)
 %   - *MolecularWeight* value in g/mol                          e.g. 'MolecularWeight', 15.02
 %   - *SpecificRadioactivity* in Bq/g or Bq/mol                 e.g. 'SpecificRadioactivity', 3.7989e+14
 %
+% Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
+%
+% .. code-block::
+%
+%    InstitutionName            = 'Rigshospitalet, NRU, DK';
+%    BodyPart                   = 'Phantom';
+%    AcquisitionMode            = 'list mode';
+%    ImageDecayCorrected        = 'true';
+%    ImageDecayCorrectionTime   = 0;
+%    ReconFilterType            = 'none';
+%    ReconFilterSize            = 0;
+%    AttenuationCorrection      = '10-min transmission scan';
+%    FrameDuration              = 1200;
+%    FrameTimesStart            = 0;
+%
 % .. note::
 %   TimeZero also can be [] or 'ScanStart' indicating that the scanning time 
 %   should be used as TimeZero. If TimeZero is not the scan time, we strongly
@@ -64,9 +62,10 @@ function metadata = get_pet_metadata(varargin)
 % .. note::
 %   OPTIONAL INPUTS ARE ALL OTHER BIDS FIELDS
 %
+% Example
+%
 % .. code-block::
 %
-%   Example
 %   meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
 %                         'TracerName','CB36','TracerRadionuclide','C11', ...
 %                         'ModeOfAdministration','infusion','SpecificRadioactivity', ...
