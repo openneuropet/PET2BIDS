@@ -1,31 +1,15 @@
-"""
-This module contains a collection of general functions used across this library, that is to say if a method ends up here
-it is because it is useful in more than one context.
-
-Some of the modules in this library that depend on this module are:
-
-- :meth:`pypet2bids.convert_pmod_to_blood`
-- :meth:`pypet2bids.dcm2niix4pet`
-- :meth:`pyet2bids.read_ecat`
-- :meth:`pypet2bids.ecat`
-- :meth:`pypet2bids.ecat2nii`
-- :meth:`pypet2bids.multiple_spreadsheets`
-
-| *Authors: Anthony Galassi*
-| *Copyright OpenNeuroPET team*
-"""
-import os
 import gzip
+import os
 import re
 import shutil
 import typing
 import json
 import warnings
 import logging
+
 import dotenv
 import ast
 
-import numpy
 import pandas
 import toml
 import pathlib
@@ -33,17 +17,20 @@ from pandas import read_csv, read_excel
 import importlib
 import argparse
 from typing import Union
-from platform import system
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
-project_dir = parent_dir.parent.parent
-if 'PET2BIDS' not in project_dir.parts:
-    project_dir = parent_dir
 
-metadata_dir = os.path.join(project_dir, 'metadata')
-pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
+# Note, imports can be weird, this makes sure that we look in the right folder when importing outside of where
+# this library is installed. 
+if 'site-packages' in parent_dir.parts:
+    metadata_dir = parent_dir  / 'metadata'
+else:
+    project_dir = parent_dir.parent.parent
+    metadata_dir = project_dir / 'metadata'
+
+pet_metadata_json = metadata_dir / 'PET_metadata.json'
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
-pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
+
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:
@@ -79,7 +66,7 @@ def single_spreadsheet_reader(
         path_to_spreadsheet: Union[str, pathlib.Path],
         pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
         metadata={},
-        **kwargs) -> dict:
+        **kwargs):
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -128,15 +115,8 @@ def compress(file_like_object, output_path: str = None):
         file_like_object path
     :return: output_path on successful completion of compression
     """
-    file_like_object = pathlib.Path(file_like_object)
-
-    if file_like_object.exists() and not output_path:
-        old_suffix = file_like_object.suffix
-        if '.gz' not in old_suffix:
-            output_path = file_like_object.with_suffix(old_suffix + '.gz')
-        else:
-            output_path = file_like_object
-
+    if os.path.isfile(file_like_object) and not output_path:
+        output_path = os.path.join(file_like_object, '.gz')
     elif not os.path.isfile(file_like_object):
         raise Exception(f"{file_like_object} is not a valid file to compress.")
     else:
@@ -148,9 +128,6 @@ def compress(file_like_object, output_path: str = None):
     output = gzip.GzipFile(output_path, 'wb')
     output.write(input_data)
     output.close()
-
-    if output_path.exists():
-        file_like_object.unlink(missing_ok=True)
 
     return output_path
 
@@ -190,8 +167,8 @@ def load_vars_from_config(path_to_config: str):
 
     for parameter, value in parameters.items():
         try:
-            parameters[parameter] = very_tolerant_literal_eval(value)
-        except (ValueError, SyntaxError):
+            parameters[parameter] = ast.literal_eval(value)
+        except ValueError:
             parameters[parameter] = str(value)
 
     return parameters
@@ -224,122 +201,55 @@ def get_version():
     return version
 
 
-def is_numeric(check_this_object: str) -> bool:
-    try:
-        converted_to_num = ast.literal_eval(check_this_object)
-        numeric_types = [int, float, pandas.NA]
-        if type(converted_to_num) in numeric_types:
-            return True
-    except (ValueError, TypeError):
-        return False
-
-
 class ParseKwargs(argparse.Action):
     """
     Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
     Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
     This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
-    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={})`
+    `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=ParseKwargs, default={})`
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, dict())
         for value in values:
-            try:
-                key, value = value.split('=')
-                getattr(namespace, self.dest)[key] = very_tolerant_literal_eval(value)
-            except ValueError:
-                raise Exception(f"Unable to unpack {value}")
+            key, value = value.split('=')
+            getattr(namespace, self.dest)[key] = value
 
 
-def very_tolerant_literal_eval(value):
-    """
-    Evaluates a string or string like input into a python datatype. Provides a lazy way to extract True from 'true',
-    None from 'none', [0] from '[0'], etc. etc.
-    :param value: the value you wish to convert to a python type
-    :type value: string like, could be anything that can be evaluated as valid python
-    :return: the value converted into a python object
-    :rtype: depends on what ast.literal_eval determines the object to be
-    """
-    try:
-        value = ast.literal_eval(value)
-    except (SyntaxError, ValueError):
-        if str(value).lower() == 'none':
-            value = None
-        elif str(value).lower() == 'true':
-            value = True
-        elif str(value).lower() == 'false':
-            value = False
-        elif str(value)[0] == '[' and str(value)[-1] == ']':
-            array_contents = str(value).replace('[', '').replace(']', '')
-            array_contents = array_contents.split(',')
-            array_contents = [str.strip(content) for content in array_contents]
-            # evaluate array contents one by one
-            value = [very_tolerant_literal_eval(v) for v in array_contents]
-        else:
-            value = str(value)
-    return value
-
-
-def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> pandas.DataFrame:
+def open_meta_data(metadata_path: Union[str, pathlib.Path]) -> pandas.DataFrame:
     """
     Opens a text metadata file with the pandas method most appropriate for doing so based on the metadata
     file's extension.
-    :param metadata_path: Path or pathlike object/string to a spreadsheet file
-    :type metadata_path: Path or str
-    :param separator: Optional seperator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
-    :type separator: str
+    :param extension: The extension of the file
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
 
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
-    separators_present = []
     if metadata_path.exists():
         pass
     else:
         raise FileExistsError(metadata_path)
 
-    # collect suffix from metadata and use the approriate pandas method to read the data
+    # collect suffix from metadata an use the approriate pandas method to read the data
     extension = metadata_path.suffix
 
     methods = {
         'excel': read_excel,
-        'csv': read_csv,
-        'txt': read_csv
+        'csv': read_csv
     }
 
-    if 'xls' in extension or 'bld' in extension:
+    if 'xls' in extension:
         proper_method = 'excel'
     else:
-        proper_method = extension.replace('.', '')
-        with open(metadata_path, 'r') as infile:
-            first_line = infile.read()
-            # check for separators in line
-            separators = ['\t', ',']
-            for sep in separators:
-                if sep in first_line:
-                    separators_present.append(sep)
+        proper_method = extension
 
     try:
-        warnings.filterwarnings('ignore', message='ParserWarning: Falling*')
         use_me_to_read = methods.get(proper_method, None)
-        if proper_method != 'excel':
-            if '\t' in separators_present:
-                separator = '\t'
-            else:
-                separator = ','
-            metadata_dataframe = use_me_to_read(metadata_path, sep=separator)
-        else:
-            metadata_dataframe = use_me_to_read(metadata_path)
-
-    except (IOError, ValueError) as err:
-        try:
-            metadata_dataframe = pandas.read_csv(metadata_path, sep=separator, engine='python')
-        except IOError:
-            logging.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
-            raise err(f"Problem opening {metadata_path}")
+        metadata_dataframe = use_me_to_read(metadata_path)
+    except IOError as err:
+        raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
 
@@ -395,10 +305,8 @@ def write_out_module(module: str = 'pypet2bids.metadata_spreadsheet_example_read
 def expand_path(path_like: str) -> str:
     """
     Expands relative ~ paths to full paths
-
     :param path_like: path like string
     :type path_like: string
-
     :return: full path string
     :rtype: string
     """
@@ -504,16 +412,12 @@ def get_coordinates_containing(
     :rtype: tuple or list of tuples
     """
 
-    percent_tolerance = 0.001
     coordinates = []
     for row_index, row in dataframe.iterrows():
         for column_index, value in row.items():
             if value is not pandas.NA:
                 if exact:
                     if value == containing:
-                        coordinates.append((row_index, column_index))
-                elif not exact and not isinstance(value, str) and not isinstance(containing, str):
-                    if numpy.isclose(value, containing, rtol=percent_tolerance):
                         coordinates.append((row_index, column_index))
                 elif not exact and type(value) is str:
                     if str(containing) in value:
@@ -554,245 +458,3 @@ def transform_row_to_dict(row: typing.Union[int, str, pandas.Series], dataframe:
         transformed[key] = evaluated
 
     return transformed
-
-
-# noinspection PyPep8Naming
-def get_recon_method(ReconstructionMethodString: str) -> dict:
-    """
-    Given the reconstruction method from a dicom header this function does its best to determine the name of the
-    reconstruction, the number of iterations used in the reconstruction, and the number of subsets in the
-    reconstruction.
-
-    :param ReconstructionMethodString:
-    :return: dictionary containing PET BIDS fields ReconMethodName, ReconMethodParameterUnits,
-        ReconMethodParameterLabels, and ReconMethodParameterValues
-
-    """
-    contents = ReconstructionMethodString.replace(' ', '')
-    subsets = None
-    iterations = None
-    ReconMethodParameterUnits = ["none", "none"]
-    ReconMethodParameterLabels = ["subsets", "iterations"]
-
-    # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
-    iter_sub_combos = {
-        'iter_first': [r'\d\di\ds', r'\d\di\d\ds', r'\di\ds', r'\di\d\ds',
-                       r'i\d\ds\d', r'i\d\ds\d\d', r'i\ds\d', r'i\ds\d\d'],
-        'sub_first': [r'\d\ds\di', r'\d\ds\d\di', r'\ds\di', r'\ds\d\di',
-                      r's\d\di\d', r's\d\di\d\d', r's\di\d', r's\di\d\d'],
-    }
-
-    iter_sub_combos['iter_first'] = [re.compile(regex) for regex in iter_sub_combos['iter_first']]
-    iter_sub_combos['sub_first'] = [re.compile(regex) for regex in iter_sub_combos['sub_first']]
-    order = None
-    possible_iter_sub_strings = []
-    iteration_subset_string = None
-    # run through possible combinations of iteration substitution strings in iter_sub_combos
-    for key, value in iter_sub_combos.items():
-        for expression in value:
-            iteration_subset_string = expression.search(contents)
-            if iteration_subset_string:
-                order = key
-                iteration_subset_string = iteration_subset_string[0]
-                possible_iter_sub_strings.append(iteration_subset_string)
-    # if matches get ready to pick one
-    if possible_iter_sub_strings:
-        # sorting matches by string length as our method can return more than one match e.g. 3i21s will return
-        # 3i21s and 3i1s or something similar
-        possible_iter_sub_strings.sort(key=len)
-        # picking the longest match as it's most likely the correct one
-        iteration_subset_string = possible_iter_sub_strings[-1]
-
-    # after we've captured the subsets and iterations we next need to separate them out from each other
-    if iteration_subset_string and order:
-        #  remove all chars replace with spaces
-        just_digits = re.sub(r'[a-zA-Z]', " ", iteration_subset_string)
-        just_digits = just_digits.strip()
-        # split up subsets and iterations
-        just_digits = just_digits.split(" ")
-        # assign digits to either subsets or iterations based on order information obtained earlier
-        if order == 'iter_first' and len(just_digits) == 2:
-            iterations = int(just_digits[0])
-            subsets = int(just_digits[1])
-        elif len(just_digits) == 2:
-            iterations = int(just_digits[1])
-            subsets = int(just_digits[0])
-        else:
-            # if we don't have both we decide that we don't have either, flawed but works for the samples in
-            # test_dcm2niix4pet.py may. Will be updated when non-conforming data is obtained
-            pass  # do nothing, this case shouldn't fire.....
-
-    if iteration_subset_string:
-        ReconMethodName = re.sub(iteration_subset_string, "", contents)
-    else:
-        ReconMethodName = contents
-
-    # cleaning up weird chars at end or start of name
-    ReconMethodName = re.sub(r'[^a-zA-Z0-9]$', "", ReconMethodName)
-    ReconMethodName = re.sub(r'^[^a-zA-Z0-9]', "", ReconMethodName)
-
-    expanded_name = ""
-    # get the dimension as it's often somewhere in the name
-    dimension = ""
-
-    search_criteria = r'[1-4][D-d]'
-    if re.search(search_criteria, ReconMethodName):
-        dimension = re.search(search_criteria, ReconMethodName)[0]
-
-    # doing some more manipulation of the recon method name to expand it from not so helpful acronyms
-    possible_names = load_pet_bids_requirements_json(pet_reconstruction_metadata_json)['reconstruction_names']
-
-    # we want to sort the possible names by longest first that we don't break up an acronym prematurely
-    sorted_df = pandas.DataFrame(possible_names).sort_values(by='value', key=lambda x: x.str.len(), ascending=False)
-
-    possible_names = []
-    for row in sorted_df.iterrows():
-        possible_names.append({'value': row[1]['value'], 'name': row[1]['name']})
-
-    for name in possible_names:
-        if name['value'] in ReconMethodName:
-            expanded_name += name['name'] + " "
-            ReconMethodName = re.sub(name['value'], "", ReconMethodName)
-
-    if expanded_name != "":
-        ReconMethodName = dimension + " "*len(dimension) + expanded_name.rstrip()
-        ReconMethodName = " ".join(ReconMethodName.split())
-
-    reconstruction_dict = {
-        "ReconMethodName": ReconMethodName,
-        "ReconMethodParameterUnits": ReconMethodParameterUnits,
-        "ReconMethodParameterLabels": ReconMethodParameterLabels,
-        "ReconMethodParameterValues": [subsets, iterations]
-    }
-
-    if None in reconstruction_dict['ReconMethodParameterValues']:
-        reconstruction_dict.pop('ReconMethodParameterValues')
-        reconstruction_dict.pop('ReconMethodParameterUnits')
-        for i in range(len(reconstruction_dict['ReconMethodParameterLabels'])):
-            reconstruction_dict['ReconMethodParameterLabels'][i] = "none"
-
-    return reconstruction_dict
-
-
-def set_dcm2niix_path(dc2niix_path: pathlib.Path):
-    """
-    Given a path (or a string it thinks might be a path), updates the config file to point to
-    a dcm2niix.exe file. Used on windows via dcm2niix command line
-    :param dc2niix_path: path to dcm2niix executable
-    :type dc2niix_path: path
-    :return: None
-    :rtype: None
-    """
-    # load dcm2niix file
-    config_file = pathlib.Path.home()
-    config_file = config_file / ".pet2bidsconfig"
-    if config_file.exists():
-        # open the file and read in all the lines
-        temp_file = pathlib.Path.home() / '.pet2bidsconfig.temp'
-        with open(config_file, 'r') as infile, open(temp_file, 'w') as outfile:
-            for line in infile:
-                if 'DCM2NIIX_PATH' in line:
-                    outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
-                else:
-                    outfile.write(line)
-        if system().lower() == 'windows':
-            config_file.unlink(missing_ok=True)
-        temp_file.replace(config_file)
-    else:
-        # create the file
-        with open(config_file, 'w') as outfile:
-            outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
-
-
-def check_units(entity_key: str, entity_value: str, accepted_units: Union[list, str]):
-    """
-    Given an entity's name, value, and an accepted range of values (accepted units), check whether those units are
-    valid/in accepted units. Raises warning and returns False if units in entity value don't intersect with any entry
-    in accepted_units
-
-    :param entity_key: key/name of the entity
-    :type entity_key: str
-    :param entity_value: units value; some sort of SI unit(s) see (GBq, g, etc)
-    :type entity_value: str
-    :param accepted_units: a range of accepted units for the BIDS entity
-    :type accepted_units: str or list
-    :return: Whether the units in entity value ar allowed or not
-    :rtype: bool
-    """
-    allowed = False
-    for accepted in accepted_units:
-        if entity_value.lower() == accepted.lower:
-            allowed = True
-            break
-
-    if allowed:
-        pass
-    else:
-        if type(accepted_units) is str or (type(accepted_units) is list and len(accepted_units) == 1):
-            warning = f"{entity_key} must have units as {accepted_units}, ignoring given units {entity_value}"
-        elif type(accepted_units) is list and len(accepted_units) > 1:
-            warning = f"{entity_key} must have units as on of  {accepted_units}, ignoring given units {entity_value}"
-
-        logging.warning(warning)
-
-    return allowed
-
-
-def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_checked=None):
-    """
-    Check to run on PET BIDS metadata to evaluate whether input is acceptable or not, this function will most likely be
-    refactored to use the schema instead of relying on hardcoded checks as listed in items_that_should_be_checked
-    :param metadata:
-    :type metadata:
-    :param modify_input:
-    :type modify_input:
-    :param items_that_should_be_checked: items to check, hardcoded at the moment, but can accept a dict as input
-    :type items_that_should_be_checked: dict
-    :return:
-    :rtype:
-    """
-    # dictionary of entities and their acceptable units to check
-    if items_that_should_be_checked is None:
-        items_that_should_be_checked = {}
-    hardcoded_items = {
-        'InjectedRadioactivityUnits': 'MBq',
-        'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
-        'InjectedMassUnits': 'ug',
-        'MolarActivityUnits': 'GBq/umolug',
-        'MolecularWeightUnits': 'g/mol'
-    }
-
-    # if none are
-    items_that_should_be_checked.update(**hardcoded_items)
-
-    # iterate through ad hoc items_that_should_be_checked that exist in our metadata
-    for entity, units in items_that_should_be_checked.items():
-        check_input_entity = metadata.get(entity, None)
-        if check_input_entity:
-            # this will raise a warning if the units aren't acceptable
-            units_are_good = check_units(entity_key=entity, entity_value=check_input_entity, accepted_units=units)
-
-            # this will remove an entity from metadata form dictionary if it's not good
-            if modify_input and not units_are_good:
-                metadata.pop(entity)
-
-    return metadata
-    
-def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.Path]:
-    if ' ' in str(bad_path):
-        return f'"{bad_path}"'.rstrip().strip()
-    else:
-        return bad_path
-
-
-def drop_row(dataframe: pandas.DataFrame, index: int):
-    row = dataframe.loc[index]
-    dataframe.drop(index, inplace=True)
-    return row
-
-
-def replace_nones(dictionary):
-    json_string = json.dumps(dictionary)
-    # sub nulls
-    json_fixed = re.sub('null', '"none"', json_string)
-    return json.loads(json_fixed)
