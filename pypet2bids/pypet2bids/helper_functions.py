@@ -469,19 +469,19 @@ def get_coordinates_containing(
     float. When searching for integers or floats it is most likely best to use set the exact argument to True; the same
     goes for finding the exact match of a string. This method is primarily meant to find the row corresponding to a
     subject ID, e.g.
-    # if your dataframe is given as
 
-        subject_id    some_values    more_values
-        sub-NDAR1     1              2
-        sub-NDAR2     3              3
+    if your dataframe is given as
+
+    subject_id    some_values    more_values
+    sub-NDAR1     1              2
+    sub-NDAR2     3              3
 
     And you provided the arguments: `containing='sub-NDAR', exact=False` you would return a set of the following
     co-ordinates
 
-        [(0, 'subject_id'), (1, 'subject_id')]
+    [(0, 'subject_id'), (1, 'subject_id')]
 
     If you are confident in your input data you would most likely call this method this way:
-
 
     >>> coordinates = get_coordinates_containing(
     >>>     'sub-NDAR1',

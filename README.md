@@ -21,13 +21,26 @@ Simply download the repository - follow the specific Matlab or Python explanatio
 
 ### matlab
 
-1 - remember to set the path to the PET2BIDS/matlab folder, you will find the source code to use here.
-2 - if converting DICOM files, make sure you have dcm2niix (for windows users, edit dcm2niix4pet.m to set the right paths to the .exe)
-3 - start using the code! more info [here](https://github.com/openneuropet/PET2BIDS/tree/main/matlab#readme)
+[![asciicast](https://asciinema.org/a/RPxiHW6afISPmWYFBOGKWNem1.svg)](https://asciinema.org/a/RPxiHW6afISPmWYFBOGKWNem1)
+
+1) remember to set the path to the PET2BIDS/matlab folder, you will find the source code to use here.
+2) if converting DICOM files, make sure you have dcm2niix (for windows users, edit dcm2niix4pet.m to set the right paths to the .exe)
+3) start using the code! more info [here](https://github.com/openneuropet/PET2BIDS/tree/main/matlab#readme)
 
 ### pypet2bids
 
-Under the /pypet2bids folder,  you will find the source code to use - follow the installation instruction in /pypet2bids/pypet2bids/README.md.
+Use pip:
+
+[![asciicast](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.svg)](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy)
+
+For advance users clone this repository and run from the python source under the `PET2BIDS/pypet2bids` folder. If you 
+wish to build and install via pip locally we recommend you do so using [poetry](https://python-poetry.org/) build or
+using the make commands below.
+
+```bash
+cd PET2BIDS
+make installpoetry buildpackage installpackage
+```
 
 ### spreadsheet_conversion (custom and pmod)
 

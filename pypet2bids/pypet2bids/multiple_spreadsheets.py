@@ -1,18 +1,9 @@
-import typing
-import os
-import pathlib
-import argparse
-import logging
-import numpy
 from json_maj.main import JsonMAJ
 
 try:
     from pypet2bids.helper_functions import *
 except ModuleNotFoundError:
     from helper_functions import *
-
-#from pypet2bids.helper_functions import single_spreadsheet_reader, get_coordinates_containing, \
-#    collect_bids_part, transform_row_to_dict, open_meta_data, load_pet_bids_requirements_json
 
 
 def read_multi_subject_spreadsheets(
@@ -120,6 +111,7 @@ def write_multi_subject_spreadsheets(subjects: dict, output_path: typing.Union[s
     """
     Writes out a dictionary of subjects to a series of json files, if files exist updates
     them with new values obtained from spreadsheets.
+
     :param subjects: subject dictionary with subject id as primary keys and all bids fields as values
     :type subjects: dict
     :param output_path: path to write out files to, very much required
@@ -129,7 +121,7 @@ def write_multi_subject_spreadsheets(subjects: dict, output_path: typing.Union[s
         specified. Works on existing bids trees so long as session and subject id can be parsed from
         multi subject input sheet.
     :type create_bids_tree: bool
-    :return: none
+    :return: None
     :rtype: None
     """
     if create_bids_tree:

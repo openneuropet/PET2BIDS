@@ -8,30 +8,11 @@ Matlab
 
 **Read and write raw scanner files as nifti + json**
 
-BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created overwise.
+BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one
+reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created
+overwise.
 
-**Dependencies**
 
-*To convert DICOM files*,
-`dcm2niix <https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage>`_ (Chris Rorden) must be installed.
-Windows users must, in addition, indicate its full path in
-`dcm2niix4pet.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m#L42>`_.
-
-**Redistributed functions**
-
-To convert ECAT files, `ecat2nii.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/ecat2nii.m>`_ uses
-`readECAT7 <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/readECAT7.m>`_ (Raymond Muzic, 2002) and
-`nii_tool <https://github.com/xiangruili/dicm2nii>`_ (Xiangrui Li, 2016), who are included and redistributed in the
-repository. *To write the JSON sidecar files*, one uses jsonwrite.m (Guillaume Flandin, 2020) taken from
-`json.io <https://github.com/gllmflndn/JSONio>`_.
-
-**Configuration**
-
-The entire repository or only the matlab subfolder (your choice) should be in your matlab path.  
-
-Defaults parameters should be set in (scannername).txt files to generate metadata easily (i.e. avoiding to pass
-all arguments in although this is also possible). You can find templates of such parameter file under /template_txt
-(SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
 
 **Using matlab code**
 
@@ -138,80 +119,13 @@ requires that dcm2niix be installed and findable on the system path. Windows req
 the path to dcm2niix within an environment variable in a config file.
 
 For more information on how to
-install dcm2niix see Dcm2niix_.
+install dcm2niix see `here <https://github.com/rordenlab/dcm2niix#install>`__.
 
-.. _Dcm2niix: https://github.com/rordenlab/dcm2niix#install
+.. raw:: html
 
+    <script id="asciicast-nYyYCVyBf9IawnLjGhf11t9Fq" src="https://asciinema.org/a/nYyYCVyBf9IawnLjGhf11t9Fq.js"
+    async data-autoplay="true" data-speed="2" data-loop="true"></script>
 
-**Installation**
-
-The python version of PET2BIDS (from herein referenced by it's library name *pypet2bids*) can be installed
-via pip for Python versions >3.7.1,<3.10
-
-.. code-block::
-
-    pip install pypet2bids
-
-Additionally, pypet2bids can be run from source by cloning the source code at our Github_.
-
-.. _Github: https://github.com/openneuropet/PET2BIDS
-
-.. code-block::
-
-    git clone git@github.com:openneuropet/PET2BIDS.git
-
-and then installing it's dependencies via pip:
-
-.. code-block::
-
-    cd PET2BIDS/pypet2bids
-    pip install -r requirements.txt
-
-Or with `Poetry <https://python-poetry.org/>`_:
-
-.. code-block::
-
-    cd PET2BIDS/pypet2bids
-    poetry install
-
-**Windows Only**
-
-It's important that python be on your windows path; when installing Python be sure to select **Add Python 3.XXX**
-to PATH:
-
-.. image:: media/check_python_path_windows_install.png
-
-Otherwise, if you're a savvy user w/ admin you config your PATH variable/cmd however you see fit. The above is simply
-this easiest and most universal way of getting python onto windows path.
-
-Windows requires the user to manually point to the installed path of
-`dcm2niix <https://github.com/rordenlab/dcm2niix>`_.
-Pypet2bids checks for this path in the *.petbidsconfig* file located at the users home director. This file needs to
-exist and contain a valid path to dcm2niix.exe stored under the name *DCM2NIIX_PATH*. This can be set up by either
-manually creating the file:
-
-.. code-block::
-
-    # get the home directory
-    echo $Home
-
-    C:\Users\pet2bidsuser\
-
-    # then save a configuration file at the location $Home\.pet2bidsconfig containing the following line
-    DCM2NIIX_PATH="<path to dcm2niix exe>"
-
-    # e.g. when printing out the contents of the file at .pet2bidsconfig on should see something 
-    # resembling the following
-    cat C:\Users\pet2bidsuser\.pet2bidsconfig
-    DCM2NIIX_PATH="C:\Users\pet2biduser\dcm2niix.exe"
-    
-Or using the *dcm2niix4pet* tool itself to set up the configuration:
-
-.. code-block::
-
-    dcm2niix4pet --set-dcm2niix-path \path\to\dcm2niix.exe
-
-------------------------------------------------------------------------------------------------------------------------
 
 If successfully installed you should have access to 2 command line tools, check to see if they are available via your
 terminal/commandline by typing the following into your cmd window:
@@ -389,6 +303,3 @@ Then point the optional `metadatapath` flag at the spreadsheet location:
     dcm2niix4pet /folder/containing/PET/dicoms/
     --destination /folder/containing/PET/nifti_jsons
     --metadatapath /file/PET_metadata.xlsx
-
-------------------------------------------------------------------------------------------------------------------------
-
