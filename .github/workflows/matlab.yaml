@@ -19,7 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
+      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer.v.gz
+      #TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
 
@@ -53,5 +54,5 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.TEST_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
+            ecat2nii_test
         if: matrix.os == 'ubuntu-latest'
