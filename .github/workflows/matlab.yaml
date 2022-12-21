@@ -20,7 +20,6 @@ jobs:
 
     env:
       TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer.v.gz
-      #TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
 
