@@ -19,13 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ECAT_TEST_FOLDER: "cimbi36"
-      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
-      SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
-      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
-      OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
-      READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.mat
-      NIBABEL_READ_ECAT_SAVE_AS_MATLAB: ${{ github.workspace }}/pypet2bids/tests/ECAT7_multiframe.nibabel.mat
+      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
 
@@ -44,20 +38,6 @@ jobs:
         with:
           limit-access-to-actor: true
 
-      - name: Cache ECAT
-        id: cache-ecat
-        uses: actions/cache@v2
-        with:
-          path: cimbi36
-          key: ${{ runner.os }}-ecats
-
-      - name: Install gdown and collect Ecat from Google Drive
-        run: "python3 -m pip install gdown && gdown ${{ secrets.CIMBI_ECAT_ON_GOOGLE_DRIVE }} -O ecat_test"
-
-      - name: Decompress dataset
-        if: steps.cache-ecat.outputs.cache-hit != 'true'
-        run: "tar xvzf ecat_test && rm ecat_test"
-
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
         uses: matlab-actions/setup-matlab@v1
@@ -71,7 +51,7 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.SMALLER_ECAT_PATH }}');
+            addpath('${{ env.TEST_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test('${{ env.SMALLER_ECAT_PATH }}')
+            ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
