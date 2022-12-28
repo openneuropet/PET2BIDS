@@ -28,6 +28,7 @@ except ModuleNotFoundError:
 
 from dateutil import parser
 
+logger = helper_functions.log()
 
 def parse_this_date(date_like_object) -> str:
     """
@@ -264,7 +265,7 @@ class Ecat:
 
         if not self.sidecar_template.get('TimeZero', None):
             if not self.sidecar_template.get('AcquisitionTime', None):
-                print(f"Unable to determine TimeZero for {self.ecat_file}, you need will need to provide this"
+                logger.warn(f"Unable to determine TimeZero for {self.ecat_file}, you need will need to provide this"
                       f" for a valid BIDS sidecar.")
             else:
                 self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']

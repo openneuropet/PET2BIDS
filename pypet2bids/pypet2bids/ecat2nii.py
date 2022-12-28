@@ -13,6 +13,13 @@ from pypet2bids.read_ecat import read_ecat
 import os
 import pickle
 
+try:
+    import helper_functions
+except ModuleNotFoundError:
+    import pypet2bids.helper_functions as helper_functions
+
+
+logger = helper_functions.log()
 
 def ecat2nii(ecat_main_header=None,
              ecat_subheaders=None,
@@ -72,7 +79,7 @@ def ecat2nii(ecat_main_header=None,
     if kwargs.get('TimeZero', None):
         TimeZero = kwargs['TimeZero']
     else:
-        print("Metadata TimeZero is missing -- set to ScanStart or empty to use the scanning time as "
+        logger.warn("Metadata TimeZero is missing -- set to ScanStart or empty to use the scanning time as "
               "injection time")
 
     # get image shape

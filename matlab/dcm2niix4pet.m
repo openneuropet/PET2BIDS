@@ -57,6 +57,23 @@ if ~ispc % overwrite if not windowns (as it should be in the computer path)
     dcm2niixpath = 'dcm2niix';
 end
 
+% we rely on more recent version of dcm2niix, certain pet fields are unavailable in the sidecar jsons for versions
+% before v1.0.20220720
+
+minimum_version = 'v1.0.20220720';
+minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
+version_cmd = ['dcm2niix', ' -v'];
+[status, version_output_string] = system(version_cmd);
+version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
+
+if length(version) >= 1
+    version_date = version{1}(6:end);
+    version_date = datetime(version_date, 'InputFormat', 'yyyyMMdd');
+    if version_date < minimum_version_date
+        warning(['Version of installed dcm2niix is ', version{1}, ', recommended version is: ', minimum_version ' and above.']);
+    end
+end
+
 %% defaults
 % ---------
 

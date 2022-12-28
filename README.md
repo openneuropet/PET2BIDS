@@ -7,7 +7,10 @@
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). The work to create these tools is funded by [Novo Nordisk fonden](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the [BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
 
-For DICOM conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage), collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix and nifti please see [The first step for neuroimaging data analysis: DICOM to NIfTI conversion](https://www.ncbi.nlm.nih.gov/pubmed/26945974) paper.
+For DICOM conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage), 
+collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix 
+and nifti please see [The first step for neuroimaging data analysis: DICOM to NIfTI conversion](https://www.ncbi.nlm.nih.gov/pubmed/26945974) paper.
+
 
 # Documentation
 
@@ -41,6 +44,13 @@ using the make commands below.
 cd PET2BIDS
 make installpoetry buildpackage installpackage
 ```
+
+**Note:**
+*We recommend using dcm2niix v1.0.20220720 or newer; we rely on metadata included in these later releases. It's best to 
+collect releases from the [rorden lab/dcm2niix/releases](https://github.com/rordenlab/dcm2niix/releases) page. We have
+observed that package managers such as yum or apt or apt-get often install much older versions of dcm2niix e.g. 
+v1.0.2017XXXX, v1.0.2020XXXXX. You may run into invalid-BIDS or errors with this software with older versions.* 
+
 
 ### spreadsheet_conversion (custom and pmod)
 

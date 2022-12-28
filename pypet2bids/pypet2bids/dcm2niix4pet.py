@@ -15,7 +15,6 @@ import pathlib
 import sys
 import os
 import textwrap
-import warnings
 from json_maj.main import JsonMAJ, load_json_or_dict
 from platform import system
 import subprocess
@@ -33,11 +32,15 @@ from termcolor import colored
 import argparse
 import importlib
 import dotenv
+import logging
 
 try:
     import helper_functions
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
+
+
+logger = helper_functions.log()
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -83,6 +86,11 @@ def check_json(path_to_json, items_to_check=None, silent=False):
             corresponding entry in the json the same can be said of value
     """
 
+    if silent:
+        logger.disable = True
+    else:
+        logger.disabled = False
+
     # check if path exists
     path_to_json = Path(path_to_json)
     if not path_to_json.exists():
@@ -98,24 +106,18 @@ def check_json(path_to_json, items_to_check=None, silent=False):
 
     # initialize warning colors and warning storage dictionary
     storage = {}
-    warning_color = {'mandatory': 'red',
-                     'recommended': 'yellow',
-                     'optional:': 'blue'}
 
     for requirement in items_to_check.keys():
-        color = warning_color.get(requirement, 'yellow')
         for item in items_to_check[requirement]:
             if item in json_to_check.keys() and json_to_check.get(item, None):
                 # this json has both the key and a non blank value do nothing
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
-                if not silent:
-                    print(colored(f"WARNING {item} present but has null value.", "yellow"))
+                logger.warning(f"{item} present but has null value.")
                 storage[item] = {'key': True, 'value': False}
             else:
-                if not silent:
-                    print(colored(f"WARNING!!!! {item} is not present in {path_to_json}. This will have to be "
-                                  f"corrected post conversion.", color))
+                logger.warning(f"{item} is not present in {path_to_json}. This will have to be "
+                               f"corrected post conversion.")
                 storage[item] = {'key': False, 'value': False}
 
     return storage
@@ -158,7 +160,7 @@ def update_json_with_dicom_value(
             else:  # we source the Units value from the dicom header and update the json
                 JsonMAJ(path_to_json, {'Units': dicom_header.Units}, bids_null=True)
         except AttributeError:
-            print(f"Dicom is missing Unit(s) field, are you sure this is a PET dicom?")
+            logger.error(f"Dicom is missing Unit(s) field, are you sure this is a PET dicom?")
     # pair up dicom fields with bids sidecar json field, we do this in a separate json file
     # it's loaded when this script is run and stored in metadata dictionaries
     dcmfields = dicom2bids_json['dcmfields']
@@ -172,7 +174,7 @@ def update_json_with_dicom_value(
     for index, field in enumerate(jsonfields):
         paired_fields[field] = dcmfields[index]
 
-    print("Attempting to locate missing BIDS fields in dicom header")
+    logger.info("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
     json_updater = JsonMAJ(json_path=path_to_json, bids_null=True)
     for key, value in paired_fields.items():
@@ -183,10 +185,10 @@ def update_json_with_dicom_value(
             # into several bids sidecar entities
             try:
                 dicom_field = getattr(dicom_header, value)
-                print(f"FOUND {value} corresponding to BIDS {key}: {dicom_field}")
+                logger.info(f"FOUND {value} corresponding to BIDS {key}: {dicom_field}")
             except AttributeError:
                 dicom_field = None
-                print(f"NOT FOUND {value} corresponding to BIDS {key} in dicom header.")
+                logger.info(f"NOT FOUND {value} corresponding to BIDS {key} in dicom header.")
 
             if dicom_field and value in regex_cases:
                 # if it exists get rid of it, we don't want no part of it.
@@ -246,8 +248,8 @@ def update_json_with_dicom_value(
             json_field = updated_values.get(key)
             dicom_field = dicom_header.__getattr__(key)
             if json_field != dicom_field:
-                print(colored(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value "
-                              f"of {dicom_field}", "yellow"))
+                logger.info(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value "
+                              f"of {dicom_field}")
         except AttributeError:
             pass
 
@@ -356,6 +358,17 @@ class Dcm2niix4PET:
         if not self.dcm2niix_path:
             raise FileNotFoundError("dcm2niix not found, this module depends on it for conversions, exiting.")
 
+        # check for the version of dcm2niix
+        minimum_version = 'v1.0.20220720'
+        version_string = subprocess.run([self.dcm2niix_path, '-v'], capture_output=True)
+        version = re.search(r"v[0-9].[0-9].{8}[0-9]", str(version_string.stdout))
+
+        if version:
+            # compare with minimum version
+            if version[0] < minimum_version:
+                logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
+                                f"installed version {version[0]} at {self.dcm2niix_path}.")
+
         self.image_folder = Path(image_folder)
         if destination_path:
             self.destination_path = Path(destination_path)
@@ -408,13 +421,13 @@ class Dcm2niix4PET:
             instructions = "https://github.com/rordenlab/dcm2niix#install"
             no_dcm2niix = f"""Dcm2niix does not appear to be installed. Installation instructions can be found here 
                        {instructions} and packaged versions can be found at {pkged}"""
-            warnings.warn(no_dcm2niix)
+            logger.error(no_dcm2niix)
             dcm2niix_path = None
 
         return dcm2niix_path
 
     @staticmethod
-    def check_windows():
+    def check_for_pet2bids_config():
         # check to see if path to dcm2niix is in .env file
         dcm2niix_path = None
         home_dir = Path.home()
@@ -434,10 +447,10 @@ class Dcm2niix4PET:
                 if check.returncode == 0:
                     return dcm2niix_path
             else:
-                warnings.warn(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
+                logger.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
                 dcm2niix_path = None
         else:
-            warnings.warn(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+            logger.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
                           f"have variable DCM2NIIX_PATH set to installed path of installed dcm2niix.")
         return dcm2niix_path
 
@@ -450,8 +463,11 @@ class Dcm2niix4PET:
 
         if system().lower() != 'windows':
             dcm2niix_path = self.check_posix()
+            # fall back and check the config file if it's not on the path
+            if not dcm2niix_path:
+                dcm2niix_path = self.check_for_pet2bids_config()
         elif system().lower() == 'windows':
-            dcm2niix_path = self.check_windows()
+            dcm2niix_path = self.check_for_pet2bids_config()
         else:
             dcm2niix_path = None
 
@@ -973,7 +989,7 @@ def get_radionuclide(pydicom_dicom):
         code_meaning = radionuclide_code_sequence[0].CodeMeaning
         extraction_good = True
     except AttributeError:
-        warnings.warn("Unable to extract RadioNuclideCodeSequence from RadiopharmaceuticalInformationSequence")
+        logger.info("Unable to extract RadioNuclideCodeSequence from RadiopharmaceuticalInformationSequence")
         extraction_good = False
 
     if extraction_good:
@@ -986,14 +1002,14 @@ def get_radionuclide(pydicom_dicom):
         if code_value in verified_nucleotides.keys():
             check_code_value = code_value
         else:
-            warnings.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
+            logger.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
                           f"will attempt to infer from code meaning {code_meaning}")
 
         if code_meaning in verified_nucleotides.values():
             radionuclide = re.sub(r'\^', "", code_meaning)
             check_code_meaning = code_meaning
         else:
-            warnings.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
+            logger.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
             if code_value in verified_nucleotides.keys():
                 radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
 
@@ -1001,7 +1017,7 @@ def get_radionuclide(pydicom_dicom):
         if check_code_meaning and check_code_value:
             pass
         else:
-            warnings.warn(
+            logger.warn(
                 f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
                 f"header")
 
