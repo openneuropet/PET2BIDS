@@ -291,7 +291,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
-
+    logger = log()
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
@@ -338,7 +338,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
         try:
             metadata_dataframe = pandas.read_csv(metadata_path, sep=separator, engine='python')
         except IOError:
-            logging.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
+            logger.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
             raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
@@ -347,6 +347,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
 def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
     # load metadata
     metadata_dataframe = open_meta_data(metadata_path)
+    logger = log()
 
     if metadata_dataframe is not None:
         try:
@@ -359,9 +360,9 @@ def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs
             # note the translation must have a method named translate metadata in order to work
             text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
         except AttributeError as err:
-            print(f"Unable to locate metadata_translation_script\n{err}")
+            logger.warning(f"Unable to locate metadata_translation_script\n{err}")
     else:
-        print(f"No metadata found at {metadata_path}")
+        logger.info(f"No metadata found at {metadata_path}")
         text_file_data = None
 
     return text_file_data
@@ -427,6 +428,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :return: the collected bids part
     :rtype: string
     """
+    logger = log()
     # get os of system
     if os.name == 'posix':
         not_windows = True
@@ -442,7 +444,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
         if '\\' in part and not_windows:
             # explicitly use windows path splitting
             parts = pathlib.PureWindowsPath(path_like).parts
-            logging.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
+            logger.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
             break
 
     # create search string
@@ -796,3 +798,46 @@ def replace_nones(dictionary):
     # sub nulls
     json_fixed = re.sub('null', '"none"', json_string)
     return json.loads(json_fixed)
+
+
+class CustomFormatter(logging.Formatter):
+    """
+    Custom debugger courtesy of Sergey Pleshakov on stack overflow
+    see https://stackoverflow.com/a/56944256
+    """
+
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: grey + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: bold_red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+
+def log():
+    # create logger with for pypet2bids
+    logger = logging.getLogger("pypet2bids")
+    logger.setLevel(logging.DEBUG)
+
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    ch.setFormatter(CustomFormatter())
+
+    logger.addHandler(ch)
+
+    return logger

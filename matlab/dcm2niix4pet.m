@@ -70,7 +70,7 @@ if length(version) >= 1
     version_date = version{1}(6:end);
     version_date = datetime(version_date, 'InputFormat', 'yyyyMMdd');
     if version_date < minimum_version_date
-        warning(['Version of installed dcm2niix is ', version{1}, ' recommended use is version ', minimum_version], ' and above.');
+        warning(['Version of installed dcm2niix is ', version{1}, ', recommended version is: ', minimum_version ' and above.']);
     end
 end
 
