@@ -45,6 +45,12 @@ Matlab
 
 *To convert DICOM files*,
 `dcm2niix <https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage>`__ (Chris Rorden) must be installed.
+
+We recommend using dcm2niix version v1.0.20220720 or above as it has been updated to better tease out PET information
+from source dicoms. Using older dcm2niix versions (especially year 2020 or later) can cause issues with this software.
+The latest releases can always be found at
+`dcm2niix/releases <https://github.com/rordenlab/dcm2niix/releases/>`__
+
 Windows users must, in addition, indicate its full path in
 `dcm2niix4pet.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m#L42>`__.
 
