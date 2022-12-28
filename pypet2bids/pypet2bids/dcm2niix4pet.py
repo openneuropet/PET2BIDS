@@ -33,6 +33,7 @@ from termcolor import colored
 import argparse
 import importlib
 import dotenv
+import logging
 
 try:
     import helper_functions
@@ -356,6 +357,17 @@ class Dcm2niix4PET:
         if not self.dcm2niix_path:
             raise FileNotFoundError("dcm2niix not found, this module depends on it for conversions, exiting.")
 
+        # check for the version of dcm2niix
+        minimum_version = 'v1.0.20220720'
+        version_string = subprocess.run([self.dcm2niix_path, '-v'])
+        version = re.search(r"v[0-9].[0-9].{8}[0-9]", version_string)
+
+        if version:
+            # compare with minimum version
+            if version < minimum_version:
+                logging.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
+                                f"installed version {version} at {self.dcm2niix_path}.")
+
         self.image_folder = Path(image_folder)
         if destination_path:
             self.destination_path = Path(destination_path)
@@ -414,7 +426,7 @@ class Dcm2niix4PET:
         return dcm2niix_path
 
     @staticmethod
-    def check_windows():
+    def check_for_pet2bids_config():
         # check to see if path to dcm2niix is in .env file
         dcm2niix_path = None
         home_dir = Path.home()
@@ -450,8 +462,11 @@ class Dcm2niix4PET:
 
         if system().lower() != 'windows':
             dcm2niix_path = self.check_posix()
+            # fall back and check the config file if it's not on the path
+            if not dcm2niix_path:
+                dcm2niix_path = self.check_for_pet2bids_config()
         elif system().lower() == 'windows':
-            dcm2niix_path = self.check_windows()
+            dcm2niix_path = self.check_for_pet2bids_config()
         else:
             dcm2niix_path = None
 
