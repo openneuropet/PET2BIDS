@@ -458,6 +458,16 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
         else:
             collected_part = ''
 
+    if '_' in collected_part:
+        parts = collected_part.split('_')
+        for part in parts:
+            found_part = re.search(search_string, part)
+            if found_part:
+                collected_part = found_part[0]
+                break
+            else:
+                collected_part = ''
+
     return collected_part
 
 

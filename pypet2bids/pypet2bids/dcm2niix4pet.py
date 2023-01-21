@@ -375,8 +375,19 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
+        # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
+        # are doing in that case
+        self.full_file_path_given = False
+        for part in self.destination_path.parts:
+            if '.nii' or '.nii.gz' in part:
+                self.full_file_path_given = True
+
         self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
         self.session_id = helper_functions.collect_bids_part('ses', str(self.destination_path))
+        self.task = helper_functions.collect_bids_part('task', str(self.destination_path))
+        self.tracer = helper_functions.collect_bids_part('trc', str(self.destination_path))
+        self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
+        self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
         self.dicom_headers = self.extract_dicom_headers()
 
@@ -538,8 +549,10 @@ class Dcm2niix4PET:
             # make sure destination path exists if not try creating it.
             if self.destination_path.exists():
                 pass
+            elif not self.destination_path.exists() and self.full_file_path_given:
+                self.destination_path.parent.mkdir(parents=True, exist_ok=True)
             else:
-                makedirs(self.destination_path)
+                self.destination_path.mkdir(parents=True, exist_ok=True)
 
             # iterate through created files to supplement sidecar jsons
             for created in files_created_by_dcm2niix:
@@ -657,7 +670,6 @@ class Dcm2niix4PET:
                             'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
                         })
 
-
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
                     if 'nii.gz' in created_path.name:
@@ -670,8 +682,20 @@ class Dcm2niix4PET:
                     else:
                         session_id = ''
 
+                    if self.task:
+                        task = '_' + self.task
+
+                    if self.tracer:
+                        trc = '_' + self.tracer
+
+                    if self.reconstruction_method:
+                        rec = '_' + self.reconstruction_method
+
+                    if self.run_id:
+                        run = '_' + self.run_id
+
                     new_path = Path(join(self.destination_path),
-                                    self.subject_id + session_id + '_pet' + suffix)
+                                    self.subject_id + session_id + task + trc + rec + run + '_pet' + suffix)
                 else:
                     new_path = Path(join(self.destination_path, created_path.name))
                 shutil.move(src=created, dst=new_path)

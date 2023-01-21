@@ -119,6 +119,14 @@ def test_collect_bids_parts():
     nope_ses = helper_functions.collect_bids_part('ses', not_bids_like_path)
     assert nope_ses == ''
 
+    pet_path = '/home/users/user/bids_data/sub-NDAR123_ses-01_task-countbackwards_trc-CBGB_rec-ACDYN_run-03'
+    assert helper_functions.collect_bids_part('sub', pet_path) == 'sub-NDAR123'
+    assert helper_functions.collect_bids_part('ses', pet_path) == 'ses-01'
+    assert helper_functions.collect_bids_part('task', pet_path) == 'task-countbackwards'
+    assert helper_functions.collect_bids_part('trc', pet_path) == 'trc-CBGB'
+    assert helper_functions.collect_bids_part('rec', pet_path) == 'rec-ACDYN'
+    assert helper_functions.collect_bids_part('run', pet_path) == 'run-03'
+
 
 def test_transform_row_to_dict():
     # load real test data from many subject sheet
