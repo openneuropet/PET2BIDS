@@ -18,8 +18,16 @@ make installpackage
 
 # Collect Phantoms
 GDRIVE_PHANTOM_ID=$(grep GDRIVE_PHANTOM_ID pypet2bids/.env)
+PHANTOM_ZIP_FILE=PHANTOMS.ZIP
 export $GDRIVE_PHANTOM_ID
-gdown $GDRIVE_PHANTOM_ID -O PHANTOMS.zip
+if [ -f $PHANTOM_ZIP_FILE ]; then
+  echo "$PHANTOM_ZIP_FILE exists, skipping download..."
+else
+  gdown $GDRIVE_PHANTOM_ID -O PHANTOMS.zip
+fi
+
+# cleanup old run of conversions
+rm -rf OpenNeuroPET-Phantoms
 
 # Unzip Phantoms
 unzip -oq PHANTOMS.zip

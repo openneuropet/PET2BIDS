@@ -375,8 +375,28 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
+        # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
+        # are doing in that case
+        self.full_file_path_given = False
+        for part in self.destination_path.parts:
+            if '.nii' in part or '.nii.gz' in part:
+                self.full_file_path_given = True
+                # replace .nii and .nii.gz
+                self.destination_path = Path(str(self.destination_path).replace('.nii', '').replace('.gz', ''))
+                break
+
+        # replace the suffix in the destination path with '' if a non-nifti full file path is give
+        if Path(self.destination_path).suffix:
+            self.full_file_path_given = True
+            self.destination_path = Path(self.destination_path).with_suffix('')
+
+        # extract PET filename parts from destination path if given
         self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
         self.session_id = helper_functions.collect_bids_part('ses', str(self.destination_path))
+        self.task = helper_functions.collect_bids_part('task', str(self.destination_path))
+        self.tracer = helper_functions.collect_bids_part('trc', str(self.destination_path))
+        self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
+        self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
         self.dicom_headers = self.extract_dicom_headers()
 
@@ -536,10 +556,15 @@ class Dcm2niix4PET:
             files_created_by_dcm2niix = [join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)]
 
             # make sure destination path exists if not try creating it.
-            if self.destination_path.exists():
+            try:
+                if self.destination_path.exists():
+                    pass
+                elif not self.destination_path.exists() and self.full_file_path_given:
+                    self.destination_path.parent.mkdir(parents=True, exist_ok=True)
+                else:
+                    self.destination_path.mkdir(parents=True, exist_ok=True)
+            except FileExistsError:
                 pass
-            else:
-                makedirs(self.destination_path)
 
             # iterate through created files to supplement sidecar jsons
             for created in files_created_by_dcm2niix:
@@ -657,7 +682,6 @@ class Dcm2niix4PET:
                             'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
                         })
 
-
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
                     if 'nii.gz' in created_path.name:
@@ -670,10 +694,40 @@ class Dcm2niix4PET:
                     else:
                         session_id = ''
 
-                    new_path = Path(join(self.destination_path),
-                                    self.subject_id + session_id + '_pet' + suffix)
-                else:
+                    if self.task:
+                        task = '_' + self.task
+                    else:
+                        task = ''
+
+                    if self.tracer:
+                        trc = '_' + self.tracer
+                    else:
+                        trc = ''
+
+                    if self.reconstruction_method:
+                        rec = '_' + self.reconstruction_method
+                    else:
+                        rec = ''
+
+                    if self.run_id:
+                        run = '_' + self.run_id
+                    else:
+                        run = ''
+
+                    if self.full_file_path_given:
+                        new_path = self.destination_path.with_suffix(suffix)
+                    else:
+                        new_path = self.destination_path / Path(self.subject_id + session_id + task + trc + rec +
+                                                                     run + '_pet' + suffix)
+
+                    try:
+                        new_path.parent.mkdir(parents=True, exist_ok=True)
+                    except FileExistsError:
+                        pass
+
+                elif not self.subject_id:
                     new_path = Path(join(self.destination_path, created_path.name))
+
                 shutil.move(src=created, dst=new_path)
 
             return self.destination_path
