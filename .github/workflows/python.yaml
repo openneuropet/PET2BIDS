@@ -60,7 +60,7 @@ jobs:
 
       - name: Decompress dataset
         if: steps.cache-ecat.outputs.cache-hit != 'true'
-        run: "tar xvzf ecat_test && rm ecat_test"
+        run: "unzip ecat_test && rm ecat_test"
 
       - name: Test CLI --help
         run: |
