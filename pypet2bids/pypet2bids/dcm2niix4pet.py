@@ -73,7 +73,7 @@ for metadata_json in metadata_jsons:
         raise IOError(f"Unable to read from {metadata_json}")
 
 
-def check_json(path_to_json, items_to_check=None, silent=False):
+def check_json(path_to_json, items_to_check=None, silent=False, **additional_arguments):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
@@ -109,7 +109,7 @@ def check_json(path_to_json, items_to_check=None, silent=False):
 
     for requirement in items_to_check.keys():
         for item in items_to_check[requirement]:
-            if item in json_to_check.keys() and json_to_check.get(item, None):
+            if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments:
                 # this json has both the key and a non blank value do nothing
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
@@ -127,7 +127,8 @@ def update_json_with_dicom_value(
         path_to_json,
         missing_values,
         dicom_header,
-        dicom2bids_json=None
+        dicom2bids_json=None,
+        **additional_arguments
 ):
     """
     We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
@@ -180,7 +181,7 @@ def update_json_with_dicom_value(
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
-        if missing_bids_field:
+        if missing_bids_field and key not in additional_arguments:
             # there are a few special cases that require regex splitting of the dicom entries
             # into several bids sidecar entities
             try:
@@ -207,26 +208,27 @@ def update_json_with_dicom_value(
 
     # Additional Heuristics are included below
 
-    # See if time zero is missing in json
-    if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
-        time_parser = parser
-        if sidecar_json.get('AcquisitionTime', None):
-            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().strftime("%H:%M:%S")
+    # See if time zero is missing in json or additional args
+    if missing_values.get('TimeZero', None):
+        if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
+            time_parser = parser
+            if sidecar_json.get('AcquisitionTime', None):
+                acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().strftime("%H:%M:%S")
+            else:
+                acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().strftime("%H:%M:%S")
+
+            json_updater.update({'TimeZero': acquisition_time})
+            json_updater.remove('AcquisitionTime')
+            json_updater.update({'ScanStart': 0})
         else:
-            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().strftime("%H:%M:%S")
+            pass
 
-        json_updater.update({'TimeZero': acquisition_time})
-        json_updater.remove('AcquisitionTime')
-        json_updater.update({'ScanStart': 0})
-
-    else:
-        pass
-
-    if missing_values.get('ScanStart')['key'] is False or missing_values.get('ScanStart')['value'] is False:
-        json_updater.update({'ScanStart': 0})
-
-    if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
-        json_updater.update({'InjectionStart': 0})
+    if missing_values.get('ScanStart', None):
+        if missing_values.get('ScanStart')['key'] is False or missing_values.get('ScanStart')['value'] is False:
+            json_updater.update({'ScanStart': 0})
+    if missing_values.get('InjectionStart', None):
+        if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
+            json_updater.update({'InjectionStart': 0})
 
     # check to see if units are BQML
     json_updater = JsonMAJ(str(path_to_json), bids_null=True)
@@ -415,7 +417,10 @@ class Dcm2niix4PET:
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
         elif metadata_path and not metadata_translation_script:
-            spread_sheet_values = helper_functions.single_spreadsheet_reader(metadata_path)
+            spread_sheet_values = \
+                helper_functions.single_spreadsheet_reader(metadata_path,
+                                                           dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
+                                                           **self.additional_arguments)
             if not self.spreadsheet_metadata.get('nifti_json', None):
                 self.spreadsheet_metadata['nifti_json'] = {}
             self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
@@ -576,9 +581,9 @@ class Dcm2niix4PET:
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
-                    check_for_missing = check_json(created_path, silent=True)
+                    check_for_missing = check_json(created_path, silent=True, **self.additional_arguments)
 
-                    # we do our best to extrat information from the dicom header and insert these values
+                    # we do our best to extra information from the dicom header and insert these values
                     # into the sidecar json
 
                     # first do a reverse lookup of the key the json corresponds to
@@ -590,7 +595,8 @@ class Dcm2niix4PET:
                             created_path,
                             check_for_missing,
                             dicom_header,
-                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
+                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'],
+                            **self.additional_arguments)
 
                     # if we have entities in our metadata spreadsheet that we've used we update
                     if self.spreadsheet_metadata.get('nifti_json', None):
