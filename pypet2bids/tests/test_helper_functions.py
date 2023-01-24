@@ -21,6 +21,7 @@ single_subject_metadata_file = join(metadata_folder, 'single_subject_sheet', 'su
 multi_subject_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'subjects_metadata_example.xlsx')
 scanner_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'scanner_metadata_example.xlsx')
 
+
 class TestHelperFunctions(unittest.TestCase):
     @classmethod
     def setUp(cls) -> None:
@@ -275,6 +276,19 @@ def test_get_recon_method():
                     assert set(value.split(" ")) == set(recon[key].split(" "))
                 else:
                     assert value == recon[key]
+
+
+def test_flatten_series():
+    flatten = helper_functions.flatten_series
+    # create dataframe with empty columns
+    import pandas as pd
+    empty = pd.Series({'empty': []})
+    full = pd.Series({'full': [1, 2, 3, 4]})
+
+    empty_flattened = flatten(empty)
+    assert empty_flattened == []
+    full_flattened = flatten(full)
+    assert full_flattened == [1, 2, 3, 4]
 
 
 if __name__ == '__main__':

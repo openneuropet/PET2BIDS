@@ -29,7 +29,7 @@ import numpy
 import pandas
 import toml
 import pathlib
-from pandas import read_csv, read_excel
+from pandas import read_csv, read_excel, Series
 import importlib
 import argparse
 from typing import Union
@@ -78,8 +78,11 @@ def flatten_series(series):
 def single_spreadsheet_reader(
         path_to_spreadsheet: Union[str, pathlib.Path],
         pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
-        metadata={},
+        dicom_metadata={},
         **kwargs) -> dict:
+
+    metadata = {}
+
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -107,10 +110,10 @@ def single_spreadsheet_reader(
     # collect mandatory fields
     for field_level in metadata_fields.keys():
         for field in metadata_fields[field_level]:
-            series = spreadsheet_dataframe.get(field, None)
-            if series is not None:
+            series = spreadsheet_dataframe.get(field, Series())
+            if not series.empty:
                 metadata[field] = flatten_series(series)
-            elif not series and field_level == 'mandatory' and not metadata.get(field, None):
+            elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
                 logging.warning(f"{field} not found in {path_to_spreadsheet}, {field} is required by BIDS")
 
     # lastly apply any kwargs to the metadata
