@@ -524,10 +524,11 @@ class Dcm2niix4PET:
                         self.subject_id = dicom_header.PatientID
 
                     dicom_headers[dicom_path.name] = dicom_header
+                    n += 1
 
                 except pydicom.errors.InvalidDicomError:
                     pass
-                n += 1
+                
 
         return dicom_headers
 
