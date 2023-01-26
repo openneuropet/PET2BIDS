@@ -24,12 +24,13 @@ import warnings
 import logging
 import dotenv
 import ast
+import sys
 
 import numpy
 import pandas
 import toml
 import pathlib
-from pandas import read_csv, read_excel
+from pandas import read_csv, read_excel, Series
 import importlib
 import argparse
 from typing import Union
@@ -44,6 +45,7 @@ metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
+
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:
@@ -78,8 +80,11 @@ def flatten_series(series):
 def single_spreadsheet_reader(
         path_to_spreadsheet: Union[str, pathlib.Path],
         pet2bids_metadata_json: Union[str, pathlib.Path] = pet_metadata_json,
-        metadata={},
+        dicom_metadata={},
         **kwargs) -> dict:
+
+    metadata = {}
+
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -107,10 +112,10 @@ def single_spreadsheet_reader(
     # collect mandatory fields
     for field_level in metadata_fields.keys():
         for field in metadata_fields[field_level]:
-            series = spreadsheet_dataframe.get(field, None)
-            if series is not None:
+            series = spreadsheet_dataframe.get(field, Series(dtype=numpy.float64))
+            if not series.empty:
                 metadata[field] = flatten_series(series)
-            elif not series and field_level == 'mandatory' and not metadata.get(field, None):
+            elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
                 logging.warning(f"{field} not found in {path_to_spreadsheet}, {field} is required by BIDS")
 
     # lastly apply any kwargs to the metadata
@@ -291,7 +296,6 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
-    logger = log()
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
@@ -428,7 +432,6 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :return: the collected bids part
     :rtype: string
     """
-    logger = log()
     # get os of system
     if os.name == 'posix':
         not_windows = True
@@ -457,6 +460,16 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
             break
         else:
             collected_part = ''
+
+    if '_' in collected_part:
+        parts = collected_part.split('_')
+        for part in parts:
+            found_part = re.search(search_string, part)
+            if found_part:
+                collected_part = found_part[0]
+                break
+            else:
+                collected_part = ''
 
     return collected_part
 
@@ -833,7 +846,7 @@ def log():
     logger.setLevel(logging.DEBUG)
 
     # create console handler with a higher log level
-    ch = logging.StreamHandler()
+    ch = logging.StreamHandler(stream=sys.stdout)
     ch.setLevel(logging.DEBUG)
 
     ch.setFormatter(CustomFormatter())
@@ -841,3 +854,6 @@ def log():
     logger.addHandler(ch)
 
     return logger
+
+
+logger = log()

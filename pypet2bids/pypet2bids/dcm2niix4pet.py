@@ -40,7 +40,7 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
 
 
-logger = helper_functions.log()
+logger = helper_functions.logger
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -73,7 +73,7 @@ for metadata_json in metadata_jsons:
         raise IOError(f"Unable to read from {metadata_json}")
 
 
-def check_json(path_to_json, items_to_check=None, silent=False):
+def check_json(path_to_json, items_to_check=None, silent=False, **additional_arguments):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
@@ -109,13 +109,15 @@ def check_json(path_to_json, items_to_check=None, silent=False):
 
     for requirement in items_to_check.keys():
         for item in items_to_check[requirement]:
-            if item in json_to_check.keys() and json_to_check.get(item, None):
+            all_good = False
+            if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments:
                 # this json has both the key and a non blank value do nothing
+                all_good = True
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
                 logger.warning(f"{item} present but has null value.")
                 storage[item] = {'key': True, 'value': False}
-            else:
+            elif not all_good:
                 logger.warning(f"{item} is not present in {path_to_json}. This will have to be "
                                f"corrected post conversion.")
                 storage[item] = {'key': False, 'value': False}
@@ -127,7 +129,8 @@ def update_json_with_dicom_value(
         path_to_json,
         missing_values,
         dicom_header,
-        dicom2bids_json=None
+        dicom2bids_json=None,
+        **additional_arguments
 ):
     """
     We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
@@ -180,7 +183,7 @@ def update_json_with_dicom_value(
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
-        if missing_bids_field:
+        if missing_bids_field and key not in additional_arguments:
             # there are a few special cases that require regex splitting of the dicom entries
             # into several bids sidecar entities
             try:
@@ -207,26 +210,27 @@ def update_json_with_dicom_value(
 
     # Additional Heuristics are included below
 
-    # See if time zero is missing in json
-    if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
-        time_parser = parser
-        if sidecar_json.get('AcquisitionTime', None):
-            acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().strftime("%H:%M:%S")
+    # See if time zero is missing in json or additional args
+    if missing_values.get('TimeZero', None):
+        if missing_values.get('TimeZero')['key'] is False or missing_values.get('TimeZero')['value'] is False:
+            time_parser = parser
+            if sidecar_json.get('AcquisitionTime', None):
+                acquisition_time = time_parser.parse(sidecar_json.get('AcquisitionTime')).time().strftime("%H:%M:%S")
+            else:
+                acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().strftime("%H:%M:%S")
+
+            json_updater.update({'TimeZero': acquisition_time})
+            json_updater.remove('AcquisitionTime')
+            json_updater.update({'ScanStart': 0})
         else:
-            acquisition_time = time_parser.parse(dicom_header['SeriesTime'].value).time().strftime("%H:%M:%S")
+            pass
 
-        json_updater.update({'TimeZero': acquisition_time})
-        json_updater.remove('AcquisitionTime')
-        json_updater.update({'ScanStart': 0})
-
-    else:
-        pass
-
-    if missing_values.get('ScanStart')['key'] is False or missing_values.get('ScanStart')['value'] is False:
-        json_updater.update({'ScanStart': 0})
-
-    if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
-        json_updater.update({'InjectionStart': 0})
+    if missing_values.get('ScanStart', None):
+        if missing_values.get('ScanStart')['key'] is False or missing_values.get('ScanStart')['value'] is False:
+            json_updater.update({'ScanStart': 0})
+    if missing_values.get('InjectionStart', None):
+        if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
+            json_updater.update({'InjectionStart': 0})
 
     # check to see if units are BQML
     json_updater = JsonMAJ(str(path_to_json), bids_null=True)
@@ -375,8 +379,28 @@ class Dcm2niix4PET:
         else:
             self.destination_path = self.image_folder
 
+        # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
+        # are doing in that case
+        self.full_file_path_given = False
+        for part in self.destination_path.parts:
+            if '.nii' in part or '.nii.gz' in part:
+                self.full_file_path_given = True
+                # replace .nii and .nii.gz
+                self.destination_path = Path(str(self.destination_path).replace('.nii', '').replace('.gz', ''))
+                break
+
+        # replace the suffix in the destination path with '' if a non-nifti full file path is give
+        if Path(self.destination_path).suffix:
+            self.full_file_path_given = True
+            self.destination_path = Path(self.destination_path).with_suffix('')
+
+        # extract PET filename parts from destination path if given
         self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
         self.session_id = helper_functions.collect_bids_part('ses', str(self.destination_path))
+        self.task = helper_functions.collect_bids_part('task', str(self.destination_path))
+        self.tracer = helper_functions.collect_bids_part('trc', str(self.destination_path))
+        self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
+        self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
         self.dicom_headers = self.extract_dicom_headers()
 
@@ -395,7 +419,10 @@ class Dcm2niix4PET:
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
         elif metadata_path and not metadata_translation_script:
-            spread_sheet_values = helper_functions.single_spreadsheet_reader(metadata_path)
+            spread_sheet_values = \
+                helper_functions.single_spreadsheet_reader(metadata_path,
+                                                           dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
+                                                           **self.additional_arguments)
             if not self.spreadsheet_metadata.get('nifti_json', None):
                 self.spreadsheet_metadata['nifti_json'] = {}
             self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
@@ -497,10 +524,11 @@ class Dcm2niix4PET:
                         self.subject_id = dicom_header.PatientID
 
                     dicom_headers[dicom_path.name] = dicom_header
+                    n += 1
 
                 except pydicom.errors.InvalidDicomError:
                     pass
-                n += 1
+                
 
         return dicom_headers
 
@@ -536,10 +564,15 @@ class Dcm2niix4PET:
             files_created_by_dcm2niix = [join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)]
 
             # make sure destination path exists if not try creating it.
-            if self.destination_path.exists():
+            try:
+                if self.destination_path.exists():
+                    pass
+                elif not self.destination_path.exists() and self.full_file_path_given:
+                    self.destination_path.parent.mkdir(parents=True, exist_ok=True)
+                else:
+                    self.destination_path.mkdir(parents=True, exist_ok=True)
+            except FileExistsError:
                 pass
-            else:
-                makedirs(self.destination_path)
 
             # iterate through created files to supplement sidecar jsons
             for created in files_created_by_dcm2niix:
@@ -551,9 +584,9 @@ class Dcm2niix4PET:
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
-                    check_for_missing = check_json(created_path, silent=True)
+                    check_for_missing = check_json(created_path, silent=True, **self.additional_arguments)
 
-                    # we do our best to extrat information from the dicom header and insert these values
+                    # we do our best to extra information from the dicom header and insert these values
                     # into the sidecar json
 
                     # first do a reverse lookup of the key the json corresponds to
@@ -565,7 +598,8 @@ class Dcm2niix4PET:
                             created_path,
                             check_for_missing,
                             dicom_header,
-                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'])
+                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'],
+                            **self.additional_arguments)
 
                     # if we have entities in our metadata spreadsheet that we've used we update
                     if self.spreadsheet_metadata.get('nifti_json', None):
@@ -657,7 +691,6 @@ class Dcm2niix4PET:
                             'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
                         })
 
-
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
                     if 'nii.gz' in created_path.name:
@@ -670,10 +703,40 @@ class Dcm2niix4PET:
                     else:
                         session_id = ''
 
-                    new_path = Path(join(self.destination_path),
-                                    self.subject_id + session_id + '_pet' + suffix)
-                else:
+                    if self.task:
+                        task = '_' + self.task
+                    else:
+                        task = ''
+
+                    if self.tracer:
+                        trc = '_' + self.tracer
+                    else:
+                        trc = ''
+
+                    if self.reconstruction_method:
+                        rec = '_' + self.reconstruction_method
+                    else:
+                        rec = ''
+
+                    if self.run_id:
+                        run = '_' + self.run_id
+                    else:
+                        run = ''
+
+                    if self.full_file_path_given:
+                        new_path = self.destination_path.with_suffix(suffix)
+                    else:
+                        new_path = self.destination_path / Path(self.subject_id + session_id + task + trc + rec +
+                                                                     run + '_pet' + suffix)
+
+                    try:
+                        new_path.parent.mkdir(parents=True, exist_ok=True)
+                    except FileExistsError:
+                        pass
+
+                elif not self.subject_id:
                     new_path = Path(join(self.destination_path, created_path.name))
+
                 shutil.move(src=created, dst=new_path)
 
             return self.destination_path
@@ -1002,14 +1065,14 @@ def get_radionuclide(pydicom_dicom):
         if code_value in verified_nucleotides.keys():
             check_code_value = code_value
         else:
-            logger.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
+            logger.warning(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
                           f"will attempt to infer from code meaning {code_meaning}")
 
         if code_meaning in verified_nucleotides.values():
             radionuclide = re.sub(r'\^', "", code_meaning)
             check_code_meaning = code_meaning
         else:
-            logger.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
+            logger.warning(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
             if code_value in verified_nucleotides.keys():
                 radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
 
@@ -1017,7 +1080,7 @@ def get_radionuclide(pydicom_dicom):
         if check_code_meaning and check_code_value:
             pass
         else:
-            logger.warn(
+            logger.warning(
                 f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
                 f"header")
 
