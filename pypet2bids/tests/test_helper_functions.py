@@ -1,6 +1,7 @@
 import collections
 import tempfile
 import unittest
+import datetime
 try:
     import pypet2bids.helper_functions as helper_functions
 except ModuleNotFoundError:
@@ -20,6 +21,7 @@ metadata_folder = join(pet2bids_folder, 'spreadsheet_conversion')
 single_subject_metadata_file = join(metadata_folder, 'single_subject_sheet', 'subject_metadata_example.xlsx')
 multi_subject_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'subjects_metadata_example.xlsx')
 scanner_metadata_file = join(metadata_folder, 'many_subjects_sheet', 'scanner_metadata_example.xlsx')
+multi_sheet_metadata_file = join(metadata_folder, 'single_subject_sheet', 'subject_metadata_multisheet_example.xlsx')
 
 
 class TestHelperFunctions(unittest.TestCase):
@@ -76,7 +78,7 @@ def test_open_metadata():
     # read in a known metadata spreadsheet
     test_dataframe = pandas.read_excel(single_subject_metadata_file)
 
-    # read in the the same dataframe using the helper function
+    # read in the same dataframe using the helper function
     metadata_dataframe = helper_functions.open_meta_data(single_subject_metadata_file)
 
     # assert that open metadata opens an excel spreadsheet
@@ -289,6 +291,13 @@ def test_flatten_series():
     assert empty_flattened == []
     full_flattened = flatten(full)
     assert full_flattened == [1, 2, 3, 4]
+
+
+def test_read_multi_sheet():
+    open_metadata = helper_functions.open_meta_data
+    multi_spreadsheet = open_metadata(multi_sheet_metadata_file)
+    assert(multi_spreadsheet['TimeZero'][0] == datetime.time(12,12,12))
+    assert(multi_spreadsheet['TracerName'][0] == 'OverrideTracerNameIn0thSheet')
 
 
 if __name__ == '__main__':
