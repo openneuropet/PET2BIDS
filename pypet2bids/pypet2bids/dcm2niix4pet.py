@@ -40,7 +40,7 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
 
 
-logger = helper_functions.log()
+logger = helper_functions.logger
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -109,13 +109,18 @@ def check_json(path_to_json, items_to_check=None, silent=False, **additional_arg
 
     for requirement in items_to_check.keys():
         for item in items_to_check[requirement]:
+<<<<<<< HEAD
+=======
+            all_good = False
+>>>>>>> ba269c743f09969ab771f08a8165702c286c1601
             if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments:
                 # this json has both the key and a non blank value do nothing
+                all_good = True
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
                 logger.warning(f"{item} present but has null value.")
                 storage[item] = {'key': True, 'value': False}
-            else:
+            elif not all_good:
                 logger.warning(f"{item} is not present in {path_to_json}. This will have to be "
                                f"corrected post conversion.")
                 storage[item] = {'key': False, 'value': False}
@@ -522,10 +527,11 @@ class Dcm2niix4PET:
                         self.subject_id = dicom_header.PatientID
 
                     dicom_headers[dicom_path.name] = dicom_header
+                    n += 1
 
                 except pydicom.errors.InvalidDicomError:
                     pass
-                n += 1
+                
 
         return dicom_headers
 
@@ -1062,14 +1068,14 @@ def get_radionuclide(pydicom_dicom):
         if code_value in verified_nucleotides.keys():
             check_code_value = code_value
         else:
-            logger.warn(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
+            logger.warning(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
                           f"will attempt to infer from code meaning {code_meaning}")
 
         if code_meaning in verified_nucleotides.values():
             radionuclide = re.sub(r'\^', "", code_meaning)
             check_code_meaning = code_meaning
         else:
-            logger.warn(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
+            logger.warning(f"Radionuclide Meaning {code_meaning} not in known values in dcm2bids json")
             if code_value in verified_nucleotides.keys():
                 radionuclide = re.sub(r'\^', "", verified_nucleotides[code_value])
 
@@ -1077,7 +1083,7 @@ def get_radionuclide(pydicom_dicom):
         if check_code_meaning and check_code_value:
             pass
         else:
-            logger.warn(
+            logger.warning(
                 f"WARNING!!!! Possible mismatch between nuclide code meaning {code_meaning} and {code_value} in dicom "
                 f"header")
 
