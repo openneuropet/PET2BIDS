@@ -109,10 +109,7 @@ def check_json(path_to_json, items_to_check=None, silent=False, **additional_arg
 
     for requirement in items_to_check.keys():
         for item in items_to_check[requirement]:
-<<<<<<< HEAD
-=======
             all_good = False
->>>>>>> ba269c743f09969ab771f08a8165702c286c1601
             if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments:
                 # this json has both the key and a non blank value do nothing
                 all_good = True

@@ -112,11 +112,7 @@ def single_spreadsheet_reader(
     # collect mandatory fields
     for field_level in metadata_fields.keys():
         for field in metadata_fields[field_level]:
-<<<<<<< HEAD
-            series = spreadsheet_dataframe.get(field, Series())
-=======
             series = spreadsheet_dataframe.get(field, Series(dtype=numpy.float64))
->>>>>>> ba269c743f09969ab771f08a8165702c286c1601
             if not series.empty:
                 metadata[field] = flatten_series(series)
             elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
