@@ -337,7 +337,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
             metadata_dataframe = use_me_to_read(metadata_path, sep=separator)
         else:
             metadata_dataframe = use_me_to_read(metadata_path, sheet_name=None)
-            # check to see if there are multple sheets in this input file
+            # check to see if there are multiple sheets in this input file
             multiple_sheets = pandas.ExcelFile(metadata_path).sheet_names
             first_sheet = multiple_sheets.pop(0)
             if len(multiple_sheets) >= 1:
