@@ -336,7 +336,16 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
                 separator = ','
             metadata_dataframe = use_me_to_read(metadata_path, sep=separator)
         else:
-            metadata_dataframe = use_me_to_read(metadata_path)
+            metadata_dataframe = use_me_to_read(metadata_path, sheet_name=None)
+            # check to see if there are multiple sheets in this input file
+            multiple_sheets = pandas.ExcelFile(metadata_path).sheet_names
+            first_sheet = multiple_sheets.pop(0)
+            if len(multiple_sheets) >= 1:
+                for index, sheet_name in enumerate(multiple_sheets):
+                    for column in metadata_dataframe[sheet_name].columns:
+                        metadata_dataframe[first_sheet][column] = metadata_dataframe[sheet_name][column]
+
+            metadata_dataframe = metadata_dataframe[first_sheet]
 
     except (IOError, ValueError) as err:
         try:
