@@ -156,7 +156,6 @@ def pet_folder(folder_path: Path) -> Union[str, list, bool]:
     # check if any files are pet files
     files = read_files_in_parallel(all_files, pet_file, n_jobs=1, return_only_path=True)
     files = [Path(f) for f in files if f is not None]
-
     # check through list of pet files and statuses for True values in parallel
     folders = set([f.parent for f in files])
 
@@ -168,20 +167,21 @@ if __name__ == '__main__':
     parser.add_argument('filepath', type=Path, help="File path to check whether file is PET image or bloodfile. "
                                                     "If a folder is given, all files in the folder will be checked and "
                                                     "any folders containing PET files will be returned.")
-    parser.add_argument('-s', '--hide', action='store_true', default=False)
+    parser.add_argument('-p', '--path-only', action='store_true', default=False)
     args = parser.parse_args()
 
     if args.filepath.is_file():
         status, pet_files = pet_file(args.filepath.resolve())
-
         if status:
-            print(f"{args.filepath} {pet_files}")
+            if args.path_only:
+                print(f"{args.filepath}")
+            else:
+                print(f"{args.filepath} {pet_files}")
         else:
             sys.exit(1)
 
     elif args.filepath.is_dir():
         pet_folders = pet_folder(args.filepath.resolve())
-
         if len(pet_folders) > 0:
             for f in pet_folders:
                 print(f"{f}")
