@@ -31,6 +31,7 @@ termcolor = "^1.1.0"
 json-maj = "^0.0.7"
 pandas = "^1.4.4"
 pyxlsb = "^1.0.9"
+joblib = "^1.2.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -44,6 +45,8 @@ dcm2petbids = 'pypet2bids.dicom_convert:cli'
 dcm2niix4pet = 'pypet2bids.dcm2niix4pet:main'
 pet2bids-spreadsheet-template = 'pypet2bids.helper_functions:write_out_module'
 convert-pmod-to-blood = 'pypet2bids.convert_pmod_to_blood:main'
+ispetfile = 'pypet2bids.is_pet:is_pet_file'
+ispetfolder = 'pypet2bids.is_pet:is_pet_folder'
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"
