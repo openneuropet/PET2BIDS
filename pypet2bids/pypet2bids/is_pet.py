@@ -1,11 +1,13 @@
 import os
-import sys
 import pydicom
 import argparse
 import nibabel
 import re
 from typing import Union
 from pathlib import Path
+import contextlib
+import sys
+import json
 from joblib import Parallel, delayed
 
 
@@ -18,19 +20,43 @@ except ModuleNotFoundError:
     import pypet2bids.ecat as ecat
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
 
-import contextlib
-import sys
+
+def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
+    # load data from spreadsheet
+    data = helper_functions.open_meta_data(sourcefile)
+
+    # load BIDS PET requirements
+    try:
+        with open(helper_functions.pet_metadata_json, 'r') as pet_field_requirements_json:
+            pet_field_requirements = json.load(pet_field_requirements_json)
+    except (FileNotFoundError, json.JSONDecodeError) as error:
+        print(f"Unable to load list of required, recommended, and optional PET BIDS fields from"
+              f" {helper_functions.pet_metadata_json}, will not be able to determine if sourcefile contains"
+              f" PET BIDS specific metadata")
+        pet_field_requirements = {}
+
+    mandatory_fields = pet_field_requirements.get('mandatory', [])
+    recommended_fields = pet_field_requirements.get('recommended', [])
+    optional_fields = pet_field_requirements.get('optional', [])
+
+    intersection = set(mandatory_fields + recommended_fields + optional_fields) & set(data.keys())
+
+    if len(intersection) > 0:
+        return True
+    else:
+        return False
 
 
 def read_files_in_parallel(file_paths: list, function, n_jobs=-2, **kwargs):
     """
-    Read files in parallel using joblib
+    Read files in parallel using joblib (note this should be refactored to use the threading module)
     :param file_paths: list of file paths to read
     :param function: function to apply to each file
     :param n_jobs: number of jobs to run in parallel
     :param kwargs: keyword arguments to pass to function
     :return: list of results
     """
+    # TODO replace dependency on joblib with threading module
     results = Parallel(n_jobs=n_jobs)(delayed(function)(file_path, **kwargs) for file_path in file_paths)
     return results
 
@@ -96,9 +122,10 @@ def pet_file(file_path: Path, return_only_path=False) -> Union[bool, str]:
 
         if not file_type and suffix.lower() in ['.xlsx', '.tsv', '.csv', '.xls']:
             try:
-                read_file = helper_functions.open_meta_data(file_path)
-                # if it looks like a pet file
-                file_type = 'SPREADSHEET'
+                read_file = spread_sheet_check_for_pet(file_path)
+                if read_file:
+                    # if it looks like a pet file
+                    file_type = 'SPREADSHEET'
             except (IOError, ValueError):
                 pass
 
@@ -134,29 +161,6 @@ def pet_folder(folder_path: Path) -> Union[str, list, bool]:
     folders = set([f.parent for f in files])
 
     return folders
-
-
-def is_pet(path: Path, fast=True, show_output=False) -> bool:
-    if path.is_dir():
-        status, pet_folders = pet_folder(path, fast=fast)
-        if status and show_output:
-            if type(pet_folders) is list:
-                for f in pet_folders:
-                    print(f"{f}")
-            else:
-                print(pet_folders)
-        return status, pet_folders
-
-    elif path.is_file():
-        status, file_type = pet_file(path)
-        if show_output and file_type:
-            print(file_type)
-        return status, file_type
-
-    else:
-        if show_output:
-            print(f"NO PET FILE(S) FOUND IN {path}")
-        return None, ''
 
 
 if __name__ == '__main__':
