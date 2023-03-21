@@ -45,8 +45,7 @@ dcm2petbids = 'pypet2bids.dicom_convert:cli'
 dcm2niix4pet = 'pypet2bids.dcm2niix4pet:main'
 pet2bids-spreadsheet-template = 'pypet2bids.helper_functions:write_out_module'
 convert-pmod-to-blood = 'pypet2bids.convert_pmod_to_blood:main'
-ispetfile = 'pypet2bids.is_pet:is_pet_file'
-ispetfolder = 'pypet2bids.is_pet:is_pet_folder'
+ispet = 'pypet2bids.is_pet:main'
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"

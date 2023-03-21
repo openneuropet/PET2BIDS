@@ -162,12 +162,14 @@ def pet_folder(folder_path: Path) -> Union[str, list, bool]:
     return folders
 
 
-if __name__ == '__main__':
+def main():
+
     parser = argparse.ArgumentParser()
     parser.add_argument('filepath', type=Path, help="File path to check whether file is PET image or bloodfile. "
                                                     "If a folder is given, all files in the folder will be checked and "
                                                     "any folders containing PET files will be returned.")
-    parser.add_argument('-p', '--path-only', action='store_true', default=False)
+    parser.add_argument('-p', '--path-only', action='store_true', default=False,
+                        help="Omit type of pet file; only return file path if file is PET file")
     args = parser.parse_args()
 
     if args.filepath.is_file():
@@ -189,3 +191,7 @@ if __name__ == '__main__':
             sys.exit(1)
     else:
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
