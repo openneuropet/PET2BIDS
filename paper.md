@@ -1,11 +1,11 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'PET2BIDS: a library for converting Positron Emission Tomography data to BIDS'
 tags:
+  - Matlab
   - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - brain imaging
+  - positron emission tomography (PET)
+  - brain imaging data structure (BIDS)
 authors:
   - name: Adrian M. Price-Whelan
     orcid: 0000-0000-0000-0000
@@ -27,62 +27,46 @@ affiliations:
 date: 13 August 2017
 bibliography: paper.bib
 
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+The Brain Imaging Data Structure (BIDS) (1) has quickly become successful and popular in the
+neuroimaging community with adoption by major brain imaging repositories (e.g. CONP, OpenNeuro,
+WeBrain) and data management tools (e.g. COINS, XNAT, Loris). This not only allows data to be shared
+much more easily, but also enables the development of automated data analysis pipelines (2), and
+together improves reproducibility.  
+
+The PET-BIDS extension (3) has recently been merged into the BIDS specification, providing a
+structured data and metadata nomenclature, including all the necessary information to share and
+report on PET blood and metabolite (4). Here we present a new code library, developed in both Matlab
+and Python, allowing the conversion of PET imaging data (ecat and dicom) and metadata (e.g. time or
+blood measurements) into the brain imaging data structure specification.
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+File conversion: The conversion for PET data stored in DICOM files is performed using a wrapper
+around dcm2niix (5) and then updating the corresponding JSON file. For ECAT files, dedicated
+functions were written to support this conversion. The Matlab code relies on the readECAT7.m
+function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while new ecat2nii
+(.m .py) functions were written to convert into NIfTI and produce a JSON sidecar file, and optionally a
+SIF file (Scan Information File - used by different pharmacokinetic modelling software for model
+weighting). The Python code was subsequently developed in line with the Matlab code, further testing
+data reading (i.e. which bits are read according to the PET data frames) and writing, relying here on
+Nibabel (6).  
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+Metadata: JSON files created from reading PET scanner data are always missing some of the
+radiotracer and pharmaceutical information. To accommodate this, a dedicated PET JSON updater was
+created. The PET JSON updater function takes the original JSON file and new metadata to add as input,
+checks that the full BIDS specification is respected (correct metadata but also consistency of metadata
+values for the different metadata keys) and updates the JSON file.  
 
-# Mathematics
-
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
-
-Double dollars make self-standing equations:
-
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
+Spreadsheet conversion: tabular data formats (excel, csv, tsv, bld) are ubiquitous in the PET
+community in particular to (a) keep track of radiotracer information injected per participants and (b)
+record time and radiotracer concentration from the blood sampling. To facilitate conversion to BIDS,
+dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, (ii) use preformatted tabular data to update JSON files, and (iii) convert a tabular pmod file to a blood.tsv file
+(pmod being a popular commercial pharmacokinetic modelling software -
+https://www.pmod.com/web/).
 
 # Citations
 
