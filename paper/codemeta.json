@@ -1,0 +1,79 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "0000-0001-6550-4574",
+      "@type": "Person",
+      "email": "",
+      "name": "Anthony Galassi",
+      "affiliation": "National Institute of Mental Health"
+    },
+    {
+      "@id": "0000-0003-4010-4632",
+      "@type": "Person",
+      "email": "",
+      "name": "Cyril Pernet",
+      "affiliation": "Copenhagen University Hospital, Rigshospitalet"
+    },
+    {
+      "@id": "0000-0003-2131-5688",
+      "@type": "Person",
+      "email": "",
+      "name": "Martin Norgaard",
+      "affiliation": "Københavns Universitet, Rigshospitalet, Stanford University"
+    },
+    {
+      "@id": "0000-0002-9120-8098",
+      "@type": "Person",
+      "email": "",
+      "name": "Melanie Ganz-Benjaminsen",
+      "affiliation": "Rigshospitalet, University of Copenhagen"
+    },
+    {
+      "@id": "0000-0002-7209-1736",
+      "@type": "Person",
+      "email": "",
+      "name": "Gabriel Gonzalez-Escamilla",
+      "affiliation": ""
+    },
+    {
+      "@id": "0000-0002-2850-1419",
+      "@type": "Person",
+      "email": "",
+      "name": "Adam Thomas",
+      "affiliation": "National Institute of Mental Health"
+    },
+    {
+      "@id": "0000-0002-1535-9767",
+      "@type": "Person",
+      "email": "",
+      "name": "Remi Gau",
+      "affiliation": "Université catholique de Louvain"
+    },
+    {
+      "@id": "0000-0002-9942-676X",
+      "@type": "Person",
+      "email": "",
+      "name": "Cyrus Eierud",
+      "affiliation": "Georgia State University"
+    },
+    {
+      "@id": "0000-0002-7554-6142",
+      "@type": "Person",
+      "email": "",
+      "name": "Chris Rorden",
+      "affiliation": "University of South Carolina"
+    }
+  ],
+  "identifier": "",
+  "codeRepository": "https://github.com/openneuropet/PET2BIDS",
+  "datePublished": "2023-03-29",
+  "dateModified": "2023-03-29",
+  "dateCreated": "2023-03-29",
+  "description": "PET to BIDS is a set of BIDS converters for your Brain PET data",
+  "keywords": "PET, BIDS, DICOM, dcm2niix, ECAT, brain, NIMH, NRU, UCPH",
+  "license": "MIT",
+  "title": "PET2BIDs",
+  "version": "1.1.1"
+}
