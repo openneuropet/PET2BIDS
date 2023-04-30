@@ -17,7 +17,7 @@ This branch is used to compile pet2bids.m (include the matlab kernel so nothing 
 - cd to the directory you chose as Destination folder during the installation above and choose the directory containing pet2bids_exe_script.exe (e.g., cd "C:\Program Files\pet2bids_exe_script\application")
 - Edit the file pet2bids_example_dcm.m to point to your raw data in accordance with row containing asterisk (*) above
 - In the command window type pet2bids_exe_script.exe pet2bids_example_dcm.m
-- After command window writes several lines that DICOM files are converted and you may get some warnings about the conversion, you will see the command prompt again and you are done!
+- After command window writes several lines that DICOM files are converted and you may get some warnings about the conversion, you will see the command prompt again and you should see your new json and nii files under the source directory you specified in pet2bids_example_dcm.m!
 
 ## Example of default scanner parameter file
 
