@@ -347,7 +347,7 @@ class Dcm2niix4PET:
         %i -> ID of patient
         %t -> time
         %s -> series number
-        :param additional_arguments: user supplied key value pairs, E.g. TimeZero=12:12:12, InjectedRadioactivity=1
+        :param additional_arguments: user supplied key value pairs, E.g. TimeZero=\"12:12:12\", InjectedRadioactivity=1
         this key value pair will overwrite any fields in the dcm2niix produced nifti sidecar.json as it is assumed that
         the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
         dicom header
