@@ -347,7 +347,7 @@ class Dcm2niix4PET:
         %i -> ID of patient
         %t -> time
         %s -> series number
-        :param additional_arguments: user supplied key value pairs, E.g. TimeZero=12:12:12, InjectedRadioactivity=1
+        :param additional_arguments: user supplied key value pairs, E.g. TimeZero=\"12:12:12\", InjectedRadioactivity=1
         this key value pair will overwrite any fields in the dcm2niix produced nifti sidecar.json as it is assumed that
         the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
         dicom header
@@ -1124,7 +1124,7 @@ def cli():
                              "doesn't exist an attempt to create it will be made.", required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
-                             "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
+                             "the supplied nifti. e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
                              "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
                              "Note: the value portion of the argument (right side of the equal's sign) should always"

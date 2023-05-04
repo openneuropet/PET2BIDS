@@ -79,10 +79,12 @@ def cli():
     parser.add_argument("--sidecar", action="store_true", help="Output a bids formatted sidecar for pairing with"
                                                                "a nifti.")
     parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
-                        help="Include additional values int the nifti sidecar json or override values extracted from "
-                             "the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the "
+                        help="Include additional values in the nifti sidecar json or override values extracted from "
+                             "the supplied nifti. e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the "
                              "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
-                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.")
+                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
+                             "Note: the value portion of the argument (right side of the equal's sign) should always"
+                             "be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
     parser.add_argument('--scannerparams', nargs='*',
                         help="Loads saved scanner params from a configuration file following "
                              "--scanner-params/-s if this option is used without an argument "
