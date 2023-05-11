@@ -13,7 +13,6 @@ except ModuleNotFoundError:
 #from pypet2bids.helper_functions import single_spreadsheet_reader, \
 #    collect_bids_part, open_meta_data, load_pet_bids_requirements_json, ParseKwargs
 
-
 def read_single_subject_spreadsheets(
         general_metadata_spreadsheet: pathlib.Path,
         **kwargs) -> dict:

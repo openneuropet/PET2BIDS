@@ -20,7 +20,7 @@ from platform import system
 import subprocess
 import pandas as pd
 from os.path import join
-from os import listdir, walk, makedirs
+from os import listdir, walk
 from pathlib import Path
 import json
 import pydicom
@@ -32,13 +32,13 @@ from termcolor import colored
 import argparse
 import importlib
 import dotenv
-import logging
 
 try:
     import helper_functions
+    import is_pet
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-
+    import pypet2bids.is_pet as is_pet
 
 logger = helper_functions.logger
 
@@ -229,7 +229,8 @@ def update_json_with_dicom_value(
         if missing_values.get('ScanStart')['key'] is False or missing_values.get('ScanStart')['value'] is False:
             json_updater.update({'ScanStart': 0})
     if missing_values.get('InjectionStart', None):
-        if missing_values.get('InjectionStart')['key'] is False or missing_values.get('InjectionStart')['value'] is False:
+        if missing_values.get('InjectionStart')['key'] is False \
+                or missing_values.get('InjectionStart')['value'] is False:
             json_updater.update({'InjectionStart': 0})
 
     # check to see if units are BQML
@@ -253,7 +254,7 @@ def update_json_with_dicom_value(
             dicom_field = dicom_header.__getattr__(key)
             if json_field != dicom_field:
                 logger.info(f"WARNING!!!! JSON Field {key} with value {json_field} does not match dicom value "
-                              f"of {dicom_field}")
+                            f"of {dicom_field}")
         except AttributeError:
             pass
 
@@ -371,7 +372,7 @@ class Dcm2niix4PET:
             # compare with minimum version
             if version[0] < minimum_version:
                 logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
-                                f"installed version {version[0]} at {self.dcm2niix_path}.")
+                               f"installed version {version[0]} at {self.dcm2niix_path}.")
 
         self.image_folder = Path(image_folder)
         if destination_path:
@@ -418,11 +419,33 @@ class Dcm2niix4PET:
                 self.extract_metadata()
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
-        elif metadata_path and not metadata_translation_script:
-            spread_sheet_values = \
-                helper_functions.single_spreadsheet_reader(metadata_path,
-                                                           dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
-                                                           **self.additional_arguments)
+        elif metadata_path and not metadata_translation_script or metadata_path == "":
+            spread_sheet_values = {}
+
+            if Path(metadata_path).is_file():
+                spread_sheet_values = helper_functions.single_spreadsheet_reader(
+                    metadata_path,
+                    dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
+                    **self.additional_arguments)
+
+            if Path(metadata_path).is_dir() or metadata_path == "":
+                # we accept folder input as well as no input, in the
+                # event of no input we search for spreadsheets in the
+                # image folder
+                if metadata_path == "":
+                    metadata_path = self.image_folder
+
+                spreadsheets = helper_functions.collect_spreadsheets(metadata_path)
+                pet_spreadsheets = [spreadsheet for spreadsheet in spreadsheets if is_pet.pet_file(spreadsheet)]
+                spread_sheet_values = {}
+
+                for pet_spreadsheet in pet_spreadsheets:
+                    spread_sheet_values.update(
+                        helper_functions.single_spreadsheet_reader(
+                            pet_spreadsheet,
+                            dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
+                            **self.additional_arguments))
+
             if not self.spreadsheet_metadata.get('nifti_json', None):
                 self.spreadsheet_metadata['nifti_json'] = {}
             self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
@@ -478,7 +501,7 @@ class Dcm2niix4PET:
                 dcm2niix_path = None
         else:
             logger.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
-                          f"have variable DCM2NIIX_PATH set to installed path of installed dcm2niix.")
+                         f"have variable DCM2NIIX_PATH set to installed path of installed dcm2niix.")
         return dcm2niix_path
 
     def check_for_dcm2niix(self):
@@ -528,7 +551,6 @@ class Dcm2niix4PET:
 
                 except pydicom.errors.InvalidDicomError:
                     pass
-                
 
         return dicom_headers
 
@@ -727,7 +749,7 @@ class Dcm2niix4PET:
                         new_path = self.destination_path.with_suffix(suffix)
                     else:
                         new_path = self.destination_path / Path(self.subject_id + session_id + task + trc + rec +
-                                                                     run + '_pet' + suffix)
+                                                                run + '_pet' + suffix)
 
                     try:
                         new_path.parent.mkdir(parents=True, exist_ok=True)
@@ -955,7 +977,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             data_out['InjectedRadioactivityUnits'] = 'n/a'
         else:
             tmp = ((InjectedMass / (10 ** 6)) * SpecificRadioactivity) / (
-                        10 ** 6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
+                    10 ** 6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
             if InjectedRadioactivity:
                 if InjectedRadioactivity != tmp:
                     print(colored("WARNING inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
@@ -1066,7 +1088,7 @@ def get_radionuclide(pydicom_dicom):
             check_code_value = code_value
         else:
             logger.warning(f"Radionuclide Code {code_value} does not match any known codes in dcm2bids.json\n"
-                          f"will attempt to infer from code meaning {code_meaning}")
+                           f"will attempt to infer from code meaning {code_meaning}")
 
         if code_meaning in verified_nucleotides.values():
             radionuclide = re.sub(r'\^', "", code_meaning)
@@ -1111,7 +1133,7 @@ def cli():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
     parser.add_argument('folder', nargs='?', type=str,
                         help="Folder path containing imaging data")
-    parser.add_argument('--metadata-path', '-m', type=str, default=None,
+    parser.add_argument('--metadata-path', '-m', type=str, default=None, const='', nargs='?',
                         help="Path to metadata file for scan")
     parser.add_argument('--translation-script-path', '-t', default=None,
                         help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +

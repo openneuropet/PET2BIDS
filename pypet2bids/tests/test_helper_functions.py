@@ -4,6 +4,7 @@ import unittest
 import datetime
 try:
     import pypet2bids.helper_functions as helper_functions
+    import pypet2bids.is_pet as is_pet
 except ModuleNotFoundError:
     raise ModuleNotFoundError
 
@@ -299,6 +300,11 @@ def test_read_multi_sheet():
     assert(multi_spreadsheet['TimeZero'][0] == datetime.time(12,12,12))
     assert(multi_spreadsheet['TracerName'][0] == 'OverrideTracerNameIn0thSheet')
 
+
+def test_collect_pet_spreadsheets():
+    pet_spreadsheet_dir = Path(single_subject_metadata_file).parent
+    pet_spreadsheets = helper_functions.collect_spreadsheets(pet_spreadsheet_dir)
+    assert(len(pet_spreadsheets) == 3)
 
 if __name__ == '__main__':
     unittest.main()
