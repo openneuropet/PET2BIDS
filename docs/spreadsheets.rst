@@ -24,6 +24,46 @@ Handled Types of Spreadsheets (known)
   paired with a `single subject spreadsheet  <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subject_>`_
   these can be used when updating BIDS datasets w/ homogenous scanner/experiment data along with heterogeneous (subject)
   data.
+
+**Some more notes/quirks about Excel:**
+
+Excel sometimes has a mind of it's own, see how this value for InjectedMass appears in the picture below:
+
+.. image:: media/image_example_excel_miscalculation_InjectedMass.png
+
+As we can see there appear to be units contain in the source cells, and Excel helped us out by extracting them and also
+failing to cancel them during the multiplication.
+
+.. image:: media/image_example_excel_collecting_units.png
+
+It appears Excel "inferred" the units from the source data, which is not what we want.
+
+------------------------------------------------------------------------------------------------------------------------
+
+In the previous example what we thought might have been user error, was not. However, where there are users, user error
+will occur. This is one of the many reasons that BIDS relies on the `bids-validator`; automation doesn't get tired or
+have Fridays.
+
+See how in this example the user simply forgot to convert from microcuries to Becquerels:
+
+.. image:: media/image_example_excel_user_error.png
+
+------------------------------------------------------------------------------------------------------------------------
+
+Occasionally, a user will chose to inject a BIDS friendly column next to a non-BIDS friendly column. This can be lead
+to some confusion when browsing through a spreadsheet. However, PET2BIDS pays it no mind and neither should you. Best
+practice would be to keep all BIDS friendly columns together in a single sheet, but this is not a requirement. This is
+a *feature* and not a *bug*.
+
+.. image:: media/image_example_excel_mixing_columns.png
+
+
+As we can see above a user pasted the original values into this sheet and then converted them into BIDS friendly columns
+and units.
+pypet2bids looks over every column in every sheet, it doesn't attach any meaning to where in a spreadsheet that a
+column exists.
+
+
 ------------------------------------------------------------------------------------------------------------------------
 
 **PMOD**
