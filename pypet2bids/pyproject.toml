@@ -50,6 +50,7 @@ ispet = 'pypet2bids.is_pet:main'
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"
 build = "^0.9.0"
+sphinx-rtd-theme = "^1.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
