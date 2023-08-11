@@ -68,5 +68,17 @@
     "Anaesthesia",
     "ReconMethodParameterValues",
     "ReconFilterSize"
+  ],
+  "blood_recording_fields": [
+    "PlasmaAvail",
+    "WholeBloodAvail",
+    "MetaboliteAvail",
+    "MetaboliteMethod",
+    "MetaboliteRecoveryCorrectionApplied",
+    "DispersionCorrected",
+    "time",
+    "plasma_radioactivity",
+    "metabolite_parent_fraction",
+    "whole_blood_radioactivity"
   ]
 }

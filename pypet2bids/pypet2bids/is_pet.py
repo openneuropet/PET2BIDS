@@ -38,8 +38,9 @@ def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
     mandatory_fields = pet_field_requirements.get('mandatory', [])
     recommended_fields = pet_field_requirements.get('recommended', [])
     optional_fields = pet_field_requirements.get('optional', [])
+    blood_recording_fields = pet_field_requirements.get('blood_recording_fields', [])
 
-    intersection = set(mandatory_fields + recommended_fields + optional_fields) & set(data.keys())
+    intersection = set(mandatory_fields + recommended_fields + optional_fields + blood_recording_fields) & set(data.keys())
 
     if len(intersection) > 0:
         return True

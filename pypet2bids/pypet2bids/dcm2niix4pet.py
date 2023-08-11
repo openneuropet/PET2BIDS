@@ -403,11 +403,24 @@ class Dcm2niix4PET:
         self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
         self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
+        # we keep track of PET metadata in this spreadsheet metadata_dict, that includes nifti, _blood.json, and
+        # _blood.tsv data
+        self.spreadsheet_metadata = {}
         self.dicom_headers = self.extract_dicom_headers()
+        # we consider values stored in a default JSON file to be additional arguments, we load those
+        # values first and then overwrite them with any user supplied values
+
+        # load config file
+        default_json_path = helper_functions.check_pet2bids_config('DEFAULT_METADATA_JSON')
+        if default_json_path and Path(default_json_path).exists():
+            with open(default_json_path, 'r') as json_file:
+                try:
+                    self.spreadsheet_metadata.update(json.load(json_file))
+                except json.decoder.JSONDecodeError:
+                    logger.warning(f"Unable to load default metadata json file at {default_json_path}, skipping.")
 
         self.additional_arguments = additional_arguments
 
-        self.spreadsheet_metadata = {}
         # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
         # spreadsheet
         if metadata_path and metadata_translation_script:
@@ -446,6 +459,31 @@ class Dcm2niix4PET:
                             dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
                             **self.additional_arguments))
 
+            # check for any blood (tsv) data or otherwise in the given spreadsheet values
+            blood_tsv_columns = ['time', 'plasma_radioactivity', 'metabolite_parent_fraction', 'whole_blood_radioactivity']
+            blood_json_columns = ['PlasmaAvail', 'WholeBloodAvail', 'MetaboliteAvail', 'MetaboliteMethod',
+                                  'MetaboliteRecoveryCorrectionApplied', 'DispersionCorrected']
+
+            # check for existing tsv columns
+            for column in blood_tsv_columns:
+                try:
+                    values = spread_sheet_values[column]
+                    self.spreadsheet_metadata['blood_tsv'][column] = values
+                    # pop found data from spreadsheet values after it's been found
+                    spread_sheet_values.pop(column)
+                except KeyError:
+                    pass
+
+            # check for existing blood json values
+            for column in blood_json_columns:
+                try:
+                    values = spread_sheet_values[column]
+                    self.spreadsheet_metadata['blood_json'][column] = values
+                    # pop found data from spreadsheet values after it's been found
+                    spread_sheet_values.pop(column)
+                except KeyError:
+                    pass
+
             if not self.spreadsheet_metadata.get('nifti_json', None):
                 self.spreadsheet_metadata['nifti_json'] = {}
             self.spreadsheet_metadata['nifti_json'].update(spread_sheet_values)
@@ -476,34 +514,6 @@ class Dcm2niix4PET:
 
         return dcm2niix_path
 
-    @staticmethod
-    def check_for_pet2bids_config():
-        # check to see if path to dcm2niix is in .env file
-        dcm2niix_path = None
-        home_dir = Path.home()
-        pypet2bids_config = home_dir / '.pet2bidsconfig'
-        if pypet2bids_config.exists():
-            dotenv.load_dotenv(pypet2bids_config)
-            dcm2niix_path = os.getenv('DCM2NIIX_PATH')
-            if dcm2niix_path:
-                # check dcm2niix path exists
-                dcm2niix_path = Path(dcm2niix_path)
-                check = subprocess.run(
-                    f"{dcm2niix_path} -h",
-                    shell=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                if check.returncode == 0:
-                    return dcm2niix_path
-            else:
-                logger.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
-                dcm2niix_path = None
-        else:
-            logger.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
-                         f"have variable DCM2NIIX_PATH set to installed path of installed dcm2niix.")
-        return dcm2niix_path
-
     def check_for_dcm2niix(self):
         """
         Just checks for dcm2niix using the system shell, returns 0 if dcm2niix is present.
@@ -515,9 +525,9 @@ class Dcm2niix4PET:
             dcm2niix_path = self.check_posix()
             # fall back and check the config file if it's not on the path
             if not dcm2niix_path:
-                dcm2niix_path = self.check_for_pet2bids_config()
+                dcm2niix_path = helper_functions.check_pet2bids_config('DCM2NIIX_PATH')
         elif system().lower() == 'windows':
-            dcm2niix_path = self.check_for_pet2bids_config()
+            dcm2niix_path = helper_functions.check_pet2bids_config('DCM2NIIX_PATH')
         else:
             dcm2niix_path = None
 
@@ -1159,6 +1169,11 @@ def cli():
     parser.add_argument('--set-dcm2niix-path', help="Provide a path to a dcm2niix install/exe, writes path to config "
                                                     f"file {Path.home()}/.pet2bidsconfig under the variable "
                                                     f"DCM2NIIX_PATH", type=pathlib.Path)
+    parser.add_argument('--set-default-metadata-json', help="Provide a path to a default metadata file json file."
+                                                            "This file will be used to fill in missing metadata not"
+                                                            "contained within dicom headers or spreadsheet metadata."
+                                                            "Sets given path to DEFAULT_METADATA_JSON var in "
+                                                            f"{Path.home()}/.pet2bidsconfig")
 
     return parser
 
@@ -1297,7 +1312,11 @@ def main():
         sys.exit(0)
 
     if cli_args.set_dcm2niix_path:
-        helper_functions.set_dcm2niix_path(cli_args.set_dcm2niix_path)
+        helper_functions.modify_config_file('DCM2NIIX_PATH', cli_args.set_dcm2niix_path)
+        sys.exit(0)
+
+    if cli_args.set_default_metadata_json:
+        helper_functions.modify_config_file('DEFAULT_METADATA_JSON', cli_args.set_default_metadata_json)
         sys.exit(0)
 
     elif cli_args.folder:

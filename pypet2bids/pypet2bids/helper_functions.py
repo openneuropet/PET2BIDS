@@ -25,12 +25,14 @@ import logging
 import dotenv
 import ast
 import sys
+import subprocess
 
 import numpy
 import pandas
 import toml
 import pathlib
 from pandas import read_csv, read_excel, Series
+from pathlib import Path
 import importlib
 import argparse
 from typing import Union
@@ -707,12 +709,15 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     return reconstruction_dict
 
 
-def set_dcm2niix_path(dc2niix_path: pathlib.Path):
+def modify_config_file(var: str, value: Union[pathlib.Path, str]):
     """
-    Given a path (or a string it thinks might be a path), updates the config file to point to
-    a dcm2niix.exe file. Used on windows via dcm2niix command line
-    :param dc2niix_path: path to dcm2niix executable
-    :type dc2niix_path: path
+    Given a variable name and a value updates the config file with those inputs.
+    Namely used (on Windows, but not limited to) to point to a dcm2niix executable (dcm2niix.exe)
+    file as we don't assume dcm2niix is in the path.
+    :param var: variable name
+    :type var: str
+    :param value: variable value, most often a path to another file
+    :type value: Union[pathlib.Path, str]
     :return: None
     :rtype: None
     """
@@ -723,18 +728,22 @@ def set_dcm2niix_path(dc2niix_path: pathlib.Path):
         # open the file and read in all the lines
         temp_file = pathlib.Path.home() / '.pet2bidsconfig.temp'
         with open(config_file, 'r') as infile, open(temp_file, 'w') as outfile:
+            updated_file = False
             for line in infile:
-                if 'DCM2NIIX_PATH' in line:
-                    outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
+                if var + '=' in line:
+                    outfile.write(f"{var}={value}\n")
+                    updated_file = True
                 else:
                     outfile.write(line)
+            if not updated_file:
+                outfile.write(f"{var}={value}\n")
         if system().lower() == 'windows':
             config_file.unlink(missing_ok=True)
         temp_file.replace(config_file)
     else:
         # create the file
         with open(config_file, 'w') as outfile:
-            outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
+            outfile.write(f'{var}={value}\n')
 
 
 def check_units(entity_key: str, entity_value: str, accepted_units: Union[list, str]):
@@ -811,6 +820,7 @@ def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_check
 
     return metadata
     
+
 def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.Path]:
     if ' ' in str(bad_path):
         return f'"{bad_path}"'.rstrip().strip()
@@ -829,6 +839,48 @@ def replace_nones(dictionary):
     # sub nulls
     json_fixed = re.sub('null', '"none"', json_string)
     return json.loads(json_fixed)
+
+
+def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
+    """
+    Checks the config file at users home /.pet2bidsconfig for the variable passed in,
+    defaults to checking for DCM2NIIX_PATH. However, we can use it for anything we like,
+    including setting paths to other useful files or "pet2bids" specific variables we'd like
+    to access globally, or set as unchanging defaults.
+
+    :param variable: a string variable name to check for in the config file
+    :type variable: string
+    :return: the value of the variable if it exists in the config file
+    :rtype: str
+    """
+    # check to see if path to dcm2niix is in .env file
+    dcm2niix_path = None
+    home_dir = Path.home()
+    pypet2bids_config = home_dir / '.pet2bidsconfig'
+    if pypet2bids_config.exists():
+        dotenv.load_dotenv(pypet2bids_config)
+        variable_value = os.getenv(variable)
+        if variable == 'DCM2NIIX_PATH':
+            if variable_value:
+                # check dcm2niix path exists
+                dcm2niix_path = Path(variable_value)
+                check = subprocess.run(
+                    f"{dcm2niix_path} -h",
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                if check.returncode == 0:
+                    return dcm2niix_path
+            else:
+                logger.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
+                return None
+        if variable != 'DCM2NIIX_PATH':
+            return variable_value
+
+    else:
+        logger.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+                     f"have variable: {variable} and {variable} must be set.")
 
 
 class CustomFormatter(logging.Formatter):
