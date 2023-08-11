@@ -1308,6 +1308,7 @@ def main():
 
     if len(sys.argv) == 1:
         cli_parser.print_usage()
+        print(f"version: {helper_functions.get_version()}")
         sys.exit(1)
     else:
         cli_args = cli_parser.parse_args()
