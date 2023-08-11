@@ -403,6 +403,10 @@ class Dcm2niix4PET:
         self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
         self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
+        # once we've groked all the parts (entities) or ultimate path of the output files (blood, nifti, json, etc)
+        # we will save that to this variable.
+        self.new_file_name_with_entities = None
+
         # we keep track of PET metadata in this spreadsheet metadata_dict, that includes nifti, _blood.json, and
         # _blood.tsv data
         self.spreadsheet_metadata = {}
@@ -769,23 +773,24 @@ class Dcm2niix4PET:
                 elif not self.subject_id:
                     new_path = Path(join(self.destination_path, created_path.name))
 
+                self.new_file_name_with_entities = new_path
+
                 shutil.move(src=created, dst=new_path)
 
             return self.destination_path
 
     def post_dcm2niix(self):
+        # TODO add logic to handle blood tsv recording manual vs automatic
+        # for now we will just assume that if the user supplied a blood tsv then it is manual
+        recording_entity = "_recording-manual"
+
+        if '_pet' in self.new_file_name_with_entities.name:
+            blood_file_name = self.new_file_name_with_entities.stem.replace('_pet', recording_entity + '_blood')
+        else:
+            blood_file_name = self.new_file_name_with_entities.stem + recording_entity + '_blood'
+
         with TemporaryDirectory() as temp_dir:
             tempdir_path = Path(temp_dir)
-            if self.subject_id != list(self.dicom_headers.values())[0].PatientID:
-                blood_file_name_w_out_extension = "sub-" + self.subject_id + "_blood"
-            elif self.dicom_headers:
-                # collect date and time and series number from dicom
-                first_dicom = list(self.dicom_headers.values())[0]
-                date_time = dicom_datetime_to_dcm2niix_time(first_dicom)
-                series_number = str(first_dicom.SeriesNumber)
-                protocol_name = str(first_dicom.SeriesDescription).replace(" ", "_")
-                blood_file_name_w_out_extension = protocol_name + '_' + self.subject_id + '_' + date_time + '_' + \
-                                                  series_number + "_blood"
 
             if self.spreadsheet_metadata.get('blood_tsv', None) is not None:
                 blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
@@ -793,13 +798,13 @@ class Dcm2niix4PET:
                     if type(blood_tsv_data) is dict:
                         blood_tsv_data = pd.DataFrame(blood_tsv_data)
                     # write out blood_tsv using pandas csv write
-                    blood_tsv_data.to_csv(join(tempdir_path, blood_file_name_w_out_extension + ".tsv")
+                    blood_tsv_data.to_csv(join(tempdir_path, blood_file_name + ".tsv")
                                           , sep='\t',
                                           index=False)
 
                 elif type(blood_tsv_data) is str:
                     # write out with write
-                    with open(join(tempdir_path, blood_file_name_w_out_extension + ".tsv"), 'w') as outfile:
+                    with open(join(tempdir_path, blood_file_name + ".tsv"), 'w') as outfile:
                         outfile.writelines(blood_tsv_data)
                 else:
                     raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
@@ -818,7 +823,7 @@ class Dcm2niix4PET:
                            f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
                            f"{self.metadata_translation_script}")
 
-                with open(join(tempdir_path, blood_file_name_w_out_extension + '.json'), 'w') as outfile:
+                with open(join(tempdir_path, blood_file_name + '.json'), 'w') as outfile:
                     json.dump(blood_json_data, outfile, indent=4)
 
             blood_files = [join(str(tempdir_path), blood_file) for blood_file in os.listdir(str(tempdir_path))]
