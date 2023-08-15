@@ -12,6 +12,7 @@ import pathlib
 from pypet2bids.read_ecat import read_ecat
 import os
 import pickle
+import logging
 
 try:
     import helper_functions
@@ -19,7 +20,9 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
 
 
-logger = helper_functions.log()
+#logger = helper_functions.logger('pypet2bids')
+
+logger = logging.getLogger('pypet2bids')
 
 def ecat2nii(ecat_main_header=None,
              ecat_subheaders=None,

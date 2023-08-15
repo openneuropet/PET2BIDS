@@ -48,6 +48,31 @@ pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
 
+loggers = {}
+
+
+def logger(name):
+    global loggers
+    if loggers.get(name):
+        return loggers.get(name)
+    else:
+        # create logger with for pypet2bids
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+
+        # create console handler with a higher log level
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.DEBUG)
+
+        ch.setFormatter(CustomFormatter())
+
+        logger.addHandler(ch)
+        # this stops the logger from repeating itself in the outputs, it's most likely set up incorrectly, but this
+        # works great to get the desired effect
+        logger.propagate = False
+
+        return logger
+
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
     if type(pet_bids_req_json) is str:
@@ -120,6 +145,8 @@ def single_spreadsheet_reader(
 
     spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
 
+    logger = logging.getLogger('pypet2bids')
+
     # collect mandatory fields
     for field_level in metadata_fields.keys():
         for field in metadata_fields[field_level]:
@@ -127,7 +154,7 @@ def single_spreadsheet_reader(
             if not series.empty:
                 metadata[field] = flatten_series(series)
             elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
-                logging.warning(f"{field} not found in {path_to_spreadsheet}, {field} is required by BIDS")
+                logger.warning(f"{field} not found in metadata spreadsheet: {path_to_spreadsheet}, {field} is required by BIDS")
 
     # lastly apply any kwargs to the metadata
     metadata.update(**kwargs)
@@ -908,22 +935,3 @@ class CustomFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
-
-
-def log():
-    # create logger with for pypet2bids
-    logger = logging.getLogger("pypet2bids")
-    logger.setLevel(logging.DEBUG)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler(stream=sys.stdout)
-    ch.setLevel(logging.DEBUG)
-
-    ch.setFormatter(CustomFormatter())
-
-    logger.addHandler(ch)
-
-    return logger
-
-
-logger = log()

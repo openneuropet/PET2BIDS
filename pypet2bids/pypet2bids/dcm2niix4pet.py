@@ -32,6 +32,8 @@ from termcolor import colored
 import argparse
 import importlib
 import dotenv
+import logging
+
 
 try:
     import helper_functions
@@ -40,7 +42,8 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
 
-logger = helper_functions.logger
+logger = logging.getLogger("pypet2bids")
+
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -736,7 +739,6 @@ class Dcm2niix4PET:
                         suffix = '.nii.gz'
                     else:
                         suffix = created_path.suffix
-
                     if self.session_id:
                         session_id = '_' + self.session_id
                     else:
@@ -788,6 +790,9 @@ class Dcm2niix4PET:
         recording_entity = "_recording-manual"
 
         if '_pet' in self.new_file_name_with_entities.name:
+            if self.new_file_name_with_entities.suffix == '.gz' and len(self.new_file_name_with_entities.suffixes) > 1:
+                self.new_file_name_with_entities = self.new_file_name_with_entities.with_suffix('').with_suffix('')
+
             blood_file_name = self.new_file_name_with_entities.stem.replace('_pet', recording_entity + '_blood')
         else:
             blood_file_name = self.new_file_name_with_entities.stem + recording_entity + '_blood'
@@ -1169,8 +1174,8 @@ def cli():
                              "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
                              "Note: the value portion of the argument (right side of the equal's sign) should always"
                              "be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
-    parser.add_argument('--silent', '-s', type=bool, default=False, help="Display missing metadata warnings and errors"
-                                                                         "to stdout/stderr")
+    parser.add_argument('--silent', '-s', action="store_true", default=False,
+                        help="Hide missing metadata warnings and errors to stdout/stderr")
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
                         action='store_true')
 
@@ -1315,6 +1320,9 @@ def main():
         sys.exit(1)
     else:
         cli_args = cli_parser.parse_args()
+
+    if cli_args.silent:
+        logger.disabled = True
 
     if cli_args.show_examples:
         print(example1)

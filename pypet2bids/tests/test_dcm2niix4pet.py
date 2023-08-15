@@ -17,8 +17,7 @@ from unittest import TestCase
 module_folder = Path(__file__).parent.resolve()
 python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
-metadata_folder = join(pet2bids_folder, 'metadata')
-spreadsheet_folder = join(metadata_folder, 'spreadsheet_conversion')
+spreadsheet_folder = join(pet2bids_folder, 'spreadsheet_conversion')
 
 
 # collect paths to test files/folders
@@ -386,6 +385,27 @@ def test_run_dcm2niix4pet_with_full_blood_sheet():
                                     silent=True)
         dcm2niix4pet.convert()
         contents_output = [os.path.join(destination, f) for f in os.listdir(destination)]
+
+        # copy over dataset_description.json to bids dir
+        dataset_description = {
+            "Name": "PET Single Subject w/ sheet",
+            "BIDSVersion": "1.6.0",
+            "DatasetType": "raw",
+            "License": "CCBY",
+            "Authors": [
+                "Cyril Pernet",
+                "Sune Høgild Keller",
+                "Gabriel Gonzalez-Escamilla",
+                "Søren Baarsgaard Hansen",
+                "Maqsood Yaqub"
+            ],
+            "HowToAcknowledge": "Please cite the repository URL"
+        }
+
+        with open(os.path.join(tempdir, 'bids_test_dir', 'dataset_description.json'), 'w') as f:
+            json.dump(dataset_description, f, indent=4)
+
+
 
         print('debug')
 
