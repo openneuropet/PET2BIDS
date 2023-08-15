@@ -320,7 +320,7 @@ def collect_date_time_from_file_name(file_name):
 
 class Dcm2niix4PET:
     def __init__(self, image_folder, destination_path=None, metadata_path=None,
-                 metadata_translation_script=None, additional_arguments=None, file_format='%p_%i_%t_%s',
+                 metadata_translation_script=None, additional_arguments={}, file_format='%p_%i_%t_%s',
                  silent=False):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -620,7 +620,10 @@ class Dcm2niix4PET:
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
-                    check_for_missing = check_json(created_path, silent=True, **self.additional_arguments)
+                    if self.additional_arguments:
+                        check_for_missing = check_json(created_path, silent=True, **self.additional_arguments)
+                    else:
+                        check_for_missing = check_json(created_path, silent=True)
 
                     # we do our best to extra information from the dicom header and insert these values
                     # into the sidecar json
