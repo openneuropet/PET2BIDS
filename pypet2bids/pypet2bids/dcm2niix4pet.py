@@ -355,6 +355,7 @@ class Dcm2niix4PET:
         this key value pair will overwrite any fields in the dcm2niix produced nifti sidecar.json as it is assumed that
         the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
         dicom header
+        :param tempdir_location: user supplied base location for temporary directory (override system default)
         :param silent: silence missing sidecar metadata messages, default is False and very verbose
         """
 
@@ -377,6 +378,11 @@ class Dcm2niix4PET:
                 logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
                                f"installed version {version[0]} at {self.dcm2niix_path}.")
 
+        #check if user provided a custom tempdir location
+        self.tempdir_location=None
+        if tempdir_location:
+            self.tempdir_location=Path(tempdir_location)
+        
         self.image_folder = Path(image_folder)
         if destination_path:
             self.destination_path = Path(destination_path)
@@ -582,7 +588,7 @@ class Dcm2niix4PET:
             file_format_args = f"-f {self.file_format}"
         else:
             file_format_args = ""
-        with TemporaryDirectory() as tempdir:
+        with TemporaryDirectory(dir=self.tempdir_location) as tempdir:
             tempdir_pathlike = Path(tempdir)
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
@@ -1167,6 +1173,8 @@ def cli():
                              "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If " +
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
+    parser.add_argument('--tempdir', type=str, default=None,
+                        help="User-specified tempdir location (overrides default system tempfile default)", required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the "
@@ -1344,6 +1352,7 @@ def main():
             metadata_path=helper_functions.expand_path(cli_args.metadata_path),
             metadata_translation_script=helper_functions.expand_path(cli_args.translation_script_path),
             additional_arguments=cli_args.kwargs,
+            tempdir_location=cli_args.tempdir,
             silent=cli_args.silent)
 
         converter.convert()
