@@ -1,7 +1,7 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
 from pypet2bids.dcm2niix4pet import check_meta_radio_inputs
 
-
+import shutil
 import dotenv
 import os
 from pathlib import Path
@@ -9,7 +9,9 @@ from tempfile import TemporaryDirectory
 import json
 from os.path import join
 import pydicom
+import subprocess
 from unittest import TestCase
+
 
 
 # collect config files
@@ -405,9 +407,19 @@ def test_run_dcm2niix4pet_with_full_blood_sheet():
         with open(os.path.join(tempdir, 'bids_test_dir', 'dataset_description.json'), 'w') as f:
             json.dump(dataset_description, f, indent=4)
 
+        # copy over a readme file, we use the one in the metadata folder
+        readme = os.path.join(pet2bids_folder, 'metadata/', 'README')
+        shutil.copy(readme, os.path.join(tempdir, 'bids_test_dir'))
 
+        # run the bids validator on the output
+        command = ['bids-validator', os.path.join(tempdir, 'bids_test_dir')]
+        validation = subprocess.run(command, capture_output=True)
 
-        print('debug')
+        # check exit code of subprocess
+        assert validation.returncode == 0
+        # verify that the output is as expected
+        output = validation.stdout.decode('utf-8')
+        assert 'This dataset appears to be BIDS compatible' in output
 
 
 if __name__ == '__main__':
