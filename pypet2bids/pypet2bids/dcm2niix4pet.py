@@ -102,6 +102,9 @@ def check_json(path_to_json, items_to_check=None, silent=False, **additional_arg
     # check for default argument for dictionary of items to check
     if items_to_check is None:
         items_to_check = metadata_dictionaries['PET_metadata.json']
+        # remove blood tsv data from items to check
+        if items_to_check.get('blood_recording_fields', None):
+            items_to_check.pop('blood_recording_fields')
 
     # open the json
     with open(path_to_json, 'r') as in_file:
@@ -324,7 +327,7 @@ def collect_date_time_from_file_name(file_name):
 class Dcm2niix4PET:
     def __init__(self, image_folder, destination_path=None, metadata_path=None,
                  metadata_translation_script=None, additional_arguments={}, file_format='%p_%i_%t_%s',
-                 silent=False):
+                 silent=False, tempdir_location=None):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
             - Convert a set of dicoms into .nii and .json sidecar files
@@ -356,6 +359,7 @@ class Dcm2niix4PET:
         the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
         dicom header
         :param silent: silence missing sidecar metadata messages, default is False and very verbose
+        :param tempdir_location: location to create the temporary directory, for use on constrained systems
         """
 
         # check to see if dcm2niix is installed
@@ -377,6 +381,7 @@ class Dcm2niix4PET:
                 logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
                                f"installed version {version[0]} at {self.dcm2niix_path}.")
 
+        self.tempdir_location = tempdir_location
         self.image_folder = Path(image_folder)
         if destination_path:
             self.destination_path = Path(destination_path)
@@ -582,7 +587,7 @@ class Dcm2niix4PET:
             file_format_args = f"-f {self.file_format}"
         else:
             file_format_args = ""
-        with TemporaryDirectory() as tempdir:
+        with TemporaryDirectory(self.tempdir_location) as tempdir:
             tempdir_pathlike = Path(tempdir)
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
@@ -797,46 +802,42 @@ class Dcm2niix4PET:
         else:
             blood_file_name = self.new_file_name_with_entities.stem + recording_entity + '_blood'
 
-        with TemporaryDirectory() as temp_dir:
-            tempdir_path = Path(temp_dir)
+        if self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
+            blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
+            if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
+                if type(blood_tsv_data) is dict:
+                    blood_tsv_data = pd.DataFrame(blood_tsv_data)
+                # write out blood_tsv using pandas csv write
+                blood_tsv_data.to_csv(join(self.destination_path, blood_file_name + ".tsv")
+                                      , sep='\t',
+                                      index=False)
 
-            if self.spreadsheet_metadata.get('blood_tsv', None) is not None:
-                blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
-                if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
-                    if type(blood_tsv_data) is dict:
-                        blood_tsv_data = pd.DataFrame(blood_tsv_data)
-                    # write out blood_tsv using pandas csv write
-                    blood_tsv_data.to_csv(join(tempdir_path, blood_file_name + ".tsv")
-                                          , sep='\t',
-                                          index=False)
+            elif type(blood_tsv_data) is str:
+                # write out with write
+                with open(join(self.destination_path, blood_file_name + ".tsv"), 'w') as outfile:
+                    outfile.writelines(blood_tsv_data)
+            else:
+                raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
+                       f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
+                       f"{self.metadata_translation_script}")
 
-                elif type(blood_tsv_data) is str:
-                    # write out with write
-                    with open(join(tempdir_path, blood_file_name + ".tsv"), 'w') as outfile:
-                        outfile.writelines(blood_tsv_data)
-                else:
-                    raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
-                           f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                           f"{self.metadata_translation_script}")
-            if self.spreadsheet_metadata.get('blood_json', {}) != {}:
-                blood_json_data = self.spreadsheet_metadata.get('blood_json')
-                if type(blood_json_data) is dict:
-                    # write out to file with json dump
-                    pass
-                elif type(blood_json_data) is str:
-                    # write out to file with json dumps
-                    blood_json_data = json.loads(blood_json_data)
-                else:
-                    raise (f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
-                           f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                           f"{self.metadata_translation_script}")
+        # if there's blood data in the tsv then write out the sidecar file too
+        if self.spreadsheet_metadata.get('blood_json', {}) != {} \
+                and self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
+            blood_json_data = self.spreadsheet_metadata.get('blood_json')
+            if type(blood_json_data) is dict:
+                # write out to file with json dump
+                pass
+            elif type(blood_json_data) is str:
+                # write out to file with json dumps
+                blood_json_data = json.loads(blood_json_data)
+            else:
+                raise (f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
+                       f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
+                       f"{self.metadata_translation_script}")
 
-                with open(join(tempdir_path, blood_file_name + '.json'), 'w') as outfile:
-                    json.dump(blood_json_data, outfile, indent=4)
-
-            blood_files = [join(str(tempdir_path), blood_file) for blood_file in os.listdir(str(tempdir_path))]
-            for blood_file in blood_files:
-                shutil.move(blood_file, join(self.destination_path, os.path.basename(blood_file)))
+            with open(join(self.destination_path, blood_file_name + '.json'), 'w') as outfile:
+                json.dump(blood_json_data, outfile, indent=4)
 
     def convert(self):
         self.run_dcm2niix()
