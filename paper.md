@@ -93,20 +93,6 @@ record time and radiotracer concentration from the blood sampling. To facilitate
 dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, (ii) use preformatted tabular data to update JSON files, and (iii) convert a tabular pmod file to a blood.tsv file
 (pmod being a popular commercial pharmacokinetic modelling software [@]).
 
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
 # Acknowledgements
 
 This work was supported by Novo Nordisk fonden (NNF20OC0063277) and the BRAIN initiative (MH002977-01).
