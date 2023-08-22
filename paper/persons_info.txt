@@ -1,18 +1,23 @@
-0000-0002-9120-8098	Melanie	Ganz		Rigshospitalet, University of Copenhagen
+0000-0001-6550-4574  Anthony Galassi  National Institutes of Health, Bethesda, MD, USA
 
-0000-0003-4010-4632	Cyril	Pernet		Copenhagen University Hospital, Rigshospitalet
+0000-0002-9942-676X  Cyrus Eierud  TReNDS Center, Georgia State University, Atlanta, GA, USA
 
-0000-0002-2850-1419	Adam	Thomas		National Institute of Mental Health
+0000-0003-2131-5688  Martin Norgaard  Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
 
-0000-0003-2131-5688	Martin	Nørgaard	Københavns Universitet, Rigshospitalet, Stanford University
+0000-0002-2850-1419  Adam G. Thomas  National Institutes of Health, Bethesda, MD, USA
 
-0000-0002-7209-1736	Gabriel	Gonzalez-Escamilla	University Medical Center of the Johannes Gutenberg University Mainz
+0000-0002-7209-1736  Gabriel Gonzalez-Escamilla  University Medical Center of the Johannes Gutenberg University Mainz, Mainz, Germany
 
-0000-0002-1535-9767	Remi	Gau		Université catholique de Louvain
+0000-0001-7811-1825  Claus Svarer  Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
 
-0000-0002-7554-6142	Chris	Rorden		University of South Carolina
+0000-0002-7554-6142  Chris Rorden   Department of Psychology, University of South Carolina, Columbia, SC, USA
 
-0000-0001-6550-4574	anthony	galassi     National Institute of Mental Health
+0000-0002-5646-4547  Grandville Matheson  Mailman School of public health, Columbia University, New York, NY, US
 
-0000-0002-9942-676X Cyrus Eierud        Georgia State University
+0000-0003-1508-6866  Gite Knudsen  Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
 
+0000-0003-1238-7209  Robert Innis  National Institutes of Health, Bethesda, MD, USA 
+
+0000-0002-9120-8098  Melanie Ganz-Benjaminse  Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
+
+0000-0003-4010-4632  Cyril Pernet  Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
