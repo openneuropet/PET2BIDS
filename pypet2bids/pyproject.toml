@@ -15,7 +15,7 @@ include = [
     ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=3.11.1"
+python = ">=3.8,<=3.11"
 nibabel = ">=3.2.1"
 numpy = "^1.21.3"
 pyparsing = "^3.0.4"
