@@ -650,6 +650,18 @@ class Dcm2niix4PET:
                             dicom2bids_json=metadata_dictionaries['dicom2bids.json'],
                             **self.additional_arguments)
 
+                    # there are some additional updates that depend on some PET BIDS logic that we do next, since these
+                    # updates depend on both information provided via the sidecar json and/or information provided via
+                    # additional arguments we run this step after updating the sidecar with those additional user
+                    # arguments
+
+                    sidecar_json = JsonMAJ(json_path=str(created),
+                                           bids_null=True)  # load all supplied and now written sidecar data in
+
+                    check_metadata_radio_inputs = check_meta_radio_inputs(sidecar_json.json_data) # run logic
+
+                    sidecar_json.update(check_metadata_radio_inputs)  # update sidecar json with results of logic
+
                     # if we have entities in our metadata spreadsheet that we've used we update
                     if self.spreadsheet_metadata.get('nifti_json', None):
                         update_json = JsonMAJ(json_path=str(created),
@@ -682,17 +694,6 @@ class Dcm2niix4PET:
                                               bids_null=True)
                         update_json.update()
 
-                    # there are some additional updates that depend on some PET BIDS logic that we do next, since these
-                    # updates depend on both information provided via the sidecar json and/or information provided via
-                    # additional arguments we run this step after updating the sidecar with those additional user
-                    # arguments
-
-                    sidecar_json = JsonMAJ(json_path=str(created),
-                                           bids_null=True)  # load all supplied and now written sidecar data in
-
-                    check_metadata_radio_inputs = check_meta_radio_inputs(sidecar_json.json_data)  # run logic
-
-                    sidecar_json.update(check_metadata_radio_inputs)  # update sidecar json with results of logic
 
                     # check to see if convolution kernel is present
                     sidecar_json = JsonMAJ(json_path=str(created), bids_null=True)

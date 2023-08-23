@@ -100,7 +100,7 @@ def flatten_series(series):
     elif len(simplified_series_object) == 1:
         simplified_series_object = simplified_series_object[0]
     else:
-        raise f"Invalid Series: {series}"
+        raise Exception(f"Invalid Series: {series}")
     return simplified_series_object
 
 
@@ -145,7 +145,7 @@ def single_spreadsheet_reader(
 
     spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
 
-    logger = logging.getLogger('pypet2bids')
+    log = logging.getLogger('pypet2bids')
 
     # collect mandatory fields
     for field_level in metadata_fields.keys():
@@ -154,7 +154,7 @@ def single_spreadsheet_reader(
             if not series.empty:
                 metadata[field] = flatten_series(series)
             elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
-                logger.warning(f"{field} not found in metadata spreadsheet: {path_to_spreadsheet}, {field} is required by BIDS")
+                log.warning(f"{field} not found in metadata spreadsheet: {path_to_spreadsheet}, {field} is required by BIDS")
 
     # lastly apply any kwargs to the metadata
     metadata.update(**kwargs)
@@ -334,6 +334,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
+    log = logger('pet2bids')
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
@@ -389,16 +390,16 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
         try:
             metadata_dataframe = pandas.read_csv(metadata_path, sep=separator, engine='python')
         except IOError:
-            logger.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
+            log.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
             raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
 
 
 def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
+    log = logger('pet2bids')
     # load metadata
     metadata_dataframe = open_meta_data(metadata_path)
-    logger = log()
 
     if metadata_dataframe is not None:
         try:
@@ -411,9 +412,9 @@ def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs
             # note the translation must have a method named translate metadata in order to work
             text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
         except AttributeError as err:
-            logger.warning(f"Unable to locate metadata_translation_script\n{err}")
+            log.warning(f"Unable to locate metadata_translation_script\n{err}")
     else:
-        logger.info(f"No metadata found at {metadata_path}")
+        log.info(f"No metadata found at {metadata_path}")
         text_file_data = None
 
     return text_file_data
@@ -479,6 +480,8 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :return: the collected bids part
     :rtype: string
     """
+    log = logger('pet2bids')
+
     # get os of system
     if os.name == 'posix':
         not_windows = True
@@ -494,7 +497,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
         if '\\' in part and not_windows:
             # explicitly use windows path splitting
             parts = pathlib.PureWindowsPath(path_like).parts
-            logger.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
+            log.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
             break
 
     # create search string
@@ -880,6 +883,7 @@ def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
     :return: the value of the variable if it exists in the config file
     :rtype: str
     """
+    log = logger('pet2bids')
     # check to see if path to dcm2niix is in .env file
     dcm2niix_path = None
     home_dir = Path.home()
@@ -900,13 +904,13 @@ def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
                 if check.returncode == 0:
                     return dcm2niix_path
             else:
-                logger.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
+                log.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
                 return None
         if variable != 'DCM2NIIX_PATH':
             return variable_value
 
     else:
-        logger.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+        log.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
                      f"have variable: {variable} and {variable} must be set.")
 
 
