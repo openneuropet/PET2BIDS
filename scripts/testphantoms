@@ -45,5 +45,5 @@ cp dataset_description.json python/
 popd
 
 # Validate 
-bids-validator OpenNeuroPET-Phantoms/python
+bids-validator OpenNeuroPET-Phantoms/python --ignore-warnings --verbose
 

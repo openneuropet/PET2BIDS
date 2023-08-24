@@ -56,7 +56,7 @@ ReconFilterType="none"
 # Siemens Biograph
 # ---------------------------
 echo "${SOURCE_FOLDER}/SiemensBiographPETMR-NRU"
-dcm2niix4pet $SOURCE_FOLDER/SiemensBiographPETMR-NRU  --destination-path $DESTINATION/sub-SiemensBiographNRU/pet --kwargs \
+dcm2niix4pet $SOURCE_FOLDER/SiemensBiographPETMR-NRU --destination-path $DESTINATION/sub-SiemensBiographNRU/pet --kwargs \
 Manufacturer=Siemens \
 ManufacturersModelName=Biograph \
 InstitutionName="Rigshospitalet, NRU, DK" \

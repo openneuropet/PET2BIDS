@@ -187,7 +187,7 @@ def main():
             scanner_txt = cli_args.scannerparams[0]
         scanner_params = helper_functions.load_vars_from_config(scanner_txt)
 
-        # if any additional non null values have been included in a scanner.txt include those in the sidecar,
+        # if any additional non-null values have been included in a scanner.txt include those in the sidecar,
         # variable supplied via the --kwargs argument to the cli will override any variables in scanner.txt
         if scanner_params:
             scanner_params.update(cli_args.kwargs)

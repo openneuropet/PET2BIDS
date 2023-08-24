@@ -25,12 +25,14 @@ import logging
 import dotenv
 import ast
 import sys
+import subprocess
 
 import numpy
 import pandas
 import toml
 import pathlib
 from pandas import read_csv, read_excel, Series
+from pathlib import Path
 import importlib
 import argparse
 from typing import Union
@@ -45,6 +47,31 @@ metadata_dir = os.path.join(project_dir, 'metadata')
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
+
+loggers = {}
+
+
+def logger(name):
+    global loggers
+    if loggers.get(name):
+        return loggers.get(name)
+    else:
+        # create logger with for pypet2bids
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+
+        # create console handler with a higher log level
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.DEBUG)
+
+        ch.setFormatter(CustomFormatter())
+
+        logger.addHandler(ch)
+        # this stops the logger from repeating itself in the outputs, it's most likely set up incorrectly, but this
+        # works great to get the desired effect
+        logger.propagate = False
+
+        return logger
 
 
 def load_pet_bids_requirements_json(pet_bids_req_json: Union[str, pathlib.Path] = pet_metadata_json) -> dict:
@@ -73,7 +100,7 @@ def flatten_series(series):
     elif len(simplified_series_object) == 1:
         simplified_series_object = simplified_series_object[0]
     else:
-        raise f"Invalid Series: {series}"
+        raise Exception(f"Invalid Series: {series}")
     return simplified_series_object
 
 
@@ -118,6 +145,8 @@ def single_spreadsheet_reader(
 
     spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
 
+    log = logging.getLogger('pypet2bids')
+
     # collect mandatory fields
     for field_level in metadata_fields.keys():
         for field in metadata_fields[field_level]:
@@ -125,7 +154,7 @@ def single_spreadsheet_reader(
             if not series.empty:
                 metadata[field] = flatten_series(series)
             elif series.empty and field_level == 'mandatory' and not dicom_metadata.get(field, None) and field not in kwargs:
-                logging.warning(f"{field} not found in {path_to_spreadsheet}, {field} is required by BIDS")
+                log.warning(f"{field} not found in metadata spreadsheet: {path_to_spreadsheet}, {field} is required by BIDS")
 
     # lastly apply any kwargs to the metadata
     metadata.update(**kwargs)
@@ -305,6 +334,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
+    log = logger('pet2bids')
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
@@ -360,16 +390,16 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
         try:
             metadata_dataframe = pandas.read_csv(metadata_path, sep=separator, engine='python')
         except IOError:
-            logger.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
+            log.error(f"Tried falling back to reading {metadata_path} with pandas.read_csv, still unable to parse")
             raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
 
 
 def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
+    log = logger('pet2bids')
     # load metadata
     metadata_dataframe = open_meta_data(metadata_path)
-    logger = log()
 
     if metadata_dataframe is not None:
         try:
@@ -382,9 +412,9 @@ def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs
             # note the translation must have a method named translate metadata in order to work
             text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
         except AttributeError as err:
-            logger.warning(f"Unable to locate metadata_translation_script\n{err}")
+            log.warning(f"Unable to locate metadata_translation_script\n{err}")
     else:
-        logger.info(f"No metadata found at {metadata_path}")
+        log.info(f"No metadata found at {metadata_path}")
         text_file_data = None
 
     return text_file_data
@@ -450,6 +480,8 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :return: the collected bids part
     :rtype: string
     """
+    log = logger('pet2bids')
+
     # get os of system
     if os.name == 'posix':
         not_windows = True
@@ -465,7 +497,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
         if '\\' in part and not_windows:
             # explicitly use windows path splitting
             parts = pathlib.PureWindowsPath(path_like).parts
-            logger.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
+            log.warning(f"Detected \\ in BIDS like path {path_like}, but os is {os.name}, doing best to parse.")
             break
 
     # create search string
@@ -707,12 +739,15 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     return reconstruction_dict
 
 
-def set_dcm2niix_path(dc2niix_path: pathlib.Path):
+def modify_config_file(var: str, value: Union[pathlib.Path, str]):
     """
-    Given a path (or a string it thinks might be a path), updates the config file to point to
-    a dcm2niix.exe file. Used on windows via dcm2niix command line
-    :param dc2niix_path: path to dcm2niix executable
-    :type dc2niix_path: path
+    Given a variable name and a value updates the config file with those inputs.
+    Namely used (on Windows, but not limited to) to point to a dcm2niix executable (dcm2niix.exe)
+    file as we don't assume dcm2niix is in the path.
+    :param var: variable name
+    :type var: str
+    :param value: variable value, most often a path to another file
+    :type value: Union[pathlib.Path, str]
     :return: None
     :rtype: None
     """
@@ -723,18 +758,22 @@ def set_dcm2niix_path(dc2niix_path: pathlib.Path):
         # open the file and read in all the lines
         temp_file = pathlib.Path.home() / '.pet2bidsconfig.temp'
         with open(config_file, 'r') as infile, open(temp_file, 'w') as outfile:
+            updated_file = False
             for line in infile:
-                if 'DCM2NIIX_PATH' in line:
-                    outfile.write(f"DCM2NIIX_PATH={dc2niix_path}\n")
+                if var + '=' in line:
+                    outfile.write(f"{var}={value}\n")
+                    updated_file = True
                 else:
                     outfile.write(line)
+            if not updated_file:
+                outfile.write(f"{var}={value}\n")
         if system().lower() == 'windows':
             config_file.unlink(missing_ok=True)
         temp_file.replace(config_file)
     else:
         # create the file
         with open(config_file, 'w') as outfile:
-            outfile.write(f'DCM2NIIX_PATH={dc2niix_path}\n')
+            outfile.write(f'{var}={value}\n')
 
 
 def check_units(entity_key: str, entity_value: str, accepted_units: Union[list, str]):
@@ -811,6 +850,7 @@ def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_check
 
     return metadata
     
+
 def sanitize_bad_path(bad_path: Union[str, pathlib.Path]) -> Union[str, pathlib.Path]:
     if ' ' in str(bad_path):
         return f'"{bad_path}"'.rstrip().strip()
@@ -829,6 +869,49 @@ def replace_nones(dictionary):
     # sub nulls
     json_fixed = re.sub('null', '"none"', json_string)
     return json.loads(json_fixed)
+
+
+def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
+    """
+    Checks the config file at users home /.pet2bidsconfig for the variable passed in,
+    defaults to checking for DCM2NIIX_PATH. However, we can use it for anything we like,
+    including setting paths to other useful files or "pet2bids" specific variables we'd like
+    to access globally, or set as unchanging defaults.
+
+    :param variable: a string variable name to check for in the config file
+    :type variable: string
+    :return: the value of the variable if it exists in the config file
+    :rtype: str
+    """
+    log = logger('pet2bids')
+    # check to see if path to dcm2niix is in .env file
+    dcm2niix_path = None
+    home_dir = Path.home()
+    pypet2bids_config = home_dir / '.pet2bidsconfig'
+    if pypet2bids_config.exists():
+        dotenv.load_dotenv(pypet2bids_config)
+        variable_value = os.getenv(variable)
+        if variable == 'DCM2NIIX_PATH':
+            if variable_value:
+                # check dcm2niix path exists
+                dcm2niix_path = Path(variable_value)
+                check = subprocess.run(
+                    f"{dcm2niix_path} -h",
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                if check.returncode == 0:
+                    return dcm2niix_path
+            else:
+                log.error(f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}")
+                return None
+        if variable != 'DCM2NIIX_PATH':
+            return variable_value
+
+    else:
+        log.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+                     f"have variable: {variable} and {variable} must be set.")
 
 
 class CustomFormatter(logging.Formatter):
@@ -856,22 +939,3 @@ class CustomFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
-
-
-def log():
-    # create logger with for pypet2bids
-    logger = logging.getLogger("pypet2bids")
-    logger.setLevel(logging.DEBUG)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler(stream=sys.stdout)
-    ch.setLevel(logging.DEBUG)
-
-    ch.setFormatter(CustomFormatter())
-
-    logger.addHandler(ch)
-
-    return logger
-
-
-logger = log()

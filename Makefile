@@ -28,7 +28,12 @@ add:
 buildpackage:
 	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
-	@cd pypet2bids && poetry build
+	@rm -rf pypet2bids/dist
+	@cd pypet2bids && poetry lock && poetry build
+
+publish:
+	@cd pypet2bids
+	@poetry publish
 
 installpoetry:
 	@cd scripts && ./installpoetry

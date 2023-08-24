@@ -1,7 +1,7 @@
 from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
-from pypet2bids.dcm2niix4pet import  check_meta_radio_inputs
+from pypet2bids.dcm2niix4pet import check_meta_radio_inputs
 
-
+import shutil
 import dotenv
 import os
 from pathlib import Path
@@ -9,7 +9,9 @@ from tempfile import TemporaryDirectory
 import json
 from os.path import join
 import pydicom
+import subprocess
 from unittest import TestCase
+
 
 
 # collect config files
@@ -17,7 +19,7 @@ from unittest import TestCase
 module_folder = Path(__file__).parent.resolve()
 python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
-metadata_folder = join(pet2bids_folder, 'metadata')
+spreadsheet_folder = join(pet2bids_folder, 'spreadsheet_conversion')
 
 
 # collect paths to test files/folders
@@ -43,6 +45,8 @@ for root, folders, files in os.walk(test_dicom_image_folder):
 
 
 def test_check_json(capsys):
+    from pypet2bids.helper_functions import log
+    logger = log()
     with TemporaryDirectory() as tempdir:
         tempdir_path = Path(tempdir)
         bad_json = {"Nothing": "but trouble"}
@@ -53,7 +57,9 @@ def test_check_json(capsys):
         check_results = check_json(bad_json_path)
         check_output = capsys.readouterr()
 
-        assert f'WARNING!!!! Manufacturer is not present in {bad_json_path}' in check_output.out
+        assert check_results['Manufacturer'] == {'key': False, 'value': False}
+        #assert f'WARNING - Manufacturer is not present in {bad_json_path}' in check_output.out
+
 
 
 def test_extract_dicom_headers():
@@ -356,9 +362,64 @@ def test_check_meta_radio_inputs():
     this = check_meta_radio_inputs(given)
     TestCase().assertEqual(this['MolarActivity'], MolarActivity)
 
+
 def test_get_convolution_kernel():
     convolution_kernel_strings = [
     ]
+
+
+def test_run_dcm2niix4pet_with_full_blood_sheet():
+    """
+    Runs dcm2niix4pet over a set of test dicoms with an accompanying spreadsheet formatted such that the resulting
+    output files include PET BIDS valid:
+        - json's (one for _pet.nii.gz, and one for _blood.tsv)
+        - nifti's (one for _pet.nii.gz)
+        - tsv's (one for the manul blood sample e.g. *_recording-manual_blood.tsv)
+    :return: None
+    :rtype: None
+    """
+    spreadsheet = os.path.join(spreadsheet_folder, 'single_subject_sheet', 'subject_metadata_example.xlsx')
+    with TemporaryDirectory() as tempdir:
+        destination = os.path.join(tempdir, 'bids_test_dir/sub-01/pet')
+        dcm2niix4pet = Dcm2niix4PET(image_folder=test_dicom_image_folder,
+                                    destination_path=destination,
+                                    metadata_path=spreadsheet,
+                                    silent=True)
+        dcm2niix4pet.convert()
+        contents_output = [os.path.join(destination, f) for f in os.listdir(destination)]
+
+        # copy over dataset_description.json to bids dir
+        dataset_description = {
+            "Name": "PET Single Subject w/ sheet",
+            "BIDSVersion": "1.6.0",
+            "DatasetType": "raw",
+            "License": "CCBY",
+            "Authors": [
+                "Cyril Pernet",
+                "Sune Høgild Keller",
+                "Gabriel Gonzalez-Escamilla",
+                "Søren Baarsgaard Hansen",
+                "Maqsood Yaqub"
+            ],
+            "HowToAcknowledge": "Please cite the repository URL"
+        }
+
+        with open(os.path.join(tempdir, 'bids_test_dir', 'dataset_description.json'), 'w') as f:
+            json.dump(dataset_description, f, indent=4)
+
+        # copy over a readme file, we use the one in the metadata folder
+        readme = os.path.join(pet2bids_folder, 'metadata/', 'README')
+        shutil.copy(readme, os.path.join(tempdir, 'bids_test_dir'))
+
+        # run the bids validator on the output
+        command = ['bids-validator', os.path.join(tempdir, 'bids_test_dir')]
+        validation = subprocess.run(command, capture_output=True)
+
+        # check exit code of subprocess
+        assert validation.returncode == 0
+        # verify that the output is as expected
+        output = validation.stdout.decode('utf-8')
+        assert 'This dataset appears to be BIDS compatible' in output
 
 
 if __name__ == '__main__':

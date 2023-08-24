@@ -28,7 +28,7 @@ except ModuleNotFoundError:
 
 from dateutil import parser
 
-logger = helper_functions.log()
+logger = helper_functions.logger('pypet2bids')
 
 def parse_this_date(date_like_object) -> str:
     """
