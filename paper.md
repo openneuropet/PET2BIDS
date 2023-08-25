@@ -31,7 +31,7 @@ authors:
 - name: Grandville Matheson
   orcid: 0000-0002-5646-4547
   affiliation: 7
-- name: Gite Knudsen
+- name: Gitte Knudsen
   orcid: 0000-0003-1508-6866
   affiliation: 3
 - name: Robert Innis
