@@ -6,14 +6,14 @@ some icons needs to be added or your name is not listed, please add it.
 Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️  
 Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋  
 Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
-Gitte Knudsen 💵  
+Gitte Knudsen 💡💵  
 Granville Matheson 📝 🐛 ✅  
 Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
 Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️  
 Chris Rorden 💻 🐛 📖  
-Claus Svarer 💻 ⚠️   
+Claus Svarer 💻 💡⚠️   
 Adam G Thomas  🔍 🤔  
-Robert Innis 💵   
+Robert Innis 💡⚠️💵   
 
 Legend (source:
 [https://github.com/kentcdodds/all-contributors](https://github.com/kentcdodds/all-contributors))
