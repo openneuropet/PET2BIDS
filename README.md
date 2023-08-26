@@ -1,4 +1,6 @@
-# PET to BIDS is a set of BIDS converter for your Brain PET data (see also https://pet2bids.readthedocs.io/en/latest/index.html)
+# PET2BIDS is a code library to convert source Brain PET data to BIDS 
+
+## (more doc @https://pet2bids.readthedocs.io/en/latest/index.html)
 
 [![python](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml)
 [![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml) 
