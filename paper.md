@@ -28,9 +28,9 @@ authors:
 - name: Chris Rorden
   orcid: 0000-0002-7554-6142
   affiliation: 7
-- name: Granville Matheson
+- name: Granville J. Matheson
   orcid: 0000-0002-5646-4547
-  affiliation: 8
+  affiliation: "8, 9"
 - name: Gitte M. Knudsen
   orcid: 0000-0003-1508-6866
   affiliation: 3
@@ -58,8 +58,10 @@ affiliations:
    index: 6
  - name: Department of Psychology, University of South Carolina, Columbia, SC, USA
    index: 7
- - name: Mailman school of public health, Columbia University, New York, NY, USA
+ - name: Mailman school of Public Health, Columbia University, New York, NY, USA
    index: 8
+ - name: Department of Clinical Neuroscience, Karolinska Institutet and Stockholm County Council, Stockholm, Sweden
+   index: 9
 date: 22 August 2023
 bibliography: paper.bib
 
@@ -73,14 +75,14 @@ The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bi
 
 # Statement of need
 
-`PET2BIDS` was designed as a library code, allowing conversion of PET data to BIDS using the command line. Thanks to its modular structure, it can be integrated into software (with a graphical user interface) that aim at more general BIDS conversion, and current efforts are integrating PET2BIDS with ezBIDS [@noauthor_ezbids] and BIDSCoins [@zwiers_bidscoin_2022].
+`PET2BIDS` was designed as a library code, allowing conversion of PET data to BIDS using the command line. Thanks to its modular structure, it can be integrated into software (with a graphical user interface) that aim at more general BIDS conversion, and current efforts are underway integrating PET2BIDS with ezBIDS [@noauthor_ezbids] and BIDSCoins [@zwiers_bidscoin_2022].
 
 _File conversion_: The conversion for PET data stored in DICOM files is performed using a wrapper
-around dcm2niix [@rorden_dcm2nii] [@li_first_2016] and then updating the corresponding JSON file. For ECAT files, dedicated functions were written to support this conversion. The Matlab code relies on the readECAT7.m
+around dcm2niix [@rorden_dcm2nii; @li_first_2016] and then updating the corresponding JSON file. For ECAT files, dedicated functions were written to support this conversion. The Matlab code relies on the readECAT7.m
 function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while new ecat2nii
 (.m .py) functions were written to convert into NIfTI and produce a JSON sidecar file, and optionally a
-(non-BIDS compliant) SIF file (Scan Information File - used by different pharmacokinetic modelling software for model weighting). The Python code was subsequently developed in line with the Matlab code, further testing of
-data reading (i.e. which bits are read according to the PET data frames) and writing, relying here on
+(non-BIDS compliant) SIF file (Scan Information File - used by different pharmacokinetic modelling software for model weighting). The Python code was subsequently developed in line with the Matlab code, with further testing of
+data reading (i.e. which parts are read according to the PET data frames) and writing, relying here on
 Nibabel [@brett_nipynibabel_2023].  
 
 _PET Metadata_: JSON files created from reading PET scanner data are always missing some of the
@@ -89,10 +91,10 @@ created. The PET JSON updater function takes the original JSON file and new meta
 checks that the full BIDS specification is respected (correct metadata but also consistency of metadata
 values for the different metadata keys) and updates the JSON file.  
 
-_Spreadsheet conversion_: tabular data formats (excel, csv, tsv, bld) are ubiquitous in the PET
+_Spreadsheet conversion_: tabular data formats (xls, xlsx, csv, tsv, bld) are ubiquitous in the PET
 community in particular to (a) keep track of radiotracer information injected per participant and (b)
 recording of time and radiotracer concentration from the blood sampling. To facilitate conversion to BIDS,
-dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, (ii) use preformatted tabular data to update JSON files, and (iii) convert a tabular PMOD file to a blood.tsv file
+dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, (ii) use pre-formatted tabular data to update JSON files, and (iii) convert a tabular PMOD file to a blood.tsv file
 (PMOD being a popular commercial pharmacokinetic modelling software [@Burger1997]).
 
 # Acknowledgements
