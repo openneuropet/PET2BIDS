@@ -1,0 +1,37 @@
+{
+"Radioactivity": 
+  {"definition": "the property of certain nuclei to spontaneously fragment or rearrange, resulting in the emission of radiation"},
+"Activity":
+  {"definition": "the number of nuclear decays, occurring in a given quantity of material over a certain  time interval, divided by that time interval",
+  "unit": "Bq"},
+"Becquerel":
+  {"definition": "the agreed SI derived unit for the quantity of activity, equal to one disintegration per second",
+   "symbol": "Bq"},
+"Curie":
+  {"definition": "the pre-SI unit for the quantity of activity such 1 Ci = 3.7 10^10 Bq or 1 Bq = 2.7 10^− 11 Ci",
+   "symbol": "Ci"},     
+"Injected Radioactivity":
+  {"definition": "Total amount of activity injected into the patient,DICOM Tag (0018,1074) Radionuclide Total Dose",
+  "unit": "Bq"},
+"Specific":
+  {"definition": "a physical property as a function of the mass of the material in question"},
+"Specific activity":
+  {"definition": "the measured activity per gram of compound",
+  "unit": ["Bq/g","GBq/mg"],
+   "symbol": "As"},
+"Molar activity":
+  {"definition": "the measured activity per mole of compound",
+  "unit": ["Bq/mol","GBq/μmol"],
+  "symbol": "Am"}   
+}
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,21 @@
+# <README/DATASET TITLE>
+
+This is a bare minimum README template. It's primary use is to fool the BIDS validator into via testing and CI.
+
+## Description
+
+This dataset is most likely full of manufactured data. It is not intended to be used for anything other than testing.
+If you are reading this and expecting to find real data, you are in the wrong place or someone failed to update this
+file. It's most likely that after the validator signed off on this dataset that the user/curator moved on with their
+life and forgot to update this file. Shame them for their laziness at the next available opportunity please.
+
+## Authors
+
+Leto Atreides
+George Jetson
+Elizabeth Bennet
+H.R. Pufnstuf
+
+## Acknowledgements
+
+This work was supported by <FUNDING AGENCY> under grant number <GRANT NUMBER>

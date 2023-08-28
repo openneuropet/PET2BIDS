@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "pypet2bids"
+version = "1.2.4"
+description = "A python implementation of an ECAT to BIDS converter."
+authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
+license = "MIT"
+include = [
+    'pypet2bids/metadata/blood_metadata.json',
+    'pypet2bids/metadata/definitions.json',
+    'pypet2bids/metadata/dicom2bids.json',
+    'pypet2bids/metadata/PET_metadata.json',
+    'pypet2bids/metadata/PET_Radionuclide.mkd',
+    'pypet2bids/metadata/PET_reconstruction_methods.json',
+    'pypet2bids/pyproject.toml',
+    'pypet2bids/metadata/README',
+    ]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<=3.11.1"
+nibabel = ">=3.2.1"
+numpy = "^1.21.3"
+pyparsing = "^3.0.4"
+python-dateutil = "^2.8.2"
+python-dotenv = "^0.19.1"
+scipy = "^1.7.1"
+six = "^1.16.0"
+pytest = "^6.2.5"
+pydicom = "^2.2.2"
+openpyxl = "^3.0.9"
+xlrd = "^2.0.1"
+termcolor = "^1.1.0"
+json-maj = "^0.0.8"
+pandas = "^1.4.4"
+pyxlsb = "^1.0.9"
+joblib = "^1.2.0"
+
+
+[tool.poetry.dev-dependencies]
+sphinx = "<=4.5.0"
+sphinx-rtd-theme = "^1.0.0"
+sphinxcontrib-matlabdomain = "^0.13.0"
+
+[tool.poetry.scripts]
+ecatpet2bids = 'pypet2bids.ecat_cli:main'
+dcm2petbids = 'pypet2bids.dicom_convert:cli'
+dcm2niix4pet = 'pypet2bids.dcm2niix4pet:main'
+pet2bids-spreadsheet-template = 'pypet2bids.helper_functions:write_out_module'
+convert-pmod-to-blood = 'pypet2bids.convert_pmod_to_blood:main'
+ispet = 'pypet2bids.is_pet:main'
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^5.4.1"
+build = "^0.9.0"
+sphinx-rtd-theme = "^1.2.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
