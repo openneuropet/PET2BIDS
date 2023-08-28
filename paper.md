@@ -71,18 +71,17 @@ bibliography: paper.bib
 
 The Brain Imaging Data Structure [@gorgolewski_brain_2016] is a standard for organizing and naming neuroimaging data which has quickly become successful and popular in the community with adoption by major brain imaging repositories (e.g. OpenNeuro [@noauthor_openneuro], PublicnEUro [@noauthor_public], CONP [@noauthor_canadian]) and data management tools (e.g. COINS [@landis_coins_2016], XNAT [@marcus_extensible_2007], Loris [@das_loris_2012]). This not only allows data to be shared much more easily, but also enables the development of automated data analysis pipelines, and together improves reproducibility.  
 
-The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bids_2022] provides a structured data and metadata nomenclature, including all the necessary information to share and report on PET blood and metabolite [@knudsen_guidelines_2020]. Here we present a new code library, developed in both Matlab and Python, allowing the conversion of PET imaging data (ECAT and DICOM format) and metadata (e.g. time or blood measurements) into the BIDS specification.
+The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bids_2022] provides a structured data and metadata nomenclature, including all the necessary information to share and report on PET blood and metabolite [@knudsen_guidelines_2020]. Here we present a new code library, developed in both Matlab and Python, allowing the conversion of PET imaging data (ECAT and DICOM format) and metadata (e.g., time or blood measurements) into the BIDS specification.
 
 # Statement of need
 
 `PET2BIDS` was designed as a library code, allowing conversion of PET data to BIDS using the command line. Thanks to its modular structure, it can be integrated into software (with a graphical user interface) that aim at more general BIDS conversion, and current efforts are underway integrating PET2BIDS with ezBIDS [@noauthor_ezbids] and BIDSCoins [@zwiers_bidscoin_2022].
 
 _File conversion_: The conversion for PET data stored in DICOM files is performed using a wrapper
-around dcm2niix [@rorden_dcm2nii; @li_first_2016] and then updating the corresponding JSON file. For ECAT files, dedicated functions were written to support this conversion. The Matlab code relies on the readECAT7.m
-function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while new ecat2nii
+around dcm2niix [@rorden_dcm2nii; @li_first_2016] and then extending the JSON file with details that are not included in the source images but are required for BIDS. For ECAT files, dedicated functions were written to support this conversion. The Matlab code relies on the readECAT7.m function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while new ecat2nii
 (.m .py) functions were written to convert into NIfTI and produce a JSON sidecar file, and optionally a
 (non-BIDS compliant) SIF file (Scan Information File - used by different pharmacokinetic modelling software for model weighting). The Python code was subsequently developed in line with the Matlab code, with further testing of
-data reading (i.e. which parts are read according to the PET data frames) and writing, relying here on
+data reading (i.e., which parts are read according to the PET data frames) and writing, relying here on
 Nibabel [@brett_nipynibabel_2023].  
 
 _PET Metadata_: JSON files created from reading PET scanner data are always missing some of the
