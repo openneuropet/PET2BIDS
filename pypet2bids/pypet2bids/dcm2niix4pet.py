@@ -34,7 +34,6 @@ import importlib
 import dotenv
 import logging
 
-
 try:
     import helper_functions
     import is_pet
@@ -43,7 +42,6 @@ except ModuleNotFoundError:
     import pypet2bids.is_pet as is_pet
 
 logger = logging.getLogger("pypet2bids")
-
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -382,7 +380,7 @@ class Dcm2niix4PET:
                 logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
                                f"installed version {version[0]} at {self.dcm2niix_path}.")
 
-        #check if user provided a custom tempdir location
+        # check if user provided a custom tempdir location
         self.tempdir_location = tempdir_location
         self.image_folder = Path(image_folder)
         if destination_path:
@@ -474,7 +472,8 @@ class Dcm2niix4PET:
                             **self.additional_arguments))
 
             # check for any blood (tsv) data or otherwise in the given spreadsheet values
-            blood_tsv_columns = ['time', 'plasma_radioactivity', 'metabolite_parent_fraction', 'whole_blood_radioactivity']
+            blood_tsv_columns = ['time', 'plasma_radioactivity', 'metabolite_parent_fraction',
+                                 'whole_blood_radioactivity']
             blood_json_columns = ['PlasmaAvail', 'WholeBloodAvail', 'MetaboliteAvail', 'MetaboliteMethod',
                                   'MetaboliteRecoveryCorrectionApplied', 'DispersionCorrected']
 
@@ -667,7 +666,7 @@ class Dcm2niix4PET:
 
                     sidecar_json = JsonMAJ(json_path=str(created),
                                            bids_null=True,
-                                           update_values=self.additional_arguments) # load all supplied and now written sidecar data in
+                                           update_values=self.additional_arguments)  # load all supplied and now written sidecar data in
 
                     sidecar_json.update()
 
@@ -969,8 +968,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = (InjectedRadioactivity * 10 ** 6) / (InjectedMass * 10 ** 6)
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
-                    print(colored("WARNING inferred SpecificRadioactivity in Bq/g doesn't match InjectedRadioactivity "
-                                  "and InjectedMass, could be a unit issue", "yellow"))
+                    logger.warning("Inferred SpecificRadioactivity in Bq/g doesn't match InjectedRadioactivity "
+                                   "and InjectedMass, could be a unit issue", "yellow")
                 data_out['SpecificRadioactivity'] = SpecificRadioactivity
                 data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
             else:
@@ -991,8 +990,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = ((InjectedRadioactivity * (10 ** 6) / SpecificRadioactivity) * (10 ** 6))
             if InjectedMass:
                 if InjectedMass != tmp:
-                    print(colored("WARNING Infered InjectedMass in ug doesn't match InjectedRadioactivity and "
-                                  "InjectedMass, could be a unit issue", "yellow"))
+                    logger.warning("Inferred InjectedMass in ug doesn't match InjectedRadioactivity and "
+                                   "InjectedMass, could be a unit issue", "yellow")
                 data_out['InjectedMass'] = InjectedMass
                 data_out['InjectedMassUnits'] = kwargs.get('InjectedMassUnits', 'n/a')
             else:
@@ -1014,8 +1013,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
                     10 ** 6)  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
             if InjectedRadioactivity:
                 if InjectedRadioactivity != tmp:
-                    print(colored("WARNING inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
-                                  "and InjectedMass, could be a unit issue", "yellow"))
+                    logger.warning("Inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
+                                   "and InjectedMass, could be a unit issue", "yellow")
                 data_out['InjectedRadioactivity'] = InjectedRadioactivity
                 data_out['InjectedRadioactivityUnits'] = kwargs.get('InjectedRadioactivityUnits', 'n/a')
             else:
@@ -1036,8 +1035,9 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = (MolarActivity * (10 ** 3)) / MolecularWeight  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
-                    print(colored("inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
-                                  "Weight, could be a unit issue", 'yellow'))
+                    logger.warning(
+                        "Inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
+                        "Weight, could be a unit issue", 'yellow')
                 data_out['SpecificRadioactivity'] = SpecificRadioactivity
                 data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
             else:
@@ -1058,8 +1058,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = (MolarActivity * 1000) / SpecificRadioactivity  # (MBq / ug / 1000) / (GBq / umol) = g / mol
             if MolecularWeight:
                 if MolecularWeight != tmp:
-                    print(colored("WARNING Inferred MolecularWeight in MBq/ug doesn't match Molar Activity and "
-                                  "Molecular Weight, could be a unit issue", 'yellow'))
+                    logger.warning("Inferred MolecularWeight in MBq/ug doesn't match Molar Activity and "
+                                   "Molecular Weight, could be a unit issue", 'yellow')
 
                 data_out['MolecularWeight'] = tmp
                 data_out['MolecularWeightUnits'] = kwargs.get('MolecularWeightUnits', 'n/a')
@@ -1081,8 +1081,8 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             tmp = MolecularWeight * (SpecificRadioactivity / 1000)  # g / mol * (MBq / ug / 1000) = GBq / umol
             if MolarActivity:
                 if MolarActivity != tmp:
-                    print(colored("WARNING inferred MolarActivity in GBq/umol doesn't match Specific Radioactivity and "
-                                  "Molecular Weight, could be a unit issue", "yellow"))
+                    logger.warning("Inferred MolarActivity in GBq/umol doesn't match Specific Radioactivity and "
+                                   "Molecular Weight, could be a unit issue", "yellow")
                 data_out['MolarActivity'] = MolarActivity
                 data_out['MolarActivityUnits'] = kwargs.get('MolarActivityUnits', 'n/a')
             else:
@@ -1179,7 +1179,8 @@ def cli():
                              "omitted defaults to using the path supplied to folder path. If destination path " +
                              "doesn't exist an attempt to create it will be made.", required=False)
     parser.add_argument('--tempdir', type=str, default=None,
-                        help="User-specified tempdir location (overrides default system tempfile default)", required=False)
+                        help="User-specified tempdir location (overrides default system tempfile default)",
+                        required=False)
     parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help="Include additional values in the nifti sidecar json or override values extracted from "
                              "the supplied nifti. e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the "

@@ -48,6 +48,11 @@ pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
 
+# load bids schema
+bids_schema_path = os.path.join(metadata_dir, 'schema.json')
+schema = json.load(open(bids_schema_path, 'r'))
+
+
 loggers = {}
 
 
@@ -159,6 +164,30 @@ def single_spreadsheet_reader(
     # lastly apply any kwargs to the metadata
     metadata.update(**kwargs)
 
+    # more lastly, check to see if values are of the correct datatype (e.g. string, number, boolean)
+    for field, value in metadata.items():
+        # check schema for field
+        field_schema_properties = schema['objects']['metadata'].get(field, None)
+        if field_schema_properties:
+            # check to see if value is of the correct type
+            if field_schema_properties.get('type') == 'number':
+                if not is_numeric(str(value)):
+                    log.warning(f"{field} is not numeric, it's value is {value}")
+            if field_schema_properties.get('type') == 'boolean':
+                if type(value) is not bool:
+                    try:
+                        check_bool = int(value)/1
+                        if check_bool == 0 or check_bool == 1:
+                            metadata[field] = bool(value)
+                        else:
+                            log.warning(f"{field} is not boolean, it's value is {value}")
+                    except ValueError:
+                        pass
+            elif field_schema_properties.get('type') == 'string':
+                if type(value) is not str:
+                    log.warning(f"{field} is not string, it's value is {value}")
+            else:
+                pass
     return metadata
 
 
