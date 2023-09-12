@@ -21,7 +21,7 @@ subset    = [];
 
 %% load metadata from the library
 current    = which('ecat2nii.m');
-pn_parts   = strsplit(fileparts(current), '/');
+pn_parts   = strsplit(fileparts(current), filesep);
 jsontoload = fullfile(strjoin(pn_parts(1:end-1), '/'), 'metadata', 'PET_reconstruction_methods.json');
 if exist(jsontoload,'file')
     reconstruction_metadata = jsondecode(fileread(jsontoload));
