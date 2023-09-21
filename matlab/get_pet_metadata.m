@@ -189,7 +189,6 @@ else
     
     current    = which('get_pet_metadata.m');
     root       = fileparts(fileparts(current));
-    %root       = current(1:strfind(current,'converter')+length('converter'));
     jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
     if exist(jsontoload,'file')
         petmetadata = jsondecode(fileread(jsontoload));
