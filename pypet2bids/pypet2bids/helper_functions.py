@@ -76,6 +76,7 @@ def logger(name):
         # works great to get the desired effect
         logger.propagate = False
 
+        loggers[name] = logger
         return logger
 
 
@@ -363,7 +364,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
-    log = logger('pet2bids')
+    log = logger('pypet2bids')
     if type(metadata_path) is str:
         metadata_path = pathlib.Path(metadata_path)
 
@@ -426,7 +427,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
 
 
 def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
-    log = logger('pet2bids')
+    log = logger('pypet2bids')
     # load metadata
     metadata_dataframe = open_meta_data(metadata_path)
 
@@ -509,7 +510,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :return: the collected bids part
     :rtype: string
     """
-    log = logger('pet2bids')
+    log = logger('pypet2bids')
 
     # get os of system
     if os.name == 'posix':
@@ -912,7 +913,7 @@ def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
     :return: the value of the variable if it exists in the config file
     :rtype: str
     """
-    log = logger('pet2bids')
+    log = logger('pypet2bids')
     # check to see if path to dcm2niix is in .env file
     dcm2niix_path = None
     home_dir = Path.home()
@@ -939,7 +940,7 @@ def check_pet2bids_config(variable: str = 'DCM2NIIX_PATH'):
             return variable_value
 
     else:
-        log.error(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
+        log.warning(f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
                      f"have variable: {variable} and {variable} must be set.")
 
 
