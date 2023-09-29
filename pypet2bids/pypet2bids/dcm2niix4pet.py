@@ -41,7 +41,7 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
 
-logger = logging.getLogger("pypet2bids")
+logger = helper_functions.logger("pypet2bids")
 
 # fields to check for
 module_folder = Path(__file__).parent.resolve()
@@ -74,11 +74,13 @@ for metadata_json in metadata_jsons:
         raise IOError(f"Unable to read from {metadata_json}")
 
 
-def check_json(path_to_json, items_to_check=None, silent=False, **additional_arguments):
+def check_json(path_to_json, items_to_check=None, silent=False, spreadsheet_metadata={}, **additional_arguments):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
 
+    :param spreadsheet_metadata:
+    :type spreadsheet_metadata:
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
     :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
            PET_metadata.json contained in this repository
@@ -110,12 +112,16 @@ def check_json(path_to_json, items_to_check=None, silent=False, **additional_arg
 
     # initialize warning colors and warning storage dictionary
     storage = {}
+    flattened_spreadsheet_metadata = {}
+    flattened_spreadsheet_metadata.update(spreadsheet_metadata.get('nifti_json', {}))
+    flattened_spreadsheet_metadata.update(spreadsheet_metadata.get('blood_json', {}))
+    flattened_spreadsheet_metadata.update(spreadsheet_metadata.get('blood_tsv', {}))
 
     for requirement in items_to_check.keys():
         for item in items_to_check[requirement]:
             all_good = False
-            if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments:
-                # this json has both the key and a non blank value do nothing
+            if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments or item in flattened_spreadsheet_metadata.keys():
+                # this json has both the key and a non-blank value do nothing
                 all_good = True
                 pass
             elif item in json_to_check.keys() and not json_to_check.get(item, None):
@@ -471,6 +477,7 @@ class Dcm2niix4PET:
                             dicom_metadata=self.dicom_headers[next(iter(self.dicom_headers))],
                             **self.additional_arguments))
 
+
             # check for any blood (tsv) data or otherwise in the given spreadsheet values
             blood_tsv_columns = ['time', 'plasma_radioactivity', 'metabolite_parent_fraction',
                                  'whole_blood_radioactivity']
@@ -630,9 +637,14 @@ class Dcm2niix4PET:
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
                     if self.additional_arguments:
-                        check_for_missing = check_json(created_path, silent=True, **self.additional_arguments)
+                        check_for_missing = check_json(created_path,
+                                                       silent=True,
+                                                       spreadsheet_metadata=self.spreadsheet_metadata,
+                                                       **self.additional_arguments)
                     else:
-                        check_for_missing = check_json(created_path, silent=True)
+                        check_for_missing = check_json(created_path,
+                                                       silent=True,
+                                                       spreadsheet_metadata=self.spreadsheet_metadata)
 
                     # we do our best to extra information from the dicom header and insert these values
                     # into the sidecar json
@@ -969,7 +981,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             if SpecificRadioactivity:
                 if SpecificRadioactivity != tmp:
                     logger.warning("Inferred SpecificRadioactivity in Bq/g doesn't match InjectedRadioactivity "
-                                   "and InjectedMass, could be a unit issue", "yellow")
+                                   "and InjectedMass, could be a unit issue")
                 data_out['SpecificRadioactivity'] = SpecificRadioactivity
                 data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
             else:
@@ -991,7 +1003,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             if InjectedMass:
                 if InjectedMass != tmp:
                     logger.warning("Inferred InjectedMass in ug doesn't match InjectedRadioactivity and "
-                                   "InjectedMass, could be a unit issue", "yellow")
+                                   "InjectedMass, could be a unit issue")
                 data_out['InjectedMass'] = InjectedMass
                 data_out['InjectedMassUnits'] = kwargs.get('InjectedMassUnits', 'n/a')
             else:
@@ -1014,7 +1026,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             if InjectedRadioactivity:
                 if InjectedRadioactivity != tmp:
                     logger.warning("Inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
-                                   "and InjectedMass, could be a unit issue", "yellow")
+                                   "and InjectedMass, could be a unit issue")
                 data_out['InjectedRadioactivity'] = InjectedRadioactivity
                 data_out['InjectedRadioactivityUnits'] = kwargs.get('InjectedRadioactivityUnits', 'n/a')
             else:
@@ -1037,7 +1049,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
                 if SpecificRadioactivity != tmp:
                     logger.warning(
                         "Inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
-                        "Weight, could be a unit issue", 'yellow')
+                        "Weight, could be a unit issue")
                 data_out['SpecificRadioactivity'] = SpecificRadioactivity
                 data_out['SpecificRadioactivityUnits'] = kwargs.get('SpecificRadioactivityUnityUnits', 'n/a')
             else:
@@ -1059,7 +1071,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             if MolecularWeight:
                 if MolecularWeight != tmp:
                     logger.warning("Inferred MolecularWeight in MBq/ug doesn't match Molar Activity and "
-                                   "Molecular Weight, could be a unit issue", 'yellow')
+                                   "Molecular Weight, could be a unit issue")
 
                 data_out['MolecularWeight'] = tmp
                 data_out['MolecularWeightUnits'] = kwargs.get('MolecularWeightUnits', 'n/a')
@@ -1082,7 +1094,7 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
             if MolarActivity:
                 if MolarActivity != tmp:
                     logger.warning("Inferred MolarActivity in GBq/umol doesn't match Specific Radioactivity and "
-                                   "Molecular Weight, could be a unit issue", "yellow")
+                                   "Molecular Weight, could be a unit issue")
                 data_out['MolarActivity'] = MolarActivity
                 data_out['MolarActivityUnits'] = kwargs.get('MolarActivityUnits', 'n/a')
             else:
