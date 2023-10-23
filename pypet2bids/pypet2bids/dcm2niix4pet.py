@@ -59,6 +59,19 @@ except FileNotFoundError:
         [Path(join(module_folder, 'metadata', metadata_json)) for metadata_json
          in listdir(join(module_folder, 'metadata')) if '.json' in metadata_json]
 
+# check to see if config file exists
+home_dir = Path.home()
+pypet2bids_config = home_dir / '.pet2bidsconfig'
+if pypet2bids_config.exists():
+    # check to see if the template json var is set and valid
+    default_metadata_json = helper_functions.check_pet2bids_config('DEFAULT_METADATA_JSON')
+    if default_metadata_json and Path(default_metadata_json).exists():
+        # do nothing
+        pass
+else:
+    # if it doesn't exist use the default one included in this library
+    helper_functions.modify_config_file('DEFAULT_METADATA_JSON', module_folder / 'template_json.json')
+
 # create a dictionary to house the PET metadata files
 metadata_dictionaries = {}
 
