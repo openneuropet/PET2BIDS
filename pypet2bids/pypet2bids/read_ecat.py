@@ -144,6 +144,9 @@ def get_header_data(header_data_map: dict, ecat_file: str = '', byte_offset: int
         header[variable_name] = struct.unpack(struct_fmt, raw_bytes)
         if clean and 'fill' not in variable_name.lower():
             header[variable_name] = filter_bytes(header[variable_name], struct_fmt)
+        if 'comment' in value and 'msec' in value['comment']:
+            # for entries that are in msec, convert to sec for PET BIDS json
+            header[variable_name] /= 1000
         read_head_position = relative_byte_position + byte_width
 
     return header, read_head_position
