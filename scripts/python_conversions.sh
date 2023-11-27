@@ -135,54 +135,52 @@ ReconMethodParameterValues="[0, 0]"
 # PhilipsGeminiPETMR
 # --------------------------------------
 
-# Note this creates a dcm2niix error, it's a known Philips bug; leaving for the sake of completness
+echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqCTAC"
+dcm2niix4pet $SOURCE_FOLDER/PhilipsGeminiPETMR-Unimedizin/reqCTAC --destination-path $DESTINATION/sub-PhilipsGeminiUnimedizinMainz/pet \
+--kwargs \
+Manufacturer="Philips Medical Systems" \
+ManufacturersModelName="PET/CT Gemini TF16"
+InstitutionName="Unimedizin, Mainz, DE" \
+BodyPart="Phantom" \
+Units="Bq/mL" \
+TracerName="Fallypride" \
+TracerRadionuclide="F18" \
+InjectedRadioactivity=114 \
+SpecificRadioactivity=800 \
+ModeOfAdministration="infusion" \
+AcquisitionMode="list mode" \
+ImageDecayCorrected=True \
+ImageDecayCorrectionTime=0 \
+ReconFilterType='n/a' \
+ReconFilterSize=0 \
+AttenuationCorrection="CTAC-SG" \
+ScatterCorrectionMethod="SS-SIMUL" \
+ReconstructionMethod="LOR-RAMLA" \
+ReconMethodParameterValues="[1,1]"
+ FrameDuration=[1798] \
 
-#echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqCTAC"
-#dcm2niix4pet $SOURCE_FOLDER/PhilipsGeminiPETMR-Unimedizin/reqCTAC --destination-path $DESTINATION/sub-PhilipsGeminiUnimedizinMainz/pet \
-#--kwargs \
-#Manufacturer="Philips Medical Systems" \
-#ManufacturersModelName="PET/CT Gemini TF16"
-#InstitutionName="Unimedizin, Mainz, DE" \
-#BodyPart="Phantom" \
-#Units="Bq/mL" \
-#TracerName="Fallypride" \
-#TracerRadionuclide="F18" \
-#InjectedRadioactivity=114 \
-#SpecificRadioactivity=800 \
-#ModeOfAdministration="infusion" \
-#AcquisitionMode="list mode" \
-#ImageDecayCorrected=True \
-#ImageDecayCorrectionTime=0 \
-#ReconFilterType='n/a' \
-#ReconFilterSize=0 \
-#AttenuationCorrection="CTAC-SG" \
-#ScatterCorrectionMethod="SS-SIMUL" \
-#ReconstructionMethod="LOR-RAMLA" \
-#ReconMethodParameterValues="[1,1]"
-# FrameDuration=[1798] \
-
-#echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqNAC"
-#dcm2niix4pet $SOURCE_FOLDER/PhilipsGeminiPETMR-Unimedizin/reqNAC --destination-path $DESTINATION/sub-PhilipsGeminiNACUnimedizinMainz/pet \
-#--kwargs \
-#Manufacturer="Philips Medical Systems" \
-#ManufacturersModelName="PET/CT Gemini TF16"
-#InstitutionName="Unimedizin, Mainz, DE" \
-#BodyPart="Phantom" \
-#Units="Bq/mL" \
-#TracerName="Fallypride" \
-#TracerRadionuclide="F18" \
-#InjectedRadioactivity=114 \
-#SpecificRadioactivity=800 \
-#ModeOfAdministration="infusion" \
-#AcquisitionMode="list mode" \
-#ImageDecayCorrected=True \
-#ImageDecayCorrectionTime=0 \
-#ReconFilterType=None \
-#ReconFilterSize=0 \
-#AttenuationCorrection="None" \
-#ScatterCorrectionMethod="None" \
-#ReconstructionMethod="3D-RAMLA"
-## FrameDuration=[1798] \
+echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqNAC"
+dcm2niix4pet $SOURCE_FOLDER/PhilipsGeminiPETMR-Unimedizin/reqNAC --destination-path $DESTINATION/sub-PhilipsGeminiNACUnimedizinMainz/pet \
+--kwargs \
+Manufacturer="Philips Medical Systems" \
+ManufacturersModelName="PET/CT Gemini TF16"
+InstitutionName="Unimedizin, Mainz, DE" \
+BodyPart="Phantom" \
+Units="Bq/mL" \
+TracerName="Fallypride" \
+TracerRadionuclide="F18" \
+InjectedRadioactivity=114 \
+SpecificRadioactivity=800 \
+ModeOfAdministration="infusion" \
+AcquisitionMode="list mode" \
+ImageDecayCorrected=True \
+ImageDecayCorrectionTime=0 \
+ReconFilterType=None \
+ReconFilterSize=0 \
+AttenuationCorrection="None" \
+ScatterCorrectionMethod="None" \
+ReconstructionMethod="3D-RAMLA"
+FrameDuration=[1798] \
 
 # Amsterdam UMC
 # ---------------------------
