@@ -32,8 +32,7 @@ buildpackage:
 	@cd pypet2bids && poetry lock && poetry build
 
 publish:
-	@cd pypet2bids
-	@poetry publish
+	@cd pypet2bids && poetry publish
 
 installpoetry:
 	@cd scripts && ./installpoetry
