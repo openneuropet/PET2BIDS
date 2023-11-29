@@ -72,7 +72,7 @@ FrameTimesStart="[0]" \
 FrameDuration=[300] \
 ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
-DecayCorrectionFactor=[1] \
+#DecayCorrectionFactor=[1] \
 AttenuationCorrection="MR-corrected" \
 InjectionStart=0
 
@@ -124,10 +124,10 @@ ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 AttenuationCorrection="MR-corrected" \
 ReconFilterType='unknown' \
-ReconFilterSize=1 \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconFilterSize=0 \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]"
 
 # Johannes Gutenberg University of Mainz
 # --------------------------------------
@@ -152,14 +152,14 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected=True \
 ImageDecayCorrectionTime=0 \
 ReconFilterType='n/a' \
-ReconFilterSize=0 \
+ReconFilterSize=1 \
 AttenuationCorrection="CTAC-SG" \
 ScatterCorrectionMethod="SS-SIMUL" \
 ReconstructionMethod="LOR-RAMLA" \
-ReconMethodParameterValues="[1,1]" \
+ReconMethodParameterValues="[0]" \
 FrameDuration=[1798] \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
 FrameTimesStart=[0] \
 
 echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqNAC"
@@ -179,14 +179,14 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected=True \
 ImageDecayCorrectionTime=0 \
 ReconFilterType=None \
-ReconFilterSize=0 \
+ReconFilterSize=1 \
 AttenuationCorrection="None" \
 ScatterCorrectionMethod="None" \
 ReconstructionMethod="3D-RAMLA" \
 FrameDuration=[1798] \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[1,1]" \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]" \
 FrameTimesStart=[0] \
 
 
@@ -212,16 +212,16 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 DecayCorrectionFactor=[1] \
-ReconFilterSize=0 \
+ReconFilterSize=1 \
 ReconMethodParameterValues=[1] \
 AttenuationCorrection="CTAC-SG" \
 RandomsCorrectionMethod="DLYD" \
 ScatterCorrectionMethod="SS-SIMUL" \
 ReconstructionMethod="BLOB-OS-TF" \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]" \
-ReconFilterType="none" \
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]" \
+ReconFilterType="unknown" \
 #FrameTimesStart=[0]
 #TimeZero="12:12:12" \
 
@@ -245,17 +245,17 @@ AcquisitionMode="list mode" \
 ImageDecayCorrected="True" \
 ImageDecayCorrectionTime=0 \
 ReconFilterType="None" \
-ReconFilterSize=0 \
+ReconFilterSize=1 \
 AttenuationCorrection="MRAC" \
 RandomsCorrectionMethod="DLYD" \
 ScatterCorrectionMethod="SS-SIMUL" \
 ReconstructionMethod="LOR-RAMLA" \
 ReconMethodParameterValues="[1, 1]" \
-ReconFilterType="['n/a', 'n/a']" \
+ReconFilterType="n/a" \
 DecayCorrectionFactor=[1] \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]"
 
 # philipsVereosPET-CT
 # -------------------
@@ -275,13 +275,13 @@ ModeOfAdministration="infusion" \
 AcquisitionMode="list mode" \
 ImageDecayCorrected="True" \
 ImageDecayCorrectionTime=0 \
-ReconFilterType="None" \
-ReconFilterSize=0 \
+ReconFilterType="unknown" \
 AttenuationCorrection="CTAC-SG" \
 ScatterCorrectionMethod="SS-SIMUL" \
 RandomsCorrectionMethod="DLYD" \
 ReconstructionMethod="OSEMi3s15" \
-TimeZero="11:40:24"
+TimeZero="11:40:24" \
+ReconFilterSize=1 \
 #FrameDuration=[1221]
 
 
@@ -337,9 +337,9 @@ FrameTimesStart="[0]" \
 ImageDecayCorrectionTime=0 \
 ReconFilterType="n/a" \
 ReconFilterSize=1 \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]"
 
 
 # General Electric Medical Systems Advance
@@ -385,14 +385,14 @@ InjectionStart=0 \
 SpecificRadioactivity=418713.8 \
 ModeOfAdministration="infusion" \
 FrameTimesStart="[0]" \
-ImageDecayCorrected='false' \
+ImageDecayCorrected='True' \
 AttenuationCorrection='measured' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
 FrameDuration=[98000] \
 ScatterCorrectionMethod="Gaussian Fit" \
 ScanStart="0" \
-ReconMethodParameterLabels="[none, none]" \
-ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterLabels="[none]" \
+ReconMethodParameterUnits="[none]" \
+ReconMethodParameterValues="[0]"
 

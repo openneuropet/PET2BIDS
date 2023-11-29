@@ -106,7 +106,7 @@ try
     meta.FrameDuration              = 300;
     meta.FrameTimesStart            = 0;
     meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 1;
+    %meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,'SiemensBiographPETMR-NRU'),meta,...
         'o',fullfile(destination,['sub-SiemensBiographNRU' filesep 'pet'])); % note we only need to use folders here
@@ -169,7 +169,7 @@ try
     meta.AttenuationCorrection      = 'MR-corrected';
     meta.FrameDuration              = 600;
     meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
+    meta.ReconFilterType            = "unknown";
     meta.ReconFilterSize            = 0;
     meta.ReconMethodParameterLabels = ["none"];
     meta.ReconMethodParameterUnits  = ["none"];
@@ -207,7 +207,7 @@ try
     meta.ReconstructionMethod       = 'LOR-RAMLA'; 
     meta.FrameDuration              = 1798;
     meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
+    meta.ReconFilterType            = "n/a";
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
@@ -250,7 +250,7 @@ try
     meta.ScatterCorrectionMethod    = 'SS-SIMUL';  % field added in our library
     meta.ReconstructionMethod       = 'BLOB-OS-TF'; 
     %meta.FrameDuration              = repmat(122.238007,20,1);
-    meta.FrameTimesStart            = 0;
+    %meta.FrameTimesStart            = 0;
     meta.ReconFilterType            = "unknown";
     meta.ReconFilterSize            = 1;
 
@@ -285,8 +285,8 @@ try
     meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
     meta.ReconstructionMethod       = 'LOR-RAMLA'; 
     %meta.FrameDuration              = repmat(122.238007,40,1);
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "unknown";
+    %meta.FrameTimesStart            = 0;
+    meta.ReconFilterType            = "n/a";
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETMR-AmsterdamUMC'),meta,...
@@ -318,7 +318,7 @@ try
     meta.RandomsCorrectionMethod    = 'DLYD'; 
     meta.ReconstructionMethod       = 'OSEM:i3s15'; 
     %meta.FrameDuration              = repmat(1221.780029,40,1);
-    meta.FrameTimesStart            = 0;
+    %meta.FrameTimesStart            = 0;
     meta.ReconFilterType            = "unknown";
     meta.ReconFilterSize            = 1;
 
@@ -384,7 +384,7 @@ try
     meta.ImageDecayCorrectionTime   = 0;
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
+    meta.ReconFilterType            = "n/a";
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-NIMH'),meta,...
@@ -412,12 +412,12 @@ try
     meta.AcquisitionMode            = 'list mode';
     meta.ImageDecayCorrected        = 'true';
     meta.ImageDecayCorrectionTime   = 0;
-    meta.ScatterCorrectionMethod    = 'Gaussian Fit';
+    meta.ScatterCorrectionMethod    = 'Convolution subtraction';
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
     meta.ReconMethodParameterLabels = ["none"];
     meta.ReconParameterUnits        = ["none"];
-    meta.ReconMethodParameterValues = [0];
+    meta.ReconMethodParameterValues = [0, 0];
     meta.ReconFilterType            = "none";
     meta.ReconFilterSize            = 1;
 
