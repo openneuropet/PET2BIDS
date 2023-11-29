@@ -29,7 +29,7 @@ if ismac
     [status, results] = system('which dcm2niix');
     if status == 0
        dcm2niix_path = results;
-        system([dcm2niix_path, ' -h'])
+       system([dcm2niix_path, ' -h'])
     else
         print_me = ['This script expects to find dcm2niix at /opt/homebrew/bin, for a default brew installed dcm2niix.'];
         disp(print_me)
@@ -186,7 +186,6 @@ end
 
 %% Johannes Gutenberg University of Mainz
 % --------------------------------------
-% this phillips misbehaves not running it
 try
     clear meta
     meta.TimeZero                   = 'ScanStart';  
@@ -211,15 +210,15 @@ try
     meta.ReconFilterType            = "none";
     meta.ReconFilterSize            = 1;
 
-    %dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
-    %    'o',fullfile(destination,['sub-PhilipsGeminiUnimedizinMainz' filesep 'pet']));
+    dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
+        'o',fullfile(destination,['sub-PhilipsGeminiUnimedizinMainz' filesep 'pet']));
     
     
-    % meta.AttenuationCorrection      = 'NONE';
-    % meta.ScatterCorrectionMethod    = 'NONE';%GEG
-    % meta.ReconstructionMethod       = '3D-RAMLA';%GEG
-    % dcm2niix4pet(fullfile(source,['PhilipsGemini-Unimedizin' filesep 'reqNAC']),meta,...
-    %     'o',fullfile(destination,['sub-PhilipsGeminiNAC-UnimedizinMainz' filesep 'pet']));
+    meta.AttenuationCorrection      = 'NONE';
+    meta.ScatterCorrectionMethod    = 'NONE';%GEG
+    meta.ReconstructionMethod       = '3D-RAMLA';%GEG
+    dcm2niix4pet(fullfile(source,['PhilipsGemini-Unimedizin' filesep 'reqNAC']),meta,...
+         'o',fullfile(destination,['sub-PhilipsGeminiNAC-UnimedizinMainz' filesep 'pet']));
 
 catch
     disp(message);
@@ -450,6 +449,6 @@ end
 %
 % CPS Innovations HRRT - dcm2niix fails
 % ---------------------------------------
-% dcm2niix4pet(fullfile(source,'CPSInnovationsHRRT-NIMH'),meta,...
-%     'o',fullfile(destination,['sub-CPSInnovationsHRRT-NIMH' filesep 'pet'])); 
+%dcm2niix4pet(fullfile(source,'CPSInnovationsHRRT-NIMH'),meta,...
+%     'o',fullfile(destination,['sub-CPSInnovationsHRRT-NIMH' filesep 'pet']));
 
