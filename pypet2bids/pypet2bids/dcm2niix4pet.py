@@ -612,7 +612,7 @@ class Dcm2niix4PET:
             tempdir_pathlike = Path(tempdir)
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
-            cmd = f"{self.dcm2niix_path} -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
+            cmd = f"{self.dcm2niix_path} -b y -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
 
             if convert.returncode != 0:
