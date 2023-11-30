@@ -282,6 +282,7 @@ RandomsCorrectionMethod="DLYD" \
 ReconstructionMethod="OSEMi3s15" \
 TimeZero="11:40:24" \
 ReconFilterSize=1 \
+ReconMethodParameterValues="[0]"
 #FrameDuration=[1221]
 
 

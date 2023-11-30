@@ -412,7 +412,7 @@ try
     meta.AcquisitionMode            = 'list mode';
     meta.ImageDecayCorrected        = 'true';
     meta.ImageDecayCorrectionTime   = 0;
-    meta.ScatterCorrectionMethod    = 'Convolution subtraction';
+    meta.ScatterCorrectionMethod    = 'Gaussian Fit';
     meta.FrameDuration              = 98000;
     meta.FrameTimesStart            = 0;
     meta.ReconMethodParameterLabels = ["none"];
