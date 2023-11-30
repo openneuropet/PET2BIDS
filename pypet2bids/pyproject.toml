@@ -27,6 +27,7 @@ json-maj = "^0.0.8"
 pandas = "^1.4.4"
 pyxlsb = "^1.0.9"
 joblib = "^1.2.0"
+toml = ">=0.10.2"
 
 
 [tool.poetry.dev-dependencies]
