@@ -360,7 +360,9 @@ if exist('iteration','var') && exist('subset','var')
     else % returns none if actually seen as empty by get_recon_method
         filemetadata.ReconMethodParameterLabels     = "none";  
         filemetadata.ReconMethodParameterUnits      = "none";
-        filemetadata.ReconMethodParameterValues   = 0; % conditional on ReconMethodParameterLabels, just to make the validator pass comment this out later 
+        if isempty(filemetadata.ReconMethodParameterValues) % in cas user passes info
+            filemetadata.ReconMethodParameterValues = 0; % if none should be 0
+        end
     end
 end
 
