@@ -48,7 +48,7 @@ SpecificRadioactivityUnits="Bq" \
 ScanStart=0 \
 InjectionStart=0 \
 InjectedRadioactivityUnits='Bq' \
-ReconFilterType="none"
+ReconFilterType="none" \
 #TimeZero="10:10:10" \
 #InjectedMass=1 \
 #InjectedMassUnits=g \
@@ -74,7 +74,8 @@ ImageDecayCorrected="true" \
 ImageDecayCorrectionTime=0 \
 DecayCorrectionFactor=[1] \
 AttenuationCorrection="MR-corrected" \
-InjectionStart=0
+InjectionStart=0 \
+--silent
 
 
 # Århus University Hospital
@@ -101,7 +102,8 @@ ReconFilterType='none' \
 FrameTimesStart=[0] \
 ReconMethodParameterLabels="[none]" \
 ReconMethodParameterUnits="[none]" \
-ReconMethodParameterValues="[0]"
+ReconMethodParameterValues="[0]" \
+--silent
 #DecayCorrectionFactor="[1]" \
 
 echo "${SOURCE_FOLDER}/GeneralElectricSignaPETMR-Aarhus"
@@ -127,7 +129,8 @@ ReconFilterType='unknown' \
 ReconFilterSize=1 \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+--silent
 
 # Johannes Gutenberg University of Mainz
 # --------------------------------------
@@ -161,6 +164,7 @@ FrameDuration=[1798] \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
 FrameTimesStart=[0] \
+--silent
 
 echo "${SOURCE_FOLDER}/PhilipsGeminiPETMR-Unimedizin/reqNAC"
 dcm2niix4pet $SOURCE_FOLDER/PhilipsGeminiPETMR-Unimedizin/reqNAC --destination-path $DESTINATION/sub-PhilipsGeminiNACUnimedizinMainz/pet \
@@ -188,6 +192,7 @@ ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
 ReconMethodParameterValues="[1,1]" \
 FrameTimesStart=[0] \
+--silent
 
 
 # Amsterdam UMC
@@ -222,6 +227,7 @@ ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
 ReconMethodParameterValues="[0, 0]" \
 ReconFilterType="none" \
+--silent
 #FrameTimesStart=[0]
 #TimeZero="12:12:12" \
 
@@ -255,7 +261,8 @@ ReconFilterType="['n/a', 'n/a']" \
 DecayCorrectionFactor=[1] \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+--silent
 
 # philipsVereosPET-CT
 # -------------------
@@ -281,7 +288,8 @@ AttenuationCorrection="CTAC-SG" \
 ScatterCorrectionMethod="SS-SIMUL" \
 RandomsCorrectionMethod="DLYD" \
 ReconstructionMethod="OSEMi3s15" \
-TimeZero="11:40:24"
+TimeZero="11:40:24" \
+--silent
 #FrameDuration=[1221]
 
 
@@ -310,7 +318,8 @@ FrameTimesStart=[0] \
 FrameDuration=[300] \
 AttenuationCorrection="MR-corrected" \
 RandomsCorrectionMethod="DLYD" \
-ReconFilterSize=1 
+ReconFilterSize=1 \
+--silent
 #DecayCorrectionFactor="[1]" \
 
 # General Electric Medical Systems Signa PET-MR
@@ -339,7 +348,8 @@ ReconFilterType="n/a" \
 ReconFilterSize=1 \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+--silent
 
 
 # General Electric Medical Systems Advance
@@ -362,11 +372,12 @@ ImageDecayCorrected='true' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
 ScatterCorrectionMethod="Convolution subtraction" \
-FrameDuration=[98000] \
+FrameDuration="[98000]" \
 ScanStart="0" \
 ReconMethodParameterLabels="[none]" \
 ReconMethodParameterUnits="[none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+--silent
 #TimeZero="13:39:41" \
 #AttenuationCorrection='n/a' \
 
@@ -389,12 +400,13 @@ ImageDecayCorrected='false' \
 AttenuationCorrection='measured' \
 AcquisitionMode='list mode' \
 ImageDecayCorrectionTime="0" \
-FrameDuration="[98000]"\
+FrameDuration="[98000]" \
 ScatterCorrectionMethod="Gaussian Fit" \
 ScanStart="0" \
 ReconMethodParameterLabels="[none, none]" \
 ReconMethodParameterUnits="[none, none]" \
-ReconMethodParameterValues="[0, 0]"
+ReconMethodParameterValues="[0, 0]" \
+--silent
 
 # John Hopkins University
 # -----------------------
@@ -406,7 +418,6 @@ ecatpet2bids $SOURCE_FOLDER/SiemensHRRT-JHU/Hoffman.v \
 --nifti $DESTINATION/sub-SiemensHRRTJHU/pet/sub-SiemensHRRTJHU_pet.nii.gz \
 --convert \
 --kwargs \
-#TimeZero='ScanStart' \
 Manufacturer='Siemens' \
 ManufacturersModelName='HRRT' \
 InstitutionName='Johns Hopkins University, USA' \
@@ -423,11 +434,16 @@ ImageDecayCorrectionTime=0 \
 ReconFilterType='none' \
 ReconFilterSize=0 \
 AttenuationCorrection='transmission scan with a 137Cs point source' \
+ScanStart=0 \
+InjectionStart=0 \
+ScatterFraction=[0] \
+PromptRate=[0] \
+SinglesRate=[0] \
+RandomRate=[0]
 
 # General Electric Medical Systems Advance
 # -----------------------------------------
 dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-JHU/ --destination-path $DESTINATION/sub-GeneralElectricAdvanceJHU/pet --kwargs \
-#TimeZero='ScanStart' \
 Manufacturer='GE MEDICAL SYSTEMS' \
 ManufacturersModelName='GE Advance' \
 InstitutionName='Johns Hopkins University, USA' \
@@ -438,20 +454,21 @@ TracerRadionuclide='F18' \
 InjectedRadioactivity=75.8500 \
 SpecificRadioactivity=418713.8 \
 ModeOfAdministration='infusion' \
-FrameTimesStart=0 \
+FrameTimesStart=[0] \
 AcquisitionMode='list mode' \
 ImageDecayCorrected='true' \
 ImageDecayCorrectionTime=0 \
 ScatterCorrectionMethod='Gaussian Fit' \
-FrameDuration=98000 \
-FrameTimesStart=0 \
+FrameDuration=[98000] \
+FrameTimesStart=[0] \
 ReconMethodName='filtered backprojection with ramp filter' \
 ReconMethodParameterLabels=["none"] \
-ReconParameterUnits=["none"] \
+ReconMethodParameterUnits=["none"] \
 ReconMethodParameterValues="[0]" \
 ReconFilterType="none" \
 ReconFilterSize=1 \
-AttenuationCorrection='2D-acquired transmission scan with a 68Ge rod source'
+AttenuationCorrection='2D-acquired transmission scan with a 68Ge rod source' \
+
 
 
 
@@ -462,7 +479,6 @@ AttenuationCorrection='2D-acquired transmission scan with a 68Ge rod source'
 # Canon Cartesion Prime PET-CT
 # ----------------------------
 dcm2niix4pet $SOURCE_FOLDER/CanonCartesionPrimePETCT-NIA --destination-path $DESTINATION/sub-CanonCartesionPrimeNIA/pet --kwargs \
-#TimeZero='ScanStart' \
 Manufacturer='Canon Medical Systems' \
 ManufacturersModelName='Cartesion Prime' \
 InstitutionName='Chesapeake Medical Imaging, USA' \
@@ -473,10 +489,13 @@ TracerRadionuclide='F18' \
 InjectedRadioactivity=32.19 \
 SpecificRadioactivity=32190000 \
 ModeOfAdministration='infusion' \
-FrameTimesStart=0 \
+FrameTimesStart=[0] \
 AcquisitionMode='list mode' \
 ImageDecayCorrected='true' \
 ImageDecayCorrectionTime=0 \
 ReconMethodParameterValues="[24, 5]" \
+ReconMethodParameterUnits="['none', 'none']" \
+ReconMethodParameterLabels="['none', 'none']" \
 ReconFilterType="Gaussian" \
 ReconFilterSize=2 \
+--silent
