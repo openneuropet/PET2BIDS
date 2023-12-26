@@ -1,4 +1,4 @@
-.. _installation
+.. _installation:
 
 Installation
 ============
@@ -36,8 +36,8 @@ via pip for Python versions >3.7.1,=<3.11
     <script id="asciicast-TZJg5BglDMFM2fEEX9dSpnJEy" src="https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.js"
     async data-autoplay="true" data-speed="1" data-loop="true"></script>
 
-If you wish to contribute or to install pypet2bids from source, continue reading the `Additional Install Notes`_ section
-below.
+If you wish to contribute, are unable to install from PyPi, or simply wish to install pypet2bids from source, continue
+reading the `Additional Install Notes`_ section below.
 
 Additional Install Notes
 ========================
@@ -79,13 +79,38 @@ all arguments in although this is also possible). You can find templates of such
 Python
 ------
 
-pypet2bids can be run from source by cloning the source code at our Github_.
-
-.. _Github: https://github.com/openneuropet/PET2BIDS
+If you are unable to install this library from PyPi you can clone this repository to build and install the package
+as distributed on PyPi yourself with poetry:
 
 .. code-block::
 
-    git clone git@github.com:openneuropet/PET2BIDS.git
+    cd PET2BIDS
+    cp -R metadata/ pypet2bids/pypet2bids/metadata
+    cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
+    cd pypet2bids && poetry lock && poetry build
+    pip install dist/pypet2bids-X.X.X-py3-none-any.whl
+
+.. note::
+
+    Make and the additional scripts contained in the `scripts/` directory are for the convenience of
+    non-windows users.
+
+If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the
+following:
+
+.. code-block::
+
+    cd PET2BIDS
+    make installpoetry buildpackage installpackage
+
+.. _Github: https://github.com/openneuropet/PET2BIDS
+
+
+pypet2bids can be run from source by cloning the source code at our Github_.
+
+.. code-block::
+
+    git clone https://github.com/openneuropet/PET2BIDS
 
 and then installing it's dependencies via pip:
 
@@ -94,12 +119,19 @@ and then installing it's dependencies via pip:
     cd PET2BIDS/pypet2bids
     pip install .
 
-Or with `Poetry <https://python-poetry.org/>`_:
+or installing them with `Poetry <https://python-poetry.org/>`_:
 
 .. code-block::
 
     cd PET2BIDS/pypet2bids
     poetry install
+
+After either poetry or pip installation of dependencies modules can be executed as follows:
+
+.. code-block::
+
+    cd PET2BIDS/pypet2bids
+    python dcm2niix4pet.py --help
 
 **Windows Only**
 
@@ -137,5 +169,3 @@ Or using the *dcm2niix4pet* tool itself to set up the configuration:
 .. code-block::
 
     dcm2niix4pet --set-dcm2niix-path \path\to\dcm2niix.exe
-
-------------------------------------------------------------------------------------------------------------------------

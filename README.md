@@ -65,7 +65,7 @@ Why is all the above required? Well, because this is a monorepo and we just have
 
 [!NOTE]
 Make and the additional scripts contained in the `scripts/` directory are for the convenience of 
-non-windows users, building and development is not expressly supported on Windows.
+non-windows users.
 
 If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the 
 following:
@@ -85,7 +85,6 @@ Lastly, if one wishes run pypet2bids directly from the source code in this repos
 ```bash
 cd PET2BIDS/pypet2bids
 poetry install
-python dcm2niix4pet.py --help
 ```
 
 Or they can install the dependencies only using pip:
@@ -93,6 +92,12 @@ Or they can install the dependencies only using pip:
 ```bash
 cd PET2BIDS/pypet2bids
 pip install .
+```
+
+After either poetry or pip installation of dependencies modules can be executed as follows:
+
+```bash
+cd PET2BIDS/pypet2bids
 python dcm2niix4pet.py --help
 ```
 
