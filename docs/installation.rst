@@ -6,7 +6,8 @@ Installation
 Matlab
 ------
 
-In short, add the contents of the `matlab` folder to your matlab path with `addpath`:
+Clone the repo at https://github.com/openneuropet/PET2BIDS.git and the contents of the `matlab` folder to your matlab
+path with `addpath`:
 
 .. code-block::
 
@@ -23,7 +24,7 @@ Python
 ------
 
 The python version of PET2BIDS (from herein referenced by it's library name *pypet2bids*) can be installed
-via pip for Python versions >3.7.1,<3.10
+via pip for Python versions >3.7.1,=<3.11
 
 .. code-block::
 
@@ -34,6 +35,9 @@ via pip for Python versions >3.7.1,<3.10
 
     <script id="asciicast-TZJg5BglDMFM2fEEX9dSpnJEy" src="https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.js"
     async data-autoplay="true" data-speed="1" data-loop="true"></script>
+
+If you wish to contribute or to install pypet2bids from source, continue reading the `Additional Install Notes`_ section
+below.
 
 Additional Install Notes
 ========================

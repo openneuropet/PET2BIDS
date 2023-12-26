@@ -34,18 +34,69 @@ Simply download the repository - follow the specific Matlab or Python explanatio
 
 ### pypet2bids
 
-Use pip:
+Use pip to install this library directly from PyPI:
 
 [![asciicast](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.svg)](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy)
 
-For advance users clone this repository and run from the python source under the `PET2BIDS/pypet2bids` folder. If you 
-wish to build and install via pip locally we recommend you do so using [poetry](https://python-poetry.org/) build or
-using the make commands below.
+If you wish to install directly from this repository see the instructions below to either build
+a packaged version of `pypet2bids` or how to run the code directly from source.
+If you are unable to install this library from PyPi you can clone this repository to build and install the package as distributed on PyPi yourself  
+
+<details>
+<summary>Build Package Locally and Install with PIP</summary> 
+
+We use [poetry](https://python-poetry.org/) to build this package, no other build methods are supported, 
+further we encourage the use of [GNU make](https://www.gnu.org/software/make/) and a bash-like shell to simplify the 
+build process.
+
+After installing poetry, you can build and install this package to your local version of Python with the following 
+commands (keep in mind the commands below are executed in a bash-like shell):
+
+```bash
+cd PET2BIDS
+cp -R metadata/ pypet2bids/pypet2bids/metadata
+cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
+cd pypet2bids && poetry lock && poetry build
+pip install dist/pypet2bids-X.X.X-py3-none-any.whl
+```
+
+Why is all the above required? Well, because this is a monorepo and we just have to work around that sometimes.
+
+
+[!NOTE]
+Make and the additional scripts contained in the `scripts/` directory are for the convenience of 
+non-windows users, building and development is not expressly supported on Windows.
+
+If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the 
+following:
 
 ```bash
 cd PET2BIDS
 make installpoetry buildpackage installpackage
 ```
+
+</details>
+
+<details> 
+<summary>Run Directly From Source</summary>
+
+Lastly, if one wishes run pypet2bids directly from the source code in this repository or to help contribute to the python portion of this project or any of the documentation they can do so via the following options:
+
+```bash
+cd PET2BIDS/pypet2bids
+poetry install
+python dcm2niix4pet.py --help
+```
+
+Or they can install the dependencies only using pip:
+
+```bash
+cd PET2BIDS/pypet2bids
+pip install .
+python dcm2niix4pet.py --help
+```
+
+</details>
 
 **Note:**
 *We recommend using dcm2niix v1.0.20220720 or newer; we rely on metadata included in these later releases. It's best to 
