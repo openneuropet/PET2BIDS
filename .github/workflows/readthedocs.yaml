@@ -1,0 +1,23 @@
+name: readthedocs/actions
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pull-request-links:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Preview RTD
+      uses: readthedocs/actions/preview@v1
+      with:
+        project-slug: "pet2bids"
