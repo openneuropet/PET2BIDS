@@ -39,8 +39,7 @@ Use pip to install this library directly from PyPI:
 [![asciicast](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.svg)](https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy)
 
 If you wish to install directly from this repository see the instructions below to either build
-a packaged version of `pypet2bids` or how to run the code directly from source.
-If you are unable to install this library from PyPi you can clone this repository to build and install the package as distributed on PyPi yourself  
+a packaged version of `pypet2bids` or how to run the code from source.
 
 <details>
 <summary>Build Package Locally and Install with PIP</summary> 

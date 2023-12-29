@@ -7,8 +7,8 @@ is not a function or a true module. This is just two python dictionaries with ke
     imaging data
 :return: sidecar_template_full, sidecar_template_short
 
-|*Anthony Galassi*
-|*Copyright OpenNeuroPET team*
+*Anthony Galassi*
+*Copyright OpenNeuroPET team*
 
 """
 

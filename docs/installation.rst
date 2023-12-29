@@ -36,7 +36,7 @@ via pip for Python versions >3.7.1,=<3.11
     <script id="asciicast-TZJg5BglDMFM2fEEX9dSpnJEy" src="https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.js"
     async data-autoplay="true" data-speed="1" data-loop="true"></script>
 
-If you wish to contribute, are unable to install from PyPi, or simply wish to install pypet2bids from source, continue
+If you wish to contribute, are unable to install from PyPi, or simply wish to run pypet2bids from source, continue
 reading the `Additional Install Notes`_ section below.
 
 Additional Install Notes
@@ -80,7 +80,14 @@ Python
 ------
 
 If you are unable to install this library from PyPi you can clone this repository to build and install the package
-as distributed on PyPi yourself with poetry:
+as distributed on PyPi yourself with poetry.
+
+We use `poetry <https://python-poetry.org/>`_ to build this package, no other build methods are supported,
+further we encourage the use of `GNU make <https://www.gnu.org/software/make/>`_ and a bash-like shell to simplify the
+build process.
+
+After installing poetry, you can build and install this package to your local version of Python with the following
+commands (keep in mind the commands below are executed in a bash-like shell):
 
 .. code-block::
 
