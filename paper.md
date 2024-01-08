@@ -77,12 +77,7 @@ The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bi
 
 `PET2BIDS` was designed as a library code, allowing conversion of PET data to BIDS using the command line. Thanks to its modular structure, it can be integrated into software (with a graphical user interface) that aim at more general BIDS conversion, and current efforts are underway integrating PET2BIDS with ezBIDS [@noauthor_ezbids] and BIDSCoins [@zwiers_bidscoin_2022].
 
-_File conversion_: The conversion for PET data stored in DICOM files is performed using a wrapper
-around dcm2niix [@rorden_dcm2nii; @li_first_2016] and then extending the JSON file with details that are not included in the source images but are required for BIDS. For ECAT files, dedicated functions were written to support this conversion. The Matlab code relies on the readECAT7.m function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while new ecat2nii
-(.m .py) functions were written to convert into NIfTI and produce a JSON sidecar file, and optionally a
-(non-BIDS compliant) SIF file (Scan Information File - used by different pharmacokinetic modelling software for model weighting). The Python code was subsequently developed in line with the Matlab code, with further testing of
-data reading (i.e., which parts are read according to the PET data frames) and writing, relying here on
-Nibabel [@brett_nipynibabel_2023].  
+_File conversion_: The conversion for PET data stored in DICOM format to NIfTI is performed using the dcm2niix4pet (.m and .py) functions which are wrapper functions around dcm2niix [@rorden_dcm2nii; @li_first_2016] that extend the JSON file with details that are not included in the source images but are required for BIDS. Those information are given by the user. The conversion of PET data stored in ECAT format is performed using the newly created ecat2nii (.m .py) functions. The Matlab code relies on the readECAT7.m function from BT Christian (1998) and revised by RF Muzic (2002) to read the data, while writting relies on nii_tool [@Li_2016] while producing the correct JSON sidecar file, and optionally a (non-BIDS compliant) SIF file (Scan Information File - used by different pharmacokinetic modelling software for model weighting). The Python code was developed to mirror the Matlab code, with further testing of data reading (i.e., which parts are read according to the PET data frames) and writing, relying here on Nibabel [@brett_nipynibabel_2023]. 
 
 _PET Metadata_: JSON files created from reading PET scanner data are always missing some of the
 radiotracer and pharmaceutical information. To accommodate this, a dedicated PET JSON updater was
@@ -92,9 +87,7 @@ values for the different metadata keys) and updates the JSON file.
 
 _Spreadsheet conversion_: tabular data formats (xls, xlsx, csv, tsv, bld) are ubiquitous in the PET
 community in particular to (a) keep track of radiotracer information injected per participant and (b)
-recording of time and radiotracer concentration from the blood sampling. To facilitate conversion to BIDS,
-dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, (ii) use pre-formatted tabular data to update JSON files, and (iii) convert a tabular PMOD file to a blood.tsv file
-(PMOD being a popular commercial pharmacokinetic modelling software [@Burger1997]).
+recording of time and radiotracer concentration from the blood sampling. To facilitate conversion to BIDS, three dedicated functions were created to (i) convert pre-formatted tabular data to JSON files, or(ii) use pre-formatted tabular data to update JSON files, or (iii) convert a tabular PMOD file to a blood.tsv file (PMOD being a popular commercial pharmacokinetic modelling software [@Burger1997]).
 
 # Acknowledgements
 
