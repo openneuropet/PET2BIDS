@@ -10,7 +10,7 @@ Matlab
 
 BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one
 reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created
-overwise.
+otherwise.
 
 
 

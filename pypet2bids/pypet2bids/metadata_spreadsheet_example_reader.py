@@ -1,15 +1,9 @@
-import pandas
-import warnings
-import pathlib
-from typing import Union
 from os.path import join
-import json
 try:
     from helper_functions import  *
 except ModuleNotFoundError:
     from pypet2bids.helper_functions import *
 
-#from pypet2bids.helper_functions import open_meta_data, flatten_series
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent
@@ -18,7 +12,6 @@ pet_metadata_json = join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
 """
-This function does?
 
 :format:
 :param:
@@ -28,6 +21,7 @@ Anthony Galassi
 -----------------------------
 Copyright Open NeuroPET team
 """
+
 
 def translate_metadata(metadata_dataframe, image_path=NotImplemented):
     """

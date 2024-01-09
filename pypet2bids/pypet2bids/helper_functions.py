@@ -579,9 +579,9 @@ def get_coordinates_containing(
     If you are confident in your input data you would most likely call this method this way:
 
     >>> coordinates = get_coordinates_containing(
-    >>>     'sub-NDAR1',
-    >>>     pandas.DataFrame({'subject_id': ['sub-NDAR1', 'sub-NDAR2'], 'some_values': [1, 2]}),
-    >>>     single=True)
+    >>>    'sub-NDAR1',
+    >>>    pandas.DataFrame({'subject_id': ['sub-NDAR1', 'sub-NDAR2'], 'some_values': [1, 2]}),
+    >>>    single=True)
     >>> coordinates
     >>> (0, 1)
 
@@ -589,14 +589,15 @@ def get_coordinates_containing(
     :type containing: string, integer, or float
     :param dataframe: A pandas dataframe read in from a spreadsheet
     :type dataframe: pandas.datafarame
-    :param exact: Boolean proscribing an exact match to containing; default is to locate a string or value that holds the
-    input containing
+    :param exact: Boolean proscribing an exact match to containing; default is to locate a string or value that holds
+        the input containing
     :type exact: bool
     :param single: return only the first co-ordinate, use only if the string/contains your searching for is unique and
-    you have high confidence in your data
+        you have high confidence in your data
     :type single: bool
     :return: A co-ordinate in the form of (row, column) or a list containing a set of co-ordinates [(row, column), ...]
     :rtype: tuple or list of tuples
+
     """
 
     percent_tolerance = 0.001

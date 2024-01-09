@@ -1,5 +1,5 @@
 """
-This module contains methods used to read ecat files (*.v), the primary method pulled/imported from this module
+This module contains methods used to read ecat files (\*.v), the primary method pulled/imported from this module
 is read_ecat which returns the contents of a singular ecat file divided into three parts:
 
 - main header
@@ -11,6 +11,7 @@ glutton or twisted in that sort of way.
 
 :Authors: Anthony Galassi
 :Copyright: Open NeuroPET team
+
 """
 import json
 import os.path
@@ -239,9 +240,10 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     :param ecat_file: path to an ecat file, does not handle compression currently
     :param calibrated: if True, will scale the raw imaging data by the SCALE_FACTOR in the subheader and
     :param collect_pixel_data: By default collects the entire ecat, can be passed false to only return headers
-           CALIBRATION_FACTOR in the main header
+        CALIBRATION_FACTOR in the main header
 
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
+
     """
     if ".gz" in ecat_file:
         ecat_file = decompress(ecat_file)

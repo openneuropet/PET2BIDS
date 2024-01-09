@@ -16,21 +16,21 @@ def read_multi_subject_spreadsheets(
     specific data is supplied via the second argument.
 
     :param general_metadata_spreadsheet: path to a metadata spreadsheet containing bids fields as columns
-    with values below
+        with values below
     :type general_metadata_spreadsheet: file path
     :param multiple_subject_spreadsheet: path to multi subject spreadsheet containing a subject id, participant id,
-    subject, or participant column consisting of paths to subject folders/files.
+        subject, or participant column consisting of paths to subject folders/files.
     :type multiple_subject_spreadsheet: file path
     :param kwargs: additional key pair arguments to pass on, these get applied generally
-    just like the first spreadsheet. e.g. TimeZero=12:12:12, SpecificRadioactivity=3
+        just like the first spreadsheet. e.g. TimeZero=12:12:12, SpecificRadioactivity=3
     :type kwargs: string or dict
     :return: dictionary of subject data extracted from each spreadsheet along with any additional
-    kwargs supplied
+        kwargs supplied
     :rtype: dict
     
     Anthony Galassi
-    -----------------------------
     Copyright Open NeuroPET team
+
     """
 
     required_fields = load_pet_bids_requirements_json()

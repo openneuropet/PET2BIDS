@@ -9,6 +9,7 @@ PmodToBlood.
 | *Authors: Anthony Galassi*
 | *Copyright: OpenNeuroPET team*
 """
+
 import json
 import logging
 import textwrap
@@ -110,10 +111,11 @@ def cli():
     :param json: create a json sidecar/data-dictionary file along with output tsv's, default is set to True
     :param engine: engine used to read excel files, ignore this option as it will most likely be deprecated in the future
     :param kwargs: additional key pair arguments one wishes to include, such as extra entries for plasma or blood PET BIDS
-    fields that aren't in PMOD blood files
+        fields that aren't in PMOD blood files
     :param show-examples: shows an example of how to run this module as well as the outputs
     :return: collected arguments
     :rtype: argparse.namespace
+
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
