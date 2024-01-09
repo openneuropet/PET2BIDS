@@ -16,13 +16,13 @@ submodules:
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.9"
+    python: "3.11"
   jobs:
     post_create_environment:
       - pip install poetry
       - poetry config virtualenvs.create false
     post_install:
-      - cd pypet2bids && poetry install
+      - cd pypet2bids && poetry lock && poetry install --all-extras
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
