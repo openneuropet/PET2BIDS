@@ -23,6 +23,7 @@ build:
       - poetry config virtualenvs.create false
     post_install:
       - cd pypet2bids && poetry lock && poetry install --all-extras
+      - cd pypet2bids && poetry build && pip install dist/pypet2bids-*.whl
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
