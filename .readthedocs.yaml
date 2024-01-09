@@ -14,28 +14,16 @@ submodules:
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
     python: "3.9"
   jobs:
     post_create_environment:
-      # install poetry
-      # https://python-poetry.org/docs/#osx--linux--bashonwindows-install-instructions
-      - curl -sSL https://install.python-poetry.org | python3 -
-      # Tell poetry to not use a virtual environment
-      - $HOME/.local/bin/poetry config virtualenvs.create false
-      # just use poetry to export a requirements.txt as that worked much better than the previous attempts
-      - cd pypet2bids && $HOME/.local/bin/poetry export --with dev --without-hashes -o requirements.txt
+      - pip install poetry
+      - poetry config virtualenvs.create false
+    post_install:
+      - cd pypet2bids && poetry install
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
-
-# If using Sphinx, optionally build your docs in additional formats such as PDF
-# formats:
-#    - pdf
-
-# Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: pypet2bids/requirements.txt
