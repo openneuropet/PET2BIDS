@@ -24,12 +24,14 @@ build:
       - poetry config virtualenvs.create false
       # just use poetry to export a requirements.txt as that worked much better than the previous attempts
       - cd pypet2bids && poetry lock && poetry export --without-hashes --with dev --format=requirements.txt > requirements.txt
+      - pip install -r pypet2bids/requirements.txt
+      - cd pypet2bids && pip install sdist/pypet2bid-*.whl
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
 
 # Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: pypet2bids/requirements.txt
+#python:
+#   install:
+#   - requirements: pypet2bids/requirements.txt
