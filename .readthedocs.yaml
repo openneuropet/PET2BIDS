@@ -24,6 +24,7 @@ build:
     post_install:
       - cd pypet2bids && poetry lock && poetry install --all-extras
       - cd pypet2bids && poetry build && pip install dist/pypet2bids-*.whl
+      - export PATH=$PATH:$PWD/pypet2bids/pypet2bids
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
