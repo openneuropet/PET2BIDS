@@ -156,7 +156,7 @@ def update_json_with_dicom_value(
         **additional_arguments
 ):
     """
-    We go through all of the missing values or keys that we find in the sidecar json and attempt to extract those
+    We go through all the missing values or keys that we find in the sidecar json and attempt to extract those
     missing entities from the dicom source. This function relies on many heuristics a.k.a. many unique conditionals and
     simply is what it is, hate the game not the player.
 
@@ -280,6 +280,26 @@ def update_json_with_dicom_value(
                             f"of {dicom_field}")
         except AttributeError:
             pass
+
+
+def update_json_with_dicom_value_cli():
+    dicom_update_parser = argparse.ArgumentParser()
+    dicom_update_parser.add_argument('-j', '--json', help='path to json to update', required=True)
+    dicom_update_parser.add_argument('-d', '--dicom', help='path to dicom to extract values from', required=True)
+    dicom_update_parser.add_argument('-k', '--additional_arguments',
+                                     help='additional key value pairs to update json with', nargs='*',
+                                     action=helper_functions.ParseKwargs, default={})
+
+    args = dicom_update_parser.parse_args()
+
+    # get missing values
+    missing_values = check_json(args.json, silent=True)
+
+    # load dicom header
+    dicom_header = pydicom.dcmread(args.dicom, stop_before_pixels=True)
+
+    # update json
+    update_json_with_dicom_value(args.json, missing_values, dicom_header, **args.additional_arguments)
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
