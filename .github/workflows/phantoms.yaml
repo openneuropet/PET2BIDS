@@ -85,7 +85,6 @@ jobs:
         run: |
           cd pypet2bids
           pip install .
-          pip install gdown
 
       - name: Install Poetry Build Package
         run: |
