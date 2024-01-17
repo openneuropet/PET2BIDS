@@ -474,7 +474,7 @@ try
     meta.SinglesRate                = 0.0;
 
     out = ecat2nii(fullfile(source,['SiemensHRRT-JHU' filesep 'Hoffman.v']),...
-        meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTJHU'  filesep 'pet' filesep 'sub-SiemensHRRTNRU.nii']));
+        meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTJHU'  filesep 'pet' filesep 'sub-SiemensHRRTJHU.nii']));
 
 catch
     disp(message);
