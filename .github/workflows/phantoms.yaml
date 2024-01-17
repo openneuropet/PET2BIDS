@@ -101,7 +101,7 @@ jobs:
 
       - name: Collect Phantoms from Google Drive
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
-        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
+        run: wget https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip -o PHANTOMS.zip
 
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'

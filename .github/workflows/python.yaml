@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - switch-phantoms-to-s3
   workflow_call:
   workflow_dispatch:
     inputs:
@@ -18,8 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ECAT_TEST_FOLDER: "cimbi36"
-      REAL_TEST_ECAT_PATH: cimbi36/Gris_102_19_2skan-2019.04.30.13.04.41_em_3d.v
+      ECAT_TEST_FOLDER: "OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU"
+      REAL_TEST_ECAT_PATH: Hoffman.v
       SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
       TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
@@ -36,12 +37,12 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-      - name: Cache ECAT
-        id: cache-ecat
+      - name: Cache Phantoms
+        id: cache-phantoms
         uses: actions/cache@v2
         with:
-          path: cimbi36
-          key: ${{ runner.os }}-ecats
+          path: US-sourced-OpenNeuroPET-Phantoms.zip
+          key: ${{ runner.os }}-phantoms
 
       - name: Set up python
         uses: actions/setup-python@v2
@@ -54,13 +55,13 @@ jobs:
           cd pypet2bids
           pip3 install .
 
-      - name: Install gdown and collect Ecat from Google Drive
-        if: steps.cache-ecat.outputs.cache-hit != 'true'
-        run: "python3 -m pip install gdown && gdown ${{ secrets.CIMBI_ECAT_ON_GOOGLE_DRIVE }} -O ecat_test"
+      - name: Collect ECAT and other phantoms
+        if: steps.cache-phantoms.outputs.cache-hit != 'true'
+        run: "wget https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip"
 
-      - name: Decompress dataset
-        if: steps.cache-ecat.outputs.cache-hit != 'true'
-        run: "tar xvzf ecat_test && rm ecat_test"
+      - name: Decompress ECAT and other phantoms
+        if: steps.cache-phantoms.outputs.cache-hit != 'true'
+        run: "unzip US-sourced-OpenNeuroPET-Phantoms.zip"
 
       - name: Test CLI --help
         run: |
@@ -70,7 +71,7 @@ jobs:
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          python3 -m pypet2bids.ecat_cli ../${{ env.REAL_TEST_ECAT_PATH }} --dump
+          python3 -m pypet2bids.ecat_cli ../${{ env.ECAT_TEST_FOLDER}}/${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
