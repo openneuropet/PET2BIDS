@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - switch-phantoms-to-s3
   pull_request:
     branches:
       - main

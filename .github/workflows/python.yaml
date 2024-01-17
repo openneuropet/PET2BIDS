@@ -45,7 +45,7 @@ jobs:
           key: ${{ runner.os }}-phantoms
 
       - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
@@ -53,7 +53,9 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip3 install .
+          python -m pip install -upgrade pip
+          pip install poetry
+          poetry install --with dev
 
       - name: Collect ECAT and other phantoms
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
@@ -66,12 +68,12 @@ jobs:
       - name: Test CLI --help
         run: |
           cd pypet2bids/
-          python3 -m pypet2bids.ecat_cli --help
+          poetry run python3 -m pypet2bids.ecat_cli --help
 
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          python3 -m pypet2bids.ecat_cli ../${{ env.ECAT_TEST_FOLDER}}/${{ env.REAL_TEST_ECAT_PATH }} --dump
+          poetry run python3 -m pypet2bids.ecat_cli ../${{ env.ECAT_TEST_FOLDER}}/${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
@@ -85,4 +87,4 @@ jobs:
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
+          poetry run pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
