@@ -19,8 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ECAT_TEST_FOLDER: "OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU"
-      REAL_TEST_ECAT_PATH: Hoffman.v
+      REAL_ECAT_TEST_PATH: ${{ github.workspace }}/OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v
       SMALLER_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v.gz
       TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/ECAT7_multiframe.v
       OUTPUT_NIFTI_PATH: ${{ github.workspace}}/pypet2bids/tests/ECAT7_multiframe.nii
@@ -73,7 +72,7 @@ jobs:
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          poetry run python3 -m pypet2bids.ecat_cli ../${{ env.ECAT_TEST_FOLDER}}/${{ env.REAL_TEST_ECAT_PATH }} --dump
+          poetry run python3 -m pypet2bids.ecat_cli ${{ env.REAL_TEST_ECAT_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
