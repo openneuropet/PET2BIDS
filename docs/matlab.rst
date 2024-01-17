@@ -9,7 +9,7 @@ matlab
 
 .. mat:autofunction:: dcm2niix4pet
 
-.. mat:autofunction:: updatjsonpetfile
+.. mat:autofunction:: updatejsonpetfile
 
 .. mat:autofunction:: ecat2nii
 

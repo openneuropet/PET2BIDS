@@ -43,3 +43,6 @@ installpackage:
 
 testphantoms:
 	@scripts/testphantoms
+
+html:
+	@cd docs && make html
