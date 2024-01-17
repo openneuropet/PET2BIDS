@@ -99,9 +99,9 @@ jobs:
       - name: Install BIDS Validator
         run: npm install -g bids-validator
 
-      - name: Collect Phantoms from Google Drive
+      - name: Collect Phantoms
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
-        run: wget https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip -o PHANTOMS.zip
+        run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
