@@ -61,7 +61,6 @@ jobs:
         run: "wget https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip"
 
       - name: Decompress ECAT and other phantoms
-        if: steps.cache-phantoms.outputs.cache-hit != 'true'
         run: "unzip US-sourced-OpenNeuroPET-Phantoms.zip"
 
       - name: Debug
@@ -79,7 +78,7 @@ jobs:
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          poetry run python3 -m pypet2bids.ecat_cli ${{ env.REAL_TEST_ECAT_PATH }} --dump
+          poetry run python3 -m pypet2bids.ecat_cli ${{ env.REAL_ECAT_TEST_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
