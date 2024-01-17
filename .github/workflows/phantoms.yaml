@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - switch-phantoms-to-s3
   pull_request:
     branches:
       - main
@@ -84,7 +85,6 @@ jobs:
         run: |
           cd pypet2bids
           pip install .
-          pip install gdown
 
       - name: Install Poetry Build Package
         run: |
@@ -99,9 +99,9 @@ jobs:
       - name: Install BIDS Validator
         run: npm install -g bids-validator
 
-      - name: Collect Phantoms from Google Drive
+      - name: Collect Phantoms
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
-        run: gdown ${{ secrets.ZIPPED_OPEN_NEURO_PET_PHANTOMS_URL }} -O PHANTOMS.zip
+        run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
