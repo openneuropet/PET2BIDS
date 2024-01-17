@@ -82,7 +82,7 @@ jobs:
           gzip -d ${{ env.SMALLER_ECAT_PATH }}
       
       - name: Test ecatread
-        run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
+        run: "cd pypet2bids/ && poetry run python3 -m tests.test_ecatread"
 
       - name: Run All Other Python Tests w/ Pytest
         run: |
