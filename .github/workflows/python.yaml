@@ -64,6 +64,13 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
         run: "unzip US-sourced-OpenNeuroPET-Phantoms.zip"
 
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
+
       - name: Test CLI --help
         run: |
           cd pypet2bids/
