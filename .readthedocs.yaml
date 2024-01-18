@@ -14,7 +14,7 @@ submodules:
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
     python: "3.11"
   jobs:
@@ -24,14 +24,12 @@ build:
       - poetry config virtualenvs.create false
       # just use poetry to export a requirements.txt as that worked much better than the previous attempts
       - cd pypet2bids && poetry lock && poetry export --without-hashes --with dev --format=requirements.txt > requirements.txt
-      - pip install -r pypet2bids/requirements.txt
-      - cd pypet2bids && bash pip install sdist/pypet2bid-*.whl
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
 
 # Optionally declare the Python requirements required to build your docs
-#python:
-#   install:
-#   - requirements: pypet2bids/requirements.txt
+python:
+   install:
+   - requirements: pypet2bids/requirements.txt
