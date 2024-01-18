@@ -1,10 +1,7 @@
 .. _pypet2bids-package:
 
-pypet2bids package
-==================
-
-Submodules
-----------
+pypet2bids
+==========
 
 pypet2bids.ecat\_cli module
 ---------------------------

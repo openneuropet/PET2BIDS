@@ -10,7 +10,7 @@ include = [
     ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=3.11"
+python = ">=3.8,<=3.11.6"
 nibabel = ">=3.2.1"
 numpy = "^1.21.3"
 pyparsing = "^3.0.4"
@@ -21,7 +21,6 @@ six = "^1.16.0"
 pydicom = "^2.2.2"
 openpyxl = "^3.0.9"
 xlrd = "^2.0.1"
-termcolor = "^1.1.0"
 json-maj = "^0.0.8"
 pandas = "^1.4.4"
 pyxlsb = "^1.0.9"
@@ -33,7 +32,7 @@ toml = ">=0.10.2"
 pytest = ">=6.2.5, <8.0.0"
 sphinx = "<=4.5.0"
 sphinx-rtd-theme = "^1.0.0"
-sphinxcontrib-matlabdomain = "^0.13.0"
+sphinxcontrib-matlabdomain = "^0.21.4"
 
 [tool.poetry.scripts]
 ecatpet2bids = 'pypet2bids.ecat_cli:main'

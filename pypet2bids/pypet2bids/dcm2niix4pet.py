@@ -28,7 +28,6 @@ import re
 from tempfile import TemporaryDirectory
 import shutil
 from dateutil import parser
-from termcolor import colored
 import argparse
 import importlib
 import dotenv

@@ -40,10 +40,11 @@ If you wish to contribute, are unable to install from PyPi, or simply wish to ru
 reading the `Additional Install Notes`_ section below.
 
 Additional Install Notes
-========================
+------------------------
 
-Matlab
-------
+**Matlab**
+
+------------------------------------------------------------------------------------------------------------------------
 
 **Dependencies**
 
@@ -76,8 +77,7 @@ all arguments in although this is also possible). You can find templates of such
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Python
-------
+**Python**
 
 If you are unable to install this library from PyPi you can clone this repository to build and install the package
 as distributed on PyPi yourself with poetry.
