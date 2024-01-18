@@ -31,8 +31,8 @@ import pathlib
 
 
 # get absolute path to python project files
-python_project_path = pathlib.Path(os.path.abspath('../pypet2bids'))
-matlab_project_path = os.path.join(python_project_path.parent)
+python_project_path = pathlib.Path(os.path.abspath('../pypet2bids/pypet2bids'))
+matlab_project_path = os.path.join(python_project_path.parent.parent)
 sys.path.insert(0, str(python_project_path))
 sys.path.insert(0, matlab_project_path)
 
