@@ -24,7 +24,6 @@ build:
       - poetry config virtualenvs.create false
       # just use poetry to export a requirements.txt as that worked much better than the previous attempts
       - cd pypet2bids && poetry lock && poetry export --without-hashes --with dev --format=requirements.txt > requirements.txt
-      -
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
