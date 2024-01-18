@@ -6,7 +6,7 @@ pypet2bids
 pypet2bids.ecat\_cli module
 ---------------------------
 
-.. automodule:: ecat_cli
+.. automodule:: pypet2bids.ecat_cli
    :members:
    :undoc-members:
    :show-inheritance:
@@ -14,7 +14,7 @@ pypet2bids.ecat\_cli module
 pypet2bids.dcm2niix4pet module
 ------------------------------
 
-.. automodule:: dcm2niix4pet
+.. automodule:: pypet2bids.dcm2niix4pet
    :members:
    :undoc-members:
    :show-inheritance:
@@ -22,7 +22,7 @@ pypet2bids.dcm2niix4pet module
 pypet2bids.ecat module
 ----------------------
 
-.. automodule:: ecat
+.. automodule:: pypet2bids.ecat
    :members:
    :undoc-members:
    :show-inheritance:
@@ -30,7 +30,7 @@ pypet2bids.ecat module
 pypet2bids.ecat2nii module
 --------------------------
 
-.. automodule:: ecat2nii
+.. automodule:: pypet2bids.ecat2nii
    :members:
    :undoc-members:
    :show-inheritance:
@@ -39,7 +39,7 @@ pypet2bids.ecat2nii module
 pypet2bids.helper\_functions module
 -----------------------------------
 
-.. automodule:: helper_functions
+.. automodule:: pypet2bids.helper_functions
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,7 +47,7 @@ pypet2bids.helper\_functions module
 pypet2bids.read\_ecat module
 ----------------------------
 
-.. automodule:: read_ecat
+.. automodule:: pypet2bids.read_ecat
    :members:
    :undoc-members:
    :show-inheritance:
@@ -55,7 +55,7 @@ pypet2bids.read\_ecat module
 pypet2bids.sidecar module
 -------------------------
 
-.. automodule:: sidecar
+.. automodule:: pypet2bids.sidecar
    :members:
    :undoc-members:
    :show-inheritance:
@@ -63,7 +63,7 @@ pypet2bids.sidecar module
 pypet2bids.convert\_pmod\_to\_blood module
 ------------------------------------------
 
-.. automodule:: convert_pmod_to_blood
+.. automodule:: pypet2bids.convert_pmod_to_blood
     :members:
     :undoc-members:
     :show-inheritance:
@@ -71,7 +71,7 @@ pypet2bids.convert\_pmod\_to\_blood module
 pypet2bids.multiple\_spreadsheets module
 ----------------------------------------
 
-.. automodule:: multiple_spreadsheets
+.. automodule:: pypet2bids.multiple_spreadsheets
     :members:
     :undoc-members:
     :show-inheritance:
