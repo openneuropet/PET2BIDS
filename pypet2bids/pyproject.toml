@@ -32,7 +32,7 @@ toml = ">=0.10.2"
 pytest = ">=6.2.5, <8.0.0"
 sphinx = "<=4.5.0"
 sphinx-rtd-theme = "^1.0.0"
-sphinxcontrib-matlabdomain = "^0.13.0"
+sphinxcontrib-matlabdomain = "^0.21.4"
 
 [tool.poetry.scripts]
 ecatpet2bids = 'pypet2bids.ecat_cli:main'

@@ -44,6 +44,8 @@ if 'PET2BIDS' not in project_dir.parts:
     project_dir = parent_dir
 
 metadata_dir = os.path.join(project_dir, 'metadata')
+
+# check to see where the schema is at
 pet_metadata_json = os.path.join(metadata_dir, 'PET_metadata.json')
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstruction_methods.json')
@@ -309,7 +311,7 @@ def is_numeric(check_this_object: str) -> bool:
 
 class ParseKwargs(argparse.Action):
     """
-    Class that is used to extract key pair arguments passed to an argparse.ArgumentParser objet via the command line.
+    Class that is used to extract key pair arguments passed to an argparse.ArgumentParser object via the command line.
     Accepts key value pairs in the form of 'key=value' and then passes these arguments onto the arg parser as kwargs.
     This class is used during the construction of the ArgumentParser class via the add_argument method. e.g.:\n
     `ArgumentParser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={})`
