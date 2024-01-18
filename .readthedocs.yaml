@@ -19,6 +19,7 @@ build:
     python: "3.11"
   jobs:
     post_create_environment:
+      - ls .
       # install poetry
       - pip install poetry
       - poetry config virtualenvs.create false
