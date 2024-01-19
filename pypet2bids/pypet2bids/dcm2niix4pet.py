@@ -67,6 +67,11 @@ if pypet2bids_config.exists():
     if default_metadata_json and Path(default_metadata_json).exists():
         # do nothing
         pass
+    else:
+        try:
+            shutil.copy(Path(metadata_folder) / 'template_json.json', default_metadata_json)
+        except FileNotFoundError:
+            shutil.copy(module_folder / 'template_json.json', default_metadata_json)
 else:
     # if it doesn't exist use the default one included in this library
     helper_functions.modify_config_file('DEFAULT_METADATA_JSON', module_folder / 'template_json.json')
@@ -421,25 +426,29 @@ class Dcm2niix4PET:
         # check if user provided a custom tempdir location
         self.tempdir_location = tempdir_location
         self.image_folder = Path(image_folder)
-        if destination_path:
-            self.destination_path = Path(destination_path)
-        else:
-            self.destination_path = self.image_folder
+        self.destination_folder = None
 
         # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
         # are doing in that case
         self.full_file_path_given = False
-        for part in self.destination_path.parts:
+
+        for part in Path(destination_path).parts:
             if '.nii' in part or '.nii.gz' in part:
                 self.full_file_path_given = True
+                self.destination_folder = Path(destination_path).parent
                 # replace .nii and .nii.gz
-                self.destination_path = Path(str(self.destination_path).replace('.nii', '').replace('.gz', ''))
+                self.destination_path = Path(str(destination_path).replace('.nii', '').replace('.gz', ''))
                 break
 
         # replace the suffix in the destination path with '' if a non-nifti full file path is give
-        if Path(self.destination_path).suffix:
+        if Path(destination_path).suffix:
             self.full_file_path_given = True
-            self.destination_path = Path(self.destination_path).with_suffix('')
+            self.destination_folder = destination_path.parent
+            self.destination_path = Path(destination_path).with_suffix('')
+
+        if not self.full_file_path_given:
+            self.destination_folder = Path(destination_path)
+            self.destination_path = self.destination_folder
 
         # extract PET filename parts from destination path if given
         self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
@@ -449,13 +458,11 @@ class Dcm2niix4PET:
         self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
         self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
 
-        # once we've groked all the parts (entities) or ultimate path of the output files (blood, nifti, json, etc)
-        # we will save that to this variable.
-        self.new_file_name_with_entities = None
+        self.file_name_slug = None
 
         # we keep track of PET metadata in this spreadsheet metadata_dict, that includes nifti, _blood.json, and
         # _blood.tsv data
-        self.spreadsheet_metadata = {}
+        self.spreadsheet_metadata = {'nifti_json': {}, 'blood_json': {}, 'blood_tsv': {}}
         self.dicom_headers = self.extract_dicom_headers()
         # we consider values stored in a default JSON file to be additional arguments, we load those
         # values first and then overwrite them with any user supplied values
@@ -824,6 +831,7 @@ class Dcm2niix4PET:
 
                     if self.full_file_path_given:
                         new_path = self.destination_path.with_suffix(suffix)
+                        self.destination_folder = self.destination_path.parent
                     else:
                         new_path = self.destination_path / Path(self.subject_id + session_id + task + trc + rec +
                                                                 run + '_pet' + suffix)
@@ -861,13 +869,13 @@ class Dcm2niix4PET:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
                 # write out blood_tsv using pandas csv write
-                blood_tsv_data.to_csv(join(self.destination_path, blood_file_name + ".tsv")
+                blood_tsv_data.to_csv(join(self.destination_folder, blood_file_name + ".tsv")
                                       , sep='\t',
                                       index=False)
 
             elif type(blood_tsv_data) is str:
                 # write out with write
-                with open(join(self.destination_path, blood_file_name + ".tsv"), 'w') as outfile:
+                with open(join(self.destination_folder, blood_file_name + ".tsv"), 'w') as outfile:
                     outfile.writelines(blood_tsv_data)
             else:
                 raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
@@ -889,7 +897,7 @@ class Dcm2niix4PET:
                        f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
                        f"{self.metadata_translation_script}")
 
-            with open(join(self.destination_path, blood_file_name + '.json'), 'w') as outfile:
+            with open(join(self.destination_folder, blood_file_name + '.json'), 'w') as outfile:
                 json.dump(blood_json_data, outfile, indent=4)
 
     def convert(self):
@@ -1245,6 +1253,12 @@ def cli():
                                                             "contained within dicom headers or spreadsheet metadata."
                                                             "Sets given path to DEFAULT_METADATA_JSON var in "
                                                             f"{Path.home()}/.pet2bidsconfig")
+    parser.add_argument('--trc', '--tracer', type=str, default='',
+                        help="Provide a tracer name to be used in the output file name")
+    parser.add_argument('--run', type=str, default='',
+                        help="Provide a run id to be used in the output file name")
+    parser.add_argument('--rec', type=str, default='',
+                        help="Provide a reconstruction method to be used in the output file name")
 
     return parser
 
@@ -1404,6 +1418,13 @@ def main():
             additional_arguments=cli_args.kwargs,
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent)
+
+        if cli_args.trc:
+            converter.tracer = "trc-" + cli_args.trc
+        if cli_args.run:
+            converter.run_id = "run-" + cli_args.run
+        if cli_args.rec:
+            converter.reconstruction_method = "rec-" + cli_args.rec
 
         converter.convert()
     else:
