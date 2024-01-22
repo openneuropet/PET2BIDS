@@ -45,8 +45,8 @@ for root, folders, files in os.walk(test_dicom_image_folder):
 
 
 def test_check_json(capsys):
-    from pypet2bids.helper_functions import log
-    logger = log()
+    from pypet2bids.helper_functions import logger as log
+    logger = log('pypet2bids')
     with TemporaryDirectory() as tempdir:
         tempdir_path = Path(tempdir)
         bad_json = {"Nothing": "but trouble"}

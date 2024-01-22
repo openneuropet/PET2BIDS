@@ -15,7 +15,7 @@ dicom_source_folder = os.getenv('TEST_DICOM_IMAGE_FOLDER', None)
 if dicom_source_folder:
     dicom_source_folder = pathlib.Path(dicom_source_folder)
 if not dicom_source_folder:
-    dicom_source_folder = PET2BIDS_DIR / 'OpenNeuroPET-Phantoms' / 'source' / 'SiemensBiographPETMR-NRU'
+    dicom_source_folder = PET2BIDS_DIR / 'OpenNeuroPET-Phantoms' / 'sourcedata' / 'SiemensBiographPETMR-NRU'
 if not dicom_source_folder.exists():
     raise FileNotFoundError(dicom_source_folder)
 
@@ -45,9 +45,7 @@ dataset_description_dictionary = {
 check_for_these_being_installed = {
     'dcm2niix4pet': False,
     'ecatpet2bids': False,
-    'pet2bids-spreadsheet-template': False,
     'convert-pmod-to-blood': False,
-    'bids-validator': False
 }
 
 
@@ -161,7 +159,7 @@ def test_kwargs_produce_valid_conversion(tmp_path):
                 "iterations"
             ],
             "ReconMethodParameterUnits": [
-                "none, none"
+                "none", "none"
             ],
             "ReconMethodParameterValues": [
                 21,
@@ -176,8 +174,6 @@ def test_kwargs_produce_valid_conversion(tmp_path):
         kwargs_string += f'{key}' + '=' + '"' + f'{str(value)}' + '" '
 
     # test ecat converter
-
-
 
     # create ecat dir
     ecat_bids_dir = tmp_path / "ecat_test/sub-ecat/ses-test/pet"
