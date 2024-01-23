@@ -81,4 +81,6 @@ testotherpython:
 	poetry run pytest --ignore=tests/test_write_ecat.py tests/ -vvv
 
 pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
+	@echo finished running python tests
+
 
