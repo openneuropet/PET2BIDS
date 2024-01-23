@@ -30,6 +30,7 @@ from dateutil import parser
 
 logger = helper_functions.logger('pypet2bids')
 
+
 def parse_this_date(date_like_object) -> str:
     """
     Uses the `dateutil.parser` module to extract a date from a variety of differently formatted date strings
@@ -261,16 +262,14 @@ class Ecat:
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
         self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.get_version()
 
-
-
         # include any additional values
         if kwargs:
             self.sidecar_template.update(**kwargs)
 
-        if not self.sidecar_template.get('TimeZero', None):
-            if not self.sidecar_template.get('AcquisitionTime', None):
+        if not self.sidecar_template.get('TimeZero', None) and not kwargs.get('TimeZero', None):
+            if not self.sidecar_template.get('AcquisitionTime', None) and not kwargs.get('TimeZero', None):
                 logger.warn(f"Unable to determine TimeZero for {self.ecat_file}, you need will need to provide this"
-                      f" for a valid BIDS sidecar.")
+                            f" for a valid BIDS sidecar.")
             else:
                 self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']
 
