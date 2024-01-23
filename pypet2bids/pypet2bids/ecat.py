@@ -207,10 +207,14 @@ class Ecat:
 
             # note some of these values won't be in the subheaders for the standard matrix image
             # need to make sure to clean up arrays and fields filled w/ none during pruning
-            self.sidecar_template['ScatterFraction'].append(subheader.get('SCATTER_FRACTION', None))
-            self.sidecar_template['PromptRate'].append(subheader.get('PROMPT_RATE', None))
-            self.sidecar_template['RandomRate'].append(subheader.get('RANDOM_RATE', None))
-            self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE', None))
+            if subheader.get('SCATTER_FRACTION', None):
+                self.sidecar_template['ScatterFraction'].append(subheader.get('SCATTER_FRACTION'))
+            if subheader.get('PROMPT_RATE', None):
+                self.sidecar_template['PromptRate'].append(subheader.get('PROMPT_RATE'))
+            if subheader.get('RANDOM_RATE', None):
+                self.sidecar_template['RandomRate'].append(subheader.get('RANDOM_RATE'))
+            if subheader.get('SINGLES_RATE', None):
+                self.sidecar_template['SinglesRate'].append(subheader.get('SINGLES_RATE'))
 
         # collect possible reconstruction method from subheader
         recon_method = helper_functions.get_recon_method(self.subheaders[0].get('ANNOTATION'))

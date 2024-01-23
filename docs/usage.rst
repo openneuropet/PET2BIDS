@@ -27,7 +27,7 @@ The simplest way to convert DICOM files is to call
 `dcm2niix4pet.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m>`_ which wraps around
 dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json
 - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata
-as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.
+as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2niix.
 
 *Note for windows user*: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
@@ -303,3 +303,53 @@ Then point the optional `metadatapath` flag at the spreadsheet location:
     dcm2niix4pet /folder/containing/PET/dicoms/
     --destination /folder/containing/PET/nifti_jsons
     --metadatapath /file/PET_metadata.xlsx
+
+Development and Testing
+-----------------------
+
+PET2BIDS makes use of both unit and integration tests to ensure that the code is working as expected. Phantom,
+synthetic imaging, and blood test data can be retrieved directly from either this repository or via the url contained
+within the **collectphantoms** make command in the top level Makefile. Tests are written with relative paths to the test
+data contained in several directories within this repository:
+
+1) metadata/
+2) ecat_validation/
+3) tests/
+4) OpenNeuroPET-Phantoms/ (this last directory needs be downloaded separately with the make commands `collectphantoms` and `unzipphantoms`)
+
+
+The unit tests for Python can be found in the `tests` folder and are run using the `pytest` library. Python tests are
+best run with `poetry run`:
+
+.. code-block::
+
+    poetry run pytest test/<test_file_name>.py
+
+
+The matlab unit tests can be found in the `matlab/unit_tests` folder and are run in Matlab after adding this repository
+and its contents to you Matlab path.
+
+.. code-block::
+
+    addpath('path/to/PET2BIDS/matlab')
+    addpath('path/to/PET2BIDS/matlab/unit_tests')
+
+Integration tests are run using the `make testphantoms` command. However, running the Matlab integration tests requires
+the user add the script located in `OpenNeuroPET-Phantoms/code/matlab_conversions.m` to their Matlab path.
+
+To emulate the CI/CD pipeline, the following commands can be run locally in the following order:
+
+.. code-block::
+
+    make testphantoms
+    make testpython
+
+Documentation for Read the Docs can be built and previewed locally using the following command:
+
+.. code-block::
+
+    make html
+
+The output of the build can be found at docs/_build/html/ and previewed by opening any of the html files contained
+therein with a web browser. Chances are good if you're able to build with no errors locally than any changes you make
+to the documentation rst files will be built successfully on Read the Docs, but not guaranteed.
