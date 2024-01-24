@@ -62,6 +62,8 @@ def cli():
     :type --director_table: flag
     :param --show-examples: shows verbose example usage of this cli
     :type --show-examples: flag
+    :param --metadata-path: path to a spreadsheet containing PET metadata
+    :type --metadata-path: path
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
@@ -95,6 +97,7 @@ def cli():
                         action="store_true", default=False)
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help='Shows example usage of this cli.',
                         action='store_true')
+    parser.add_argument('--metadata-path', '-m', help='Path to a spreadsheet containing PET metadata.')
 
     return parser
 
