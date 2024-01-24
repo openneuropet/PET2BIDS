@@ -19,12 +19,14 @@ try:
     import read_ecat
     import ecat2nii
     import dcm2niix4pet
+    from update_json_pet_file import get_metadata_from_spreadsheet, check_meta_radio_inputs
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.sidecar as sidecar
     import pypet2bids.read_ecat as read_ecat
     import pypet2bids.ecat2nii as ecat2nii
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
+    from pypet2bids.update_json_pet_file import get_metadata_from_spreadsheet, check_meta_radio_inputs
 
 from dateutil import parser
 
@@ -52,7 +54,8 @@ class Ecat:
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
     """
 
-    def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True):
+    def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True, metadata_path=None,
+                 kwargs={}):
         """
         Initialization of this class requires only a path to an ecat file.
 
@@ -70,9 +73,14 @@ class Ecat:
         self.decay_factors = []  # stored here
         self.sidecar_template = sidecar.sidecar_template_full  # bids approved sidecar file with ALL bids fields
         self.sidecar_template_short = sidecar.sidecar_template_short  # bids approved sidecar with only required bids fields
+        self.sidecar_path = None
         self.directory_table = None
+        self.spreadsheet_metadata = {'nifti_json': {}, 'blood_tsv': {}, 'blood_json': {}}
+        self.kwargs = kwargs
+        self.output_path = None
+        self.metadata_path = metadata_path
         if os.path.isfile(ecat_file):
-            self.ecat_file = ecat_file
+            self.ecat_file = str(ecat_file)
         else:
             raise FileNotFoundError(ecat_file)
 
@@ -114,6 +122,26 @@ class Ecat:
             self.nifti_file = os.path.splitext(self.ecat_file)[0] + ".nii"
         else:
             self.nifti_file = nifti_file
+
+        # que up metadata path for spreadsheet loading later
+        if self.metadata_path:
+            if pathlib.Path(metadata_path).is_file() and pathlib.Path(metadata_path).exists():
+                self.metadata_path = metadata_path
+        elif metadata_path == '':
+            self.metadata_path = pathlib.Path(self.ecat_file).parent
+        else:
+            self.metadata_path = None
+
+        if self.metadata_path:
+            load_spreadsheet_data = get_metadata_from_spreadsheet(metadata_path=self.metadata_path,
+                                                                  image_folder=pathlib.Path(self.ecat_file).parent,
+                                                                  image_header_dict={})
+
+            self.spreadsheet_metadata['nifti_json'].update(load_spreadsheet_data['nifti_json'])
+            self.spreadsheet_metadata['blood_tsv'].update(load_spreadsheet_data['blood_tsv'])
+            self.spreadsheet_metadata['blood_json'].update(load_spreadsheet_data['blood_json'])
+
+        print("debug")
 
     def make_nifti(self, output_path=None):
         """
@@ -274,7 +302,7 @@ class Ecat:
                 self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']
 
         # lastly infer radio data if we have it
-        meta_radio_inputs = dcm2niix4pet.check_meta_radio_inputs(self.sidecar_template)
+        meta_radio_inputs = check_meta_radio_inputs(self.sidecar_template)
         self.sidecar_template.update(**meta_radio_inputs)
 
         # clear any nulls from json sidecar and replace with none's
@@ -343,3 +371,15 @@ class Ecat:
         """
         temp_json = json.dumps(self.ecat_info, indent=4)
         print(temp_json)
+
+    def convert(self):
+        """
+        Convert ecat to nifti
+        :return: None
+        """
+        self.output_path = self.make_nifti()
+        self.sidecar_path = self.output_path.parent / self.output_path.stem
+        self.sidecar_path = self.sidecar_path.with_suffix('.json')
+        self.populate_sidecar(**self.kwargs)
+        self.prune_sidecar()
+        self.show_sidecar(output_path=self.sidecar_path)

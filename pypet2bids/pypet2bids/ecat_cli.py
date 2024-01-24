@@ -198,7 +198,8 @@ def main():
 
     ecat = Ecat(ecat_file=cli_args.ecat,
                 nifti_file=cli_args.nifti,
-                collect_pixel_data=collect_pixel_data)
+                collect_pixel_data=collect_pixel_data,
+                metadata_path=cli_args.metadata_path,)
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)
