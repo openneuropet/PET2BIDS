@@ -199,7 +199,8 @@ def main():
     ecat = Ecat(ecat_file=cli_args.ecat,
                 nifti_file=cli_args.nifti,
                 collect_pixel_data=collect_pixel_data,
-                metadata_path=cli_args.metadata_path,)
+                metadata_path=cli_args.metadata_path,
+                kwargs=cli_args.kwargs)
     if cli_args.json:
         ecat.json_out()
         sys.exit(0)
@@ -218,11 +219,7 @@ def main():
         ecat.populate_sidecar(**cli_args.kwargs)
         ecat.show_sidecar()
     if cli_args.convert:
-        output_path = pathlib.Path(ecat.make_nifti())
-        ecat.populate_sidecar(**cli_args.kwargs)
-        ecat.prune_sidecar()
-        sidecar_path = pathlib.Path(join(str(output_path.parent), output_path.stem + '.json'))
-        ecat.show_sidecar(output_path=sidecar_path)
+        ecat.convert()
 
 
 if __name__ == "__main__":
