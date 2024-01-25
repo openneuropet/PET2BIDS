@@ -176,15 +176,11 @@ def test_spreadsheets_produce_valid_conversion_ecatpet2bids(tmp_path):
            f"--convert")
 
     spreadsheet_ecat = Ecat(ecat_file=str(ecat_file_path),
-                            nifti_file=str(subject_folder / 'sub-singlesubjectspreadsheetecat_ses-test_pet.nii.gz'),
-                            metadata_path=str(single_subject_spreadsheet),
+                            nifti_file=str(subject_folder) + '/sub-singlesubjectspreadsheetecat_ses-test_pet.nii.gz',
+                            metadata_path=single_subject_spreadsheet,
                             collect_pixel_data=True)
 
-    output_path = pathlib.Path(spreadsheet_ecat.make_nifti())
-    spreadsheet_ecat.populate_sidecar()
-    spreadsheet_ecat.prune_sidecar()
-    sidecar_path = pathlib.Path(os.path.join(str(output_path.parent), output_path.stem + '.json'))
-    spreadsheet_ecat.show_sidecar(output_path=sidecar_path)
+    spreadsheet_ecat.convert()
 
     # copy over dataset_description
     dataset_description_path = ecatpet2bids_test_dir / 'dataset_description.json'

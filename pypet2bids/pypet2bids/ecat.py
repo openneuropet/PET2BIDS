@@ -141,7 +141,6 @@ class Ecat:
             self.spreadsheet_metadata['blood_tsv'].update(load_spreadsheet_data['blood_tsv'])
             self.spreadsheet_metadata['blood_json'].update(load_spreadsheet_data['blood_json'])
 
-        print("debug")
 
     def make_nifti(self, output_path=None):
         """
@@ -290,6 +289,10 @@ class Ecat:
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
         self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.get_version()
 
+        # update sidecar values from spreadsheet
+        if self.spreadsheet_metadata.get('nifti_json', None):
+            self.sidecar_template.update(self.spreadsheet_metadata['nifti_json'])
+
         # include any additional values
         if kwargs:
             self.sidecar_template.update(**kwargs)
@@ -301,12 +304,13 @@ class Ecat:
             else:
                 self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']
 
+        # clear any nulls from json sidecar and replace with none's
+        self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
+
         # lastly infer radio data if we have it
         meta_radio_inputs = check_meta_radio_inputs(self.sidecar_template)
         self.sidecar_template.update(**meta_radio_inputs)
 
-        # clear any nulls from json sidecar and replace with none's
-        self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 
     def prune_sidecar(self):
         """
@@ -377,7 +381,7 @@ class Ecat:
         Convert ecat to nifti
         :return: None
         """
-        self.output_path = self.make_nifti()
+        self.output_path = pathlib.Path(self.make_nifti())
         self.sidecar_path = self.output_path.parent / self.output_path.stem
         self.sidecar_path = self.sidecar_path.with_suffix('.json')
         self.populate_sidecar(**self.kwargs)
