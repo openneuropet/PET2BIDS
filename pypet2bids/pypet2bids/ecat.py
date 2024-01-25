@@ -429,6 +429,36 @@ class Ecat:
             with open(os.path.join(destination_folder, blood_file_name + '.json'), 'w') as outfile:
                 json.dump(blood_json_data, outfile, indent=4)
 
+    def update_pet_json(self, pet_json):
+        """given a json file (or a path ending in .json) update or create a PET json file with information collected
+        from an ecat file.
+        :param pet_json: a path to a json file
+        :type pet_json: str or pathlib.Path
+        :return: None
+        """
+
+        # open the json file if it exists
+        if isinstance(pet_json, str):
+            pet_json = pathlib.Path(pet_json)
+        if pet_json.exists():
+            with open(pet_json, 'r') as json_file:
+                try:
+                    pet_json = json.load(json_file)
+                except json.decoder.JSONDecodeError:
+                    logger.warning(f"Unable to load json file at {pet_json}, skipping.")
+
+            # update the template with values from the json file
+            self.sidecar_template.update(pet_json)
+
+        if self.spreadsheet_metadata.get('nifti_json', None):
+            self.sidecar_template.update(self.spreadsheet_metadata['nifti_json'])
+
+        self.populate_sidecar(**self.kwargs)
+        self.prune_sidecar()
+
+        self.show_sidecar(output_path=pet_json)
+
+
     def json_out(self):
         """
         Dumps entire ecat header and header info into stdout formatted as json.

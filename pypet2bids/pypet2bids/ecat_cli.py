@@ -17,7 +17,7 @@ try:
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
 
-#from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
+# from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
 
 
 epilog = textwrap.dedent('''
@@ -67,11 +67,12 @@ def cli():
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,epilog=epilog)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+    update_or_convert = parser.add_mutually_exclusive_group()
     parser.add_argument("ecat", nargs='?', metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
-    parser.add_argument("--convert", "-c", required=False, action='store_true',
-                        help="If supplied will attempt conversion.")
+    update_or_convert.add_argument("--convert", "-c", required=False, action='store_true',
+                                   help="If supplied will attempt conversion.")
     parser.add_argument("--dump", "-d", help="Dump information in Header", action="store_true", default=False)
     parser.add_argument("--json", "-j", action="store_true", default=False, help="""
         Output header and subheader info as JSON to stdout, overrides all other options""")
@@ -98,6 +99,19 @@ def cli():
     parser.add_argument('--show-examples', '-E', '--HELP', '-H', help='Shows example usage of this cli.',
                         action='store_true')
     parser.add_argument('--metadata-path', '-m', help='Path to a spreadsheet containing PET metadata.')
+    update_or_convert.add_argument('--update', '-u', type=str, default="",
+                                   help='Update/create a json sidecar file from an ECAT given a path to that each '
+                                        'file,. e.g.'
+                                        'ecatpet2bids ecatfile.v --update path/to/sidecar.json '
+                                        'additionally one can pass metadat to the sidecar via inclusion of the '
+                                        '--kwargs flag or'
+                                        'the --metadata-path flag. If both are included the --kwargs flag will '
+                                        'override any'
+                                        'overlapping values in the --metadata-path flag or found in the ECAT file \n'
+                                        'ecatpet2bids ecatfile.v --update path/to/sidecar.json --kwargs '
+                                        'TimeZero="12:12:12"'
+                                        'ecatpet2bids ecatfile.v --update path/to/sidecar.json --metadata-path '
+                                        'path/to/metadata.xlsx')
 
     return parser
 
@@ -183,7 +197,7 @@ def main():
             if scanner_txt is None:
                 called_dir = os.getcwd()
                 error_string = f'No scanner file found in {called_dir}. Either create a parameters.txt file, omit ' \
-                               f'the --scannerparams argument, or specify a full path to a scanner.txt file after the '\
+                               f'the --scannerparams argument, or specify a full path to a scanner.txt file after the ' \
                                f'--scannerparams argument.'
                 raise Exception(error_string)
         else:
@@ -220,6 +234,8 @@ def main():
         ecat.show_sidecar()
     if cli_args.convert:
         ecat.convert()
+    if cli_args.update:
+        ecat.update_pet_json(cli_args.update)
 
 
 if __name__ == "__main__":
