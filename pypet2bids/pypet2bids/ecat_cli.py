@@ -10,15 +10,13 @@ import pathlib
 import sys
 import textwrap
 from os.path import join
-from pypet2bids.ecat import Ecat
 
 try:
     import helper_functions
+    import Ecat
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-
-# from pypet2bids.helper_functions import load_vars_from_config, ParseKwargs
-
+    from pypet2bids.ecat import Ecat
 
 epilog = textwrap.dedent('''
     
@@ -183,7 +181,7 @@ def main():
         sys.exit(0)
 
     collect_pixel_data = False
-    if cli_args.convert:
+    if cli_args.convert or cli_args.update:
         collect_pixel_data = True
     if cli_args.scannerparams is not None:
         # if no args are supplied to --scannerparams/-s
@@ -236,6 +234,27 @@ def main():
         ecat.convert()
     if cli_args.update:
         ecat.update_pet_json(cli_args.update)
+
+
+def update_json_with_ecat_values_cli():
+    json_update_cli = argparse.ArgumentParser()
+    json_update_cli.add_argument("-j", "--json", help="Path to a json to update file.", required=True)
+    json_update_cli.add_argument("-e", "--ecat", help="Path to an ecat file.", required=True)
+    json_update_cli.add_argument("-k", "--additional-arguments", nargs='*', action=helper_functions.ParseKwargs, default={},
+                                 help="Include additional values in the sidecar json or override values extracted "
+                                      "from the supplied ECAT or metadata spreadsheet. "
+                                      "e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the calculated "
+                                      "TimeZero."
+                                      "Any number of additional arguments can be supplied after --kwargs e.g. `--kwargs"
+                                      "BidsVariable1=1 BidsVariable2=2` etc etc."
+                                      "Note: the value portion of the argument (right side of the equal's sign) should "
+                                      "always be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
+
+    args = json_update_cli.parse_args()
+
+    update_ecat = Ecat(ecat_file=args.ecat, nifti_file=None, collect_pixel_data=True,
+                       metadata_path=args.metadata_path, kwargs=args.additional_arguments
+    update_ecat.update_pet_json(args.json)
 
 
 if __name__ == "__main__":

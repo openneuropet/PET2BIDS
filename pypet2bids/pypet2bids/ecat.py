@@ -429,7 +429,7 @@ class Ecat:
             with open(os.path.join(destination_folder, blood_file_name + '.json'), 'w') as outfile:
                 json.dump(blood_json_data, outfile, indent=4)
 
-    def update_pet_json(self, pet_json):
+    def update_pet_json(self, pet_json_path):
         """given a json file (or a path ending in .json) update or create a PET json file with information collected
         from an ecat file.
         :param pet_json: a path to a json file
@@ -438,14 +438,14 @@ class Ecat:
         """
 
         # open the json file if it exists
-        if isinstance(pet_json, str):
-            pet_json = pathlib.Path(pet_json)
+        if isinstance(pet_json_path, str):
+            pet_json = pathlib.Path(pet_json_path)
         if pet_json.exists():
-            with open(pet_json, 'r') as json_file:
+            with open(pet_json_path, 'r') as json_file:
                 try:
                     pet_json = json.load(json_file)
                 except json.decoder.JSONDecodeError:
-                    logger.warning(f"Unable to load json file at {pet_json}, skipping.")
+                    logger.warning(f"Unable to load json file at {pet_json_path}, skipping.")
 
             # update the template with values from the json file
             self.sidecar_template.update(pet_json)
@@ -456,8 +456,7 @@ class Ecat:
         self.populate_sidecar(**self.kwargs)
         self.prune_sidecar()
 
-        self.show_sidecar(output_path=pet_json)
-
+        self.show_sidecar(output_path=pet_json_path)
 
     def json_out(self):
         """
