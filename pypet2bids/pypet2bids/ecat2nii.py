@@ -90,7 +90,7 @@ def ecat2nii(ecat_main_header=None,
     shape_from_headers = (sub_headers[0]['X_DIMENSION'],
                           sub_headers[0]['Y_DIMENSION'],
                           sub_headers[0]['Z_DIMENSION'],
-                          main_header['NUM_FRAMES'])
+                          len(sub_headers))
 
     # make sure number of data elements matches frame number
     single_frame = False
@@ -105,7 +105,7 @@ def ecat2nii(ecat_main_header=None,
     img_temp = numpy.zeros(shape=(sub_headers[0]['X_DIMENSION'],
                                   sub_headers[0]['Y_DIMENSION'],
                                   sub_headers[0]['Z_DIMENSION'],
-                                  main_header['NUM_FRAMES']),
+                                  len(sub_headers),
                            dtype=numpy.dtype('>f4'))
 
     # collect timing information
