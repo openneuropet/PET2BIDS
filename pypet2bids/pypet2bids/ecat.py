@@ -456,6 +456,9 @@ class Ecat:
         self.populate_sidecar(**self.kwargs)
         self.prune_sidecar()
 
+        # check metadata radio inputs
+        self.sidecar_template.update(check_meta_radio_inputs(self.sidecar_template))
+
         self.show_sidecar(output_path=pet_json_path)
 
     def json_out(self):

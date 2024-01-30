@@ -47,7 +47,8 @@ for metadata_json in metadata_jsons:
         raise IOError(f"Unable to read from {metadata_json}")
 
 
-def check_json(path_to_json, items_to_check=None, silent=False, spreadsheet_metadata={}, **additional_arguments):
+def check_json(path_to_json, items_to_check=None, silent=False, spreadsheet_metadata={}, mandatory=True,
+               recommended=True, logger_name='pypet2bids', **additional_arguments):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
     also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
@@ -62,8 +63,10 @@ def check_json(path_to_json, items_to_check=None, silent=False, spreadsheet_meta
             corresponding entry in the json the same can be said of value
     """
 
+    logger = helper_functions.logger(logger_name)
+
     if silent:
-        logger.disable = True
+        logger.disabled = True
     else:
         logger.disabled = False
 
@@ -90,28 +93,50 @@ def check_json(path_to_json, items_to_check=None, silent=False, spreadsheet_meta
     flattened_spreadsheet_metadata.update(spreadsheet_metadata.get('blood_json', {}))
     flattened_spreadsheet_metadata.update(spreadsheet_metadata.get('blood_tsv', {}))
 
-    for requirement in items_to_check.keys():
-        for item in items_to_check[requirement]:
+    if mandatory:
+        for item in items_to_check['mandatory']:
             all_good = False
-            if item in json_to_check.keys() and json_to_check.get(item, None) or item in additional_arguments or item in flattened_spreadsheet_metadata.keys():
+            if (item in json_to_check.keys() and
+                    (json_to_check.get(item, None) is not None or json_to_check.get(item) != '')
+                    or item in additional_arguments or item in flattened_spreadsheet_metadata.keys()):
                 # this json has both the key and a non-blank value do nothing
                 all_good = True
                 pass
-            elif item in json_to_check.keys() and not json_to_check.get(item, None):
-                logger.warning(f"{item} present but has null value.")
+            elif (item in json_to_check.keys()
+                  and (json_to_check.get(item, None) is None or json_to_check.get(item, None) == '')):
+                logger.error(f"{item} present but has null value.")
                 storage[item] = {'key': True, 'value': False}
             elif not all_good:
-                logger.warning(f"{item} is not present in {path_to_json}. This will have to be "
+                logger.error(f"{item} is not present in {path_to_json}. This will have to be "
                                f"corrected post conversion.")
                 storage[item] = {'key': False, 'value': False}
 
+    if recommended:
+        for item in items_to_check['recommended']:
+            all_good = False
+            if (item in json_to_check.keys() and
+                    (json_to_check.get(item, None) is not None or json_to_check.get(item) != '')
+                    or item in additional_arguments or item in flattened_spreadsheet_metadata.keys()):
+                # this json has both the key and a non-blank value do nothing
+                all_good = True
+                pass
+            elif (item in json_to_check.keys()
+                  and (json_to_check.get(item, None) is None or json_to_check.get(item, None) == '')):
+                logger.info(f"{item} present but has null value.")
+                storage[item] = {'key': True, 'value': False}
+            elif not all_good:
+                logger.info(f"{item} is recommended but not present in {path_to_json}")
+                storage[item] = {'key': False, 'value': False}
+
     return storage
+
 
 def update_json_with_dicom_value(
         path_to_json,
         missing_values,
         dicom_header,
         dicom2bids_json=None,
+        silent=True,
         **additional_arguments
 ):
     """
@@ -125,6 +150,14 @@ def update_json_with_dicom_value(
     :param dicom2bids_json: a json file that maps dicom header entities to their corresponding BIDS entities
     :return: a dictionary of sucessfully updated (written to the json file) fields and values
     """
+
+    if silent:
+        logger.disabled = True
+
+    json_sidecar_path = Path(path_to_json)
+    if not json_sidecar_path.exists():
+        with open(path_to_json, 'w') as outfile:
+            json.dump({}, outfile)
 
     # load the sidecar json
     sidecar_json = load_json_or_dict(str(path_to_json))
@@ -245,20 +278,40 @@ def update_json_with_dicom_value_cli():
     dicom_update_parser = argparse.ArgumentParser()
     dicom_update_parser.add_argument('-j', '--json', help='path to json to update', required=True)
     dicom_update_parser.add_argument('-d', '--dicom', help='path to dicom to extract values from', required=True)
+    dicom_update_parser.add_argument('-m', '--metadata-path', help='path to metadata json', default=None)
     dicom_update_parser.add_argument('-k', '--additional_arguments',
                                      help='additional key value pairs to update json with', nargs='*',
                                      action=helper_functions.ParseKwargs, default={})
 
     args = dicom_update_parser.parse_args()
 
-    # get missing values
-    missing_values = check_json(args.json, silent=True)
+    try:
+        # get missing values
+        missing_values = check_json(args.json, silent=True)
+    except FileNotFoundError:
+        with open(args.json, 'w') as outfile:
+            json.dump({}, outfile)
+        missing_values = check_json(args.json, silent=True)
 
     # load dicom header
     dicom_header = pydicom.dcmread(args.dicom, stop_before_pixels=True)
 
-    # update json
-    update_json_with_dicom_value(args.json, missing_values, dicom_header, **args.additional_arguments)
+    if args.metadata_path:
+        spreadsheet_metadata = get_metadata_from_spreadsheet(args.metadata_path, args.dicom, dicom_header,
+                                                             **args.additional_arguments)
+        # update json
+        update_json_with_dicom_value(args.json, missing_values, dicom_header, silent=True,
+                                     spreadsheet_metadata=spreadsheet_metadata['nifti_json'],
+                                     **args.additional_arguments)
+
+        JsonMAJ(args.json, update_values=spreadsheet_metadata['nifti_json']).update()
+    else:
+        update_json_with_dicom_value(args.json, missing_values, dicom_header, silent=True, **args.additional_arguments)
+
+    JsonMAJ(args.json, update_values=args.additional_arguments).update()
+
+    # check json again after updating
+    check_json(args.json, required=True, recommended=True, silent=False, logger_name='check_json')
 
 
 def get_radionuclide(pydicom_dicom):
@@ -312,7 +365,7 @@ def get_radionuclide(pydicom_dicom):
     return radionuclide
 
 
-def check_meta_radio_inputs(kwargs: dict) -> dict:
+def check_meta_radio_inputs(kwargs: dict, logger='pypet2bids') -> dict:
     """
     Executes very specific PET logic, author does not recall everything it does.
     :param kwargs: metadata key pair's to examine
@@ -320,6 +373,9 @@ def check_meta_radio_inputs(kwargs: dict) -> dict:
     :return: fitted/massaged metadata corresponding to logic steps below, return type is an update on input `kwargs`
     :rtype: dict
     """
+
+    logger = helper_functions.logger(logger)
+
     InjectedRadioactivity = kwargs.get('InjectedRadioactivity', None)
     InjectedMass = kwargs.get("InjectedMass", None)
     SpecificRadioactivity = kwargs.get("SpecificRadioactivity", None)
@@ -541,3 +597,7 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
     spreadsheet_metadata['nifti_json'].update(spreadsheet_values)
 
     return spreadsheet_metadata
+
+
+if __name__ == '__main__':
+    update_json_with_dicom_value_cli()
