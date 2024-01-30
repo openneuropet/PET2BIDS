@@ -350,7 +350,6 @@ def update_json_cli():
     # check json again after updating
     check_json(update_json_args.json, required=True, recommended=True, silent=False, logger_name='check_json')
 
-
 def get_radionuclide(pydicom_dicom):
     """
     Gets the radionuclide if given a pydicom_object if
@@ -561,7 +560,11 @@ def check_meta_radio_inputs(kwargs: dict, logger='pypet2bids') -> dict:
 
 
 def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
+<<<<<<< HEAD
                                   image_header_dict={}, **additional_arguments) -> dict:
+=======
+                                  image_header_dict, **additional_arguments) -> dict:
+>>>>>>> 09a10bf14314e87bef27eda5f8b095074ce0ece5
     """
     Extracts metadata from a spreadsheet and returns a dictionary of metadata organized under
     three main keys: nifti_json, blood_json, and blood_tsv
@@ -637,4 +640,8 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     update_json_cli()
+=======
+    update_json_with_dicom_value_cli()
+>>>>>>> 09a10bf14314e87bef27eda5f8b095074ce0ece5
