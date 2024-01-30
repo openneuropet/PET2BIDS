@@ -275,6 +275,12 @@ def update_json_with_dicom_value(
 
 
 def update_json_with_dicom_value_cli():
+    """
+    Command line interface for update_json_with_dicom_value, updates a PET json with values from a dicom header,
+    optionally can update with values from a spreadsheet or via values passed in as additional arguments with the -k
+    --additional_arguments flag. This command be accessed after installation of pypet2bids via
+    `updatepetjsonfromdicom`.
+    """
     dicom_update_parser = argparse.ArgumentParser()
     dicom_update_parser.add_argument('-j', '--json', help='path to json to update', required=True)
     dicom_update_parser.add_argument('-d', '--dicom', help='path to dicom to extract values from', required=True)

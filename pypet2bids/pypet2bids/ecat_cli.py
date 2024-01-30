@@ -239,6 +239,11 @@ def main():
 
 
 def update_json_with_ecat_value_cli():
+    """
+    Updates a json sidecar with values extracted from an ecat file, optionally additional values can be included
+    via the -k --additional-arguments flag and/or a metadata spreadsheet can be supplied via the --metadata-path flag.
+    Command can be accessed after installation via `upadatepetjsonfromecat`
+    """
     json_update_cli = argparse.ArgumentParser()
     json_update_cli.add_argument("-j", "--json", help="Path to a json to update file.", required=True)
     json_update_cli.add_argument("-e", "--ecat", help="Path to an ecat file.", required=True)
