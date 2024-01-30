@@ -12,6 +12,7 @@ import nibabel
 import os
 import json
 import pathlib
+import pandas as pd
 
 try:
     import helper_functions
@@ -19,16 +20,19 @@ try:
     import read_ecat
     import ecat2nii
     import dcm2niix4pet
+    from update_json_pet_file import get_metadata_from_spreadsheet, check_meta_radio_inputs
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.sidecar as sidecar
     import pypet2bids.read_ecat as read_ecat
     import pypet2bids.ecat2nii as ecat2nii
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
+    from pypet2bids.update_json_pet_file import get_metadata_from_spreadsheet, check_meta_radio_inputs
 
 from dateutil import parser
 
 logger = helper_functions.logger('pypet2bids')
+
 
 def parse_this_date(date_like_object) -> str:
     """
@@ -51,7 +55,8 @@ class Ecat:
     viewing in stdout. Additionally, this class can be used to convert an ECAT7.X image into a nifti image.
     """
 
-    def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True):
+    def __init__(self, ecat_file, nifti_file=None, decompress=True, collect_pixel_data=True, metadata_path=None,
+                 kwargs={}):
         """
         Initialization of this class requires only a path to an ecat file.
 
@@ -69,9 +74,24 @@ class Ecat:
         self.decay_factors = []  # stored here
         self.sidecar_template = sidecar.sidecar_template_full  # bids approved sidecar file with ALL bids fields
         self.sidecar_template_short = sidecar.sidecar_template_short  # bids approved sidecar with only required bids fields
+        self.sidecar_path = None
         self.directory_table = None
+        self.spreadsheet_metadata = {'nifti_json': {}, 'blood_tsv': {}, 'blood_json': {}}
+        self.kwargs = kwargs
+        self.output_path = None
+        self.metadata_path = metadata_path
+
+        # load config file
+        default_json_path = helper_functions.check_pet2bids_config('DEFAULT_METADATA_JSON')
+        if default_json_path and pathlib.Path(default_json_path).exists():
+            with open(default_json_path, 'r') as json_file:
+                try:
+                    self.spreadsheet_metadata.update(json.load(json_file))
+                except json.decoder.JSONDecodeError:
+                    logger.warning(f"Unable to load default metadata json file at {default_json_path}, skipping.")
+
         if os.path.isfile(ecat_file):
-            self.ecat_file = ecat_file
+            self.ecat_file = str(ecat_file)
         else:
             raise FileNotFoundError(ecat_file)
 
@@ -113,6 +133,25 @@ class Ecat:
             self.nifti_file = os.path.splitext(self.ecat_file)[0] + ".nii"
         else:
             self.nifti_file = nifti_file
+
+        # que up metadata path for spreadsheet loading later
+        if self.metadata_path:
+            if pathlib.Path(metadata_path).is_file() and pathlib.Path(metadata_path).exists():
+                self.metadata_path = metadata_path
+        elif metadata_path == '':
+            self.metadata_path = pathlib.Path(self.ecat_file).parent
+        else:
+            self.metadata_path = None
+
+        if self.metadata_path:
+            load_spreadsheet_data = get_metadata_from_spreadsheet(metadata_path=self.metadata_path,
+                                                                  image_folder=pathlib.Path(self.ecat_file).parent,
+                                                                  image_header_dict={})
+
+            self.spreadsheet_metadata['nifti_json'].update(load_spreadsheet_data['nifti_json'])
+            self.spreadsheet_metadata['blood_tsv'].update(load_spreadsheet_data['blood_tsv'])
+            self.spreadsheet_metadata['blood_json'].update(load_spreadsheet_data['blood_json'])
+
 
     def make_nifti(self, output_path=None):
         """
@@ -261,25 +300,28 @@ class Ecat:
         self.sidecar_template['ConversionSoftware'] = 'pypet2bids'
         self.sidecar_template['ConversionSoftwareVersion'] = helper_functions.get_version()
 
-
+        # update sidecar values from spreadsheet
+        if self.spreadsheet_metadata.get('nifti_json', None):
+            self.sidecar_template.update(self.spreadsheet_metadata['nifti_json'])
 
         # include any additional values
         if kwargs:
             self.sidecar_template.update(**kwargs)
 
-        if not self.sidecar_template.get('TimeZero', None):
-            if not self.sidecar_template.get('AcquisitionTime', None):
+        if not self.sidecar_template.get('TimeZero', None) and not kwargs.get('TimeZero', None):
+            if not self.sidecar_template.get('AcquisitionTime', None) and not kwargs.get('TimeZero', None):
                 logger.warn(f"Unable to determine TimeZero for {self.ecat_file}, you need will need to provide this"
-                      f" for a valid BIDS sidecar.")
+                            f" for a valid BIDS sidecar.")
             else:
                 self.sidecar_template['TimeZero'] = self.sidecar_template['AcquisitionTime']
 
-        # lastly infer radio data if we have it
-        meta_radio_inputs = dcm2niix4pet.check_meta_radio_inputs(self.sidecar_template)
-        self.sidecar_template.update(**meta_radio_inputs)
-
         # clear any nulls from json sidecar and replace with none's
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
+
+        # lastly infer radio data if we have it
+        meta_radio_inputs = check_meta_radio_inputs(self.sidecar_template)
+        self.sidecar_template.update(**meta_radio_inputs)
+
 
     def prune_sidecar(self):
         """
@@ -336,6 +378,89 @@ class Ecat:
         else:
             print(json.dumps(helper_functions.replace_nones(self.sidecar_template), indent=4))
 
+    def write_out_blood_files(self, new_file_name_with_entities=None, destination_folder=None):
+        recording_entity = "_recording-manual"
+
+        if not new_file_name_with_entities:
+            new_file_name_with_entities = pathlib.Path(self.nifti_file)
+        if not destination_folder:
+            destination_folder = pathlib.Path(self.nifti_file).parent
+
+        if '_pet' in new_file_name_with_entities.name:
+            if new_file_name_with_entities.suffix == '.gz' and len(new_file_name_with_entities.suffixes) > 1:
+                new_file_name_with_entities = new_file_name_with_entities.with_suffix('').with_suffix('')
+
+            blood_file_name = new_file_name_with_entities.stem.replace('_pet', recording_entity + '_blood')
+        else:
+            blood_file_name = new_file_name_with_entities.stem + recording_entity + '_blood'
+
+        if self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
+            blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
+            if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
+                if type(blood_tsv_data) is dict:
+                    blood_tsv_data = pd.DataFrame(blood_tsv_data)
+                # write out blood_tsv using pandas csv write
+                blood_tsv_data.to_csv(os.path.join(destination_folder, blood_file_name + ".tsv")
+                                      , sep='\t',
+                                      index=False)
+
+            elif type(blood_tsv_data) is str:
+                # write out with write
+                with open(os.path.join(destination_folder, blood_file_name + ".tsv"), 'w') as outfile:
+                    outfile.writelines(blood_tsv_data)
+            else:
+                raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
+                       f"pandas.DataFrame")
+
+        # if there's blood data in the tsv then write out the sidecar file too
+        if self.spreadsheet_metadata.get('blood_json', {}) != {} \
+                and self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
+            blood_json_data = self.spreadsheet_metadata.get('blood_json')
+            if type(blood_json_data) is dict:
+                # write out to file with json dump
+                pass
+            elif type(blood_json_data) is str:
+                # write out to file with json dumps
+                blood_json_data = json.loads(blood_json_data)
+            else:
+                raise (f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
+                       f"pandas.DataFrame")
+
+            with open(os.path.join(destination_folder, blood_file_name + '.json'), 'w') as outfile:
+                json.dump(blood_json_data, outfile, indent=4)
+
+    def update_pet_json(self, pet_json_path):
+        """given a json file (or a path ending in .json) update or create a PET json file with information collected
+        from an ecat file.
+        :param pet_json: a path to a json file
+        :type pet_json: str or pathlib.Path
+        :return: None
+        """
+
+        # open the json file if it exists
+        if isinstance(pet_json_path, str):
+            pet_json = pathlib.Path(pet_json_path)
+        if pet_json.exists():
+            with open(pet_json_path, 'r') as json_file:
+                try:
+                    pet_json = json.load(json_file)
+                except json.decoder.JSONDecodeError:
+                    logger.warning(f"Unable to load json file at {pet_json_path}, skipping.")
+
+            # update the template with values from the json file
+            self.sidecar_template.update(pet_json)
+
+        if self.spreadsheet_metadata.get('nifti_json', None):
+            self.sidecar_template.update(self.spreadsheet_metadata['nifti_json'])
+
+        self.populate_sidecar(**self.kwargs)
+        self.prune_sidecar()
+
+        # check metadata radio inputs
+        self.sidecar_template.update(check_meta_radio_inputs(self.sidecar_template))
+
+        self.show_sidecar(output_path=pet_json_path)
+
     def json_out(self):
         """
         Dumps entire ecat header and header info into stdout formatted as json.
@@ -344,3 +469,16 @@ class Ecat:
         """
         temp_json = json.dumps(self.ecat_info, indent=4)
         print(temp_json)
+
+    def convert(self):
+        """
+        Convert ecat to nifti
+        :return: None
+        """
+        self.output_path = pathlib.Path(self.make_nifti())
+        self.sidecar_path = self.output_path.parent / self.output_path.stem
+        self.sidecar_path = self.sidecar_path.with_suffix('.json')
+        self.populate_sidecar(**self.kwargs)
+        self.prune_sidecar()
+        self.show_sidecar(output_path=self.sidecar_path)
+        self.write_out_blood_files()

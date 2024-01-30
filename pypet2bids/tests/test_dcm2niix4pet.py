@@ -1,5 +1,5 @@
-from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, check_json, collect_date_time_from_file_name, update_json_with_dicom_value
-from pypet2bids.dcm2niix4pet import check_meta_radio_inputs
+from pypet2bids.dcm2niix4pet import Dcm2niix4PET, dicom_datetime_to_dcm2niix_time, collect_date_time_from_file_name
+from pypet2bids.update_json_pet_file import check_meta_radio_inputs, check_json, update_json_with_dicom_value
 
 import shutil
 import dotenv

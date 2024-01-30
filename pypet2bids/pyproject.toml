@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "1.3.0"
+version = "1.3.1"
 description = "A python implementation of an ECAT to BIDS converter."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -42,6 +42,7 @@ pet2bids-spreadsheet-template = 'pypet2bids.helper_functions:write_out_module'
 convert-pmod-to-blood = 'pypet2bids.convert_pmod_to_blood:main'
 ispet = 'pypet2bids.is_pet:main'
 updatepetjsonfromdicom = 'pypet2bids.dcm2niix4pet:update_json_with_dicom_value_cli'
+updatepetjsonfromecat = 'pypet2bids.ecat_cli:update_json_with_ecat_value_cli'
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"

@@ -54,6 +54,11 @@ pet_reconstruction_metadata_json = os.path.join(metadata_dir, 'PET_reconstructio
 bids_schema_path = os.path.join(metadata_dir, 'schema.json')
 schema = json.load(open(bids_schema_path, 'r'))
 
+# putting these paths here as they are reused in dcm2niix4pet.py, update_json_pet_file.py, and ecat.py
+module_folder = Path(__file__).parent.resolve()
+python_folder = module_folder.parent
+pet2bids_folder = python_folder.parent
+metadata_folder = os.path.join(pet2bids_folder, 'metadata')
 
 loggers = {}
 

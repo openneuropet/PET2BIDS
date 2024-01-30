@@ -15,7 +15,7 @@ dicom_source_folder = os.getenv('TEST_DICOM_IMAGE_FOLDER', None)
 if dicom_source_folder:
     dicom_source_folder = pathlib.Path(dicom_source_folder)
 if not dicom_source_folder:
-    dicom_source_folder = PET2BIDS_DIR / 'OpenNeuroPET-Phantoms' / 'sourcedata' / 'SiemensBiographPETMR-NRU'
+    dicom_source_folder = PET2BIDS_DIR / 'OpenNeuroPET-Phantoms' / 'sourcedata' / 'SiemensBiographPETMR-NIMH' /'AC_TOF'
 if not dicom_source_folder.exists():
     raise FileNotFoundError(dicom_source_folder)
 
@@ -222,16 +222,13 @@ def test_kwargs_produce_valid_conversion(tmp_path):
     assert validate_dicom.returncode == 0, validate_dicom.stdout
 
 
-def test_spreadsheets_produce_valid_conversion(tmp_path):
-
+def test_spreadsheets_produce_valid_conversion_dcm2niix4pet(tmp_path):
     # collect spreadsheets
-    #single_subject_spreadsheet = PET2BIDS_DIR / 'spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx'
-
-    single_subject_spreadsheet = '/Users/galassiae/Projects/PET2BIDS/spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx'
+    single_subject_spreadsheet = PET2BIDS_DIR / 'spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx'
 
     dcm2niix4pet_test_dir = tmp_path / 'dcm2niix_spreadsheet_input'
     dcm2niix4pet_test_dir.mkdir(parents=True, exist_ok=True)
-    subject_folder = dcm2niix4pet_test_dir / 'sub-singlesubjectspreadsheet' / 'ses-test' / 'pet'
+    subject_folder = dcm2niix4pet_test_dir / 'sub-singlesubjectspreadsheetdicom' / 'ses-test' / 'pet'
 
     cmd = f"python {dcm2niix4pet} {dicom_source_folder} --destination-path {subject_folder} --metadata-path {single_subject_spreadsheet}"
     run_dcm2niix4pet = subprocess.run(cmd, shell=True, capture_output=True)
@@ -247,6 +244,35 @@ def test_spreadsheets_produce_valid_conversion(tmp_path):
     assert validate_dicom_w_spreadsheet.returncode == 0
 
 
+def test_spreadsheets_produce_valid_conversion_ecatpet2bids(tmp_path):
+    # collect spreadsheets
+    single_subject_spreadsheet = (
+            PET2BIDS_DIR / 'spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx')
+
+    ecatpet2bids_test_dir = tmp_path / 'ecatpet2bids_spreadsheet_input'
+    ecatpet2bids_test_dir.mkdir(parents=True, exist_ok=True)
+    subject_folder = ecatpet2bids_test_dir / 'sub-singlesubjectspreadsheetecat' / 'ses-test' / 'pet'
+
+    cmd = (f"python {ecatpet2bids} {ecat_file_path} "
+           f"--nifti {subject_folder}/sub-singlesubjectspreadsheetecat_ses-test_pet.nii.gz "
+           f"--metadata-path {single_subject_spreadsheet} "
+           f"--convert")
+
+    run_ecatpet2bids = subprocess.run(cmd, shell=True, capture_output=True)
+
+    assert run_ecatpet2bids.returncode == 0
+
+    # copy over dataset_description
+    dataset_description_path = ecatpet2bids_test_dir / 'dataset_description.json'
+    with open(dataset_description_path, 'w') as outfile:
+        json.dump(dataset_description_dictionary, outfile, indent=4)
+
+    validator_cmd = f"bids-validator {ecatpet2bids_test_dir} --ingnoreWarnings"
+    validate_ecat_w_spreadsheet = subprocess.run(validator_cmd, shell=True, capture_output=True)
+
+    assert validate_ecat_w_spreadsheet.returncode == 0
+
+
 def test_scanner_params_produce_valid_conversion(tmp_path):
 
     # test scanner params txt with ecat conversion
@@ -260,8 +286,7 @@ def test_scanner_params_produce_valid_conversion(tmp_path):
     with open(dataset_descripion_path, 'w') as outfile:
         json.dump(dataset_description_dictionary, outfile, indent=4)
 
-    #scanner_params = PET2BIDS_DIR / 'tests' / 'scannerparams.txt'
-    scanner_params = "/Users/galassiae/Projects/PET2BIDS/pypet2bids/tests/scannerparams.txt"
+    scanner_params = PET2BIDS_DIR / 'pypet2bids' / 'tests' / 'scannerparams.txt'
     not_full_set_of_kwargs = {
         "SeriesDescription": "PET Brain Dyn TOF",
         "ProtocolName": "PET Brain Dyn TOF",
