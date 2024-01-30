@@ -320,6 +320,37 @@ def update_json_with_dicom_value_cli():
     check_json(args.json, required=True, recommended=True, silent=False, logger_name='check_json')
 
 
+def update_json_cli():
+    """
+    Updates a json file with user supplied values or values from a spreadsheet. This command can be accessed after
+    conversion via `updatepetjson` if so required.
+    """
+    update_json_parser = argparse.ArgumentParser()
+    update_json_parser.add_argument('-j', '--json', help='path to json to update', required=True)
+    update_json_parser.add_argument('-k', '--additional_arguments',
+                        help='additional key value pairs to update json with', nargs='*',
+                        action=helper_functions.ParseKwargs, default={})
+    update_json_parser.add_argument('-m', '--metadata-path', help='path to metadata json', default=None)
+
+    update_json_args = update_json_parser.parse_args()
+
+    if update_json_args.metadata_path:
+        nifti_sidecar_metadata = (
+            get_metadata_from_spreadsheet(update_json_args.metadata_path, update_json_args.json))['nifti_json']
+    else:
+        nifti_sidecar_metadata = {}
+
+    j = JsonMAJ(update_json_args.json, update_values=nifti_sidecar_metadata)
+    j.update()
+    j.update(update_json_args.additional_arguments)
+
+    # check meta radio inputs
+    j.update(check_meta_radio_inputs(j.json_data))
+
+    # check json again after updating
+    check_json(update_json_args.json, required=True, recommended=True, silent=False, logger_name='check_json')
+
+
 def get_radionuclide(pydicom_dicom):
     """
     Gets the radionuclide if given a pydicom_object if
@@ -530,7 +561,7 @@ def check_meta_radio_inputs(kwargs: dict, logger='pypet2bids') -> dict:
 
 
 def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
-                                  image_header_dict, **additional_arguments) -> dict:
+                                  image_header_dict={}, **additional_arguments) -> dict:
     """
     Extracts metadata from a spreadsheet and returns a dictionary of metadata organized under
     three main keys: nifti_json, blood_json, and blood_tsv
@@ -606,4 +637,4 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
 
 
 if __name__ == '__main__':
-    update_json_with_dicom_value_cli()
+    update_json_cli()
