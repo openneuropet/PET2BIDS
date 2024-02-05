@@ -132,7 +132,11 @@ def ecat2nii(ecat_main_header=None,
             prompts.append(0)
             randoms.append(0)
 
-    final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
+    ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
+    if ecat_cal_units==0:                              # Calibrate if it hasn't been already
+        final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
+    elif ecat_cal_units==1:                            # And don't calibrate if it has
+        final_image = img_temp
 
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
