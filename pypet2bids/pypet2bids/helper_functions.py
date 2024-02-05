@@ -387,6 +387,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     methods = {
         'excel': read_excel,
         'csv': read_csv,
+        'tsv': read_csv,
         'txt': read_csv
     }
 
@@ -405,6 +406,7 @@ def open_meta_data(metadata_path: Union[str, pathlib.Path], separator=None) -> p
     try:
         warnings.filterwarnings('ignore', message='ParserWarning: Falling*')
         use_me_to_read = methods.get(proper_method, None)
+
         if proper_method != 'excel':
             if '\t' in separators_present:
                 separator = '\t'
