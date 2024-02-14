@@ -191,7 +191,7 @@ def ecat2nii(ecat_main_header=None,
 
     # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
     #  factor img_nii.header['scl_inter'] # defaults to NaN array
-    img_nii.header['scl_slope'] = main_header['ECAT_CALIBRATION_FACTOR']
+    img_nii.header['scl_slope'] = 0
     img_nii.header['scl_inter'] = 0
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0
