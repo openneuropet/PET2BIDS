@@ -334,7 +334,7 @@ for j=1:length(FileListIn)
             warning('the json file is BIDS invalid')
         end
         
-        if mh.calibration_units == 1 
+        if mh.calibration_units == 0 
             img_temp                          = single(round(img_temp).*Sca); % just the 16 bit scaling, img_temp is already dose calibrated
             warning('it looks like the source data are already dose calibrated - ecat2nii is thus not scaling the data')
         else
