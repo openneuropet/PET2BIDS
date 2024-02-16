@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "1.3.1"
+version = "1.3.5"
 description = "A python implementation of an ECAT to BIDS converter."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
