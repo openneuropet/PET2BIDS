@@ -133,9 +133,9 @@ def ecat2nii(ecat_main_header=None,
             randoms.append(0)
 
     ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
-    if ecat_cal_units==0:                              # Calibrate if it hasn't been already
+    if ecat_cal_units==1:                              # Calibrate if it hasn't been already
         final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
-    elif ecat_cal_units==1:                            # And don't calibrate if it has
+    else:                            # And don't calibrate if CALIBRATION_UNITS is anything else but 1
         final_image = img_temp
 
     qoffset_x = -1 * (
