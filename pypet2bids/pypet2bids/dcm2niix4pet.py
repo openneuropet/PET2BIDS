@@ -210,8 +210,12 @@ class Dcm2niix4PET:
             self.destination_path = Path(destination_path).with_suffix('')
 
         if not self.full_file_path_given:
-            self.destination_folder = Path(destination_path)
-            self.destination_path = self.destination_folder
+            if not destination_path:
+                self.destination_path = self.image_folder
+                self.destination_folder = self.image_folder
+            else:
+                self.destination_folder = Path(destination_path)
+                self.destination_path = self.destination_folder
 
         # extract PET filename parts from destination path if given
         self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))

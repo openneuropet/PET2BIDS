@@ -59,7 +59,7 @@ def write_header(ecat_file, schema: dict, values: dict = {}, byte_position: int 
         value_to_write = values.get(variable_name, None)
 
         # if no value is supplied in the value dict, pack with empty bytes as well
-        if not value_to_write:
+        if value_to_write is None:
             pack_empty = True
         # set variable to false if neither of these conditions is met
         else:

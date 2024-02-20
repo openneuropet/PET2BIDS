@@ -44,6 +44,7 @@ ispet = 'pypet2bids.is_pet:main'
 updatepetjsonfromdicom = 'pypet2bids.dcm2niix4pet:update_json_with_dicom_value_cli'
 updatepetjsonfromecat = 'pypet2bids.ecat_cli:update_json_with_ecat_value_cli'
 updatepetjson = 'pypet2bids.update_json:update_json_cli'
+ecatheaderupdate = 'pypet2bids.ecat_header_update:main'
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"
