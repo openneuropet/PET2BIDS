@@ -132,7 +132,11 @@ def ecat2nii(ecat_main_header=None,
             prompts.append(0)
             randoms.append(0)
 
-    final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
+    ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
+    if ecat_cal_units==1:                              # Calibrate if it hasn't been already
+        final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
+    else:                            # And don't calibrate if CALIBRATION_UNITS is anything else but 1
+        final_image = img_temp
 
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
@@ -187,7 +191,7 @@ def ecat2nii(ecat_main_header=None,
 
     # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
     #  factor img_nii.header['scl_inter'] # defaults to NaN array
-    img_nii.header['scl_slope'] = main_header['ECAT_CALIBRATION_FACTOR']
+    img_nii.header['scl_slope'] = 0
     img_nii.header['scl_inter'] = 0
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0

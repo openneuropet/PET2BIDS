@@ -216,7 +216,11 @@ for j=1:length(FileListIn)
         
         % save raw data
         if savemat
-            ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
+            if mh.calibration_units == 1 % see line 337
+                ecat = img_temp.*Sca;
+            else
+                ecat = img_temp.*(Sca*mh.ecat_calibration_factor);
+            end
             save([filenameout '.ecat.mat'],'ecat','-v7.3');
         end
         
@@ -330,7 +334,13 @@ for j=1:length(FileListIn)
             warning('the json file is BIDS invalid')
         end
         
-        img_temp                              = single(round(img_temp).*(Sca*mh.ecat_calibration_factor));
+        if mh.calibration_units == 1 % do calibrate
+            img_temp                          = single(round(img_temp).*(Sca*mh.ecat_calibration_factor)); % scale and dose calibrated
+            warning('it looks like the source data are not dose calibrated - ecat2nii is thus scaling the data')
+        else % do not calibrate
+            img_temp                          = single(round(img_temp).*Sca); % just the 16 bit scaling, img_temp is already dose calibrated
+            warning('it looks like the source data are already dose calibrated - ecat2nii is thus not scaling the data')
+        end
         info.Datatype                         = 'single';
         info.BitsPerPixel                     = 32;
         info.SpaceUnits                       = 'Millimeter';
