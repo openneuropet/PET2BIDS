@@ -618,6 +618,15 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
         except KeyError:
             pass
 
+    # even out the values in the blood tsv columns if they're different lengths by appending zeros to the end
+    # of each column/list
+    # determine the longest column
+    longest_column = max([len(column) for column in spreadsheet_metadata['blood_tsv'].values()])
+    # iterate over each column, determine how many zeros to append to the end of each column
+    for column in spreadsheet_metadata['blood_tsv'].keys():
+        zeros_to_append = longest_column - len(spreadsheet_metadata['blood_tsv'][column])
+        spreadsheet_metadata['blood_tsv'][column] += [0] * zeros_to_append
+
     # check for existing blood json values
     for column in blood_json_columns:
         try:
