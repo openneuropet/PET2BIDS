@@ -206,7 +206,7 @@ class Dcm2niix4PET:
         # replace the suffix in the destination path with '' if a non-nifti full file path is give
         if Path(destination_path).suffix:
             self.full_file_path_given = True
-            self.destination_folder = destination_path.parent
+            self.destination_folder = Path(destination_path).parent
             self.destination_path = Path(destination_path).with_suffix('')
 
         if not self.full_file_path_given:
