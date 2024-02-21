@@ -7,6 +7,7 @@ import re
 from dateutil import parser
 import argparse
 import pydicom
+import datetime
 from typing import Union
 
 try:
@@ -584,6 +585,19 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
             dicom_metadata=image_header_dict,
             **additional_arguments)
 
+    # remove any dates from the spreadsheet time values
+    for key, value in spreadsheet_values.items():
+        if 'time' in key.lower():
+            if isinstance(value, str):
+                # check to see if the value converts to a datetime object with a date
+                try:
+                    time_value = parser.parse(value).time().strftime("%H:%M:%S")
+                    spreadsheet_values[key] = time_value
+                except ValueError:
+                    pass
+            if isinstance(value, datetime.datetime):
+                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
+
     if Path(metadata_path).is_dir() or metadata_path == "":
         # we accept folder input as well as no input, in the
         # event of no input we search for spreadsheets in the
@@ -621,11 +635,18 @@ def get_metadata_from_spreadsheet(metadata_path: Union[str, Path], image_folder,
     # even out the values in the blood tsv columns if they're different lengths by appending zeros to the end
     # of each column/list
     # determine the longest column
-    longest_column = max([len(column) for column in spreadsheet_metadata['blood_tsv'].values()])
-    # iterate over each column, determine how many zeros to append to the end of each column
-    for column in spreadsheet_metadata['blood_tsv'].keys():
-        zeros_to_append = longest_column - len(spreadsheet_metadata['blood_tsv'][column])
-        spreadsheet_metadata['blood_tsv'][column] += [0] * zeros_to_append
+    column_lengths = [len(column) for column in spreadsheet_metadata['blood_tsv'].values()]
+
+    try:
+        longest_column = max(column_lengths)
+    except ValueError:
+        # columns are all the same length or there are no columns
+        longest_column = None
+    if longest_column:
+        # iterate over each column, determine how many zeros to append to the end of each column
+        for column in spreadsheet_metadata['blood_tsv'].keys():
+            zeros_to_append = longest_column - len(spreadsheet_metadata['blood_tsv'][column])
+            spreadsheet_metadata['blood_tsv'][column] += [0] * zeros_to_append
 
     # check for existing blood json values
     for column in blood_json_columns:

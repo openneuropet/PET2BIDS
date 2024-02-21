@@ -521,6 +521,32 @@ class Dcm2niix4PET:
                     sidecar_json.update(self.spreadsheet_metadata.get('nifti_json', {}))
                     sidecar_json.update(self.additional_arguments)
 
+                    # this is mostly for ezBIDS, but it helps us to make better use of the series description that
+                    # dcm2niix generates by default for PET imaging
+                    collect_these_fields = {
+                        'SeriesDescription': '',
+                        'TracerName': 'trc',
+                        'InjectedRadioactivity': '',
+                        'InjectedRadioactivityUnits': '',
+                        'ReconMethodName': 'rec',
+                        'TimeZero': '',
+                    }
+                    collection_of_fields = {}
+                    for field, entity_string in collect_these_fields.items():
+                        if sidecar_json.get(field):
+                            # if there's a shortened entity string for the field use that
+                            if entity_string != '':
+                                collection_of_fields[entity_string] = sidecar_json.get(field)
+                            else:
+                                collection_of_fields[field] = sidecar_json.get(field)
+
+                    if self.session_id:
+                        collection_of_fields['ses'] = self.session_id
+
+                    hash_string = helper_functions.hash_fields(**collection_of_fields)
+
+                    sidecar_json.update({'SeriesDescription': hash_string})
+
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
                     if 'nii.gz' in created_path.name:
