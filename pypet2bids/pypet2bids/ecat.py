@@ -363,6 +363,32 @@ class Ecat:
         """
         self.prune_sidecar()
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
+
+        # this is mostly for ezBIDS, but it helps us to make better use of the series description that
+        # dcm2niix generates by default for PET imaging, here we mirror the dcm2niix output for ecats
+        collect_these_fields = {
+            'SeriesDescription': '',
+            'TracerName': 'trc',
+            'InjectedRadioactivity': '',
+            'InjectedRadioactivityUnits': '',
+            'ReconMethodName': 'rec',
+            'TimeZero': '',
+        }
+        collection_of_fields = {}
+        for field, entity_string in collect_these_fields.items():
+            if self.sidecar_template.get(field, None):
+                # if there's a shortened entity string for the field use that
+                if entity_string != '':
+                    collection_of_fields[entity_string] = self.sidecar_template.get(field)
+                else:
+                    collection_of_fields[field] = self.sidecar_template.get(field)
+
+        if helper_functions.collect_bids_part('ses', self.output_path) != '':
+            collection_of_fields['ses'] = helper_functions.collect_bids_part('ses', self.output_path)
+
+        hash_string = helper_functions.hash_fields(**collection_of_fields)
+        self.sidecar_template['SeriesDescription'] = hash_string
+
         if output_path:
             if not isinstance(output_path, pathlib.Path):
                 output_path = pathlib.Path(output_path)
