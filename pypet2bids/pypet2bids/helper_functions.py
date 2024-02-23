@@ -666,8 +666,6 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     contents = ReconstructionMethodString.replace(' ', '')
     subsets = None
     iterations = None
-    ReconMethodParameterUnits = ["none", "none"]
-    ReconMethodParameterLabels = ["subsets", "iterations"]
 
     # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
     iter_sub_combos = {
@@ -753,11 +751,20 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
         ReconMethodName = dimension + " "*len(dimension) + expanded_name.rstrip()
         ReconMethodName = " ".join(ReconMethodName.split())
 
+    if ReconMethodName in ["Filtered Back Projection", "3D Reprojection"]:
+        ReconMethodParameterLabels = []
+        ReconMethodParameterUnits = []
+        ReconMethodParameterValues = []
+    else:  # assume it is OSEM or a variant
+        ReconMethodParameterLabels = ["subsets", "iterations"]
+        ReconMethodParameterUnits = ["none", "none"]
+        ReconMethodParameterValues = [subsets, iterations]
+
     reconstruction_dict = {
         "ReconMethodName": ReconMethodName,
         "ReconMethodParameterUnits": ReconMethodParameterUnits,
         "ReconMethodParameterLabels": ReconMethodParameterLabels,
-        "ReconMethodParameterValues": [subsets, iterations]
+        "ReconMethodParameterValues": ReconMethodParameterValues,
     }
 
     if None in reconstruction_dict['ReconMethodParameterValues']:
@@ -857,7 +864,7 @@ def ad_hoc_checks(metadata: dict, modify_input=False, items_that_should_be_check
     if items_that_should_be_checked is None:
         items_that_should_be_checked = {}
     hardcoded_items = {
-        'InjectedRadioactivityUnits': 'MBq',
+        'InjectedRadioactivityUnits': ['MBq', 'mCi'],
         'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
         'InjectedMassUnits': 'ug',
         'MolarActivityUnits': 'GBq/umolug',

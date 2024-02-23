@@ -89,6 +89,15 @@
         null,
         null
       ]
+    },
+    {
+      "contents": "3DKinahan-Rogers",
+      "subsets": null,
+      "iterations": null,
+      "ReconMethodName": "3D Reprojection",
+      "ReconMethodParameterLabels": [],
+      "ReconMethodParameterValues": [],
+      "ReconMethodParameterUnits": []
     }
   ],
   "reconstruction_names": [
@@ -151,6 +160,10 @@
     {
       "value": "FilteredBackProjection",
       "name": "Filtered Back Projection"
+    },
+    {
+      "value": "Kinahan-Rogers",
+      "name": "Reprojection"
     }
   ]
 }
