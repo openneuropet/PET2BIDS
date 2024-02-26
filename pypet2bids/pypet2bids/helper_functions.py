@@ -985,14 +985,16 @@ class CustomFormatter(logging.Formatter):
 def hash_fields(**fields):
     hash_return_string = ""
     hash_string = ""
+    if fields.get('ProtocolName', None):
+        hash_return_string += f"{fields.get('ProtocolName')}_"
     keys_we_want = ['ses', 'rec', 'trc']
     for key, value in fields.items():
         # sanitize values
         regex = r"[^a-zA-Z0-9]"
         value = re.sub(regex, "", str(value))
-        hash_string += f"{key}-{value}_"
+        hash_string += f"{value}_"
         if key in keys_we_want:
-            hash_return_string += f"{key}-{value}_"
+            hash_return_string += f"{value}_"
 
     hash_hex = hashlib.md5(hash_string.encode('utf-8')).hexdigest()
 
