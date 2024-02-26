@@ -4,10 +4,11 @@ function status = updatejsonpetfile(varargin)
 % information, if only the jsonfile is provided, it only checks if valid
 % (and possibly updates some fields from scalar to array)
 %
-% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
+% :format: - status = updatejsonpetfile(jsonfilename)
+%          - status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
 %
 % :param jsonfilename: json file to check or update update
-%                      can also be the json structure (add field filename to ensure update on disk)
+%                      can also be the json structure 
 % :param newfields: (optional) a structure with the newfields to go into the json file
 % :param dcminfo: (optional) a dcmfile or the dicominfo structure from a representative
 %                    dicom file. This information is used to also update the json
@@ -83,6 +84,27 @@ if nargin == 1
     end
     
     % -------------- only check ---------------
+
+    % conditionally fields for recon method and filters to update
+    if iscell(filemetadata.ReconMethodParameterLabels)
+        test = ~contains("none",cellfun(@(x) x{1}, filemetadata.ReconMethodParameterLabels));
+    else
+        test = ~contains("none",filemetadata.ReconMethodParameterLabels);
+    end
+
+    if test
+        petmetadata.mandatory{end+1} = 'ReconMethodParameterUnits';
+        petmetadata.mandatory{end+1} = 'ReconMethodParameterValues';
+        petmetadata.optional(strcmpi('ReconMethodParameterUnits',petmetadata.optional))=[];
+        petmetadata.optional(strcmpi('ReconMethodParameterValues',petmetadata.optional))=[];
+    end
+    
+    if ~contains("none",filemetadata.ReconFilterType)
+        petmetadata.mandatory{end+1}   = 'ReconFilterType';
+        petmetadata.recommended(strcmpi('ReconFilterType',petmetadata.recommended))=[];
+    end
+
+    % test
     for m=length(petmetadata.mandatory):-1:1
         test(m) = isfield(filemetadata,petmetadata.mandatory{m});
     end
@@ -359,13 +381,11 @@ if exist('iteration','var') && exist('subset','var')
         filemetadata.ReconMethodParameterValues     = [str2double(subset),str2double(iteration)];
     else % returns none if actually seen as empty by get_recon_method
         filemetadata.ReconMethodParameterLabels     = "none";  
-        filemetadata.ReconMethodParameterUnits      = "none";
-        try
-            if isempty(filemetadata.ReconMethodParameterValues) % in case user passes info
-                filemetadata.ReconMethodParameterValues = 0; % if none should be 0
-            end
-        catch
-            filemetadata.ReconMethodParameterValues = 0;
+        if isfield(filemetadata,'ReconMethodParameterUnits')
+            filemetadata = rmfield(filemetadata,'ReconMethodParameterUnits');
+        end
+        if isfield(filemetadata,'ReconMethodParameterValues')
+            filemetadata = rmfield(filemetadata,'ReconMethodParameterValues');
         end
     end
 end
@@ -405,8 +425,15 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
             else
                 filemetadata.ReconFilterSize = str2double(FilterSize);
             end
+        
+        elseif contains(filtername,'Rad','IgnoreCase',true)
+            filemetadata.ReconFilterType = 'none';
+            if isfield(filemetadata,'ReconFilterSize')
+                filemetadata = rmfield(filemetadata,'ReconFilterSize');
+            end
+
         else
-            
+
             % might need to remove trailing .00 for regex to work
             if contains(filtername,'.00') && ~contains(filtername,{'/','\'})
                 loc = strfind(filtername,'.00');
@@ -427,7 +454,9 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     end
 else
     filemetadata.ReconFilterType = "none";
-    % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+    if isfield(filemetadata,'ReconFilterSize')
+        filemetadata = rmfield(filemetadata,'ReconFilterSize');
+    end
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)

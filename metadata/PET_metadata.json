@@ -22,7 +22,6 @@
     "ImageDecayCorrectionTime",
     "ReconMethodName",
     "ReconMethodParameterLabels",
-    "ReconMethodParameterUnits",
     "ReconFilterType",
     "AttenuationCorrection"
   ],
@@ -62,12 +61,13 @@
     "DecayCorrectionFactor",
     "PromptRate",
     "RandomRate",
-    "SinglesRate"
+    "SinglesRate",
+    "ReconFilterSize"
   ],
   "optional": [
     "Anaesthesia",
-    "ReconMethodParameterValues",
-    "ReconFilterSize"
+    "ReconMethodParameterUnits",
+    "ReconMethodParameterValues"
   ],
   "blood_recording_fields": [
     "PlasmaAvail",

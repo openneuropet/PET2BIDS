@@ -56,38 +56,28 @@
     },
     {
       "contents": "LOR-RAMLA",
-      "subsets": null,
-      "iterations": null,
       "ReconMethodName": "Line Of Response - Row Action Maximum Likelihood",
-      "ReconMethodParameterUnits": [
-        "none",
-        "none"
-      ],
       "ReconMethodParameterLabels": [
-        "subsets",
-        "iterations"
-      ],
-      "ReconMethodParameterValues": [
-        null,
-        null
+        "none"
       ]
     },
     {
       "contents": "3D-RAMLA",
-      "subsets": null,
-      "iterations": null,
       "ReconMethodName": "3D Row Action Maximum Likelihood",
-      "ReconMethodParameterUnits": [
-        null,
-        null
-      ],
       "ReconMethodParameterLabels": [
-        "subsets",
-        "iterations"
+        "none"
+      ]    
+    },
+    {
+      "contents": "3DRP",
+      "ReconMethodName": "3D Kinahan-Rogers",
+      "ReconMethodParameterLabels": [
+        "none"
       ],
-      "ReconMethodParameterValues": [
-        null,
-        null
+      "contents": "3-D Kinahan-Rogers",
+      "ReconMethodName": "3D Kinahan-Rogers",
+      "ReconMethodParameterLabels": [
+        "none"
       ]
     }
   ],
@@ -151,6 +141,10 @@
     {
       "value": "FilteredBackProjection",
       "name": "Filtered Back Projection"
-    }
+    },
+    {
+      "value": "3DRP",
+      "name": "3D Kinahan-Rogers"
+    }    
   ]
 }
