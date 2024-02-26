@@ -524,6 +524,7 @@ class Dcm2niix4PET:
                     # this is mostly for ezBIDS, but it helps us to make better use of the series description that
                     # dcm2niix generates by default for PET imaging
                     collect_these_fields = {
+                        'ProtocolName': '',
                         'SeriesDescription': '',
                         'TracerName': 'trc',
                         'InjectedRadioactivity': '',
