@@ -89,6 +89,48 @@
         null,
         null
       ]
+    },
+    {
+      "contents": "3DRP",
+      "subsets": null,
+      "iterations": null,
+      "ReconMethodName": "3D Kinahan-Rogers",
+      "ReconMethodParameterLabels": [
+        "none"
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ],
+      "ReconMethodParameterUnits": [
+        null,
+        null
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ]
+    },
+    {
+      "contents": "3D Kinahan-Rogers",
+      "subsets": null,
+      "iterations": null,
+      "ReconMethodName": "3D Kinahan-Rogers",
+      "ReconMethodParameterLabels": [
+        "none"
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ],
+      "ReconMethodParameterUnits": [
+        null,
+        null
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ]
     }
   ],
   "reconstruction_names": [
@@ -151,6 +193,10 @@
     {
       "value": "FilteredBackProjection",
       "name": "Filtered Back Projection"
+    },
+    {
+      "value": "3DRP",
+      "name": "3D Kinahan-Rogers"
     }
   ]
 }
