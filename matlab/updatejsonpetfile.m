@@ -427,7 +427,7 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     end
 else
     filemetadata.ReconFilterType = "none";
-    % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+    filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)
