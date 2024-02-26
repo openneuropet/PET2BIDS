@@ -379,7 +379,9 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                     formatting = '>f4'
                     pixel_data_type = numpy.dtype(formatting)
                 elif dt_val == 6:
-                    pixel_data_type = '>H'
+                    # >H is unsigned short e.g. >u2, reverting to int16 e.g. i2 to align with commit 9beee53
+                    # pixel_data_type = '>H'
+                    pixel_data_type = '>i2'
                 else:
                     raise ValueError(
                         f"Unable to determine pixel data type from value: {dt_val} extracted from {subheader}")
