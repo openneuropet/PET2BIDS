@@ -27,20 +27,26 @@ def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
 
     # load BIDS PET requirements
     try:
-        with open(helper_functions.pet_metadata_json, 'r') as pet_field_requirements_json:
+        with open(
+            helper_functions.pet_metadata_json, "r"
+        ) as pet_field_requirements_json:
             pet_field_requirements = json.load(pet_field_requirements_json)
     except (FileNotFoundError, json.JSONDecodeError) as error:
-        print(f"Unable to load list of required, recommended, and optional PET BIDS fields from"
-              f" {helper_functions.pet_metadata_json}, will not be able to determine if sourcefile contains"
-              f" PET BIDS specific metadata")
+        print(
+            f"Unable to load list of required, recommended, and optional PET BIDS fields from"
+            f" {helper_functions.pet_metadata_json}, will not be able to determine if sourcefile contains"
+            f" PET BIDS specific metadata"
+        )
         pet_field_requirements = {}
 
-    mandatory_fields = pet_field_requirements.get('mandatory', [])
-    recommended_fields = pet_field_requirements.get('recommended', [])
-    optional_fields = pet_field_requirements.get('optional', [])
-    blood_recording_fields = pet_field_requirements.get('blood_recording_fields', [])
+    mandatory_fields = pet_field_requirements.get("mandatory", [])
+    recommended_fields = pet_field_requirements.get("recommended", [])
+    optional_fields = pet_field_requirements.get("optional", [])
+    blood_recording_fields = pet_field_requirements.get("blood_recording_fields", [])
 
-    intersection = set(mandatory_fields + recommended_fields + optional_fields + blood_recording_fields) & set(data.keys())
+    intersection = set(
+        mandatory_fields + recommended_fields + optional_fields + blood_recording_fields
+    ) & set(data.keys())
 
     if len(intersection) > 0:
         return True
@@ -58,12 +64,15 @@ def read_files_in_parallel(file_paths: list, function, n_jobs=-2, **kwargs):
     :return: list of results
     """
     # TODO replace dependency on joblib with threading module
-    results = Parallel(n_jobs=n_jobs)(delayed(function)(file_path, **kwargs) for file_path in file_paths)
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(function)(file_path, **kwargs) for file_path in file_paths
+    )
     return results
 
 
 class DummyFile(object):
-    def write(self, x): pass
+    def write(self, x):
+        pass
 
 
 @contextlib.contextmanager
@@ -98,35 +107,39 @@ def pet_file(file_path: Path, return_only_path=False) -> Union[bool, str]:
     if not file_path.exists():
         raise FileNotFoundError(file_path)
 
-    file_type = ''
+    file_type = ""
     # get suffix of file
     suffix = file_path.suffix
     # suppress all stdout from other functions
     with nostdout():
-        if not file_type and (suffix.lower() in ['.dcm', '.ima', '.img', ''] or 'mr' in str(file_path.name).lower() or bool(re.search(r"\d", suffix.lower()))):
+        if not file_type and (
+            suffix.lower() in [".dcm", ".ima", ".img", ""]
+            or "mr" in str(file_path.name).lower()
+            or bool(re.search(r"\d", suffix.lower()))
+        ):
             try:
                 read_file = pydicom.dcmread(file_path)
-                if read_file.Modality == 'PT':
-                    file_type = 'DICOM'
+                if read_file.Modality == "PT":
+                    file_type = "DICOM"
                 else:
                     # do nothing, we only want dicoms with the correct modality
                     pass
             except pydicom.errors.InvalidDicomError:
                 pass
 
-        if not file_type and suffix.lower() in ['.v', '.gz']:
+        if not file_type and suffix.lower() in [".v", ".gz"]:
             try:
                 read_file = ecat.Ecat(str(file_path))
-                file_type = 'ECAT'
+                file_type = "ECAT"
             except nibabel.filebasedimages.ImageFileError:
                 pass
 
-        if not file_type and suffix.lower() in ['.xlsx', '.tsv', '.csv', '.xls']:
+        if not file_type and suffix.lower() in [".xlsx", ".tsv", ".csv", ".xls"]:
             try:
                 read_file = spread_sheet_check_for_pet(file_path)
                 if read_file:
                     # if it looks like a pet file
-                    file_type = 'SPREADSHEET'
+                    file_type = "SPREADSHEET"
             except (IOError, ValueError):
                 pass
 
@@ -166,11 +179,20 @@ def pet_folder(folder_path: Path) -> Union[str, list, bool]:
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('filepath', type=Path, help="File path to check whether file is PET image or bloodfile. "
-                                                    "If a folder is given, all files in the folder will be checked and "
-                                                    "any folders containing PET files will be returned.")
-    parser.add_argument('-p', '--path-only', action='store_true', default=False,
-                        help="Omit type of pet file; only return file path if file is PET file")
+    parser.add_argument(
+        "filepath",
+        type=Path,
+        help="File path to check whether file is PET image or bloodfile. "
+        "If a folder is given, all files in the folder will be checked and "
+        "any folders containing PET files will be returned.",
+    )
+    parser.add_argument(
+        "-p",
+        "--path-only",
+        action="store_true",
+        default=False,
+        help="Omit type of pet file; only return file path if file is PET file",
+    )
     args = parser.parse_args()
 
     if args.filepath.is_file():
@@ -194,5 +216,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
