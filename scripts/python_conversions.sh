@@ -408,8 +408,8 @@ ReconMethodParameterUnits="[none, none]" \
 ReconMethodParameterValues="[0, 0]" \
 --silent
 
-# John Hopkins University
-# -----------------------
+# Johns Hopkins University
+# ------------------------
 
 # Siemens HRRT
 # ------------
@@ -433,8 +433,6 @@ ModeOfAdministration='infusion' \
 AcquisitionMode='list mode' \
 ImageDecayCorrected=true \
 ImageDecayCorrectionTime=0 \
-ReconFilterType='none' \
-ReconFilterSize=0 \
 AttenuationCorrection='transmission scan with a 137Cs point source' \
 ScatterCorrectionMethod='Single-scatter simulation' \
 ScanStart=0 \
@@ -467,7 +465,9 @@ AcquisitionMode='list mode' \
 ImageDecayCorrected='true' \
 ImageDecayCorrectionTime=0 \
 ScatterCorrectionMethod='Single-scatter simulation' \
-FrameTimesStart="[0]" \
+ReconMethodParameterLabels='["none"]' \
+ReconMethodParameterUnits='["none"]' \
+ReconMethodParameterValues='[0]' \
 ReconFilterType="none" \
 ReconFilterSize=0 \
 AttenuationCorrection='2D-acquired transmission scan with a 68Ge pin'
