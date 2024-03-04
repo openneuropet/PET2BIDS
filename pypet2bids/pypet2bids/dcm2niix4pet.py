@@ -292,6 +292,7 @@ class Dcm2niix4PET:
             if set_in_config:
                 logger.warning(f"dcm2niix found on system path, but dcm2niix path is also set in ~/.pet2bidsconfig."
                                f" Defaulting to dcm2niix path set in config at {set_in_config}")
+                dcm2niix_path = set_in_config
 
         else:
             dcm2niix_path = helper_functions.check_pet2bids_config()
