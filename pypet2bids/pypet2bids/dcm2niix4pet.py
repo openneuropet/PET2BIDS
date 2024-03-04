@@ -264,7 +264,7 @@ class Dcm2niix4PET:
             load_spreadsheet_data = get_metadata_from_spreadsheet(metadata_path=metadata_path,
                                                                   image_folder=self.image_folder,
                                                                   image_header_dict=self.dicom_headers[
-                                                                      next(iter(self.dicom_headers))],
+                                                                    next(iter(self.dicom_headers))],
                                                                   **self.additional_arguments)
 
             self.spreadsheet_metadata['nifti_json'].update(load_spreadsheet_data['nifti_json'])
