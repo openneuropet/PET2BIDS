@@ -76,6 +76,14 @@ pypet2bids.multiple\_spreadsheets module
     :undoc-members:
     :show-inheritance:
 
+pypet2bids.update_pet_json module
+---------------------------------
+
+.. automodule:: pypet2bids.update_json_pet_file
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Module contents
 ---------------
 

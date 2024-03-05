@@ -478,7 +478,8 @@ def import_and_write_out_module(module: str, destination: str):
 
 
 def write_out_module(module: str = 'pypet2bids.metadata_spreadsheet_example_reader'):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="[DEPRECATED!!] Write out a template for a python script used for "
+                                                 "bespoke metadata.")
     parser.add_argument('template_path', type=str, help="Path to write out template for a translation script.")
     args = parser.parse_args()
 

@@ -1,6 +1,6 @@
 import numpy
 import dotenv
-from pypet2bids.write_ecat import *
+from pypet2bids.write_ecat import write_ecat
 from pypet2bids.read_ecat import read_ecat, ecat_header_maps
 import os
 from math import e

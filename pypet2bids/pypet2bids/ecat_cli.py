@@ -67,7 +67,9 @@ def cli():
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog,
+                                     description="Extracts information from an ECAT file and/or converts ECAT imaging"
+                                                 " and PET metadata files to BIDS compliant nifti, json, and tsv")
     update_or_convert = parser.add_mutually_exclusive_group()
     parser.add_argument("ecat", nargs='?', metavar="ecat_file", help="Ecat image to collect info from.")
     parser.add_argument("--affine", "-a", help="Show affine matrix", action="store_true", default=False)
@@ -244,7 +246,7 @@ def update_json_with_ecat_value_cli():
     via the -k --additional-arguments flag and/or a metadata spreadsheet can be supplied via the --metadata-path flag.
     Command can be accessed after installation via `upadatepetjsonfromecat`
     """
-    json_update_cli = argparse.ArgumentParser()
+    json_update_cli = argparse.ArgumentParser(description="Updates a json sidecar with values extracted from an ECAT.")
     json_update_cli.add_argument("-j", "--json", help="Path to a json to update file.", required=True)
     json_update_cli.add_argument("-e", "--ecat", help="Path to an ecat file.", required=True)
     json_update_cli.add_argument("-m", "--metadata-path", help="Path to a spreadsheet containing PET metadata.")

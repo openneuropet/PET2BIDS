@@ -282,7 +282,9 @@ def update_json_with_dicom_value_cli():
     --additional_arguments flag. This command be accessed after installation of pypet2bids via
     `updatepetjsonfromdicom`.
     """
-    dicom_update_parser = argparse.ArgumentParser()
+    dicom_update_parser = argparse.ArgumentParser(description="Updates a PET json with values from a dicom header "
+                                                              "optionally can update with values from a spreadsheet or "
+                                                              "via values passed in as additional arguments")
     dicom_update_parser.add_argument('-j', '--json', help='path to json to update', required=True)
     dicom_update_parser.add_argument('-d', '--dicom', help='path to dicom to extract values from', required=True)
     dicom_update_parser.add_argument('-m', '--metadata-path', help='path to metadata json', default=None)
@@ -326,7 +328,10 @@ def update_json_cli():
     Updates a json file with user supplied values or values from a spreadsheet. This command can be accessed after
     conversion via `updatepetjson` if so required.
     """
-    update_json_parser = argparse.ArgumentParser()
+    update_json_parser = argparse.ArgumentParser(description="Updates a json file with user supplied values or values "
+                                                             "from a spreadsheet. This command can be accessed after "
+                                                             "conversion via `updatepetjson` if so required. Primarily"
+                                                             "intended to 'touch up' or create sidecar json files.")
     update_json_parser.add_argument('-j', '--json', help='path to json to update', required=True)
     update_json_parser.add_argument('-k', '--additional_arguments',
                         help='additional key value pairs to update json with', nargs='*',
@@ -404,10 +409,25 @@ def get_radionuclide(pydicom_dicom):
 
 def check_meta_radio_inputs(kwargs: dict, logger='pypet2bids') -> dict:
     """
-    Executes very specific PET logic, author does not recall everything it does.
+    Routine to check input consistency, possibly generate new ones from PET
+    BIDS metadata - this only makes sense if you respect the input units as
+    indicated
+
+    e.g. arguments in are provided via the following params (key/value pairs)
+        - 'InjectedRadioctivity',81.24
+        - 'SpecificRadioactivity',1.3019e+04
+
+    Units are transformed as follows:
+
+    InjectedRadioactivity: in MBq
+    InjectedMass:          in ug
+    SpecificRadioactivity: in Bq/g or MBq/ug
+    MolarActivity:         in GBq/umol
+    MolecularWeight:       in g/mol
+
     :param kwargs: metadata key pair's to examine
     :type kwargs: dict
-    :return: fitted/massaged metadata corresponding to logic steps below, return type is an update on input `kwargs`
+    :return: fitted/massaged metadata, return type is an update on input `kwargs`
     :rtype: dict
     """
 

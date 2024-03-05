@@ -1,4 +1,7 @@
-from pypet2bids.read_ecat import *
+import pathlib
+import re
+import os
+from pypet2bids.read_ecat import get_buffer_size, read_ecat, ecat_header_maps
 from dotenv import load_dotenv
 
 parent_dir = pathlib.Path(__file__).parent.resolve()

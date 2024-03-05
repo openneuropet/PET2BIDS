@@ -776,7 +776,9 @@ def cli():
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog,
+                                     description="Given a set of PET dicoms and additional metadata dcm2niix converts "
+                                                 "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.")
     parser.add_argument('folder', nargs='?', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None, const='', nargs='?',
