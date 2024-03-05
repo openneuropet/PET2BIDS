@@ -1,8 +1,12 @@
 from os.path import join
+import warnings
+import pandas
+import pathlib
+
 try:
-    from helper_functions import  *
+    import helper_functions
 except ModuleNotFoundError:
-    from pypet2bids.helper_functions import *
+    import pypet2bids.helper_functions as helper_functions
 
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
@@ -73,7 +77,7 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
 
     for key in nifti_json.keys():
         try:
-            nifti_json[key] = flatten_series(metadata_dataframe[key])
+            nifti_json[key] = helper_functions.flatten_series(metadata_dataframe[key])
         except KeyError:
             warnings.warn(f"{key} not found in metadata extracted from spreadsheet")
 
@@ -104,7 +108,7 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
 
     for key in blood_tsv.keys():
         try:
-            blood_tsv[key] = flatten_series(metadata_dataframe[key])
+            blood_tsv[key] = helper_functions.flatten_series(metadata_dataframe[key])
         except KeyError:
             warnings.warn(f"{key} not found in metadata extracted from spreadsheet")
 

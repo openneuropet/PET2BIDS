@@ -1,9 +1,15 @@
 from json_maj.main import JsonMAJ
+import pathlib
+import numpy
+import typing
+import os
+import argparse
+
 
 try:
-    from pypet2bids.helper_functions import *
+    import pypet2bids.helper_functions as helper_functions
 except ModuleNotFoundError:
-    from helper_functions import *
+    import helper_functions
 
 
 def read_multi_subject_spreadsheets(
@@ -33,11 +39,11 @@ def read_multi_subject_spreadsheets(
 
     """
 
-    required_fields = load_pet_bids_requirements_json()
+    required_fields = helper_functions.load_pet_bids_requirements_json()
 
     if general_metadata_spreadsheet.is_file() and multiple_subject_spreadsheet.is_file():
-        general_metadata = single_spreadsheet_reader(general_metadata_spreadsheet)
-        multiple_subject_metadata = open_meta_data(multiple_subject_spreadsheet)
+        general_metadata = helper_functions.single_spreadsheet_reader(general_metadata_spreadsheet)
+        multiple_subject_metadata = helper_functions.open_meta_data(multiple_subject_spreadsheet)
         multiple_subject_metadata
 
         column_set = set(list(general_metadata.keys()) + list(multiple_subject_metadata.columns))
@@ -49,13 +55,13 @@ def read_multi_subject_spreadsheets(
             for field in required_fields[k]:
                 field_exists = field in column_set
                 if k == 'mandatory' and not field_exists:
-                    logging.warning(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
+                    helper_functions.logging.warning(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
                                     f"{multiple_subject_spreadsheet} are missing required column {field}")
                 elif k == 'recommended' and not field_exists:
-                    logging.info(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
+                    helper_functions.logging.info(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
                                  f"{multiple_subject_spreadsheet} are missing recommended column {field}")
                 elif k == 'optional':
-                    logging.info(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
+                    helper_functions.logging.info(f"Input spreadsheet(s) {general_metadata_spreadsheet} and "
                                  f"{multiple_subject_spreadsheet} are missing optional column {field}")
 
         # check to see if there's a subject column in the multi subject data
@@ -78,9 +84,9 @@ def read_multi_subject_spreadsheets(
         # collect all subject id's
         subject_metadata = {}
         for subject in multiple_subject_metadata.get(subject_column, None):
-            subject_row = get_coordinates_containing(subject, multiple_subject_metadata, single=True)[0]
-            subject_id = collect_bids_part('sub', subject)
-            session_id = collect_bids_part('ses', subject)
+            subject_row = helper_functions.get_coordinates_containing(subject, multiple_subject_metadata, single=True)[0]
+            subject_id = helper_functions.collect_bids_part('sub', subject)
+            session_id = helper_functions.collect_bids_part('ses', subject)
             if subject_id:
                 subject_metadata[subject_id] = general_metadata
                 if session_id:
@@ -88,7 +94,7 @@ def read_multi_subject_spreadsheets(
                 if kwargs:
                     subject_metadata[subject_id].update(**kwargs)
 
-                subject_data_from_row = transform_row_to_dict(subject_row, multiple_subject_metadata)
+                subject_data_from_row = helper_functions.transform_row_to_dict(subject_row, multiple_subject_metadata)
                 for k, v in subject_data_from_row.items():
                     if v and k != subject_column and v is not numpy.nan:
                         subject_metadata[subject_id][k] = v
