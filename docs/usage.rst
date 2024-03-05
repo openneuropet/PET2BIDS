@@ -353,3 +353,40 @@ Documentation for Read the Docs can be built and previewed locally using the fol
 The output of the build can be found at docs/_build/html/ and previewed by opening any of the html files contained
 therein with a web browser. Chances are good if you're able to build with no errors locally than any changes you make
 to the documentation rst files will be built successfully on Read the Docs, but not guaranteed.
+
+
+Working with existing NiFTi and JSON files
+------------------------------------------
+
+PET2BIDS is primarily designed to work with DICOM and ECAT files, but it can also be used to add or update sidecar json
+metadata after conversion to NiFTi (whether by PET2BIDS or some other tool). This can be done using the
+`updatejsonpetfile.m` function in Matlab or the `updatepetjson` command line tool in Python. Additionally, if one has
+dicom or ecat files available to them they can use `updatepetjsonfromdicom` or `updatepetjsonfromecat` respectively
+instead of `updatepetjson` or `updatejsonpetfile.m`.
+
+
+*Disclaimer:
+Again, we strongly encourage users to use PET2BIDS or dcm2niix to convert their data from dicom or ecat into nifti.
+We have observed that nifti's not produced by dcm2niix are often missing dicom metadata such as frame timing or image
+orientation. Additionally some non-dcm2niix nifti's contain extra singleton dimensions or extended but undefined main
+image headers.*
+
+
+Examples of using the command line tools can be seen below:
+
+
+.. code-block::
+
+    updatepetjson /path/to/nifti.nii /path/to/json.json --kwargs TimeZero=12:12:12
+    updatepetjsonfromdicom /path/to/dicom.dcm /path/to/json.json --kwargs TimeZero=12:12:12
+    updatepetjsonfromecat /path/to/ecat.v /path/to/json.json --kwargs TimeZero=12:12:12
+
+
+.. code-block::
+
+    # run matlab to get this output
+    >> jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json');
+    >> metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11',
+       ... 'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+    >> dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm');
+    >> status = updatejsonpetfile(jsonfilename,metadata,dcminfo);

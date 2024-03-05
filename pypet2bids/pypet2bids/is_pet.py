@@ -164,8 +164,16 @@ def pet_folder(folder_path: Path) -> Union[str, list, bool]:
 
 
 def main():
+    """
+    This command line utility exists almost entirely for ezBIDS. It's use there is to ensure that dcm2niix is not run
+    on folders containing PET images. Instead, the PET images are converted using the dcm2niix4pet from this library.
+    :return: Path to PET folder or file
+    :rtype: str
+    """
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Check if a file is a PET image or bloodfile. If a folder is given, "
+                                                 "all files in the folder will be checked and any folders "
+                                                 "containing PET files will be returned.")
     parser.add_argument('filepath', type=Path, help="File path to check whether file is PET image or bloodfile. "
                                                     "If a folder is given, all files in the folder will be checked and "
                                                     "any folders containing PET files will be returned.")

@@ -117,7 +117,9 @@ def cli():
     :rtype: argparse.namespace
 
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="Converts PMOD blood files to PET BIDS compliant tsv's and json "
+                                                 "_blood.* files")
     parser.add_argument(
         "--whole-blood-path",
         '-w',
