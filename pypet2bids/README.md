@@ -5,9 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/pet2bids/badge/?version=latest)](https://pet2bids.readthedocs.io/en/latest/?badge=latest)
 [![phantoms](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml)
 
-This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). 
-The work to create these tools is funded by [Novo Nordisk Foundation](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the 
-[BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
+This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). The work to create these tools is funded by [Novo Nordisk Foundation](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the [BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
 
 For DICOM image conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage), 
 collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix 
@@ -22,8 +20,7 @@ For **more detailed** (and most likely helpful) documentation visit the Read the
 
 ## Installation
 
-Simply download the repository - follow the specific Matlab or Python explanations. Matlab and Python codes provide the 
-same functionalities.
+Simply download the repository - follow the specific Matlab or Python explanations. Matlab and Python codes provide the same functionalities.
 
 ### matlab
 
@@ -120,7 +117,7 @@ A small collection of json files for our metadata information.
 
 ### user metadata 
 
-No matter the way you prefer inputting metadata (passing all arguments, using txt or env file, using spreadsheets), you are always right! DICOM values will be ignored - BUT they are checked and the code tells you if there is inconsistency between your inputs and what the DICOM says.
+No matter the way you prefer inputting metadata (passing all arguments, using txt or env file, using spreadsheets), you are always right! DICOM values will be ignored - BUT they are checked and the code tells you if there is inconsistency between your inputs and what DICOM says.
 
 ### ecat_validation
 

@@ -169,7 +169,9 @@ def cli():
     :return: a dictionary version of the subject sidecar json's that get written out
     :rtype: dict
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="allows reading and writing of a spreadsheet following the format "
+                                                 "specified in PET2BIDS/spreadsheet_conversion/single_subject_sheet/ "
+                                                 "to a json")
     parser.add_argument("spreadsheet", type=pathlib.Path,
                         help="Path to a spreadsheet with data applicable to mulitiple subjects")
     parser.add_argument("--output-path", "-o", type=pathlib.Path)

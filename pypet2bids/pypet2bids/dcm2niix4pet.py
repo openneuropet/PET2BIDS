@@ -173,7 +173,8 @@ class Dcm2niix4PET:
 
         self.dcm2niix_path = self.check_for_dcm2niix()
         if not self.dcm2niix_path:
-            raise FileNotFoundError("dcm2niix not found, this module depends on it for conversions, exiting.")
+            logger.error("dcm2niix not found, this module depends on it for conversions, exiting.")
+            sys.exit(1)
 
         # check for the version of dcm2niix
         minimum_version = 'v1.0.20220720'
@@ -286,11 +287,26 @@ class Dcm2niix4PET:
             dcm2niix_path = subprocess.run('which dcm2niix',
                                            shell=True,
                                            capture_output=True).stdout.decode('utf-8').strip()
+            # check to see if dcm2niix is set in the config file, default to that if it's the case and alert user
+            set_in_config = helper_functions.check_pet2bids_config()
+            if set_in_config:
+                logger.warning(f"dcm2niix found on system path, but dcm2niix path is also set in ~/.pet2bidsconfig."
+                               f" Defaulting to dcm2niix path set in config at {set_in_config}")
+                dcm2niix_path = set_in_config
+
         else:
+            dcm2niix_path = helper_functions.check_pet2bids_config()
+
+        if not dcm2niix_path:
             pkged = "https://github.com/rordenlab/dcm2niix/releases"
             instructions = "https://github.com/rordenlab/dcm2niix#install"
-            no_dcm2niix = f"""Dcm2niix does not appear to be installed. Installation instructions can be found here 
-                       {instructions} and packaged versions can be found at {pkged}"""
+            no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in 
+                        $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here 
+                        {instructions} 
+                        and packaged versions can be found at 
+                        {pkged}
+                        Alternatively, you can set the path to dcm2niix in the config file at $HOME/.pet2bidsconfig
+                        using the command dcm2niix4pet --set-dcm2niix-path."""
             logger.error(no_dcm2niix)
             dcm2niix_path = None
 
@@ -524,6 +540,7 @@ class Dcm2niix4PET:
                     # this is mostly for ezBIDS, but it helps us to make better use of the series description that
                     # dcm2niix generates by default for PET imaging
                     collect_these_fields = {
+                        'ProtocolName': '',
                         'SeriesDescription': '',
                         'TracerName': 'trc',
                         'InjectedRadioactivity': '',
@@ -759,7 +776,9 @@ def cli():
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog,
+                                     description="Given a set of PET dicoms and additional metadata dcm2niix converts "
+                                                 "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.")
     parser.add_argument('folder', nargs='?', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('--metadata-path', '-m', type=str, default=None, const='', nargs='?',

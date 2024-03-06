@@ -53,7 +53,7 @@ def update_ecat_header(ecat_file: str, new_values: dict):
 
 def cli():
     import argparse
-    parser = argparse.ArgumentParser(description='Update the header of an ECAT file')
+    parser = argparse.ArgumentParser(description='Update the header of an ECAT file.')
     parser.add_argument('ecat_file', type=str, help='path to the ECAT file')
     parser.add_argument('new_values', nargs='*', action=helper_functions.ParseKwargs, default={},
                         help='new values to update the MAINHEADER of the ecat file, e.g. NUM_FRAMES=71 '

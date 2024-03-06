@@ -83,4 +83,7 @@ testotherpython:
 pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
 	@echo finished running python tests
 
-
+black:
+	@for file in `find . -name "*.py"`; do \
+		black $$file; \
+	done

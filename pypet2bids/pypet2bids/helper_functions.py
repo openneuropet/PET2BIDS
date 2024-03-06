@@ -478,7 +478,8 @@ def import_and_write_out_module(module: str, destination: str):
 
 
 def write_out_module(module: str = 'pypet2bids.metadata_spreadsheet_example_reader'):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="[DEPRECATED!!] Write out a template for a python script used for "
+                                                 "bespoke metadata.")
     parser.add_argument('template_path', type=str, help="Path to write out template for a translation script.")
     args = parser.parse_args()
 
@@ -985,14 +986,16 @@ class CustomFormatter(logging.Formatter):
 def hash_fields(**fields):
     hash_return_string = ""
     hash_string = ""
+    if fields.get('ProtocolName', None):
+        hash_return_string += f"{fields.get('ProtocolName')}_"
     keys_we_want = ['ses', 'rec', 'trc']
     for key, value in fields.items():
         # sanitize values
         regex = r"[^a-zA-Z0-9]"
         value = re.sub(regex, "", str(value))
-        hash_string += f"{key}-{value}_"
+        hash_string += f"{value}_"
         if key in keys_we_want:
-            hash_return_string += f"{key}-{value}_"
+            hash_return_string += f"{value}_"
 
     hash_hex = hashlib.md5(hash_string.encode('utf-8')).hexdigest()
 

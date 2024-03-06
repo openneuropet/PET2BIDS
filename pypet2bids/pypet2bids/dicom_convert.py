@@ -377,9 +377,11 @@ if platform.system() == 'Darwin':
 else:
     item_default = None
 
+
 def cli():
     # simple converter takes command line arguments <folder path> <destination path> <subject-id> <session-id>
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="Converts PET imaging data from dicom to BIDS compliant nifti and metadata "
+                                        "files")
     parser.add_argument('folder', type=str,
                         help="Folder path containing imaging data")
     parser.add_argument('-m', '--metadata-path', type=str,
