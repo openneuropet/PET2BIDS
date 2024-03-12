@@ -253,6 +253,9 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     for entry, dictionary in ecat_header_maps['ecat_headers'].items():
         possible_ecat_headers[entry] = dictionary['mainheader']
 
+    # set byte order
+    byte_order = '>'
+
     confirmed_version = None
     for version, dictionary in possible_ecat_headers.items():
         try:
@@ -379,7 +382,8 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                     formatting = '>f4'
                     pixel_data_type = numpy.dtype(formatting)
                 elif dt_val == 6:
-                    pixel_data_type = '>H'
+                    # >H is unsigned short e.g. >u2, reverting to int16 e.g. i2 to align with commit 9beee53
+                    pixel_data_type = '>i2'
                 else:
                     raise ValueError(
                         f"Unable to determine pixel data type from value: {dt_val} extracted from {subheader}")
@@ -388,6 +392,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                                                         dtype=pixel_data_type,
                                                         count=image_size[0] * image_size[1] * image_size[2]).reshape(
                     *image_size, order='F')
+                #pixel_data_matrix_3d.newbyteorder(byte_order)
             else:
                 raise Exception(f"Unable to determine frame image size, unsupported image type {subheader_type_number}")
 

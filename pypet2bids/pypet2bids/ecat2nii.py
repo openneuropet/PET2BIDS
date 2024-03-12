@@ -78,11 +78,14 @@ def ecat2nii(ecat_main_header=None,
                         f"type(ecat_subheaders)={type(ecat_subheaders)}, "
                         f"type(ecat_pixel_data)={type(ecat_pixel_data)} instead.")
 
+    # set the byte order and the pixel data type from the input array
+    pixel_data_type = data.dtype
+
     # check for TimeZero supplied via kwargs
     if kwargs.get('TimeZero', None):
         TimeZero = kwargs['TimeZero']
     else:
-        logger.warn("Metadata TimeZero is missing -- set to ScanStart or empty to use the scanning time as "
+        logger.warning("Metadata TimeZero is missing -- set to ScanStart or empty to use the scanning time as "
               "injection time")
 
     # get image shape
@@ -106,7 +109,7 @@ def ecat2nii(ecat_main_header=None,
                                   sub_headers[0]['Y_DIMENSION'],
                                   sub_headers[0]['Z_DIMENSION'],
                                   main_header['NUM_FRAMES']),
-                           dtype=numpy.dtype('>f4'))
+                           dtype=">f4")
 
     # collect timing information
     start, delta = [], []
@@ -117,9 +120,8 @@ def ecat2nii(ecat_main_header=None,
     # load frame data into img temp
     for index in reversed(range(img_shape[3])):  # Don't throw stones working from existing matlab code
         print(f"Loading frame {index + 1}")
-        # save out our slice of data before flip to a text file to compare w/ matlab data
         img_temp[:, :, :, index] = numpy.flip(numpy.flip(numpy.flip(
-            data[:, :, :, index].astype(numpy.dtype('>f4')) * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
+            data[:, :, :, index] * sub_headers[index]['SCALE_FACTOR'], 1), 2), 0)
         start.append(sub_headers[index]['FRAME_START_TIME'] * 60)  # scale to per minute
         delta.append(sub_headers[index]['FRAME_DURATION'] * 60)  # scale to per minute
 
@@ -132,11 +134,23 @@ def ecat2nii(ecat_main_header=None,
             prompts.append(0)
             randoms.append(0)
 
+    # so the only real difference between the matlab code and the python code is that that we aren't manually
+    # scaling the date to 16 bit integers.
+    rg = img_temp.max() - img_temp.min()
+    if rg != 32767:
+        max_img = img_temp.max()
+        img_temp = img_temp / max_img * 32767
+        sca = max_img / 32767
+        min_img = img_temp.min()
+        if min_img < -32768:
+            img_temp = img_temp / (min_img * -32768)
+            sca = sca * (min_img * -32768)
+
     ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
-    if ecat_cal_units==1:                              # Calibrate if it hasn't been already
-        final_image = img_temp * main_header['ECAT_CALIBRATION_FACTOR']
+    if ecat_cal_units == 1:                              # Calibrate if it hasn't been already
+        final_image = img_temp.astype(numpy.single) * sca * main_header['ECAT_CALIBRATION_FACTOR']
     else:                            # And don't calibrate if CALIBRATION_UNITS is anything else but 1
-        final_image = img_temp
+        final_image = sca * img_temp.astype(numpy.single)
 
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
@@ -161,7 +175,7 @@ def ecat2nii(ecat_main_header=None,
         t[3, 1] = qoffset_y
         t[3, 2] = qoffset_z
 
-        # note this affine is the transform of of a nibabel ecat object's affine
+        # note this affine is the transform of a nibabel ecat object's affine
         affine = t
 
     img_nii = nibabel.Nifti1Image(final_image, affine=affine)
