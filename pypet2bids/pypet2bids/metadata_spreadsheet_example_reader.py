@@ -11,8 +11,8 @@ except ModuleNotFoundError:
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent
-metadata_dir = join(project_dir, 'metadata')
-pet_metadata_json = join(metadata_dir, 'PET_metadata.json')
+metadata_dir = join(project_dir, "metadata")
+pet_metadata_json = join(metadata_dir, "PET_metadata.json")
 permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
 """
@@ -44,35 +44,35 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
     :return:
     """
     nifti_json = {
-        'Manufacturer': '',
-        'ManufacturersModelName': '',
-        'Units': '',
-        'TracerName': '',
-        'TracerRadionuclide': '',
-        'InjectedRadioactivity': 0,
-        'InjectedRadioactivityUnits': '',
-        'InjectedMass': 0,
-        'InjectedMassUnits': '',
-        'SpecificRadioactivity': 0,
-        'SpecificRadioactivityUnits': '',
-        'ModeOfAdministration': '',
-        'TimeZero': 0,
-        'ScanStart': 0,
-        'InjectionStart': 0,
-        'FrameTimesStart': [],
-        'FrameDuration': [],
-        'AcquisitionMode': '',
-        'ImageDecayCorrected': '',
-        'ImageDecayCorrectionTime': 0,
-        'ReconMethodName': '',
-        'ReconMethodParameterLabels': [],
-        'ReconMethodParameterUnits': [],
-        'ReconMethodParameterValues': [],
-        'ReconFilterType': '',
-        'ReconFilterSize': 0,
-        'AttenuationCorrection': '',
-        'InstitutionName': '',
-        'InstitutionalDepartmentName': ''
+        "Manufacturer": "",
+        "ManufacturersModelName": "",
+        "Units": "",
+        "TracerName": "",
+        "TracerRadionuclide": "",
+        "InjectedRadioactivity": 0,
+        "InjectedRadioactivityUnits": "",
+        "InjectedMass": 0,
+        "InjectedMassUnits": "",
+        "SpecificRadioactivity": 0,
+        "SpecificRadioactivityUnits": "",
+        "ModeOfAdministration": "",
+        "TimeZero": 0,
+        "ScanStart": 0,
+        "InjectionStart": 0,
+        "FrameTimesStart": [],
+        "FrameDuration": [],
+        "AcquisitionMode": "",
+        "ImageDecayCorrected": "",
+        "ImageDecayCorrectionTime": 0,
+        "ReconMethodName": "",
+        "ReconMethodParameterLabels": [],
+        "ReconMethodParameterUnits": [],
+        "ReconMethodParameterValues": [],
+        "ReconFilterType": "",
+        "ReconFilterSize": 0,
+        "AttenuationCorrection": "",
+        "InstitutionName": "",
+        "InstitutionalDepartmentName": "",
     }
 
     for key in nifti_json.keys():
@@ -88,22 +88,22 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
         "DispersionCorrected": False,
         "time": {
             "Description": "Time in relation to time zero defined in _pet.json",
-            "Units": "s"
+            "Units": "s",
         },
         "plasma_radioactivity": {
             "Description": "Radioactivity in plasma samples, measured by eye balling it.",
-            "Units": "kBq/mL"
+            "Units": "kBq/mL",
         },
         "whole_blood_radioactivity": {
             "Description": "Radioactivity in whole blood samples, measured by divining rod.",
-            "Units": "kBq/mL"
-        }
+            "Units": "kBq/mL",
+        },
     }
 
     blood_tsv = {
         "time": [],
         "plasma_radioactivity": [],
-        "whole_blood_radioactivity": []
+        "whole_blood_radioactivity": [],
     }
 
     for key in blood_tsv.keys():
@@ -115,4 +115,4 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
     # now transform the key value pairs in blood_tsv into a pandas dataframe object.
     blood_tsv = pandas.DataFrame.from_dict(blood_tsv)
 
-    return {'nifti_json': nifti_json, 'blood_json': blood_json, 'blood_tsv': blood_tsv}
+    return {"nifti_json": nifti_json, "blood_json": blood_json, "blood_tsv": blood_tsv}
