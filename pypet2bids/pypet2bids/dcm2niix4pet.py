@@ -11,6 +11,7 @@ For more details see the CLI portion of this module or the documentation for the
 | *Authors: Anthony Galassi*
 | *Copyright OpenNeuroPET team*
 """
+
 import pathlib
 import sys
 import textwrap
@@ -32,44 +33,61 @@ import importlib
 try:
     import helper_functions
     import is_pet
-    from update_json_pet_file import (check_json, update_json_with_dicom_value, update_json_with_dicom_value_cli,
-                                      get_radionuclide, check_meta_radio_inputs, metadata_dictionaries,
-                                      get_metadata_from_spreadsheet)
+    from update_json_pet_file import (
+        check_json,
+        update_json_with_dicom_value,
+        update_json_with_dicom_value_cli,
+        get_radionuclide,
+        check_meta_radio_inputs,
+        metadata_dictionaries,
+        get_metadata_from_spreadsheet,
+    )
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
-    from pypet2bids.update_json_pet_file import (check_json, update_json_with_dicom_value,
-                                                 update_json_with_dicom_value_cli, get_radionuclide,
-                                                 check_meta_radio_inputs, metadata_dictionaries,
-                                                 get_metadata_from_spreadsheet)
+    from pypet2bids.update_json_pet_file import (
+        check_json,
+        update_json_with_dicom_value,
+        update_json_with_dicom_value_cli,
+        get_radionuclide,
+        check_meta_radio_inputs,
+        metadata_dictionaries,
+        get_metadata_from_spreadsheet,
+    )
 
 logger = helper_functions.logger("pypet2bids")
 
 module_folder = Path(__file__).parent.resolve()
 python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
-metadata_folder = join(pet2bids_folder, 'metadata')
+metadata_folder = join(pet2bids_folder, "metadata")
 
 # check to see if config file exists
 home_dir = Path.home()
-pypet2bids_config = home_dir / '.pet2bidsconfig'
+pypet2bids_config = home_dir / ".pet2bidsconfig"
 if pypet2bids_config.exists():
     # check to see if the template json var is set and valid
-    default_metadata_json = helper_functions.check_pet2bids_config('DEFAULT_METADATA_JSON')
+    default_metadata_json = helper_functions.check_pet2bids_config(
+        "DEFAULT_METADATA_JSON"
+    )
     if default_metadata_json and Path(default_metadata_json).exists():
         # do nothing
         pass
     else:
         try:
-            shutil.copy(Path(metadata_folder) / 'template_json.json', default_metadata_json)
+            shutil.copy(
+                Path(metadata_folder) / "template_json.json", default_metadata_json
+            )
         except FileNotFoundError:
-            shutil.copy(module_folder / 'template_json.json', default_metadata_json)
+            shutil.copy(module_folder / "template_json.json", default_metadata_json)
 else:
     # if it doesn't exist use the default one included in this library
-    helper_functions.modify_config_file('DEFAULT_METADATA_JSON', module_folder / 'template_json.json')
+    helper_functions.modify_config_file(
+        "DEFAULT_METADATA_JSON", module_folder / "template_json.json"
+    )
 
 
-def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
+def dicom_datetime_to_dcm2niix_time(dicom=None, date="", time=""):
     """
     Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
     conversion if '%t' is provided following the '-f' flag. The result is the addition of a date time string of the
@@ -81,8 +99,8 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
     :return: a datetime string that corresponds to the converted filenames from dcm2niix when used with the `-f %t` flag
     """
-    parsed_time = ''
-    parsed_date = ''
+    parsed_time = ""
+    parsed_date = ""
     if dicom:
         if type(dicom) is pydicom.dataset.FileDataset:
             # do nothing
@@ -92,8 +110,10 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
                 dicom_path = Path(dicom)
                 dicom = pydicom.dcmread(dicom_path)
             except TypeError:
-                raise TypeError(f"dicom {dicom} must be either a pydicom.dataset.FileDataSet object or a "
-                                f"valid path to a dicom file")
+                raise TypeError(
+                    f"dicom {dicom} must be either a pydicom.dataset.FileDataSet object or a "
+                    f"valid path to a dicom file"
+                )
 
         parsed_date = dicom.StudyDate
         parsed_time = str(round(float(dicom.StudyTime)))
@@ -104,7 +124,7 @@ def dicom_datetime_to_dcm2niix_time(dicom=None, date='', time=''):
 
     if len(parsed_time) < 6:
         zeros_to_pad = 6 - len(parsed_time)
-        parsed_time = zeros_to_pad * '0' + parsed_time
+        parsed_time = zeros_to_pad * "0" + parsed_time
 
     return parsed_date + parsed_time
 
@@ -118,7 +138,7 @@ def collect_date_time_from_file_name(file_name):
     dcm2niix
     :return: a date and time object
     """
-    date_time_string = re.search(r'(?!\_)[0-9]{14}(?=\_)', file_name)
+    date_time_string = re.search(r"(?!\_)[0-9]{14}(?=\_)", file_name)
     if date_time_string:
         date = date_time_string[0][0:8]
         time = date_time_string[0][8:]
@@ -129,9 +149,17 @@ def collect_date_time_from_file_name(file_name):
 
 
 class Dcm2niix4PET:
-    def __init__(self, image_folder, destination_path=None, metadata_path=None,
-                 metadata_translation_script=None, additional_arguments={}, file_format='%p_%i_%t_%s',
-                 silent=False, tempdir_location=None):
+    def __init__(
+        self,
+        image_folder,
+        destination_path=None,
+        metadata_path=None,
+        metadata_translation_script=None,
+        additional_arguments={},
+        file_format="%p_%i_%t_%s",
+        silent=False,
+        tempdir_location=None,
+    ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
             - Convert a set of dicoms into .nii and .json sidecar files
@@ -173,19 +201,23 @@ class Dcm2niix4PET:
 
         self.dcm2niix_path = self.check_for_dcm2niix()
         if not self.dcm2niix_path:
-            logger.error("dcm2niix not found, this module depends on it for conversions, exiting.")
+            logger.error(
+                "dcm2niix not found, this module depends on it for conversions, exiting."
+            )
             sys.exit(1)
 
         # check for the version of dcm2niix
-        minimum_version = 'v1.0.20220720'
-        version_string = subprocess.run([self.dcm2niix_path, '-v'], capture_output=True)
+        minimum_version = "v1.0.20220720"
+        version_string = subprocess.run([self.dcm2niix_path, "-v"], capture_output=True)
         version = re.search(r"v[0-9].[0-9].{8}[0-9]", str(version_string.stdout))
 
         if version:
             # compare with minimum version
             if version[0] < minimum_version:
-                logger.warning(f"Minimum version {minimum_version} of dcm2niix is recommended, found "
-                               f"installed version {version[0]} at {self.dcm2niix_path}.")
+                logger.warning(
+                    f"Minimum version {minimum_version} of dcm2niix is recommended, found "
+                    f"installed version {version[0]} at {self.dcm2niix_path}."
+                )
 
         # check if user provided a custom tempdir location
         self.tempdir_location = tempdir_location
@@ -197,18 +229,20 @@ class Dcm2niix4PET:
         self.full_file_path_given = False
 
         for part in Path(destination_path).parts:
-            if '.nii' in part or '.nii.gz' in part:
+            if ".nii" in part or ".nii.gz" in part:
                 self.full_file_path_given = True
                 self.destination_folder = Path(destination_path).parent
                 # replace .nii and .nii.gz
-                self.destination_path = Path(str(destination_path).replace('.nii', '').replace('.gz', ''))
+                self.destination_path = Path(
+                    str(destination_path).replace(".nii", "").replace(".gz", "")
+                )
                 break
 
         # replace the suffix in the destination path with '' if a non-nifti full file path is give
         if Path(destination_path).suffix:
             self.full_file_path_given = True
             self.destination_folder = Path(destination_path).parent
-            self.destination_path = Path(destination_path).with_suffix('')
+            self.destination_path = Path(destination_path).with_suffix("")
 
         if not self.full_file_path_given:
             if not destination_path:
@@ -219,30 +253,50 @@ class Dcm2niix4PET:
                 self.destination_path = self.destination_folder
 
         # extract PET filename parts from destination path if given
-        self.subject_id = helper_functions.collect_bids_part('sub', str(self.destination_path))
-        self.session_id = helper_functions.collect_bids_part('ses', str(self.destination_path))
-        self.task = helper_functions.collect_bids_part('task', str(self.destination_path))
-        self.tracer = helper_functions.collect_bids_part('trc', str(self.destination_path))
-        self.reconstruction_method = helper_functions.collect_bids_part('rec', str(self.destination_path))
-        self.run_id = helper_functions.collect_bids_part('run', str(self.destination_path))
+        self.subject_id = helper_functions.collect_bids_part(
+            "sub", str(self.destination_path)
+        )
+        self.session_id = helper_functions.collect_bids_part(
+            "ses", str(self.destination_path)
+        )
+        self.task = helper_functions.collect_bids_part(
+            "task", str(self.destination_path)
+        )
+        self.tracer = helper_functions.collect_bids_part(
+            "trc", str(self.destination_path)
+        )
+        self.reconstruction_method = helper_functions.collect_bids_part(
+            "rec", str(self.destination_path)
+        )
+        self.run_id = helper_functions.collect_bids_part(
+            "run", str(self.destination_path)
+        )
 
         self.file_name_slug = None
 
         # we keep track of PET metadata in this spreadsheet metadata_dict, that includes nifti, _blood.json, and
         # _blood.tsv data
-        self.spreadsheet_metadata = {'nifti_json': {}, 'blood_json': {}, 'blood_tsv': {}}
+        self.spreadsheet_metadata = {
+            "nifti_json": {},
+            "blood_json": {},
+            "blood_tsv": {},
+        }
         self.dicom_headers = self.extract_dicom_headers()
         # we consider values stored in a default JSON file to be additional arguments, we load those
         # values first and then overwrite them with any user supplied values
 
         # load config file
-        default_json_path = helper_functions.check_pet2bids_config('DEFAULT_METADATA_JSON')
+        default_json_path = helper_functions.check_pet2bids_config(
+            "DEFAULT_METADATA_JSON"
+        )
         if default_json_path and Path(default_json_path).exists():
-            with open(default_json_path, 'r') as json_file:
+            with open(default_json_path, "r") as json_file:
                 try:
                     self.spreadsheet_metadata.update(json.load(json_file))
                 except json.decoder.JSONDecodeError:
-                    logger.warning(f"Unable to load default metadata json file at {default_json_path}, skipping.")
+                    logger.warning(
+                        f"Unable to load default metadata json file at {default_json_path}, skipping."
+                    )
 
         self.additional_arguments = additional_arguments
 
@@ -252,24 +306,34 @@ class Dcm2niix4PET:
             self.metadata_path = Path(metadata_path)
             self.metadata_translation_script = Path(metadata_translation_script)
 
-            if self.metadata_path.exists() and self.metadata_translation_script.exists():
+            if (
+                self.metadata_path.exists()
+                and self.metadata_translation_script.exists()
+            ):
                 # load the spreadsheet into a dataframe
                 self.extract_metadata()
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
         elif metadata_path and not metadata_translation_script or metadata_path == "":
-            if not self.spreadsheet_metadata.get('nifti_json', None):
-                self.spreadsheet_metadata['nifti_json'] = {}
+            if not self.spreadsheet_metadata.get("nifti_json", None):
+                self.spreadsheet_metadata["nifti_json"] = {}
 
-            load_spreadsheet_data = get_metadata_from_spreadsheet(metadata_path=metadata_path,
-                                                                  image_folder=self.image_folder,
-                                                                  image_header_dict=self.dicom_headers[
-                                                                    next(iter(self.dicom_headers))],
-                                                                  **self.additional_arguments)
+            load_spreadsheet_data = get_metadata_from_spreadsheet(
+                metadata_path=metadata_path,
+                image_folder=self.image_folder,
+                image_header_dict=self.dicom_headers[next(iter(self.dicom_headers))],
+                **self.additional_arguments,
+            )
 
-            self.spreadsheet_metadata['nifti_json'].update(load_spreadsheet_data['nifti_json'])
-            self.spreadsheet_metadata['blood_tsv'].update(load_spreadsheet_data['blood_tsv'])
-            self.spreadsheet_metadata['blood_json'].update(load_spreadsheet_data['blood_json'])
+            self.spreadsheet_metadata["nifti_json"].update(
+                load_spreadsheet_data["nifti_json"]
+            )
+            self.spreadsheet_metadata["blood_tsv"].update(
+                load_spreadsheet_data["blood_tsv"]
+            )
+            self.spreadsheet_metadata["blood_json"].update(
+                load_spreadsheet_data["blood_json"]
+            )
 
         self.file_format = file_format
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
@@ -282,16 +346,25 @@ class Dcm2niix4PET:
 
     @staticmethod
     def check_posix():
-        check = subprocess.run("dcm2niix -h", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        check = subprocess.run(
+            "dcm2niix -h",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         if check.returncode == 0:
-            dcm2niix_path = subprocess.run('which dcm2niix',
-                                           shell=True,
-                                           capture_output=True).stdout.decode('utf-8').strip()
+            dcm2niix_path = (
+                subprocess.run("which dcm2niix", shell=True, capture_output=True)
+                .stdout.decode("utf-8")
+                .strip()
+            )
             # check to see if dcm2niix is set in the config file, default to that if it's the case and alert user
             set_in_config = helper_functions.check_pet2bids_config()
             if set_in_config:
-                logger.warning(f"dcm2niix found on system path, but dcm2niix path is also set in ~/.pet2bidsconfig."
-                               f" Defaulting to dcm2niix path set in config at {set_in_config}")
+                logger.warning(
+                    f"dcm2niix found on system path, but dcm2niix path is also set in ~/.pet2bidsconfig."
+                    f" Defaulting to dcm2niix path set in config at {set_in_config}"
+                )
                 dcm2niix_path = set_in_config
 
         else:
@@ -319,13 +392,13 @@ class Dcm2niix4PET:
         :return: status code of the command dcm2niix -h
         """
 
-        if system().lower() != 'windows':
+        if system().lower() != "windows":
             dcm2niix_path = self.check_posix()
             # fall back and check the config file if it's not on the path
             if not dcm2niix_path:
-                dcm2niix_path = helper_functions.check_pet2bids_config('DCM2NIIX_PATH')
-        elif system().lower() == 'windows':
-            dcm2niix_path = helper_functions.check_pet2bids_config('DCM2NIIX_PATH')
+                dcm2niix_path = helper_functions.check_pet2bids_config("DCM2NIIX_PATH")
+        elif system().lower() == "windows":
+            dcm2niix_path = helper_functions.check_pet2bids_config("DCM2NIIX_PATH")
         else:
             dcm2niix_path = None
 
@@ -381,17 +454,29 @@ class Dcm2niix4PET:
             convert = subprocess.run(cmd, shell=True, capture_output=True)
 
             if convert.returncode != 0:
-                print("Check output .nii files, dcm2iix returned these errors during conversion:")
-                if bytes("Skipping existing file name", "utf-8") not in convert.stdout or convert.stderr:
+                print(
+                    "Check output .nii files, dcm2iix returned these errors during conversion:"
+                )
+                if (
+                    bytes("Skipping existing file name", "utf-8") not in convert.stdout
+                    or convert.stderr
+                ):
                     print(convert.stderr)
-                elif convert.returncode != 0 and bytes("Error: Check sorted order",
-                                                       "utf-8") in convert.stdout or convert.stderr:
-                    print("Possible error with frame order, is this a phillips dicom set?")
+                elif (
+                    convert.returncode != 0
+                    and bytes("Error: Check sorted order", "utf-8") in convert.stdout
+                    or convert.stderr
+                ):
+                    print(
+                        "Possible error with frame order, is this a phillips dicom set?"
+                    )
                     print(convert.stdout)
                     print(convert.stderr)
 
             # collect contents of the tempdir
-            files_created_by_dcm2niix = [join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)]
+            files_created_by_dcm2niix = [
+                join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)
+            ]
 
             # make sure destination path exists if not try creating it.
             try:
@@ -407,28 +492,38 @@ class Dcm2niix4PET:
             # iterate through created files to supplement sidecar jsons
             for created in files_created_by_dcm2niix:
                 created_path = Path(created)
-                if created_path.suffix == '.json':
+                if created_path.suffix == ".json":
                     # we want to pair up the headers to the files created in the output directory in case
                     # dcm2niix has created files from multiple sessions
-                    matched_dicoms_and_headers = self.match_dicom_header_to_file(destination_path=tempdir_pathlike)
+                    matched_dicoms_and_headers = self.match_dicom_header_to_file(
+                        destination_path=tempdir_pathlike
+                    )
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
                     if self.additional_arguments:
-                        check_for_missing = check_json(created_path,
-                                                       silent=True,
-                                                       spreadsheet_metadata=self.spreadsheet_metadata,
-                                                       **self.additional_arguments)
+                        check_for_missing = check_json(
+                            created_path,
+                            silent=True,
+                            spreadsheet_metadata=self.spreadsheet_metadata,
+                            **self.additional_arguments,
+                        )
                     else:
-                        check_for_missing = check_json(created_path,
-                                                       silent=True,
-                                                       spreadsheet_metadata=self.spreadsheet_metadata)
+                        check_for_missing = check_json(
+                            created_path,
+                            silent=True,
+                            spreadsheet_metadata=self.spreadsheet_metadata,
+                        )
 
                     # we do our best to extra information from the dicom header and insert these values
                     # into the sidecar json
 
                     # first do a reverse lookup of the key the json corresponds to
-                    lookup = [key for key, value in matched_dicoms_and_headers.items() if str(created_path) in value]
+                    lookup = [
+                        key
+                        for key, value in matched_dicoms_and_headers.items()
+                        if str(created_path) in value
+                    ]
                     if lookup:
                         dicom_header = self.dicom_headers[lookup[0]]
 
@@ -436,14 +531,17 @@ class Dcm2niix4PET:
                             created_path,
                             check_for_missing,
                             dicom_header,
-                            dicom2bids_json=metadata_dictionaries['dicom2bids.json'],
-                            **self.additional_arguments)
+                            dicom2bids_json=metadata_dictionaries["dicom2bids.json"],
+                            **self.additional_arguments,
+                        )
 
                     # if we have entities in our metadata spreadsheet that we've used we update
-                    if self.spreadsheet_metadata.get('nifti_json', None):
-                        update_json = JsonMAJ(json_path=str(created),
-                                              update_values=self.spreadsheet_metadata['nifti_json'],
-                                              bids_null=True)
+                    if self.spreadsheet_metadata.get("nifti_json", None):
+                        update_json = JsonMAJ(
+                            json_path=str(created),
+                            update_values=self.spreadsheet_metadata["nifti_json"],
+                            bids_null=True,
+                        )
                         update_json.update()
 
                     # check to see if frame duration is a single value, if so convert it to list
@@ -454,23 +552,29 @@ class Dcm2niix4PET:
                     # additional arguments we run this step after updating the sidecar with those additional user
                     # arguments
 
-                    sidecar_json = JsonMAJ(json_path=str(created),
-                                           bids_null=True,
-                                           update_values=self.additional_arguments)  # load all supplied and now written sidecar data in
+                    sidecar_json = JsonMAJ(
+                        json_path=str(created),
+                        bids_null=True,
+                        update_values=self.additional_arguments,
+                    )  # load all supplied and now written sidecar data in
 
                     sidecar_json.update()
 
-                    check_metadata_radio_inputs = check_meta_radio_inputs(sidecar_json.json_data)  # run logic
+                    check_metadata_radio_inputs = check_meta_radio_inputs(
+                        sidecar_json.json_data
+                    )  # run logic
 
-                    sidecar_json.update(check_metadata_radio_inputs)  # update sidecar json with results of logic
+                    sidecar_json.update(
+                        check_metadata_radio_inputs
+                    )  # update sidecar json with results of logic
 
                     # should be list/array types in the json
                     should_be_array = [
-                        'FrameDuration',
-                        'ScatterFraction',
-                        'FrameTimesStart',
-                        'DecayCorrectionFactor',
-                        'ReconFilterSize'
+                        "FrameDuration",
+                        "ScatterFraction",
+                        "FrameTimesStart",
+                        "DecayCorrectionFactor",
+                        "ReconFilterSize",
                     ]
 
                     for should in should_be_array:
@@ -481,40 +585,59 @@ class Dcm2niix4PET:
                     # next we check to see if any of the additional user supplied arguments (kwargs) correspond to
                     # any of the missing tags in our sidecars
                     if self.additional_arguments:
-                        update_json = JsonMAJ(json_path=str(created),
-                                              update_values=self.additional_arguments,
-                                              bids_null=True)
+                        update_json = JsonMAJ(
+                            json_path=str(created),
+                            update_values=self.additional_arguments,
+                            bids_null=True,
+                        )
                         update_json.update()
 
                     # check to see if convolution kernel is present
                     sidecar_json = JsonMAJ(json_path=str(created), bids_null=True)
-                    if sidecar_json.get('ConvolutionKernel'):
-                        if sidecar_json.get('ReconFilterType') and sidecar_json.get('ReconFilterSize'):
-                            sidecar_json.remove('ConvolutionKernel')
+                    if sidecar_json.get("ConvolutionKernel"):
+                        if sidecar_json.get("ReconFilterType") and sidecar_json.get(
+                            "ReconFilterSize"
+                        ):
+                            sidecar_json.remove("ConvolutionKernel")
                         else:
                             # collect filter size
-                            recon_filter_size = ''
-                            if re.search(r'\d+.\d+', sidecar_json.get('ConvolutionKernel')):
-                                recon_filter_size = re.search(r'\d+.\d*', sidecar_json.get('ConvolutionKernel'))[0]
+                            recon_filter_size = ""
+                            if re.search(
+                                r"\d+.\d+", sidecar_json.get("ConvolutionKernel")
+                            ):
+                                recon_filter_size = re.search(
+                                    r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
+                                )[0]
                                 recon_filter_size = float(recon_filter_size)
-                                sidecar_json.update({'ReconFilterSize': float(recon_filter_size)})
+                                sidecar_json.update(
+                                    {"ReconFilterSize": float(recon_filter_size)}
+                                )
                             # collect just the filter type by popping out the filter size if it exists
-                            recon_filter_type = re.sub(str(recon_filter_size), '',
-                                                       sidecar_json.get('ConvolutionKernel'))
+                            recon_filter_type = re.sub(
+                                str(recon_filter_size),
+                                "",
+                                sidecar_json.get("ConvolutionKernel"),
+                            )
                             # further sanitize the recon filter type string
-                            recon_filter_type = re.sub(r'[^a-zA-Z0-9]', ' ', recon_filter_type)
-                            recon_filter_type = re.sub(r' +', ' ', recon_filter_type)
+                            recon_filter_type = re.sub(
+                                r"[^a-zA-Z0-9]", " ", recon_filter_type
+                            )
+                            recon_filter_type = re.sub(r" +", " ", recon_filter_type)
 
                             # update the json
-                            sidecar_json.update({'ReconFilterType': recon_filter_type})
+                            sidecar_json.update({"ReconFilterType": recon_filter_type})
                             # remove non bids field
-                            sidecar_json.remove('ConvolutionKernel')
+                            sidecar_json.remove("ConvolutionKernel")
 
                     # check the input args again as our logic is applied after parsing user inputs
                     if self.additional_arguments:
                         recon_filter_user_input = {
-                            'ReconFilterSize': self.additional_arguments.get('ReconFilterSize', None),
-                            'ReconFilterType': self.additional_arguments.get('ReconFilterType', None)
+                            "ReconFilterSize": self.additional_arguments.get(
+                                "ReconFilterSize", None
+                            ),
+                            "ReconFilterType": self.additional_arguments.get(
+                                "ReconFilterType", None
+                            ),
                         }
                         for key, value in recon_filter_user_input.items():
                             if value:
@@ -523,84 +646,102 @@ class Dcm2niix4PET:
                         pass
 
                     # tag json with additional conversion software
-                    conversion_software = sidecar_json.get('ConversionSoftware')
-                    conversion_software_version = sidecar_json.get('ConversionSoftwareVersion')
+                    conversion_software = sidecar_json.get("ConversionSoftware")
+                    conversion_software_version = sidecar_json.get(
+                        "ConversionSoftwareVersion"
+                    )
 
-                    sidecar_json.update({'ConversionSoftware': [conversion_software, 'pypet2bids']})
+                    sidecar_json.update(
+                        {"ConversionSoftware": [conversion_software, "pypet2bids"]}
+                    )
                     sidecar_json.update(
                         {
-                            'ConversionSoftwareVersion': [conversion_software_version, helper_functions.get_version()]
-                        })
+                            "ConversionSoftwareVersion": [
+                                conversion_software_version,
+                                helper_functions.get_version(),
+                            ]
+                        }
+                    )
 
                     # if this looks familiar, that's because it is, we re-run this to override any changes
                     # made by this software as the input provided by the user is "the correct input"
-                    sidecar_json.update(self.spreadsheet_metadata.get('nifti_json', {}))
+                    sidecar_json.update(self.spreadsheet_metadata.get("nifti_json", {}))
                     sidecar_json.update(self.additional_arguments)
 
                     # this is mostly for ezBIDS, but it helps us to make better use of the series description that
                     # dcm2niix generates by default for PET imaging
                     collect_these_fields = {
-                        'ProtocolName': '',
-                        'SeriesDescription': '',
-                        'TracerName': 'trc',
-                        'InjectedRadioactivity': '',
-                        'InjectedRadioactivityUnits': '',
-                        'ReconMethodName': 'rec',
-                        'TimeZero': '',
+                        "ProtocolName": "",
+                        "SeriesDescription": "",
+                        "TracerName": "trc",
+                        "InjectedRadioactivity": "",
+                        "InjectedRadioactivityUnits": "",
+                        "ReconMethodName": "rec",
+                        "TimeZero": "",
                     }
                     collection_of_fields = {}
                     for field, entity_string in collect_these_fields.items():
                         if sidecar_json.get(field):
                             # if there's a shortened entity string for the field use that
-                            if entity_string != '':
-                                collection_of_fields[entity_string] = sidecar_json.get(field)
+                            if entity_string != "":
+                                collection_of_fields[entity_string] = sidecar_json.get(
+                                    field
+                                )
                             else:
                                 collection_of_fields[field] = sidecar_json.get(field)
 
                     if self.session_id:
-                        collection_of_fields['ses'] = self.session_id
+                        collection_of_fields["ses"] = self.session_id
 
                     hash_string = helper_functions.hash_fields(**collection_of_fields)
 
-                    sidecar_json.update({'SeriesDescription': hash_string})
+                    sidecar_json.update({"SeriesDescription": hash_string})
 
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
-                    if 'nii.gz' in created_path.name:
-                        suffix = '.nii.gz'
+                    if "nii.gz" in created_path.name:
+                        suffix = ".nii.gz"
                     else:
                         suffix = created_path.suffix
                     if self.session_id:
-                        session_id = '_' + self.session_id
+                        session_id = "_" + self.session_id
                     else:
-                        session_id = ''
+                        session_id = ""
 
                     if self.task:
-                        task = '_' + self.task
+                        task = "_" + self.task
                     else:
-                        task = ''
+                        task = ""
 
                     if self.tracer:
-                        trc = '_' + self.tracer
+                        trc = "_" + self.tracer
                     else:
-                        trc = ''
+                        trc = ""
 
                     if self.reconstruction_method:
-                        rec = '_' + self.reconstruction_method
+                        rec = "_" + self.reconstruction_method
                     else:
-                        rec = ''
+                        rec = ""
 
                     if self.run_id:
-                        run = '_' + self.run_id
+                        run = "_" + self.run_id
                     else:
-                        run = ''
+                        run = ""
 
                     if self.full_file_path_given:
                         new_path = self.destination_path.with_suffix(suffix)
                         self.destination_folder = self.destination_path.parent
                     else:
-                        new_path = self.destination_path / Path(self.subject_id + session_id + task + trc + rec +
-                                                                run + '_pet' + suffix)
+                        new_path = self.destination_path / Path(
+                            self.subject_id
+                            + session_id
+                            + task
+                            + trc
+                            + rec
+                            + run
+                            + "_pet"
+                            + suffix
+                        )
 
                     try:
                         new_path.parent.mkdir(parents=True, exist_ok=True)
@@ -621,37 +762,54 @@ class Dcm2niix4PET:
         # for now we will just assume that if the user supplied a blood tsv then it is manual
         recording_entity = "_recording-manual"
 
-        if '_pet' in self.new_file_name_with_entities.name:
-            if self.new_file_name_with_entities.suffix == '.gz' and len(self.new_file_name_with_entities.suffixes) > 1:
-                self.new_file_name_with_entities = self.new_file_name_with_entities.with_suffix('').with_suffix('')
+        if "_pet" in self.new_file_name_with_entities.name:
+            if (
+                self.new_file_name_with_entities.suffix == ".gz"
+                and len(self.new_file_name_with_entities.suffixes) > 1
+            ):
+                self.new_file_name_with_entities = (
+                    self.new_file_name_with_entities.with_suffix("").with_suffix("")
+                )
 
-            blood_file_name = self.new_file_name_with_entities.stem.replace('_pet', recording_entity + '_blood')
+            blood_file_name = self.new_file_name_with_entities.stem.replace(
+                "_pet", recording_entity + "_blood"
+            )
         else:
-            blood_file_name = self.new_file_name_with_entities.stem + recording_entity + '_blood'
+            blood_file_name = (
+                self.new_file_name_with_entities.stem + recording_entity + "_blood"
+            )
 
-        if self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
-            blood_tsv_data = self.spreadsheet_metadata.get('blood_tsv')
+        if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
+            blood_tsv_data = self.spreadsheet_metadata.get("blood_tsv")
             if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
                 # write out blood_tsv using pandas csv write
-                blood_tsv_data.to_csv(join(self.destination_folder, blood_file_name + ".tsv")
-                                      , sep='\t',
-                                      index=False)
+                blood_tsv_data.to_csv(
+                    join(self.destination_folder, blood_file_name + ".tsv"),
+                    sep="\t",
+                    index=False,
+                )
 
             elif type(blood_tsv_data) is str:
                 # write out with write
-                with open(join(self.destination_folder, blood_file_name + ".tsv"), 'w') as outfile:
+                with open(
+                    join(self.destination_folder, blood_file_name + ".tsv"), "w"
+                ) as outfile:
                     outfile.writelines(blood_tsv_data)
             else:
-                raise (f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
-                       f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                       f"{self.metadata_translation_script}")
+                raise (
+                    f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
+                    f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
+                    f"{self.metadata_translation_script}"
+                )
 
         # if there's blood data in the tsv then write out the sidecar file too
-        if self.spreadsheet_metadata.get('blood_json', {}) != {} \
-                and self.spreadsheet_metadata.get('blood_tsv', {}) != {}:
-            blood_json_data = self.spreadsheet_metadata.get('blood_json')
+        if (
+            self.spreadsheet_metadata.get("blood_json", {}) != {}
+            and self.spreadsheet_metadata.get("blood_tsv", {}) != {}
+        ):
+            blood_json_data = self.spreadsheet_metadata.get("blood_json")
             if type(blood_json_data) is dict:
                 # write out to file with json dump
                 pass
@@ -659,11 +817,15 @@ class Dcm2niix4PET:
                 # write out to file with json dumps
                 blood_json_data = json.loads(blood_json_data)
             else:
-                raise (f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
-                       f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                       f"{self.metadata_translation_script}")
+                raise (
+                    f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
+                    f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
+                    f"{self.metadata_translation_script}"
+                )
 
-            with open(join(self.destination_folder, blood_file_name + '.json'), 'w') as outfile:
+            with open(
+                join(self.destination_folder, blood_file_name + ".json"), "w"
+            ) as outfile:
                 json.dump(blood_json_data, outfile, indent=4)
 
     def convert(self):
@@ -682,7 +844,10 @@ class Dcm2niix4PET:
         if not destination_path:
             destination_path = self.destination_path
         # first collect all the files in the output directory
-        output_files = [join(destination_path, output_file) for output_file in listdir(destination_path)]
+        output_files = [
+            join(destination_path, output_file)
+            for output_file in listdir(destination_path)
+        ]
 
         # create empty dictionary to store pairings
         headers_to_files = {}
@@ -690,11 +855,17 @@ class Dcm2niix4PET:
         # collect study date and time from header
         for each in self.dicom_headers:
             header_study_date = self.dicom_headers[each].StudyDate
-            header_acquisition_time = str(round(float(self.dicom_headers[each].StudyTime)))
+            header_acquisition_time = str(
+                round(float(self.dicom_headers[each].StudyTime))
+            )
             if len(header_acquisition_time) < 6:
-                header_acquisition_time = (6 - len(header_acquisition_time)) * "0" + header_acquisition_time
+                header_acquisition_time = (
+                    6 - len(header_acquisition_time)
+                ) * "0" + header_acquisition_time
 
-            header_date_time = dicom_datetime_to_dcm2niix_time(date=header_study_date, time=header_acquisition_time)
+            header_date_time = dicom_datetime_to_dcm2niix_time(
+                date=header_study_date, time=header_acquisition_time
+            )
 
             for output_file in output_files:
                 if header_date_time in output_file:
@@ -720,13 +891,10 @@ class Dcm2niix4PET:
         :param extension: The extension of the file
         :return: a pandas dataframe representation of the spreadsheet/metadatafile
         """
-        methods = {
-            'excel': pd.read_excel,
-            'csv': pd.read_csv
-        }
+        methods = {"excel": pd.read_excel, "csv": pd.read_csv}
 
-        if 'xls' in extension:
-            proper_method = 'excel'
+        if "xls" in extension:
+            proper_method = "excel"
         else:
             proper_method = extension
 
@@ -742,20 +910,26 @@ class Dcm2niix4PET:
             try:
                 # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
                 # data from their particular spreadsheet wherever that file is located.
-                spec = importlib.util.spec_from_file_location("metadata_translation_script",
-                                                              self.metadata_translation_script)
+                spec = importlib.util.spec_from_file_location(
+                    "metadata_translation_script", self.metadata_translation_script
+                )
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 text_file_data = module.translate_metadata(self.metadata_dataframe)
             except AttributeError as err:
                 print(f"Unable to locate metadata_translation_script")
 
-            self.spreadsheet_metadata['blood_tsv'] = text_file_data.get('blood_tsv', {})
-            self.spreadsheet_metadata['blood_json'] = text_file_data.get('blood_json', {})
-            self.spreadsheet_metadata['nifti_json'] = text_file_data.get('nifti_json', {})
+            self.spreadsheet_metadata["blood_tsv"] = text_file_data.get("blood_tsv", {})
+            self.spreadsheet_metadata["blood_json"] = text_file_data.get(
+                "blood_json", {}
+            )
+            self.spreadsheet_metadata["nifti_json"] = text_file_data.get(
+                "nifti_json", {}
+            )
 
 
-epilog = textwrap.dedent('''
+epilog = textwrap.dedent(
+    """
     
     example usage:
     
@@ -763,7 +937,8 @@ epilog = textwrap.dedent('''
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
     # use with an input spreadsheet
     
-''')
+"""
+)
 
 
 def cli():
@@ -776,56 +951,119 @@ def cli():
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog,
-                                     description="Given a set of PET dicoms and additional metadata dcm2niix converts "
-                                                 "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.")
-    parser.add_argument('folder', nargs='?', type=str,
-                        help="Folder path containing imaging data")
-    parser.add_argument('--metadata-path', '-m', type=str, default=None, const='', nargs='?',
-                        help="Path to metadata file for scan")
-    parser.add_argument('--translation-script-path', '-t', default=None,
-                        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS" +
-                             " compliant text files (tsv and json)")
-    parser.add_argument('--destination-path', '-d', type=str, default=None,
-                        help="Destination path to send converted imaging and metadata files to. If subject id and "
-                             "session id is included in the path files created by dcm2niix4pet will be named as such. "
-                             "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If " +
-                             "omitted defaults to using the path supplied to folder path. If destination path " +
-                             "doesn't exist an attempt to create it will be made.", required=False)
-    parser.add_argument('--tempdir', type=str, default=None,
-                        help="User-specified tempdir location (overrides default system tempfile default)",
-                        required=False)
-    parser.add_argument('--kwargs', '-k', nargs='*', action=helper_functions.ParseKwargs, default={},
-                        help="Include additional values in the nifti sidecar json or override values extracted from "
-                             "the supplied nifti. e.g. including `--kwargs TimeZero=\"12:12:12\"` would override the "
-                             "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
-                             "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
-                             "Note: the value portion of the argument (right side of the equal's sign) should always"
-                             "be surrounded by double quotes BidsVarQuoted=\"[0, 1 , 3]\"")
-    parser.add_argument('--silent', '-s', action="store_true", default=False,
-                        help="Hide missing metadata warnings and errors to stdout/stderr")
-    parser.add_argument('--show-examples', '-E', '--HELP', '-H', help="Shows example usage of this cli.",
-                        action='store_true')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+        description="Given a set of PET dicoms and additional metadata dcm2niix converts "
+        "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.",
+    )
+    parser.add_argument(
+        "folder", nargs="?", type=str, help="Folder path containing imaging data"
+    )
+    parser.add_argument(
+        "--metadata-path",
+        "-m",
+        type=str,
+        default=None,
+        const="",
+        nargs="?",
+        help="Path to metadata file for scan",
+    )
+    parser.add_argument(
+        "--translation-script-path",
+        "-t",
+        default=None,
+        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS"
+        + " compliant text files (tsv and json)",
+    )
+    parser.add_argument(
+        "--destination-path",
+        "-d",
+        type=str,
+        default=None,
+        help="Destination path to send converted imaging and metadata files to. If subject id and "
+        "session id is included in the path files created by dcm2niix4pet will be named as such. "
+        "e.g. sub-NDAR123/ses-ABCD/pet will yield fields named sub-NDAR123_ses-ABCD_*. If "
+        + "omitted defaults to using the path supplied to folder path. If destination path "
+        + "doesn't exist an attempt to create it will be made.",
+        required=False,
+    )
+    parser.add_argument(
+        "--tempdir",
+        type=str,
+        default=None,
+        help="User-specified tempdir location (overrides default system tempfile default)",
+        required=False,
+    )
+    parser.add_argument(
+        "--kwargs",
+        "-k",
+        nargs="*",
+        action=helper_functions.ParseKwargs,
+        default={},
+        help="Include additional values in the nifti sidecar json or override values extracted from "
+        'the supplied nifti. e.g. including `--kwargs TimeZero="12:12:12"` would override the '
+        "calculated TimeZero. Any number of additional arguments can be supplied after --kwargs "
+        "e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc."
+        "Note: the value portion of the argument (right side of the equal's sign) should always"
+        'be surrounded by double quotes BidsVarQuoted="[0, 1 , 3]"',
+    )
+    parser.add_argument(
+        "--silent",
+        "-s",
+        action="store_true",
+        default=False,
+        help="Hide missing metadata warnings and errors to stdout/stderr",
+    )
+    parser.add_argument(
+        "--show-examples",
+        "-E",
+        "--HELP",
+        "-H",
+        help="Shows example usage of this cli.",
+        action="store_true",
+    )
 
-    parser.add_argument('--set-dcm2niix-path', help="Provide a path to a dcm2niix install/exe, writes path to config "
-                                                    f"file {Path.home()}/.pet2bidsconfig under the variable "
-                                                    f"DCM2NIIX_PATH", type=pathlib.Path)
-    parser.add_argument('--set-default-metadata-json', help="Provide a path to a default metadata file json file."
-                                                            "This file will be used to fill in missing metadata not"
-                                                            "contained within dicom headers or spreadsheet metadata."
-                                                            "Sets given path to DEFAULT_METADATA_JSON var in "
-                                                            f"{Path.home()}/.pet2bidsconfig")
-    parser.add_argument('--trc', '--tracer', type=str, default='',
-                        help="Provide a tracer name to be used in the output file name")
-    parser.add_argument('--run', type=str, default='',
-                        help="Provide a run id to be used in the output file name")
-    parser.add_argument('--rec', type=str, default='',
-                        help="Provide a reconstruction method to be used in the output file name")
+    parser.add_argument(
+        "--set-dcm2niix-path",
+        help="Provide a path to a dcm2niix install/exe, writes path to config "
+        f"file {Path.home()}/.pet2bidsconfig under the variable "
+        f"DCM2NIIX_PATH",
+        type=pathlib.Path,
+    )
+    parser.add_argument(
+        "--set-default-metadata-json",
+        help="Provide a path to a default metadata file json file."
+        "This file will be used to fill in missing metadata not"
+        "contained within dicom headers or spreadsheet metadata."
+        "Sets given path to DEFAULT_METADATA_JSON var in "
+        f"{Path.home()}/.pet2bidsconfig",
+    )
+    parser.add_argument(
+        "--trc",
+        "--tracer",
+        type=str,
+        default="",
+        help="Provide a tracer name to be used in the output file name",
+    )
+    parser.add_argument(
+        "--run",
+        type=str,
+        default="",
+        help="Provide a run id to be used in the output file name",
+    )
+    parser.add_argument(
+        "--rec",
+        type=str,
+        default="",
+        help="Provide a reconstruction method to be used in the output file name",
+    )
 
     return parser
 
 
-example1 = textwrap.dedent('''
+example1 = textwrap.dedent(
+    """
 
 Usage examples are below, the first being the most brutish way of making dcm2niix4pet to pass through the
 BIDS validator (with no errors, removing all warnings is left to the user as an exercise) see:
@@ -935,7 +1173,8 @@ example 1 (Passing PET metadata via the --kwargs argument):
         "SpecificRadioactivityUnits": "Bq/g",
         "InjectedMass": "n/a",
         "InjectedMassUnits": "n/a"
-        }''')
+        }"""
+)
 
 
 def main():
@@ -963,11 +1202,13 @@ def main():
         sys.exit(0)
 
     if cli_args.set_dcm2niix_path:
-        helper_functions.modify_config_file('DCM2NIIX_PATH', cli_args.set_dcm2niix_path)
+        helper_functions.modify_config_file("DCM2NIIX_PATH", cli_args.set_dcm2niix_path)
         sys.exit(0)
 
     if cli_args.set_default_metadata_json:
-        helper_functions.modify_config_file('DEFAULT_METADATA_JSON', cli_args.set_default_metadata_json)
+        helper_functions.modify_config_file(
+            "DEFAULT_METADATA_JSON", cli_args.set_default_metadata_json
+        )
         sys.exit(0)
 
     elif cli_args.folder:
@@ -976,10 +1217,13 @@ def main():
             image_folder=helper_functions.expand_path(cli_args.folder),
             destination_path=helper_functions.expand_path(cli_args.destination_path),
             metadata_path=helper_functions.expand_path(cli_args.metadata_path),
-            metadata_translation_script=helper_functions.expand_path(cli_args.translation_script_path),
+            metadata_translation_script=helper_functions.expand_path(
+                cli_args.translation_script_path
+            ),
             additional_arguments=cli_args.kwargs,
             tempdir_location=cli_args.tempdir,
-            silent=cli_args.silent)
+            silent=cli_args.silent,
+        )
 
         if cli_args.trc:
             converter.tracer = "trc-" + cli_args.trc
@@ -990,9 +1234,11 @@ def main():
 
         converter.convert()
     else:
-        print("folder is a required argument for running dcm2niix, see -h for more detailed usage.")
+        print(
+            "folder is a required argument for running dcm2niix, see -h for more detailed usage."
+        )
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
