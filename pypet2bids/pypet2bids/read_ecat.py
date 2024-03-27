@@ -27,6 +27,16 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
 
+# debug variable
+# save steps for debugging for more info see ecat_testing/README.md
+ecat_save_steps = os.environ.get('ECAT_SAVE_STEPS', 0)
+if ecat_save_steps == '1':
+    # check to see if the code directory is available, if it's not create it and
+    # the steps dir to save outputs created if ecat_save_steps is set to 1
+    steps_dir = code_dir.parent / 'ecat_testing' / 'steps'
+    if not steps_dir.is_dir():
+        os.makedirs(code_dir.parent / 'ecat_testing' / 'steps', exist_ok=True)
+
 
 # collect ecat header maps, this program will not work without these as ECAT data varies in the byte location of its
 # data depending on the version of ECAT it was formatted with.
@@ -90,7 +100,6 @@ def collect_specific_bytes(bytes_object: bytes, start_position: int = 0, width: 
     :param bytes_object: an opened bytes object
     :param start_position: the position to start to read at
     :param width: how far to read from the start position
-    :param relative_to: position relative to 0 -> start of file/object, 1 -> current position of seek head,
         2 -> end of file/object
     :return: the bytes starting at position
     """
@@ -272,6 +281,10 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
     ecat_main_header = ecat_header_maps['ecat_headers'][confirmed_version]['mainheader']
 
     main_header, read_to = get_header_data(ecat_main_header, ecat_file)
+
+    if ecat_save_steps == '1':
+        with open(steps_dir / '1_read_mh_ecat_python.json', 'w') as outfile:
+            json.dump(main_header, outfile)
     """
     Some notes about the file directory/sorted directory:
     
@@ -392,7 +405,12 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
                                                         dtype=pixel_data_type,
                                                         count=image_size[0] * image_size[1] * image_size[2]).reshape(
                     *image_size, order='F')
-                #pixel_data_matrix_3d.newbyteorder(byte_order)
+                # pixel_data_matrix_3d.newbyteorder(byte_order)
+
+                if ecat_save_steps == '1':
+                    with open(steps_dir / f'4_determine_data_type_python.json', 'w') as outfile:
+                        json.dump({"DATA_TYPE": dt_val, "formatting": pixel_data_type}, outfile)
+
             else:
                 raise Exception(f"Unable to determine frame image size, unsupported image type {subheader_type_number}")
 
@@ -408,12 +426,44 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
 
         subheaders.append(subheader)
 
+        if ecat_save_steps == '1':
+            with open(steps_dir / f'2_read_sh_ecat_python.json', 'w') as outfile:
+                json.dump({"subheaders": subheaders}, outfile)
+
     if collect_pixel_data:
         # return 4d array instead of list of 3d arrays
         pixel_data_matrix_4d = numpy.zeros(tuple(image_size + [len(data)]), dtype=numpy.dtype(pixel_data_type))
         for index, frame in enumerate(data):
             pixel_data_matrix_4d[:, :, :, index] = frame
 
+        if ecat_save_steps == '1':
+
+            # write out the endianess and datatype of the pixel data matrix
+            step_3_dict = {
+                'datatype': pixel_data_matrix_4d.dtype.name,
+                'endianness': pixel_data_matrix_4d.dtype.byteorder
+            }
+
+            with open(steps_dir / f'3_determine_data_type_python.json', 'w') as outfile:
+                json.dump(step_3_dict, outfile)
+
+            # collect only the first, middle, and last frames from pixel_data_matrix_4d as first, middle, and last
+            # frames are typically the most interesting
+            frames = [0, len(data) // 2, -1]
+            frames_to_record = []
+            for f in frames:
+                frames_to_record.append(pixel_data_matrix_4d[:, :, :, f])
+
+            # now collect a single 2d slice from the "middle" of the 3d frames in frames_to_record
+            slice_to_record = []
+            for index, frame in enumerate(frames_to_record):
+                numpy.savetxt(steps_dir / f"4_read_img_ecat_python_{index}.tsv",
+                              frames_to_record[index][:, :, frames_to_record[index].shape[2] // 2],
+                              delimiter="\t")
+                if calibrated:
+                    numpy.savetxt(steps_dir / f"5_scale_img_ecat_python_{index}.tsv",
+                                  calibrated_pixel_data_matrix_3d[:, :, frames_to_record[index].shape[2] // 2],
+                                  delimiter="\t")
     else:
         pixel_data_matrix_4d = None
 
