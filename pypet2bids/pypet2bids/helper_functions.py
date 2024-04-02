@@ -852,7 +852,7 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     return reconstruction_dict
 
 
-def modify_config_file(var: str, value: Union[pathlib.Path, str]):
+def modify_config_file(var: str, value: Union[pathlib.Path, str], config_path=None):
     """
     Given a variable name and a value updates the config file with those inputs.
     Namely used (on Windows, but not limited to) to point to a dcm2niix executable (dcm2niix.exe)
@@ -861,15 +861,20 @@ def modify_config_file(var: str, value: Union[pathlib.Path, str]):
     :type var: str
     :param value: variable value, most often a path to another file
     :type value: Union[pathlib.Path, str]
+    :param config_path: path to the config file, if not provided this function will look for a file at the user's home
+    :type config_path: Union[pathlib.Path, str]
     :return: None
     :rtype: None
     """
     # load dcm2niix file
-    config_file = pathlib.Path.home()
-    config_file = config_file / ".pet2bidsconfig"
+    if not config_path:
+        config_file = pathlib.Path.home() / ".pet2bidsconfig"
+    else:
+        config_file = pathlib.Path(config_path)
+
     if config_file.exists():
         # open the file and read in all the lines
-        temp_file = pathlib.Path.home() / ".pet2bidsconfig.temp"
+        temp_file = config_file.with_suffix(".temp")
         with open(config_file, "r") as infile, open(temp_file, "w") as outfile:
             updated_file = False
             for line in infile:
@@ -885,8 +890,11 @@ def modify_config_file(var: str, value: Union[pathlib.Path, str]):
         temp_file.replace(config_file)
     else:
         # create the file
-        with open(config_file, "w") as outfile:
-            outfile.write(f"{var}={value}\n")
+        try:
+            with open(config_file, "w") as outfile:
+                outfile.write(f"{var}={value}\n")
+        except FileNotFoundError as err:
+            logging.error(f"Unable to write to {config_file}\n{err}")
 
 
 def check_units(entity_key: str, entity_value: str, accepted_units: Union[list, str]):
@@ -990,7 +998,7 @@ def replace_nones(dictionary):
     return json.loads(json_fixed)
 
 
-def check_pet2bids_config(variable: str = "DCM2NIIX_PATH"):
+def check_pet2bids_config(variable: str = "DCM2NIIX_PATH", config_path=Path.home() / ".pet2bidsconfig"):
     """
     Checks the config file at users home /.pet2bidsconfig for the variable passed in,
     defaults to checking for DCM2NIIX_PATH. However, we can use it for anything we like,
@@ -999,38 +1007,47 @@ def check_pet2bids_config(variable: str = "DCM2NIIX_PATH"):
 
     :param variable: a string variable name to check for in the config file
     :type variable: string
+    :param config_path: path to the config file, defaults to $HOME/.pet2bidsconfig
+    :type config_path: string or pathlib.Path
     :return: the value of the variable if it exists in the config file
     :rtype: str
     """
     log = logger("pypet2bids")
     # check to see if path to dcm2niix is in .env file
     dcm2niix_path = None
-    home_dir = Path.home()
-    pypet2bids_config = home_dir / ".pet2bidsconfig"
+    variable_value = None
+    pypet2bids_config = Path(config_path)
     if pypet2bids_config.exists():
         dotenv.load_dotenv(pypet2bids_config)
         variable_value = os.getenv(variable)
-        if variable == "DCM2NIIX_PATH":
-            if variable_value:
-                # check dcm2niix path exists
-                dcm2niix_path = Path(variable_value)
-                check = subprocess.run(
-                    f"{dcm2niix_path} -h",
-                    shell=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-                if check.returncode == 0:
-                    return dcm2niix_path
-            else:
-                log.error(
-                    f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}"
-                )
-                return None
-        if variable != "DCM2NIIX_PATH":
-            return variable_value
+    # else we check our environment variables for the variable
+    elif os.getenv(variable) and not pypet2bids_config.exists():
+        variable_value = os.getenv(variable)
+        log.warning(
+            f"Found {variable} in environment variables as {variable_value}, but no .pet2bidsconfig file found at {pypet2bids_config}"
+        )
+    if variable == "DCM2NIIX_PATH":
+        if variable_value:
+            # check dcm2niix path exists
+            dcm2niix_path = Path(variable_value)
+            check = subprocess.run(
+                f"{dcm2niix_path} -h",
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if check.returncode == 0:
+                return dcm2niix_path
+        else:
+            log.error(
+                f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}"
+                f" Set DCM2NIIX_PATH variable in {pypet2bids_config} or export DCM2NIIX_PATH=/path/to/dcm2niix into your environment variables."
+            )
+            return None
+    if variable != "DCM2NIIX_PATH":
+        return variable_value
 
-    else:
+    if not variable_value and not pypet2bids_config.exists():
         log.warning(
             f"Config file not found at {pypet2bids_config}, .pet2bidsconfig file must exist and "
             f"have variable: {variable} and {variable} must be set."
