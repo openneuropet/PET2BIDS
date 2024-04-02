@@ -88,6 +88,7 @@ else:
     # set the default metadata json to the template json included in this library in our environment so
     # we don't trip up retrival of the default metadata json later
     environ["DEFAULT_METADATA_JSON"] = str(module_folder / "template_json.json")
+    default_metadata_json = module_folder / "template_json.json"
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date="", time=""):
@@ -162,7 +163,6 @@ class Dcm2niix4PET:
         file_format="%p_%i_%t_%s",
         silent=False,
         tempdir_location=None,
-        default_metadata_json=default_metadata_json,
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
