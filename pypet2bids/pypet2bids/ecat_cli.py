@@ -11,6 +11,7 @@ import pathlib
 import sys
 import textwrap
 from os.path import join
+from importlib.metadata import version
 
 try:
     import helper_functions
@@ -182,6 +183,10 @@ def cli():
         'TimeZero="12:12:12"'
         "ecatpet2bids ecatfile.v --update path/to/sidecar.json --metadata-path "
         "path/to/metadata.xlsx",
+    )
+    parser.add_argument(
+        "--version", '-v', action='version',
+        version=f"{helper_functions.get_version()}",
     )
 
     return parser

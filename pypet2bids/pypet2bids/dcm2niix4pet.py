@@ -20,7 +20,7 @@ from platform import system
 import subprocess
 import pandas as pd
 from os.path import join
-from os import listdir, walk
+from os import listdir, walk, environ
 from pathlib import Path
 import json
 import pydicom
@@ -85,6 +85,10 @@ else:
     helper_functions.modify_config_file(
         "DEFAULT_METADATA_JSON", module_folder / "template_json.json"
     )
+    # set the default metadata json to the template json included in this library in our environment so
+    # we don't trip up retrival of the default metadata json later
+    environ["DEFAULT_METADATA_JSON"] = str(module_folder / "template_json.json")
+    default_metadata_json = module_folder / "template_json.json"
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date="", time=""):
@@ -1057,6 +1061,10 @@ def cli():
         type=str,
         default="",
         help="Provide a reconstruction method to be used in the output file name",
+    )
+    parser.add_argument(
+        "--version", '-v', action='version',
+        version=f"{helper_functions.get_version()}",
     )
 
     return parser
