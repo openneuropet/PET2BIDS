@@ -447,7 +447,7 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
             with open(steps_dir / f'3_determine_data_type_python.json', 'w') as outfile:
                 json.dump(step_3_dict, outfile)
 
-            # collect only the first, middle, and last frames from pixel_data_matrix_4d as first, middle, and last
+            # collect only the filst, middle, and last frames from pixel_data_matrix_4d as first, middle, and last
             # frames are typically the most interesting
             frames = [0, len(data) // 2, -1]
             frames_to_record = []
@@ -459,11 +459,12 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
             for index, frame in enumerate(frames_to_record):
                 numpy.savetxt(steps_dir / f"4_read_img_ecat_python_{index}.tsv",
                               frames_to_record[index][:, :, frames_to_record[index].shape[2] // 2],
-                              delimiter="\t")
+                              delimiter="\t", fmt='%s')
                 if calibrated:
                     numpy.savetxt(steps_dir / f"5_scale_img_ecat_python_{index}.tsv",
                                   calibrated_pixel_data_matrix_3d[:, :, frames_to_record[index].shape[2] // 2],
-                                  delimiter="\t")
+                                  delimiter="\t",
+                                  fmt='%s')
     else:
         pixel_data_matrix_4d = None
 
