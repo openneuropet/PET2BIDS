@@ -237,41 +237,14 @@ if (ecat_save_steps == '1')
     fprintf(step_3_file, '%s', step_3_json);
     fclose(step_3_file);
 
-    % save pixel data (if it exists) but collect only the first, middle, and last frames
-    % collect the first, middle, and last frames
-    frames = [1, floor(length(data)/2) + 1, length(data)];
-   
-    % collect only a single 2D slice from each of the frames collected in frames
-    frames_to_record = {};
-    for i = 1:length(frames)
-        frame_number = frames(i);
-        frame_to_slice = data{frame_number};
-        size_of_frame_to_slice = size(frame_to_slice);
-        middle_of_frame = int16(size_of_frame_to_slice(3)/2);
-        slice = data{frame_number}(:,:,middle_of_frame);
-        frames_to_record{i} = slice;
-    end
-
-    for i = 1:length(frames_to_record)
-        frame = frames_to_record{i};
-        % frame_number_string_0_index 
-        frame_string = string(frames(i) - 1);
-        filename =  strcat(ecat_save_steps_dir,filesep,'4_read_img_ecat_matlab_',frame_string,'.tsv');
-        writematrix(frame, filename , 'Delimiter', 'tab', 'FileType','text');
-    end
+    first_middle_last_frames_to_text(data, ecat_save_steps_dir, '4_read_img_ecat_matlab')
 
     % scale if calibrated
     % data has already been saved in the previous step (step 4) but we go ahead and do this step once more because the
     % numbering system that's been imposed upon us to test these outputs
     if calibrated ~0
-        for i = 1:length(frames_to_record)
-            frame = frames_to_record{i};
-            frame_string = string(frames(i) - 1 );
-            filename = strcat(ecat_save_steps_dir,filesep,'5_scale_img_ecat_matlab_',frame_string,'.tsv');
-            writematrix(frame, filename , 'Delimiter', 'tab', 'FileType','text');
-        end
+        first_middle_last_frames_to_text(data, ecat_save_steps_dir, '5_scale_img_ecat_matlab')
     end
-
 end
 
 return
