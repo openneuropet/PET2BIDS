@@ -21,7 +21,7 @@ from os.path import join
 import pathlib
 import re
 import numpy
-from pypet2bids.helper_functions import decompress
+from pypet2bids.helper_functions import decompress, first_middle_last_frames_to_text
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
@@ -447,24 +447,21 @@ def read_ecat(ecat_file: str, calibrated: bool = False, collect_pixel_data: bool
             with open(steps_dir / f'3_determine_data_type_python.json', 'w') as outfile:
                 json.dump(step_3_dict, outfile)
 
-            # collect only the filst, middle, and last frames from pixel_data_matrix_4d as first, middle, and last
-            # frames are typically the most interesting
-            frames = [0, len(data) // 2, -1]
-            frames_to_record = []
-            for f in frames:
-                frames_to_record.append(pixel_data_matrix_4d[:, :, :, f])
+            # record out step 4
+            first_middle_last_frames_to_text(
+                four_d_array_like_object=pixel_data_matrix_4d,
+                output_folder=steps_dir,
+                step_name='4_read_img_ecat_python'
+            )
 
-            # now collect a single 2d slice from the "middle" of the 3d frames in frames_to_record
-            slice_to_record = []
-            for index, frame in enumerate(frames_to_record):
-                numpy.savetxt(steps_dir / f"4_read_img_ecat_python_{index}.tsv",
-                              frames_to_record[index][:, :, frames_to_record[index].shape[2] // 2],
-                              delimiter="\t", fmt='%s')
-                if calibrated:
-                    numpy.savetxt(steps_dir / f"5_scale_img_ecat_python_{index}.tsv",
-                                  calibrated_pixel_data_matrix_3d[:, :, frames_to_record[index].shape[2] // 2],
-                                  delimiter="\t",
-                                  fmt='%s')
+            # record out step 5
+            if calibrated:
+                first_middle_last_frames_to_text(
+                    four_d_array_like_object=calibrated_pixel_data_matrix_3d,
+                    output_folder=steps_dir,
+                    step_name='5_scale_img_ecat_python'
+                )
+
     else:
         pixel_data_matrix_4d = None
 

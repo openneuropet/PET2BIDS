@@ -9,7 +9,7 @@ import datetime
 import nibabel
 import numpy
 import pathlib
-from pypet2bids.read_ecat import read_ecat
+from pypet2bids.read_ecat import read_ecat, code_dir  # we use code_dir for ecat debugging
 import os
 import pickle
 import logging
@@ -20,9 +20,18 @@ except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
 
 
-#logger = helper_functions.logger('pypet2bids')
+# debug variable
+# save steps for debugging, for mor infor see ecat_testing/README.md
+ecat_save_steps = os.environ.get('ECAT_SAVE_STEPS', 0)
+if ecat_save_steps == '1':
+    # check to see if the code directory is available, if it's not create it and
+    # the steps dir to save outputs created if ecat_save_steps is set to 1
+    steps_dir = code_dir.parent / 'ecat_testing' / 'steps'
+    if not steps_dir.is_dir():
+        os.makedirs(code_dir.parent / 'ecat_testing' / 'steps', exist_ok=True)
 
 logger = logging.getLogger('pypet2bids')
+
 
 def ecat2nii(ecat_main_header=None,
              ecat_subheaders=None,
@@ -77,6 +86,27 @@ def ecat2nii(ecat_main_header=None,
                         f"got ecat_file={ecat_file}, type(ecat_main_header)={type(ecat_main_header)}, "
                         f"type(ecat_subheaders)={type(ecat_subheaders)}, "
                         f"type(ecat_pixel_data)={type(ecat_pixel_data)} instead.")
+
+    # debug step #6 view data as passed to ecat2nii method
+    if ecat_save_steps == '1':
+        # collect only the first, middle, and last frames from pixel_data_matrix_4d as first, middle, and last
+        # frames are typically the most interesting
+        frames = [0, len(data) // 2, -1]
+        frames_to_record = []
+        for f in frames:
+            frames_to_record.append(data[:, :, :, f])
+
+        # now collect a single 2d slice from the "middle" of the 3d frames in frames_to_record
+        slice_to_record = []
+        for index, frame in enumerate(frames_to_record):
+            numpy.savetxt(steps_dir / f"6_ecat2nii_python_{index}.tsv",
+                          frames_to_record[index][:, :, frames_to_record[index].shape[2] // 2],
+                          delimiter="\t", fmt='%s')
+
+        helper_functions.first_middle_last_frames_to_text(
+            four_d_array_like_object=data,
+            output_folder=steps_dir,
+            step_name='6_ecat2nii_python')
 
     # set the byte order and the pixel data type from the input array
     pixel_data_type = data.dtype
@@ -134,6 +164,14 @@ def ecat2nii(ecat_main_header=None,
             prompts.append(0)
             randoms.append(0)
 
+    # debug step #7 view data after flipping into nifti space/orientation
+    if ecat_save_steps == '1':
+        helper_functions.first_middle_last_frames_to_text(
+            four_d_array_like_object=img_temp,
+            output_folder=steps_dir,
+            step_name='7_flip_ecat2nii_python'
+        )
+
     # so the only real difference between the matlab code and the python code is that that we aren't manually
     # scaling the date to 16 bit integers.
     rg = img_temp.max() - img_temp.min()
@@ -146,11 +184,29 @@ def ecat2nii(ecat_main_header=None,
             img_temp = img_temp / (min_img * -32768)
             sca = sca * (min_img * -32768)
 
+    # scale image to 16 bit
+    final_image = img_temp.astype(numpy.single) * sca
+
+    # debug step 8 check after "rescaling" to 16 bit
+    if ecat_save_steps == '1':
+        helper_functions.first_middle_last_frames_to_text(
+            four_d_array_like_object=final_image,
+            output_folder=steps_dir,
+            step_name='8_rescale_to_16_ecat2nii_python'
+        )
+
     ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
     if ecat_cal_units == 1:                              # Calibrate if it hasn't been already
-        final_image = img_temp.astype(numpy.single) * sca * main_header['ECAT_CALIBRATION_FACTOR']
+        final_image = final_image * main_header['ECAT_CALIBRATION_FACTOR']
+        # this debug step may not execute if we're not calibrating the scan, but that's okay
+        if ecat_save_steps == '1':
+            helper_functions.first_middle_last_frames_to_text(
+                four_d_array_like_object=final_image,
+                output_folder=steps_dir,
+                step_name='9_scal_cal_units_ecat2nii_python'
+            )
     else:                            # And don't calibrate if CALIBRATION_UNITS is anything else but 1
-        final_image = sca * img_temp.astype(numpy.single)
+        final_image = final_image
 
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
@@ -179,6 +235,14 @@ def ecat2nii(ecat_main_header=None,
         affine = t
 
     img_nii = nibabel.Nifti1Image(final_image, affine=affine)
+
+    # debug step 10, check to see what's happened after we've converted our numpy array in to a nibabel object
+    if ecat_save_steps == '1':
+        helper_functions.first_middle_last_frames_to_text(
+            four_d_array_like_object=img_nii.dataobj,
+            output_folder=steps_dir,
+            step_name='10_save_nii_ecat2nii_python'
+        )
 
     # populating nifti header
     if img_nii.header['sizeof_hdr'] != 348:

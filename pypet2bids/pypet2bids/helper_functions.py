@@ -1000,3 +1000,16 @@ def hash_fields(**fields):
     hash_hex = hashlib.md5(hash_string.encode('utf-8')).hexdigest()
 
     return f"{hash_return_string}{hash_hex}"
+
+
+def first_middle_last_frames_to_text(four_d_array_like_object, output_folder, step_name='_step_name_'):
+    frames = [0, four_d_array_like_object.shape[-1] // 2, four_d_array_like_object.shape[-1] - 1]
+    frames_to_record = []
+    for f in frames:
+        frames_to_record.append(four_d_array_like_object[:, :, :, f])
+
+    # now collect a single 2d slice from the "middle" of the 3d frames in frames_to_record
+    for index, frame in enumerate(frames_to_record):
+        numpy.savetxt(output_folder / f"{step_name}_frame_{frames[index]}.tsv",
+                      frames_to_record[index][:, :, frames_to_record[index].shape[2] // 2],
+                      delimiter="\t", fmt='%s')

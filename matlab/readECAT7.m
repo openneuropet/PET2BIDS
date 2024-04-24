@@ -239,9 +239,8 @@ if (ecat_save_steps == '1')
 
     % save pixel data (if it exists) but collect only the first, middle, and last frames
     % collect the first, middle, and last frames
-    frames = [1, floor(size(data{1}, 3)/2), size(data{1}, 3)];
-    disp("these are the frames");
-    disp(frames);
+    frames = [1, floor(length(data)/2) + 1, length(data)];
+   
     % collect only a single 2D slice from each of the frames collected in frames
     frames_to_record = {};
     for i = 1:length(frames)
@@ -255,10 +254,23 @@ if (ecat_save_steps == '1')
 
     for i = 1:length(frames_to_record)
         frame = frames_to_record{i};
-        writematrix(frame, [ecat_save_steps_dir filesep '4_read_img_ecat_matlab_' num2str(i - 1) '.tsv'], 'Delimiter', 'tab', 'FileType','text');
+        % frame_number_string_0_index 
+        frame_string = string(frames(i) - 1);
+        filename =  strcat(ecat_save_steps_dir,filesep,'4_read_img_ecat_matlab_',frame_string,'.tsv');
+        writematrix(frame, filename , 'Delimiter', 'tab', 'FileType','text');
     end
 
     % scale if calibrated
+    % data has already been saved in the previous step (step 4) but we go ahead and do this step once more because the
+    % numbering system that's been imposed upon us to test these outputs
+    if calibrated ~0
+        for i = 1:length(frames_to_record)
+            frame = frames_to_record{i};
+            frame_string = string(frames(i) - 1 );
+            filename = strcat(ecat_save_steps_dir,filesep,'5_scale_img_ecat_matlab_',frame_string,'.tsv');
+            writematrix(frame, filename , 'Delimiter', 'tab', 'FileType','text');
+        end
+    end
 
 end
 
