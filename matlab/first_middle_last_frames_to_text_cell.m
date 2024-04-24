@@ -10,17 +10,24 @@ function [output_folder, step_name] = first_middle_last_frames_to_text(four_d_ar
 output_folder = output_folder;
 step_name = step_name;
 data = four_d_array_like_object;
-data_size = size(data);
 
 % get first, middle, and last frame of data
-frames = [ 1, floor(data_size(4)/2) + 1, data_size(4)]
+frames = [ 1, floor(length(data)/2) + 1, length(data)];
 frames_to_record = cell(length(frames));
 for i = 1:length(frames)
     frame_number = frames(i);
-    frame_to_slice = data(:,:,:,frame_number);
-    size_of_frame_to_slice = size(frame_to_slice)
+    try
+        frame_to_slice = data{frame_number};
+    catch
+        frame_to_slice = data(frame_number);
+    end
+    size_of_frame_to_slice = size(frame_to_slice);
     middle_of_frame = int16(size_of_frame_to_slice(3)/2);
-    slice = data(:,:,middle_of_frame,frame_number);
+    try
+        slice = data{frame_number}(:,:,middle_of_frame);
+    catch
+        slice = data(:,:,middle_of_frame,frame_number);
+    end
     frames_to_record{i} = slice;
 end
 

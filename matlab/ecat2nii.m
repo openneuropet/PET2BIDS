@@ -153,7 +153,10 @@ for j=1:length(FileListIn)
         end
         
         pet_file = [pet_file ext];
-        [mh,sh, data]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
+        [mh,sh,data]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
+        if (ecat_save_steps == '1')
+            first_middle_last_frames_to_text_cell(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
+        end
         if sh{1}.data_type ~= 6
             error('Conversion for 16 bit data only (type 6 in ecat file) - error loading ecat file');
         end
@@ -179,7 +182,7 @@ for j=1:length(FileListIn)
 
         % save debugging steps 6 and 7
         if (ecat_save_steps == '1')
-            first_middle_last_frames_to_text(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
+            first_middle_last_frames_to_text_cell(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
             first_middle_last_frames_to_text(img_temp,ecat_save_steps_dir, '7_flip_ecat2nii_matlab');
         end
 
@@ -357,7 +360,7 @@ for j=1:length(FileListIn)
         
         if mh.calibration_units == 1 % do calibrate
             img_temp                          = single(round(img_temp).*(Sca*mh.ecat_calibration_factor)); % scale and dose calibrated
-            if save_ecat_steps == '1'
+            if ecat_save_steps == '1'
                 first_middle_last_frames_to_text(img_temp,ecat_save_steps_dir, '9_scal_cal_units_ecat2nii_matlab');
             end
             warning('it looks like the source data are not dose calibrated - ecat2nii is thus scaling the data')

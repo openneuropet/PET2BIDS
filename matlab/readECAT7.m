@@ -237,13 +237,13 @@ if (ecat_save_steps == '1')
     fprintf(step_3_file, '%s', step_3_json);
     fclose(step_3_file);
 
-    first_middle_last_frames_to_text(data, ecat_save_steps_dir, '4_read_img_ecat_matlab')
+    first_middle_last_frames_to_text_cell(data, ecat_save_steps_dir, '4_read_img_ecat_matlab')
 
     % scale if calibrated
     % data has already been saved in the previous step (step 4) but we go ahead and do this step once more because the
     % numbering system that's been imposed upon us to test these outputs
     if calibrated ~0
-        first_middle_last_frames_to_text(data, ecat_save_steps_dir, '5_scale_img_ecat_matlab')
+        first_middle_last_frames_to_text_cell(data, ecat_save_steps_dir, '5_scale_img_ecat_matlab')
     end
 end
 
