@@ -66,6 +66,7 @@ jobs:
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
+          dcm2niix -h 
 
       - name: Install dcm2niix windows
         if: runner.os == 'Windows'
