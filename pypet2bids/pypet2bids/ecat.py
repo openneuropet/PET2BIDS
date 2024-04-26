@@ -343,6 +343,7 @@ class Ecat:
         if dose_start_time:
             parsed_dose_time = parse_this_date(dose_start_time)
             self.sidecar_template["PharmaceuticalDoseTime"] = parsed_dose_time
+            self.sidecar_template["InjectionStart"] = parsed_dose_time
 
         # if decay correction exists mark decay correction boolean as true
         if len(self.decay_factors) > 0:
@@ -396,6 +397,18 @@ class Ecat:
                 self.sidecar_template["TimeZero"] = self.sidecar_template[
                     "AcquisitionTime"
                 ]
+
+        # set scan start and pharmaceutical dose time relative to time zero.
+        times_make_relative = ['ScanStart', 'PharmaceuticalDoseTime', 'AcquisitionTime', 'InjectionStart']
+        time_zero_datetime = datetime.datetime.strptime(self.sidecar_template.get("TimeZero"), "%H:%M:%S")
+        for t in times_make_relative:
+            try:
+                t_datetime = datetime.datetime.strptime(self.sidecar_template.get(t), "%H:%M:%S")
+                time_diff = t_datetime - time_zero_datetime
+                self.sidecar_template[t] = time_diff.total_seconds()
+            except ValueError:
+                logger.warning(f"Unable to convert {t}:{self.sidecar_template.get(t)} to "
+                               f"time relative to TimeZero:{self.sidecar_template.get('TimeZero')} skipping.")
 
         # clear any nulls from json sidecar and replace with none's
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
