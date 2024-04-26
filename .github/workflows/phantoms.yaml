@@ -66,6 +66,16 @@ jobs:
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install dcm2niix
           fi
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
+
+      - name: Check dcm2niix is installed and on path
+        if: runner.os != 'Windows'
           dcm2niix -h 
 
       - name: Install dcm2niix windows
