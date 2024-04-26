@@ -76,6 +76,7 @@ jobs:
 
       - name: Check dcm2niix is installed and on path
         if: runner.os != 'Windows'
+        run:
           dcm2niix -h 
 
       - name: Install dcm2niix windows
