@@ -434,7 +434,7 @@ class Ecat:
         full_fields = list(self.sidecar_template)
         exclude_list = []
         for field, value in self.sidecar_template.items():
-            if value is not None or value != "":
+            if value is not None and value != "":
                 # check to make sure value isn't a list of null types
                 # e.g. if value = [None, None, None] we don't want to include it.
                 if type(value) is list:

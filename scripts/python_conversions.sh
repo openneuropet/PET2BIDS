@@ -9,7 +9,6 @@
 # --kwargs accepts arguments passed to in in the form of JS or Python types: int, float, string, list/array. Where lists/arrays should be 
 # wrapped in double quotes.
 
-
 # set paths where the repo is
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 repo_path=$( cd "$(dirname "${parent_path}")" ; pwd -P )
