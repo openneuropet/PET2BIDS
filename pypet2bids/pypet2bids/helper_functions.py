@@ -1027,6 +1027,14 @@ def check_pet2bids_config(variable: str = "DCM2NIIX_PATH", config_path=Path.home
             f"Found {variable} in environment variables as {variable_value}, but no .pet2bidsconfig file found at {pypet2bids_config}"
         )
     if variable == "DCM2NIIX_PATH":
+        # check to see if dcm2niix is on the path at all
+        check_on_path = subprocess.run(
+            "dcm2niix -h",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
         if variable_value:
             # check dcm2niix path exists
             dcm2niix_path = Path(variable_value)
@@ -1038,6 +1046,12 @@ def check_pet2bids_config(variable: str = "DCM2NIIX_PATH", config_path=Path.home
             )
             if check.returncode == 0:
                 return dcm2niix_path
+        elif not variable_value and pypet2bids_config.exists() and check_on_path.returncode == 0:
+            # do nothing
+            #log.info(
+            #    f"DCM2NIIX_PATH not found in {pypet2bids_config}, but dcm2niix is on $PATH."
+            #)
+            return None
         else:
             log.error(
                 f"Unable to locate dcm2niix executable at {dcm2niix_path.__str__()}"
