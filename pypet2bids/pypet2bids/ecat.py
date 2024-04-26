@@ -290,7 +290,7 @@ class Ecat:
             "ISOTOPE_NAME", None
         )
         self.sidecar_template["PharmaceuticalName"] = self.ecat_header.get(
-            "RADIOPHARAMCEUTICAL", None
+            "RADIOPHARMACEUTICAL", None
         )
 
         # collect frame time start and populate various subheader fields
