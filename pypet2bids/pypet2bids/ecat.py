@@ -340,10 +340,15 @@ class Ecat:
 
         # collect dose start time
         dose_start_time = self.ecat_header.get("DOSE_START_TIME", None)
-        if dose_start_time:
-            parsed_dose_time = parse_this_date(dose_start_time)
-            self.sidecar_template["PharmaceuticalDoseTime"] = parsed_dose_time
-            self.sidecar_template["InjectionStart"] = parsed_dose_time
+        if dose_start_time is not None:
+            if dose_start_time != 0 and dose_start_time != "0" and dose_start_time != 0.0:
+                dose_start_time = parse_this_date(dose_start_time)
+                parsed_dose_time = parse_this_date(dose_start_time)
+                self.sidecar_template["PharmaceuticalDoseTime"] = parsed_dose_time
+                self.sidecar_template["InjectionStart"] = parsed_dose_time
+            else:
+                self.sidecar_template["PharmaceuticalDoseTime"] = int(dose_start_time)
+                self.sidecar_template["InjectionStart"] = int(dose_start_time)
 
         # if decay correction exists mark decay correction boolean as true
         if len(self.decay_factors) > 0:
@@ -399,16 +404,18 @@ class Ecat:
                 ]
 
         # set scan start and pharmaceutical dose time relative to time zero.
-        times_make_relative = ['ScanStart', 'PharmaceuticalDoseTime', 'AcquisitionTime', 'InjectionStart']
+        times_make_relative = ['ScanStart', 'PharmaceuticalDoseTime', 'InjectionStart']
         time_zero_datetime = datetime.datetime.strptime(self.sidecar_template.get("TimeZero"), "%H:%M:%S")
         for t in times_make_relative:
+            t_value = self.sidecar_template.get(t)
+            # sometimes we start with 0 or time in seconds, we first check for this
             try:
-                t_datetime = datetime.datetime.strptime(self.sidecar_template.get(t), "%H:%M:%S")
+                int(t_value)
+                self.sidecar_template[t] = t_value
+            except ValueError:
+                t_datetime = datetime.datetime.strptime(t_value, "%H:%M:%S")
                 time_diff = t_datetime - time_zero_datetime
                 self.sidecar_template[t] = time_diff.total_seconds()
-            except ValueError:
-                logger.warning(f"Unable to convert {t}:{self.sidecar_template.get(t)} to "
-                               f"time relative to TimeZero:{self.sidecar_template.get('TimeZero')} skipping.")
 
         # clear any nulls from json sidecar and replace with none's
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
@@ -427,7 +434,7 @@ class Ecat:
         full_fields = list(self.sidecar_template)
         exclude_list = []
         for field, value in self.sidecar_template.items():
-            if value:
+            if value is not None or value != "":
                 # check to make sure value isn't a list of null types
                 # e.g. if value = [None, None, None] we don't want to include it.
                 if type(value) is list:
