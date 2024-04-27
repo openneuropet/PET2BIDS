@@ -184,6 +184,10 @@ def ecat2nii(ecat_main_header=None,
             img_temp = img_temp / (min_img * -32768)
             sca = sca * (min_img * -32768)
 
+    with open(os.path.join(steps_dir,'8.5_sca.txt'), 'w') as sca_file:
+        sca_file.write(f"Scaling factor: {sca}\n")
+        sca_file.write(f"Scaling factor * ECAT Cal Factor: {sca * main_header['ECAT_CALIBRATION_FACTOR']}\n")
+
     # scale image to 16 bit
     final_image = img_temp.astype(numpy.single)
 
@@ -197,7 +201,7 @@ def ecat2nii(ecat_main_header=None,
 
     ecat_cal_units = main_header['CALIBRATION_UNITS']  # Header field designating whether data has already been calibrated
     if ecat_cal_units == 1:                              # Calibrate if it hasn't been already
-        final_image = final_image * main_header['ECAT_CALIBRATION_FACTOR']
+        final_image = numpy.round(final_image) * main_header['ECAT_CALIBRATION_FACTOR'] * sca
         # this debug step may not execute if we're not calibrating the scan, but that's okay
         if ecat_save_steps == '1':
             helper_functions.first_middle_last_frames_to_text(
@@ -206,7 +210,7 @@ def ecat2nii(ecat_main_header=None,
                 step_name='9_scal_cal_units_ecat2nii_python'
             )
     else:                            # And don't calibrate if CALIBRATION_UNITS is anything else but 1
-        final_image = final_image
+        final_image = numpy.round(final_image) * sca
 
     qoffset_x = -1 * (
         ((sub_headers[0]['X_DIMENSION'] * sub_headers[0]['X_PIXEL_SIZE'] * 10 / 2) - sub_headers[0][
