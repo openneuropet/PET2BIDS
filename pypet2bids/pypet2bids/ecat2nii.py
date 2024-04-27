@@ -185,7 +185,7 @@ def ecat2nii(ecat_main_header=None,
             sca = sca * (min_img * -32768)
 
     # scale image to 16 bit
-    final_image = img_temp.astype(numpy.single) * sca
+    final_image = img_temp.astype(numpy.single)
 
     # debug step 8 check after "rescaling" to 16 bit
     if ecat_save_steps == '1':
