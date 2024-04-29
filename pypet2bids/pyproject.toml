@@ -14,7 +14,7 @@ repository = "https://github.com/openneuropet/pet2bids/"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=3.11"
+python = ">=3.8,<=3.12"
 nibabel = ">=3.2.1"
 numpy = "^1.21.3"
 pyparsing = "^3.0.4"
