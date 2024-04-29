@@ -204,7 +204,9 @@ def pet_folder(folder_path: Path, skim=False, njobs=2) -> Union[str, list, bool]
         all_files = smaller_list
 
     # check if any files are pet files
-    files = read_files_in_parallel(all_files, pet_file, n_jobs=njobs, return_only_path=True)
+    files = read_files_in_parallel(
+        all_files, pet_file, n_jobs=njobs, return_only_path=True
+    )
     files = [Path(f) for f in files if f is not None]
     # check through list of pet files and statuses for True values in parallel
     folders = set([f.parent for f in files])
@@ -268,7 +270,9 @@ def main():
             sys.exit(1)
 
     elif args.filepath.is_dir():
-        pet_folders = pet_folder(args.filepath.resolve(), skim=args.skim, njobs=args.njobs)
+        pet_folders = pet_folder(
+            args.filepath.resolve(), skim=args.skim, njobs=args.njobs
+        )
         if len(pet_folders) > 0:
             for f in pet_folders:
                 print(f"{f}")

@@ -185,7 +185,9 @@ def cli():
         "path/to/metadata.xlsx",
     )
     parser.add_argument(
-        "--version", '-v', action='version',
+        "--version",
+        "-v",
+        action="version",
         version=f"{helper_functions.get_version()}",
     )
 
