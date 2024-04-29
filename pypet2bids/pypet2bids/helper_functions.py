@@ -998,7 +998,9 @@ def replace_nones(dictionary):
     return json.loads(json_fixed)
 
 
-def check_pet2bids_config(variable: str = "DCM2NIIX_PATH", config_path=Path.home() / ".pet2bidsconfig"):
+def check_pet2bids_config(
+    variable: str = "DCM2NIIX_PATH", config_path=Path.home() / ".pet2bidsconfig"
+):
     """
     Checks the config file at users home /.pet2bidsconfig for the variable passed in,
     defaults to checking for DCM2NIIX_PATH. However, we can use it for anything we like,
@@ -1046,11 +1048,15 @@ def check_pet2bids_config(variable: str = "DCM2NIIX_PATH", config_path=Path.home
             )
             if check.returncode == 0:
                 return dcm2niix_path
-        elif not variable_value and pypet2bids_config.exists() and check_on_path.returncode == 0:
+        elif (
+            not variable_value
+            and pypet2bids_config.exists()
+            and check_on_path.returncode == 0
+        ):
             # do nothing
-            #log.info(
+            # log.info(
             #    f"DCM2NIIX_PATH not found in {pypet2bids_config}, but dcm2niix is on $PATH."
-            #)
+            # )
             return None
         else:
             log.error(

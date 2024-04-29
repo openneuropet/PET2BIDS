@@ -1063,7 +1063,9 @@ def cli():
         help="Provide a reconstruction method to be used in the output file name",
     )
     parser.add_argument(
-        "--version", '-v', action='version',
+        "--version",
+        "-v",
+        action="version",
         version=f"{helper_functions.get_version()}",
     )
 

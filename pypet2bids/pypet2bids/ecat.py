@@ -341,7 +341,11 @@ class Ecat:
         # collect dose start time
         dose_start_time = self.ecat_header.get("DOSE_START_TIME", None)
         if dose_start_time is not None:
-            if dose_start_time != 0 and dose_start_time != "0" and dose_start_time != 0.0:
+            if (
+                dose_start_time != 0
+                and dose_start_time != "0"
+                and dose_start_time != 0.0
+            ):
                 dose_start_time = parse_this_date(dose_start_time)
                 parsed_dose_time = parse_this_date(dose_start_time)
                 self.sidecar_template["PharmaceuticalDoseTime"] = parsed_dose_time
@@ -404,8 +408,10 @@ class Ecat:
                 ]
 
         # set scan start and pharmaceutical dose time relative to time zero.
-        times_make_relative = ['ScanStart', 'PharmaceuticalDoseTime', 'InjectionStart']
-        time_zero_datetime = datetime.datetime.strptime(self.sidecar_template.get("TimeZero"), "%H:%M:%S")
+        times_make_relative = ["ScanStart", "PharmaceuticalDoseTime", "InjectionStart"]
+        time_zero_datetime = datetime.datetime.strptime(
+            self.sidecar_template.get("TimeZero"), "%H:%M:%S"
+        )
         for t in times_make_relative:
             t_value = self.sidecar_template.get(t)
             # sometimes we start with 0 or time in seconds, we first check for this
