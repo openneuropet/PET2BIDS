@@ -453,6 +453,7 @@ elseif strcmpi(cmd, 'save')
     % Write nii image
     fwrite(fid, nii.img, fmt);
     fclose(fid); % all written
+    disp(fmt)
 
     % gzip if asked
     if do_gzip
