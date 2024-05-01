@@ -7,61 +7,66 @@ tags:
   - positron emission tomography (PET)
   - brain imaging data structure (BIDS)
 authors:
-- name: Anthony Galassi
-  orcid: 0000-0001-6550-4574
-  affiliation: 1
-- name: Cyrus Eierud
-  orcid: 0000-0002-9942-676X
-  affiliation: 2
-- name: Martin Norgaard
-  orcid: 0000-0003-2131-5688
-  affiliation: "3, 4, 5"
-- name: Adam G. Thomas
-  orcid: 0000-0002-2850-1419
-  affiliation: 1
-- name: Gabriel Gonzalez-Escamilla
-  orcid: 0000-0002-7209-1736
-  affiliation: 6
-- name: Claus Svarer
-  orcid: 0000-0001-7811-1825
-  affiliation: 3
-- name: Chris Rorden
-  orcid: 0000-0002-7554-6142
-  affiliation: 7
-- name: Granville J. Matheson
-  orcid: 0000-0002-5646-4547
-  affiliation: "8, 9"
-- name: Gitte M. Knudsen
-  orcid: 0000-0003-1508-6866
-  affiliation: 3
-- name: Robert B. Innis
-  orcid: 0000-0003-1238-7209
-  affiliation: 1 
-- name: Melanie Ganz
-  orcid: 0000-0002-9120-8098
-  affiliation: "3, 4"
-- name: Cyril Pernet
-  orcid: 0000-0003-4010-4632
-  affiliation: 3
+  - name: Anthony Galassi
+    orcid: 0000-0001-6550-4574
+    affiliation: 1
+  - name: Cyrus Eierud
+    orcid: 0000-0002-9942-676X
+    affiliation: 2
+  - name: Martin Norgaard
+    orcid: 0000-0003-2131-5688
+    affiliation: "3, 4, 5"
+  - name: Adam G. Thomas
+    orcid: 0000-0002-2850-1419
+    affiliation: 1
+  - name: Gabriel Gonzalez-Escamilla
+    orcid: 0000-0002-7209-1736
+    affiliation: 6
+  - name: Claus Svarer
+    orcid: 0000-0001-7811-1825
+    affiliation: 3
+  - name: Chris Rorden
+    orcid: 0000-0002-7554-6142
+    affiliation: 7
+  - name: Granville J. Matheson
+    orcid: 0000-0002-5646-4547
+    affiliation: "8, 9"
+  - name: Gitte M. Knudsen
+    orcid: 0000-0003-1508-6866
+    affiliation: 3
+  - name: Robert B. Innis
+    orcid: 0000-0003-1238-7209
+    affiliation: 1
+  - name: Melanie Ganz
+    orcid: 0000-0002-9120-8098
+    affiliation: "3, 4"
+  - name: Murat Bilgel
+    orcid: 0000-0001-5042-7422
+    affiliation: 10
+  - name: Cyril Pernet
+    orcid: 0000-0003-4010-4632
+    affiliation: 3
 affiliations:
- - name: National Institutes of Health, Bethesda, MD, USA
-   index: 1
- - name: TReNDS Center, Georgia State University, Atlanta, GA, USA
-   index: 2
- - name: Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
-   index: 3
- - name: Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
-   index: 4
- - name: Department of Psychology, Stanford University, CA, USA
-   index: 5
- - name: University Medical Center of the Johannes Gutenberg University Mainz, Mainz, Germany
-   index: 6
- - name: Department of Psychology, University of South Carolina, Columbia, SC, USA
-   index: 7
- - name: Mailman school of Public Health, Columbia University, New York, NY, USA
-   index: 8
- - name: Department of Clinical Neuroscience, Karolinska Institutet and Stockholm County Council, Stockholm, Sweden
-   index: 9
+  - name: National Institutes of Health, Bethesda, MD, USA
+    index: 1
+  - name: TReNDS Center, Georgia State University, Atlanta, GA, USA
+    index: 2
+  - name: Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
+    index: 3
+  - name: Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
+    index: 4
+  - name: Department of Psychology, Stanford University, CA, USA
+    index: 5
+  - name: University Medical Center of the Johannes Gutenberg University Mainz, Mainz, Germany
+    index: 6
+  - name: Department of Psychology, University of South Carolina, Columbia, SC, USA
+    index: 7
+  - name: Mailman school of Public Health, Columbia University, New York, NY, USA
+    index: 8
+  - name: Department of Clinical Neuroscience, Karolinska Institutet and Stockholm County Council, Stockholm, Sweden
+    index: 9
+  - name: National Institute on Aging Intramural Research Program, Baltimore, MD, USA
+    index: 10
 date: 22 August 2023
 bibliography: paper.bib
 
@@ -69,19 +74,53 @@ bibliography: paper.bib
 
 # Summary
 
-The Brain Imaging Data Structure [@gorgolewski_brain_2016] is a standard for organizing and naming neuroimaging data, which has quickly become successful and popular in the community with adoption by brain imaging repositories (e.g., OpenNeuro [@noauthor_openneuro], PublicnEUro [@noauthor_public]), data management tools (e.g., COINS [@landis_coins_2016], XNAT [@marcus_extensible_2007]) and computational platforms (e.g. BrainLife [@Hayashi_2023]). BIDS allows data to be shared much more efficiently, enables the development of automated data analysis pipelines, and improves reproducibility.  
+The Brain Imaging Data Structure [@gorgolewski_brain_2016] is a standard for organizing and naming neuroimaging data,
+which has quickly become successful and popular in the community with adoption by brain imaging repositories
+(e.g., OpenNeuro [@noauthor_openneuro], PublicnEUro [@noauthor_public]),
+data management tools (e.g., COINS [@landis_coins_2016], XNAT [@marcus_extensible_2007]) and computational platforms
+(e.g. BrainLife [@Hayashi_2023]). BIDS allows data to be shared much more efficiently, enables the development of
+automated data analysis pipelines, and improves reproducibility.
 
-The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bids_2022] provides nomenclature for structured data and metadata, including all the necessary information to share and report on PET blood and metabolite [@knudsen_guidelines_2020]. Here we present a code library, developed in both Matlab and Python, allowing the conversion of DICOM [@dicm_ref_2020] and ECAT (CTI/Siemens proprietary data format) PET imaging data and metadata (e.g., timing information such as e.g. 'time zero' or blood measurements) into files that follow the BIDS specification (nifti, json, tsv).
+The BIDS extension for Positron Emission Tomography (PET-BIDS) [@norgaard_pet-bids_2022] provides nomenclature for
+structured data and metadata, including all the necessary information to share and report on PET blood and metabolite
+[@knudsen_guidelines_2020]. Here we present a code library, developed in both Matlab and Python, allowing the conversion
+of DICOM [@dicm_ref_2020] and ECAT (CTI/Siemens proprietary data format) PET imaging data and metadata
+(e.g., timing information such as 'time zero' or blood measurements) into files that follow the BIDS specification
+(nifti, json, tsv).
 
 # Statement of need
 
-Conversion tools from native format to BIDS are essential to help researchers to use BIDS. While tools for MRI and MEEG exist, PET2BIDS is the first tool to convert both DICOM and ECAT PET data and PET metadata to BIDS files. Because PET2BIDS is a code library, conversion is done using the command line. PET2BIDS can, however, also be integrated into software (with a graphical user interface) that aims at more general BIDS conversion, and current efforts are underway integrating PET2BIDS with ezBIDS [@ezBIDS2024] and BIDSCoins [@zwiers_bidscoin_2022]. While our library allows to convert and name files, these more generic tools also allow data to be structured following the BIDS specification.
+Conversion tools from native format to BIDS are essential to help researchers to use BIDS. While tools for MRI and MEEG
+exist, PET2BIDS is the first tool to convert both DICOM and ECAT PET data and PET metadata to BIDS files. Because
+PET2BIDS is a code library, conversion is done using the command line. PET2BIDS can, however, also be integrated into
+software (with a graphical user interface) that aims at more general BIDS conversion, and current efforts are underway
+integrating PET2BIDS with ezBIDS [@ezBIDS2024] and BIDSCoin [@zwiers_bidscoin_2022]. While our library allows to
+convert and name files, these more generic tools also allow data to be structured following the BIDS specification.
 
-_File conversion_: The conversion for PET data stored in DICOM format to NIfTI is performed using the dcm2niix4pet functions, which are wrappers around dcm2niix [@rorden_dcm2nii; @li_first_2016]. Those functions can extend the image sidecar JSON file generated by dcm2niix with user-provided metadata, making them BIDS-compliant. The conversion of PET data stored in ECAT format is performed using the dedicated ecat2nii functions. The Matlab code relies on the readECAT7.m function written by B.T. Christian (1998) and revised by R.F. Muzic (2002) to read the data while writing Nifti files relies on nii_tool [@Li_2016]. The Python code mirrors the Matlab code, except writing of Nifti files, which are delegated to Nibabel [@brett_nipynibabel_2023]. For both Matlab and Python, the data conversion and writing are thoroughly tested (see [ecat validation](https://github.com/openneuropet/PET2BIDS/tree/main/ecat_validation)). Mirroring the DICOM conversion, the ecat2nii functions generate JSON sidecar files from image data, and users must provide additional metadata to make files BIDS-compliant. Note that the Python tools are command line tools, i.e. they can be called directly from a terminal.  
+_File conversion_: The conversion for PET data stored in DICOM format to NIfTI is performed using the `dcm2niix4pet`
+functions, which are wrappers around dcm2niix [@rorden_dcm2nii; @li_first_2016]. Those functions can extend the image
+sidecar JSON file generated by dcm2niix with user-provided metadata, making them BIDS-compliant. The conversion of PET
+data stored in ECAT format is performed using the dedicated ecat2nii functions. The Matlab code relies on the
+`readECAT7.m` [@readECAT7] function written by B.T. Christian (1998) and revised by R.F. Muzic (2002) to read the data
+while writing Nifti files relies on `nii_tool` [@Li_2016]. The Python code mirrors the Matlab code, except writing of
+Nifti files,
+which are delegated to Nibabel [@brett_nipynibabel_2023]. For both Matlab and Python, the data conversion and writing
+are thoroughly tested (see [ecat validation](https://github.com/openneuropet/PET2BIDS/tree/main/ecat_validation)).
+Mirroring the DICOM conversion, the ecat2nii functions generate JSON sidecar files from image data, and users must
+provide additional metadata to make files BIDS-compliant. Note that the Python tools are command line tools, i.e. they
+can be called directly from a terminal.
 
-_PET Metadata_: Some radiotracer and pharmaceutical information are always missing in the JSON sidecar files created from reading PET scanner data which is why dcm2niix4pet and ecat2nii take additional metadata. It is also possible to update existing JSON sidecar files with new metadata directly using updatejsonpetfile.m or update_json_pet_file.py.
+_PET Metadata_: Some radiotracer and pharmaceutical information are always missing in the JSON sidecar files created
+from reading PET scanner data which is why `dcm2niix4pet` and `ecat2nii` take additional metadata. It is also possible
+to
+update existing JSON sidecar files with new metadata directly using `updatejsonpetfile.m` or `update_json_pet_file.py`.
 
-_Spreadsheet conversion_: Tabular data formats are ubiquitous in the PET community, mainly to keep track of radiotracer information injected per participant and record time and radiotracer concentration from the blood sampling. Functions were created to read preformatted tabular data to create or update existing sidecar JSON files. In addition, dedicated functions were created to convert either a preformatted tabular file or PMOD files (PMOD being a popular commercial pharmacokinetic modeling software [@Burger1997]) to a BIDS blood.tsv file with it's sidecar JSON. Supported formats are .xls, .xlsx, .csv, .tsv and .bld.  
+_Spreadsheet conversion_: Tabular data formats are ubiquitous in the PET community, mainly to keep track of radiotracer
+information injected per participant and record time and radiotracer concentration from the blood sampling. Functions
+were created to read preformatted tabular data to create or update existing sidecar JSON files. In addition, dedicated
+functions were created to convert either a preformatted tabular file or PMOD files (PMOD being a popular commercial
+pharmacokinetic modeling software [@Burger1997]) to a BIDS blood.tsv file with it's sidecar JSON. Supported formats are
+.xls, .xlsx, .csv, .tsv and .bld.
 
 # Acknowledgements
 
