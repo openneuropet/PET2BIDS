@@ -3,7 +3,7 @@
 The following individuals have contributed to the PET2BIDS project (in alphabetical order). If you contributed and
 some icons needs to be added or your name is not listed, please add it.
 
-Murat Bilgel 💻 🐛 💡
+Murat Bilgel 💻 🐛 💡 
 Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️  
 Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋  
 Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
