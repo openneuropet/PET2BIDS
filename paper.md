@@ -10,9 +10,6 @@ authors:
   - name: Anthony Galassi
     orcid: 0000-0001-6550-4574
     affiliation: 1
-  - name: Cyrus Eierud
-    orcid: 0000-0002-9942-676X
-    affiliation: 2
   - name: Martin Norgaard
     orcid: 0000-0003-2131-5688
     affiliation: "3, 4, 5"
@@ -40,6 +37,9 @@ authors:
   - name: Melanie Ganz
     orcid: 0000-0002-9120-8098
     affiliation: "3, 4"
+  - name: Cyrus Eierud
+    orcid: 0000-0002-9942-676X
+    affiliation: 2
   - name: Murat Bilgel
     orcid: 0000-0001-5042-7422
     affiliation: 10
