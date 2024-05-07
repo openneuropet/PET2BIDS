@@ -112,7 +112,7 @@ def ecat2nii(
         sub_headers[0]["X_DIMENSION"],
         sub_headers[0]["Y_DIMENSION"],
         sub_headers[0]["Z_DIMENSION"],
-        main_header["NUM_FRAMES"],
+        len(sub_headers),
     )
 
     # make sure number of data elements matches frame number
@@ -120,7 +120,7 @@ def ecat2nii(
     if img_shape[3] == 1 and img_shape[0:2] == shape_from_headers[0:2]:
         single_frame = True
     if img_shape != shape_from_headers and not single_frame:
-        raise Exception(
+        raise Warning(
             f"Mis-match between expected X,Y,Z, and Num. Frames dimensions ({shape_from_headers} obtained from headers"
             f"and shape of imaging data ({img_shape}"
         )
