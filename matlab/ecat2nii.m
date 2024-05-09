@@ -477,9 +477,9 @@ for j=1:length(FileListIn)
         %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
         % end
         
-    %catch conversionerr
-    %    FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
-    %end
+    catch conversionerr
+        FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
+    end
     
     if exist('newfile','var') % i.e. decompresed .nii.gz
         delete(newfile{1});
