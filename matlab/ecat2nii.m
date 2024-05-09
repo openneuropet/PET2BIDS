@@ -458,6 +458,12 @@ for j=1:length(FileListIn)
         end
         nii_tool('save', nii, fnm);
         FileListOut{j} = fnm;
+
+        if ecat_save_steps == '1'
+            % open the nifti file just written and check to see if the written values differ from the original
+            nii = nii_tool('load', fnm);
+            first_middle_last_frames_to_text(nii.img, ecat_save_steps_dir, '11_read_saved_nii_matlab');
+        end
         
         % optionally one can use niftiwrite from the Image Processing Toolbox
         % warning different versions of matlab may provide different nifti results

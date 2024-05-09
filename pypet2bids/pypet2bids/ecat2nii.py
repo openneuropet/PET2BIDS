@@ -273,13 +273,13 @@ def ecat2nii(ecat_main_header=None,
 
     # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
     #  factor img_nii.header['scl_inter'] # defaults to NaN array
-    img_nii.header['scl_slope'] = 0
+    img_nii.header['scl_slope'] = 1
     img_nii.header['scl_inter'] = 0
     img_nii.header['slice_end'] = 0
     img_nii.header['slice_code'] = 0
     img_nii.header['xyzt_units'] = 10
-    img_nii.header['cal_max'] = final_image.min()
-    img_nii.header['cal_min'] = final_image.max()
+    img_nii.header['cal_max'] = final_image.max()
+    img_nii.header['cal_min'] = final_image.min()
     img_nii.header['slice_duration'] = 0
     img_nii.header['toffset'] = 0
     img_nii.header['descrip'] = "OpenNeuroPET ecat2nii.py conversion"
@@ -309,6 +309,17 @@ def ecat2nii(ecat_main_header=None,
 
     # save nifti
     nibabel.save(img_nii, nifti_file)
+
+    # run step 11 in debug
+    if ecat_save_steps == '1':
+        # load nifti file with nibabel
+        written_img_nii = nibabel.load(nifti_file)
+
+        helper_functions.first_middle_last_frames_to_text(
+            four_d_array_like_object=written_img_nii.dataobj,
+            output_folder=steps_dir,
+            step_name='11_read_saved_nii_python'
+        )
 
     # used for testing veracity of nibabel read and write.
     if save_binary:

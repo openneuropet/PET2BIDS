@@ -18,19 +18,19 @@ of these steps the outputs are saved in the `steps/` directory with the filestem
 make them) as described. These temporary files are written if and only if the environment variable `ECAT_SAVE_STEPS=1` 
 is set.
 
-| Step | Description                     | Matlab         | Python         | FileStem                     |
-|------|---------------------------------|----------------|----------------|------------------------------|
-| 1    | Read main header                | `read_ECAT7.m` | `read_ecat.py` | `1_read_mh_ecat*`            |
-| 2    | Read subheaders                 | `read_EACT7.m` | `read_ecat.py` | `2_read_sh_ecat*`            |
-| 3    | Determine file/data type        | `read_ECAT7.m` | `read_ecat.py` | `3_determine_data_type*`     |
-| 4    | Read image data                 | `read_ECAT7.m` | `read_ecat.py` | `4_read_img_ecat*`           |
-| 5    | scale if calibrated             | `read_ECAT7.m` | `read_ecat.py` | `5_scale_img_ecat*`          |
-| 6    | Pass Data to ecat2nii           | `ecat2nii.m`   | `ecat2nii.py`  | `6_ecat2nii*`                |
-| 7    | Flip ECAT data into Nifti space | `ecat2nii.m`   | `ecat2nii.py`  | `7_flip_ecat2nii*`           |
-| 8    | Rescale to 16 bits              | `ecat2nii.m`   | `ecat2nii.py`  | `8_rescale_to_16_ecat2nii*`  |
-| 9    | Calibration Units Scaling       | `ecat2nii.m`   | `ecat2nii.py`  | `9_scal_cal_units_ecat2nii*` |
-| 10   | Save to Nifti                   | `ecat2nii.m`   | `ecat2nii.py`  | `10_save_nii_ecat2nii*`      |
-| 11   | Additional Steps                | TBD            | TBD            | TBD                          |
+| Step | Description                                           | Matlab        | Python         | FileStem                     |
+|------|-------------------------------------------------------|---------------|----------------|------------------------------|
+| 1    | Read main header                                      | `read_ECAT7.m` | `read_ecat.py` | `1_read_mh_ecat*`            |
+| 2    | Read subheaders                                       | `read_EACT7.m` | `read_ecat.py` | `2_read_sh_ecat*`            |
+| 3    | Determine file/data type                              | `read_ECAT7.m` | `read_ecat.py` | `3_determine_data_type*`     |
+| 4    | Read image data                                       | `read_ECAT7.m` | `read_ecat.py` | `4_read_img_ecat*`           |
+| 5    | scale if calibrated                                   | `read_ECAT7.m` | `read_ecat.py` | `5_scale_img_ecat*`          |
+| 6    | Pass Data to ecat2nii                                 | `ecat2nii.m`  | `ecat2nii.py`  | `6_ecat2nii*`                |
+| 7    | Flip ECAT data into Nifti space                       | `ecat2nii.m`  | `ecat2nii.py`  | `7_flip_ecat2nii*`           |
+| 8    | Rescale to 16 bits                                    | `ecat2nii.m`  | `ecat2nii.py`  | `8_rescale_to_16_ecat2nii*`  |
+| 9    | Calibration Units Scaling                             | `ecat2nii.m`  | `ecat2nii.py`  | `9_scal_cal_units_ecat2nii*` |
+| 10   | Save to Nifti                                         | `ecat2nii.m`  | `ecat2nii.py`  | `10_save_nii_ecat2nii*`      |
+| 11   | Check to see if values are recorded as they should be | `ecat2nii.m`   | `ecat2nii.py`   | `11_read_saved_nii*`          |
 
 
 1. Read main header: this is the first step in reading the ecat file, the main header contains information about the
