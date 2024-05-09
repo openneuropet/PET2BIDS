@@ -226,17 +226,10 @@ def ecat2nii(ecat_main_header=None,
 
     # build affine if it's not included in function call
     if not affine:
-        t = numpy.identity(4)
-        t[0, 0] = sub_headers[0]['X_PIXEL_SIZE'] * 10
-        t[1, 1] = sub_headers[0]['Y_PIXEL_SIZE'] * 10
-        t[2, 2] = sub_headers[0]['Z_PIXEL_SIZE'] * 10
-
-        t[3, 0] = qoffset_x
-        t[3, 1] = qoffset_y
-        t[3, 2] = qoffset_z
-
-        # note this affine is the transform of a nibabel ecat object's affine
-        affine = t
+        mat = np.diag([sub_headers[0]['X_PIXEL_SIZE'],
+                       sub_headers[0]['Y_PIXEL_SIZE'],
+                       sub_headers[0]['Z_PIXEL_SIZE']]) * 10
+        affine = nibabel.affines.from_matvec(mat, [qoffset_x, qoffset_y, qoffset_z])
 
     img_nii = nibabel.Nifti1Image(final_image, affine=affine)
 
@@ -248,66 +241,15 @@ def ecat2nii(ecat_main_header=None,
             step_name='10_save_nii_ecat2nii_python'
         )
 
-    # populating nifti header
-    if img_nii.header['sizeof_hdr'] != 348:
-        img_nii.header['sizeof_hdr'] = 348
-    # img_nii.header['dim_info'] is populated on object creation
-    # img_nii.header['dim']  is populated on object creation
-    img_nii.header['intent_p1'] = 0
-    img_nii.header['intent_p2'] = 0
-    img_nii.header['intent_p3'] = 0
-    # img_nii.header['datatype'] # created on invocation seems to be 16 or int16
-    # img_nii.header['bitpix'] # also automatically created and inferred 32 as of testing w/ cimbi dataset
-    # img_nii.header['slice_type'] # defaults to 0
-    # img_nii.header['pixdim'] # appears as 1d array of length 8 we rescale this
-    img_nii.header['pixdim'] = numpy.array(
-        [1,
-         sub_headers[0]['X_PIXEL_SIZE'] * 10,
-         sub_headers[0]['Y_PIXEL_SIZE'] * 10,
-         sub_headers[0]['Z_PIXEL_SIZE'] * 10,
-         0,
-         0,
-         0,
-         0])
-    img_nii.header['vox_offset'] = 352
-
-    # TODO img_nii.header['scl_slope'] # this is a NaN array by default but apparently it should be the dose calibration
-    #  factor img_nii.header['scl_inter'] # defaults to NaN array
-    img_nii.header['scl_slope'] = 1
-    img_nii.header['scl_inter'] = 0
-    img_nii.header['slice_end'] = 0
-    img_nii.header['slice_code'] = 0
-    img_nii.header['xyzt_units'] = 10
+    img_nii.header.set_slope_inter(slope=1, inter=0)
+    img_nii.header.set_xyzt_units('mm', 'unknown')
+    img_nii.header.set_qform(affine, code=1)
+    img_nii.header.set_sform(affine, code=1)
+    # No setter methods for these
     img_nii.header['cal_max'] = final_image.max()
     img_nii.header['cal_min'] = final_image.min()
-    img_nii.header['slice_duration'] = 0
-    img_nii.header['toffset'] = 0
     img_nii.header['descrip'] = "OpenNeuroPET ecat2nii.py conversion"
-    # img_nii.header['aux_file'] # ignoring as this is set to '' in matlab
-    img_nii.header['qform_code'] = 0
-    img_nii.header['sform_code'] = 1  # 0: Arbitrary coordinates;
-    # 1: Scanner-based anatomical coordinates;
-    # 2: Coordinates aligned to another file's, or to anatomical "truth" (co-registration);
-    # 3: Coordinates aligned to Talairach-Tournoux Atlas; 4: MNI 152 normalized coordinates
 
-    img_nii.header['quatern_b'] = 0
-    img_nii.header['quatern_c'] = 0
-    img_nii.header['quatern_d'] = 0
-    # Please explain this
-    img_nii.header['qoffset_x'] = qoffset_x
-    img_nii.header['qoffset_y'] = qoffset_y
-    img_nii.header['qoffset_z'] = qoffset_z
-    img_nii.header['srow_x'] = numpy.array([sub_headers[0]['X_PIXEL_SIZE']*10, 0, 0, img_nii.header['qoffset_x']])
-    img_nii.header['srow_y'] = numpy.array([0, sub_headers[0]['Y_PIXEL_SIZE']*10, 0, img_nii.header['qoffset_y']])
-    img_nii.header['srow_z'] = numpy.array([0, 0, sub_headers[0]['Z_PIXEL_SIZE']*10, img_nii.header['qoffset_z']])
-
-    img_nii.header['intent_name'] = ''
-    img_nii.header['magic'] = 'n + 1 '
-
-    # nifti header items to include
-    img_nii.header.set_xyzt_units('mm', 'unknown')
-
-    # save nifti
     nibabel.save(img_nii, nifti_file)
 
     # run step 11 in debug
