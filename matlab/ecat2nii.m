@@ -132,7 +132,7 @@ end
 % --------------------
 for j=1:length(FileListIn)
     
-    %try
+    try
         fprintf('Conversion of file: %s\n',FileListIn{j});
         
         % quickly ensure we have the TimeZero - key to all analyzes!
