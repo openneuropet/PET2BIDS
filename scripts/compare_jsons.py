@@ -5,18 +5,17 @@ import pprint
 import argparse
 
 
-
 class Style:
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    UNDERLINE = '\033[4m'
-    RESET = '\033[0m'
+    BLACK = "\033[30m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+    UNDERLINE = "\033[4m"
+    RESET = "\033[0m"
 
 
 def fetch_pairs_of_jsons(path_one: Path, path_two: Path):
@@ -27,14 +26,17 @@ def fetch_pairs_of_jsons(path_one: Path, path_two: Path):
     for path in paths.keys():
         for root, folders, files in os.walk(path):
             for f in files:
-                if Path(f).suffix == '.json':
+                if Path(f).suffix == ".json":
                     paths[path][f] = os.path.join(root, f)
 
     paths = {path_one.name: paths[path_one], path_two.name: paths[path_two]}
 
     pairs = []
     for sidecar in paths[next(iter(paths))]:
-        if sidecar in paths[path_one.name].keys() and sidecar in paths[path_two.name].keys():
+        if (
+            sidecar in paths[path_one.name].keys()
+            and sidecar in paths[path_two.name].keys()
+        ):
             pairs.append(sidecar)
 
     to_compare = {}
@@ -69,30 +71,48 @@ def compare_jsons(json_paths, show_matches=True):
             if len(str(left[i])) > left_element_length:
                 left_element_length = len(str(left[i]))
 
-
         name_padding = name_element_length
         left_padding = left_element_length
-
 
         comparison_string = f"\nComparison between {json_files[0]} and {json_files[1]}"
         print(Style.RESET + comparison_string)
         # print out a header/column names
-        header = "   keyname".ljust(name_padding, ' ') + "    \tleft".ljust(left_padding, ' ') + "    \tright"
+        header = (
+            "   keyname".ljust(name_padding, " ")
+            + "    \tleft".ljust(left_padding, " ")
+            + "    \tright"
+        )
         print(Style.RESET + header)
         for i in list(intersection):
             print(Style.RESET, end="")
             left_value, right_value = left[i], right[i]
-            approximate=False
+            approximate = False
             if type(left_value) is str and type(right_value) is str:
                 if left_value == right_value and show_matches:
-                    print(Style.GREEN + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
-                elif set(left_value.lower().split(" ")) == set(right_value.lower().split(" ")) and show_matches:
-                    print(Style.YELLOW + f"~= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+                    print(
+                        Style.GREEN
+                        + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}"
+                    )
+                elif (
+                    set(left_value.lower().split(" "))
+                    == set(right_value.lower().split(" "))
+                    and show_matches
+                ):
+                    print(
+                        Style.YELLOW
+                        + f"~= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}"
+                    )
                     approximate = True
             if left_value == right_value and show_matches:
-                print(Style.GREEN + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+                print(
+                    Style.GREEN
+                    + f"== {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}"
+                )
             elif not approximate:
-                print(Style.RED + f"!= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}")
+                print(
+                    Style.RED
+                    + f"!= {i.ljust(name_padding, ' ')}\t{str(left_value).ljust(left_padding, ' ')}\t{right_value}"
+                )
             print(Style.RESET, end="")
 
         # record where sets differ
@@ -103,13 +123,15 @@ def compare_jsons(json_paths, show_matches=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('leftpath', type=Path, help="The first path to examine json files in.")
-    parser.add_argument('right_path', type=Path, help="The second path to examine json files in.")
+    parser.add_argument(
+        "leftpath", type=Path, help="The first path to examine json files in."
+    )
+    parser.add_argument(
+        "right_path", type=Path, help="The second path to examine json files in."
+    )
 
     args = parser.parse_args()
 
-    x = fetch_pairs_of_jsons(
-        args.leftpath, args.right_path)
-
+    x = fetch_pairs_of_jsons(args.leftpath, args.right_path)
 
     y = compare_jsons(x)

@@ -14,7 +14,6 @@ is not a function or a true module. This is just two python dictionaries with ke
 
 """
 
-
 sidecar_template_full = {
     "Manufacturer": "",
     "ManufacturersModelName": "",
@@ -78,7 +77,7 @@ sidecar_template_full = {
     "DecayCorrectionFactor": [],
     "PromptRate": [],
     "RandomRate": [],
-    "SinglesRate": []
+    "SinglesRate": [],
 }
 
 sidecar_template_short = {
@@ -108,5 +107,5 @@ sidecar_template_short = {
     "ReconMethodParameterValues": [],
     "ReconFilterType": [],
     "ReconFilterSize": [],
-    "AttenuationCorrection": ""
+    "AttenuationCorrection": "",
 }

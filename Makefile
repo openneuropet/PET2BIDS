@@ -84,6 +84,6 @@ pythongithubworkflow: installdependencies collectphantoms decompressphantoms tes
 	@echo finished running python tests
 
 black:
-	@for file in `find . -name "*.py"`; do \
+	@for file in `find pypet2bids/ -name "*.py"`; do \
 		black $$file; \
 	done

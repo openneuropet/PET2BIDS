@@ -5,6 +5,7 @@ Contains class ecat2ii, used to write ecat information out to a nifti file, depe
 | *Authors: Anthony Galassi*
 | *Copyright OpenNeuroPET team*
 """
+
 import datetime
 import nibabel
 import numpy
@@ -30,7 +31,7 @@ if ecat_save_steps == '1':
     if not steps_dir.is_dir():
         os.makedirs(code_dir.parent / 'ecat_testing' / 'steps', exist_ok=True)
 
-logger = logging.getLogger('pypet2bids')
+logger = logging.getLogger("pypet2bids")
 
 
 def ecat2nii(ecat_main_header=None,
@@ -226,7 +227,7 @@ def ecat2nii(ecat_main_header=None,
 
     # build affine if it's not included in function call
     if not affine:
-        mat = np.diag([sub_headers[0]['X_PIXEL_SIZE'],
+        mat = numpy.diag([sub_headers[0]['X_PIXEL_SIZE'],
                        sub_headers[0]['Y_PIXEL_SIZE'],
                        sub_headers[0]['Z_PIXEL_SIZE']]) * 10
         affine = nibabel.affines.from_matvec(mat, [qoffset_x, qoffset_y, qoffset_z])
@@ -265,12 +266,14 @@ def ecat2nii(ecat_main_header=None,
 
     # used for testing veracity of nibabel read and write.
     if save_binary:
-        pickle.dump(img_nii, open(nifti_file + '.pickle', "wb"))
+        pickle.dump(img_nii, open(nifti_file + ".pickle", "wb"))
 
     # write out timing file
     if sif_out:
-        with open(os.path.join(output_folder, nifti_file_w_out_extension + '.sif'), 'w') as sif_file:
-            scantime = datetime.datetime.fromtimestamp(main_header['SCAN_START_TIME'])
+        with open(
+            os.path.join(output_folder, nifti_file_w_out_extension + ".sif"), "w"
+        ) as sif_file:
+            scantime = datetime.datetime.fromtimestamp(main_header["SCAN_START_TIME"])
             scantime = scantime.astimezone().isoformat()
             sif_file.write(f"{scantime} {len(start)} 4 1\n")
             for index in reversed(range(len(start))):

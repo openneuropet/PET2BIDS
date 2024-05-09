@@ -227,7 +227,7 @@ else
      
     % evaluate key-value pairs for optional arguments from txt file
     parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
-    if ~any(cellfun(@exist, optional))
+    if any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);
             for opt = 1:length(setmetadata)
