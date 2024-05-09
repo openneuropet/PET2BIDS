@@ -242,7 +242,7 @@ def ecat2nii(ecat_main_header=None,
         )
 
     img_nii.header.set_slope_inter(slope=1, inter=0)
-    img_nii.header.set_xyzt_units('mm', 'unknown')
+    img_nii.header.set_xyzt_units('mm', 'sec')
     img_nii.header.set_qform(affine, code=1)
     img_nii.header.set_sform(affine, code=1)
     # No setter methods for these
