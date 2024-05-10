@@ -33,7 +33,7 @@ print(numpy.allclose(python_data, matlab_data, rtol=0.01))
 # subtract the two arrays
 diff = python_data - matlab_data
 print(f"difference max and min: {diff.max()}, {diff.min()}")
-print(f"mean difference: {diff.mean()}")
+print(f"mean difference: {np.sqrt(np.mean(diff ** 2))}")
 
 # save diff as nii
 diff_nii = python_nii.__class__(diff, python_nii.affine, python_nii.header)
