@@ -20,14 +20,14 @@ path_to_matlab_nii = pathlib.Path('matlab_nii.nii')
 path_to_python_nii = pathlib.Path('python_nii.nii.gz')
 
 
-python_nii = nibabel.load(str(path_to_python_nii))
-matlab_nii = nibabel.load(str(path_to_matlab_nii))
+python_nii = nibabel.load(path_to_python_nii)
+matlab_nii = nibabel.load(path_to_matlab_nii)
 
 python_data = python_nii.get_fdata()
 matlab_data = matlab_nii.get_fdata()
 
 # compare the two arrays in each
-print(numpy.allclose(python_data, matlab_data, rtol=0.5))
+print(numpy.allclose(python_data, matlab_data, rtol=0.01))
 
 
 # subtract the two arrays
