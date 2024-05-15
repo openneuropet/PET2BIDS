@@ -55,6 +55,22 @@
       ]
     },
     {
+      "contents": "OP_OSEM3D",
+      "ReconMethodName": "Ordinary Poisson 3D Ordered Subset Expectation Maximization",
+      "ReconMethodParameterUnits": [
+        null,
+        null
+      ],
+      "ReconMethodParameterLabels": [
+        "subsets",
+        "iterations"
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ]
+    },
+    {
       "contents": "LOR-RAMLA",
       "subsets": null,
       "iterations": null,
