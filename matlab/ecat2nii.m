@@ -239,10 +239,23 @@ for j=1:length(FileListIn)
                 end
                 
             else % annotation is blank - no info on method
-                warning('no reconstruction method information found - invalid BIDS metadata')
-                info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
-                info.ReconMethodParameterUnits    = {'keV', 'keV'};
-                info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                if isfield(info.ReconMethodName) % user provided
+                    [info.ReconMethodName,i,s] = get_recon_method(deblank(info.ReconMethodName));
+                    if ~isempty(i) && ~isempty(s)
+                        info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+                        info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+                        info.ReconMethodParameterValues   = [str2double(i), str2double(s), mh.lwr_true_thres, mh.upr_true_thres];
+                    else % some method without iteration and subset e.g. back projection
+                        info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                        info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                        info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                    end
+                else
+                    warning('no reconstruction method information found - invalid BIDS metadata')
+                    info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                end
             end
             
         else % no info on method
