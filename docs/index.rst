@@ -11,7 +11,6 @@ Welcome to PET2BIDS's documentation!
    installation
    usage
    modules
-   matlab
    spreadsheets
    :maxdepth: 2
    :caption: Contents:

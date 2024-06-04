@@ -51,284 +51,286 @@ end
 
 message = 'Failed to convert subject, moving onto next.';
 
-%% Neurobiology Research Unit - Copenhagen
-% ----------------------------------------
 
-% Siemens HRRT
-% ------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'Siemens';
-    meta.ManufacturersModelName     = 'HRRT';
-    meta.InstitutionName            = 'Rigshospitalet, NRU, DK';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 81.24; % Mbq
-    meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
-    meta.ModeOfAdministration       = 'infusion';   
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = true; % when passing this as string it fails validation
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.ReconFilterType            = 'none';
-    meta.ReconFilterSize            = 0;
-    meta.AttenuationCorrection      = '10-min transmission scan';
-    % meta.FrameDuration            = 1200; % not needed, encoded in ecat even for 4D images
-    % meta.FrameTimesStart          = 0;
-    
-    out = ecat2nii(fullfile(source,['SiemensHRRT-NRU' filesep 'XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v']),...
-        meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTNRU'  filesep 'pet' filesep 'sub-SiemensHRRTNRU.nii']));
-
-catch
-    disp(message);
-end
-
-% Siemens Biograph
-% ---------------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'Siemens';
-    meta.ManufacturersModelName     = 'Biograph';
-    meta.InstitutionName            = 'Rigshospitalet, NRU, DK';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 81.24; % Mbq
-    meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
-    meta.ModeOfAdministration       = 'infusion';
-    meta.FrameTimesStart            = 0;
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'MR-corrected';
-    meta.FrameDuration              = 300;
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 1;
-
-    dcm2niix4pet(fullfile(source,'SiemensBiographPETMR-NRU'),meta,...
-        'o',fullfile(destination,['sub-SiemensBiographNRU' filesep 'pet'])); % note we only need to use folders here
-catch
-    disp(message);
-end
-
-%% Århus University Hospital
-% ---------------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'General Electric';
-    meta.ManufacturersModelName     = 'Discovery';
-    meta.InstitutionName            = 'Århus University Hospital, DK';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 25.5; % Mbq
-    meta.SpecificRadioactivity      = 4.5213e+03; % ~ 25500000 / 5640 ml                                           
-    meta.ModeOfAdministration       = 'infusion';
-    meta.FrameTimesStart            = 0;
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'MR-corrected';
-    meta.FrameDuration              = 1200;
-    meta.FrameTimesStart            = 0;
-    meta.ReconMethodParameterLabels = ["none"];
-    meta.ReconMethodParameterUnits  = ["none"];
-    meta.ReconParameterValues       = [0];
-    meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 0;
-
-    dcm2niix4pet(fullfile(source,'GeneralElectricDiscoveryPETCT-Aarhus'),meta,...
-        'o',fullfile(destination,['sub-GeneralElectricDiscoveryAarhus' filesep 'pet'])); % note we only need to use folders here
-
-catch
-    disp(message);
-end
-
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'General Electric';
-    meta.ManufacturersModelName     = 'Signa PET/MR';
-    meta.InstitutionName            = 'Århus University Hospital, DK';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 21; % Mbq
-    meta.SpecificRadioactivity      = 3.7234e+03; % ~ 21000000 Bq/ 5640 ml
-    meta.ModeOfAdministration       = 'infusion';
-    meta.FrameTimesStart            = 0;
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'MR-corrected';
-    meta.FrameDuration              = 600;
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 0;
-    meta.ReconMethodParameterLabels = ["none"];
-    meta.ReconMethodParameterUnits  = ["none"];
-    meta.ReconMethodParameterValues = [0];
-    meta.InjectionEnd               = [10];
-    
-    dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-Aarhus'),meta,...
-        'o',fullfile(destination,['sub-GeneralElectricSignaAarhus' filesep 'pet'])); % note we only need to use folders here
-
-catch
-    disp(message);
-end
-
-
-%% Johannes Gutenberg University of Mainz
-% --------------------------------------
-% this phillips misbehaves not running it
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';  
-    meta.Manufacturer               = 'Philips Medical Systems';
-    meta.ManufacturersModelName     = 'PET/CT Gemini TF16';
-    meta.InstitutionName            = 'Unimedizin, Mainz, DE';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'Fallypride';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 114; % Mbq
-    meta.SpecificRadioactivity      = 800; %  ~ 114000000 Bq/ 142500 g
-    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'CTAC-SG';
-    meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
-    meta.ReconstructionMethod       = 'LOR-RAMLA'; 
-    meta.FrameDuration              = 1798;
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 1;
-
-    dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
-       'o',fullfile(destination,['sub-PhilipsGeminiUnimedizinMainz' filesep 'pet']));
-        
-    % meta.AttenuationCorrection      = 'NONE';
-    % meta.ScatterCorrectionMethod    = 'NONE';%GEG
-    % meta.ReconstructionMethod       = '3D-RAMLA';%GEG
-    % dcm2niix4pet(fullfile(source,['PhilipsGemini-Unimedizin' filesep 'reqNAC']),meta,...
-    %     'o',fullfile(destination,['sub-PhilipsGeminiNAC-UnimedizinMainz' filesep 'pet']));
-
-catch
-    disp(message);
-end
-
-%% Amsterdam UMC
-% ---------------------------
-
-% Philips Ingenuity PET-CT
-% -----------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';  
-    meta.Manufacturer               = 'Philips Medical Systems';
-    meta.ManufacturersModelName     = 'Ingenuity TF PET/CT';
-    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'Butanol';
-    meta.TracerRadionuclide         = 'O15';  
-    meta.InjectedRadioactivity      = 185; % Mbq
-    meta.SpecificRadioactivity      = 1.9907e+04; %  ~ 185000000 Bq/ 9293 ml
-    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'CTAC-SG';
-    meta.RandomsCorrectionMethod    = 'DLYD'; % field added in our library
-    meta.ScatterCorrectionMethod    = 'SS-SIMUL';  % field added in our library
-    meta.ReconstructionMethod       = 'BLOB-OS-TF'; 
-    %meta.FrameDuration              = repmat(122.238007,20,1);
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "unknown";
-    meta.ReconFilterSize            = 1;
-
-    dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETCT-AmsterdamUMC'),meta,...
-        'o',fullfile(destination,['sub-PhilipsIngenuityPETCTAmsterdamUMC' filesep 'pet']));
-catch
-    disp(message);
-end
-
-% Philips Ingenuity PET-MRI
-% -------------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';  
-    meta.Manufacturer               = 'Philips Medical Systems';
-    meta.ManufacturersModelName     = 'Ingenuity TF PET/MR';
-    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = '11C-PIB';
-    meta.TracerRadionuclide         = 'C11';
-    meta.InjectedRadioactivity      = 135.1; % Mbq
-    meta.SpecificRadioactivity      = 1.4538e+04; %  ~ 135100000 Bq/ 9293 ml
-    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.ReconFilterType            = 'none';
-    meta.ReconFilterSize            = 0;
-    meta.AttenuationCorrection      = 'MRAC';
-    meta.RandomsCorrectionMethod    = 'DLYD'; 
-    meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
-    meta.ReconstructionMethod       = 'LOR-RAMLA'; 
-    %meta.FrameDuration              = repmat(122.238007,40,1);
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "unknown";
-    meta.ReconFilterSize            = 1;
-
-    dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETMR-AmsterdamUMC'),meta,...
-        'o',fullfile(destination,['sub-PhilipsIngenuityPETMRAmsterdamUMC' filesep 'pet'])); 
-catch
-    disp(message);
-end
-
-% PhillipsVereosPET-CT
-% -------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';  
-    meta.Manufacturer               = 'Philips Medical Systems';
-    meta.ManufacturersModelName     = 'Vereos PET/CT';
-    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = '11C-PIB';
-    meta.TracerRadionuclide         = 'C11';
-    meta.InjectedRadioactivity      = 202.5; % Mbq
-    meta.SpecificRadioactivity      = 2.1791e+04; %  ~ 202500000 Bq/ 9293 ml
-    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.AttenuationCorrection      = 'CTAC-SG';
-    meta.ScatterCorrectionMethod    = 'SS-SIMUL'; 
-    meta.RandomsCorrectionMethod    = 'DLYD'; 
-    meta.ReconstructionMethod       = 'OSEM:i3s15'; 
-    %meta.FrameDuration              = repmat(1221.780029,40,1);
-    meta.FrameTimesStart            = 0;
-    meta.ReconFilterType            = "unknown";
-    meta.ReconFilterSize            = 1;
-
-    dcm2niix4pet(fullfile(source,'PhillipsVereosPETCT-AmsterdamUMC'),meta,...
-        'o',fullfile(destination,['sub-PhillipsVereosAmsterdamUMC' filesep 'pet'])); 
-catch
-    disp(message);
-end
+%%% Neurobiology Research Unit - Copenhagen
+%% ----------------------------------------
+%
+%% Siemens HRRT
+%% ------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Siemens';
+%    meta.ManufacturersModelName     = 'HRRT';
+%    meta.InstitutionName            = 'Rigshospitalet, NRU, DK';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 81.24; % Mbq
+%    meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = true; % when passing this as string it fails validation
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.ReconFilterType            = 'none';
+%    meta.ReconFilterSize            = 0;
+%    meta.AttenuationCorrection      = '10-min transmission scan';
+%    % meta.FrameDuration            = 1200; % not needed, encoded in ecat even for 4D images
+%    % meta.FrameTimesStart          = 0;
+%
+%    out = ecat2nii(fullfile(source,['SiemensHRRT-NRU' filesep 'XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v']),...
+%        meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTNRU'  filesep 'pet' filesep 'sub-SiemensHRRTNRU.nii']));
+%
+%catch
+%    disp(message);
+%end
+%
+%% Siemens Biograph
+%% ---------------------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Siemens';
+%    meta.ManufacturersModelName     = 'Biograph';
+%    meta.InstitutionName            = 'Rigshospitalet, NRU, DK';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 81.24; % Mbq
+%    meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.FrameTimesStart            = 0;
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'MR-corrected';
+%    meta.FrameDuration              = 300;
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "none";
+%    meta.ReconFilterSize            = 1;
+%
+%    dcm2niix4pet(fullfile(source,'SiemensBiographPETMR-NRU'),meta,...
+%        'o',fullfile(destination,['sub-SiemensBiographNRU' filesep 'pet'])); % note we only need to use folders here
+%catch
+%    disp(message);
+%end
+%
+%%% Århus University Hospital
+%% ---------------------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'General Electric';
+%    meta.ManufacturersModelName     = 'Discovery';
+%    meta.InstitutionName            = 'Århus University Hospital, DK';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 25.5; % Mbq
+%    meta.SpecificRadioactivity      = 4.5213e+03; % ~ 25500000 / 5640 ml
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.FrameTimesStart            = 0;
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'MR-corrected';
+%    meta.FrameDuration              = 1200;
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconMethodParameterLabels = ["none"];
+%    meta.ReconMethodParameterUnits  = ["none"];
+%    meta.ReconParameterValues       = [0];
+%    meta.ReconFilterType            = "none";
+%    meta.ReconFilterSize            = 0;
+%
+%    dcm2niix4pet(fullfile(source,'GeneralElectricDiscoveryPETCT-Aarhus'),meta,...
+%        'o',fullfile(destination,['sub-GeneralElectricDiscoveryAarhus' filesep 'pet'])); % note we only need to use folders here
+%
+%catch
+%    disp(message);
+%end
+%
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'General Electric';
+%    meta.ManufacturersModelName     = 'Signa PET/MR';
+%    meta.InstitutionName            = 'Århus University Hospital, DK';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 21; % Mbq
+%    meta.SpecificRadioactivity      = 3.7234e+03; % ~ 21000000 Bq/ 5640 ml
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.FrameTimesStart            = 0;
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'MR-corrected';
+%    meta.FrameDuration              = 600;
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "none";
+%    meta.ReconFilterSize            = 0;
+%    meta.ReconMethodParameterLabels = ["none"];
+%    meta.ReconMethodParameterUnits  = ["none"];
+%    meta.ReconMethodParameterValues = [0];
+%    meta.InjectionEnd               = [10];
+%
+%    dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-Aarhus'),meta,...
+%        'o',fullfile(destination,['sub-GeneralElectricSignaAarhus' filesep 'pet'])); % note we only need to use folders here
+%
+%catch
+%    disp(message);
+%end
+%
+%
+%%% Johannes Gutenberg University of Mainz
+%% --------------------------------------
+%% this phillips misbehaves not running it
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Philips Medical Systems';
+%    meta.ManufacturersModelName     = 'PET/CT Gemini TF16';
+%    meta.InstitutionName            = 'Unimedizin, Mainz, DE';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'Fallypride';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 114; % Mbq
+%    meta.SpecificRadioactivity      = 800; %  ~ 114000000 Bq/ 142500 g
+%    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'CTAC-SG';
+%    meta.ScatterCorrectionMethod    = 'SS-SIMUL';
+%    meta.ReconstructionMethod       = 'LOR-RAMLA';
+%    meta.FrameDuration              = 1798;
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "none";
+%    meta.ReconFilterSize            = 1;
+%
+%    %dcm2niix4pet(fullfile(source,['PhilipsGeminiPETMR-Unimedizin' filesep 'reqCTAC']),meta,...
+%    %    'o',fullfile(destination,['sub-PhilipsGeminiUnimedizinMainz' filesep 'pet']));
+%
+%
+%    % meta.AttenuationCorrection      = 'NONE';
+%    % meta.ScatterCorrectionMethod    = 'NONE';%GEG
+%    % meta.ReconstructionMethod       = '3D-RAMLA';%GEG
+%    % dcm2niix4pet(fullfile(source,['PhilipsGemini-Unimedizin' filesep 'reqNAC']),meta,...
+%    %     'o',fullfile(destination,['sub-PhilipsGeminiNAC-UnimedizinMainz' filesep 'pet']));
+%
+%catch
+%    disp(message);
+%end
+%
+%%% Amsterdam UMC
+%% ---------------------------
+%
+%% Philips Ingenuity PET-CT
+%% -----------------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Philips Medical Systems';
+%    meta.ManufacturersModelName     = 'Ingenuity TF PET/CT';
+%    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'Butanol';
+%    meta.TracerRadionuclide         = 'O15';
+%    meta.InjectedRadioactivity      = 185; % Mbq
+%    meta.SpecificRadioactivity      = 1.9907e+04; %  ~ 185000000 Bq/ 9293 ml
+%    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'CTAC-SG';
+%    meta.RandomsCorrectionMethod    = 'DLYD'; % field added in our library
+%    meta.ScatterCorrectionMethod    = 'SS-SIMUL';  % field added in our library
+%    meta.ReconstructionMethod       = 'BLOB-OS-TF';
+%    %meta.FrameDuration              = repmat(122.238007,20,1);
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "unknown";
+%    meta.ReconFilterSize            = 1;
+%
+%    dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETCT-AmsterdamUMC'),meta,...
+%        'o',fullfile(destination,['sub-PhilipsIngenuityPETCTAmsterdamUMC' filesep 'pet']));
+%catch
+%    disp(message);
+%end
+%
+%% Philips Ingenuity PET-MRI
+%% -------------------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Philips Medical Systems';
+%    meta.ManufacturersModelName     = 'Ingenuity TF PET/MR';
+%    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = '11C-PIB';
+%    meta.TracerRadionuclide         = 'C11';
+%    meta.InjectedRadioactivity      = 135.1; % Mbq
+%    meta.SpecificRadioactivity      = 1.4538e+04; %  ~ 135100000 Bq/ 9293 ml
+%    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.ReconFilterType            = 'none';
+%    meta.ReconFilterSize            = 0;
+%    meta.AttenuationCorrection      = 'MRAC';
+%    meta.RandomsCorrectionMethod    = 'DLYD';
+%    meta.ScatterCorrectionMethod    = 'SS-SIMUL';
+%    meta.ReconstructionMethod       = 'LOR-RAMLA';
+%    %meta.FrameDuration              = repmat(122.238007,40,1);
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "unknown";
+%    meta.ReconFilterSize            = 1;
+%
+%    dcm2niix4pet(fullfile(source,'PhilipsIngenuityPETMR-AmsterdamUMC'),meta,...
+%        'o',fullfile(destination,['sub-PhilipsIngenuityPETMRAmsterdamUMC' filesep 'pet']));
+%catch
+%    disp(message);
+%end
+%
+%% PhillipsVereosPET-CT
+%% -------------------
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Philips Medical Systems';
+%    meta.ManufacturersModelName     = 'Vereos PET/CT';
+%    meta.InstitutionName            = 'AmsterdamUMC,VUmc';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = '11C-PIB';
+%    meta.TracerRadionuclide         = 'C11';
+%    meta.InjectedRadioactivity      = 202.5; % Mbq
+%    meta.SpecificRadioactivity      = 2.1791e+04; %  ~ 202500000 Bq/ 9293 ml
+%    meta.ModeOfAdministration       = 'infusion'; %'Intravenous route'
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.AttenuationCorrection      = 'CTAC-SG';
+%    meta.ScatterCorrectionMethod    = 'SS-SIMUL';
+%    meta.RandomsCorrectionMethod    = 'DLYD';
+%    meta.ReconstructionMethod       = 'OSEM:i3s15';
+%    %meta.FrameDuration              = repmat(1221.780029,40,1);
+%    meta.FrameTimesStart            = 0;
+%    meta.ReconFilterType            = "unknown";
+%    meta.ReconFilterSize            = 1;
+%
+%    dcm2niix4pet(fullfile(source,'PhillipsVereosPETCT-AmsterdamUMC'),meta,...
+%        'o',fullfile(destination,['sub-PhillipsVereosAmsterdamUMC' filesep 'pet']));
+%catch
+%    disp(message);
+%end
 
 %% National Institute of Mental Health, Bethesda
 % ----------------------------------------------
@@ -449,11 +451,34 @@ catch
     disp(message);
 end
 
-%
-% CPS Innovations HRRT - dcm2niix fails
-% ---------------------------------------
-% dcm2niix4pet(fullfile(source,'CPSInnovationsHRRT-NIMH'),meta,...
-%     'o',fullfile(destination,['sub-CPSInnovationsHRRT-NIMH' filesep 'pet'])); 
+% Siemens HRRT
+% ------------
+try
+    clear meta
+    meta.TimeZero                   = 'ScanStart';
+    meta.Manufacturer               = 'Siemens';
+    meta.ManufacturersModelName     = 'HRRT';
+    meta.InstitutionName            = 'JHU';
+    meta.BodyPart                   = 'Phantom';
+    meta.Units                      = 'Bq/mL';
+    meta.TracerName                 = 'FDG';
+    meta.TracerRadionuclide         = 'F18';
+    meta.InjectedRadioactivity      = 81.24; % Mbq
+    meta.SpecificRadioactivity      = 1.3019e+04; % ~ 81240000 Bq/ 6240 g
+    meta.ModeOfAdministration       = 'infusion';
+    meta.AcquisitionMode            = 'list mode';
+    meta.ImageDecayCorrected        = true; % when passing this as string it fails validation
+    meta.ImageDecayCorrectionTime   = 0;
+    meta.ReconFilterType            = 'none';
+    meta.ReconFilterSize            = 0;
+    meta.AttenuationCorrection      = '10-min transmission scan';
+    meta.ScatterFraction            = 0.0;
+    meta.PromptRate                 = 0.0;
+    meta.RandomsRate                = 0.0;
+    meta.SinglesRate                = 0.0;
+
+    out = ecat2nii(fullfile(source,['SiemensHRRT-JHU' filesep 'Hoffman.v']),...
+        meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTJHU'  filesep 'pet' filesep 'sub-SiemensHRRTJHU.nii']));
 
 
 %% Johns Hopkins University

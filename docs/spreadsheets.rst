@@ -83,7 +83,7 @@ An example of a bids compliant auto-sampled tsv can be seen
 `here <https://github.com/openneuropet/PET2BIDS/blob/653f0612da5a65c7dc6b8b112d17ae77d41af858/spreadsheet_conversion/blood/pmod/Ex_manual_and_autosampled_mixed/converted_recording-autosampler_blood.tsv>`_
 
 These types of recordings are stored along side manually sampled blood data within the BIDS tree. In order to
-differentiate between auto-sampled and manually sampled files the `recording <>'_ entity is used. e.g. this file would
+differentiate between auto-sampled and manually sampled files the *recording* entity is used. e.g. this file would
 be saved as:
 
 .. code-block::

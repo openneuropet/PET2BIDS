@@ -1,16 +1,18 @@
 """
 This is a lazy way to avoid opening a json, simply import this file to collect your BIDS sidecar templates instead. This
-is not a function or a `true` module. It's just two python dictionaries with keys and empty value pairs.
+is not a function or a true module. This is just two python dictionaries with keys and empty value pairs.
 
-:param sidecar_template_full: a dictionary containing every field specified in the BIDS standard for PET imaging data
-:param sidecar_template_short: a dictionary containing only the required fields in the BIDS standard for PET
-    imaging data
-:return: sidecar_template_full, sidecar_template_short
+**Parameters**
 
-|*Anthony Galassi*
-|*Copyright OpenNeuroPET team*
+* sidecar_template_full: a dict containing every PET BIDS field
+* sidecar_template_short: a dict containing only required PET BIDS fields
+
+**Returns**     sidecar_template_full, sidecar_template_short
+
+*Anthony Galassi*
+*Copyright OpenNeuroPET team*
+
 """
-
 
 sidecar_template_full = {
     "Manufacturer": "",
@@ -75,7 +77,7 @@ sidecar_template_full = {
     "DecayCorrectionFactor": [],
     "PromptRate": [],
     "RandomRate": [],
-    "SinglesRate": []
+    "SinglesRate": [],
 }
 
 sidecar_template_short = {
@@ -105,5 +107,5 @@ sidecar_template_short = {
     "ReconMethodParameterValues": [],
     "ReconFilterType": [],
     "ReconFilterSize": [],
-    "AttenuationCorrection": ""
+    "AttenuationCorrection": "",
 }

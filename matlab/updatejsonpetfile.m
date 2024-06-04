@@ -79,14 +79,17 @@ if nargin == 1
     [filemetadata,updated] = update_arrays(filemetadata);
     if updated && exist('jsonfilename','var')
         warning('some scalars were changed to array')
+        if strcmpi(filemetadata.ReconFilterType,"none") 
+            filemetadata.ReconFilterSize = 0; % not necessary once the validator takes conditinonal
+        end
         jsonwrite(jsonfilename,orderfields(filemetadata));
     end
     
-    % -------------- only check ---------------
+    % -------------- only check --------------
     for m=length(petmetadata.mandatory):-1:1
         test(m) = isfield(filemetadata,petmetadata.mandatory{m});
     end
-    
+
     if sum(test)~=length(petmetadata.mandatory)
         status.state    = 0;
         missing         = find(test==0);
@@ -360,8 +363,12 @@ if exist('iteration','var') && exist('subset','var')
     else % returns none if actually seen as empty by get_recon_method
         filemetadata.ReconMethodParameterLabels     = "none";  
         filemetadata.ReconMethodParameterUnits      = "none";
-        if isempty(filemetadata.ReconMethodParameterValues) % in cas user passes info
-            filemetadata.ReconMethodParameterValues = 0; % if none should be 0
+        try
+            if isempty(filemetadata.ReconMethodParameterValues) % in case user passes info
+                filemetadata.ReconMethodParameterValues = 0; % if none should be 0
+            end
+        catch
+            filemetadata.ReconMethodParameterValues = 0;
         end
     end
 end
@@ -383,10 +390,13 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
         if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
             filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
+            if strcmp(filemetadata.ReconFilterType,"none")
+                filemetadata.ReconFilterSize = 0; 
+            end
         end
     else
         filemetadata.ReconFilterType = "none";
-        % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+        filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
     end
     
     if exist('filtername','var')
@@ -423,7 +433,7 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     end
 else
     filemetadata.ReconFilterType = "none";
-    % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+    filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)

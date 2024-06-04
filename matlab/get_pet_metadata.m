@@ -1,5 +1,4 @@
 function metadata = get_pet_metadata(varargin)
-
 % Routine that outputs PET scanner metadata following
 % `BIDS <https://bids.neuroimaging.io/ BIDS>`_.
 %
@@ -16,8 +15,8 @@ function metadata = get_pet_metadata(varargin)
 %    all info is necessarily needed\)
 % :param inputs: a series of key/value pairs are expected
 % :returns metadata: a structure with BIDS fields filled \(such structure is ready
-%                   to be writen as json file using e.g. the bids matlab jsonwrite 
-%                   function, typically associated with the *_pet.nii file\)
+%   to be writen as json file using e.g. the bids matlab jsonwrite
+%   function, typically associated with the \*_pet.nii file\)
 %
 % :format:  metadata = get_pet_metadata(key,value)
 %
@@ -25,7 +24,7 @@ function metadata = get_pet_metadata(varargin)
 %
 %  Mandatory inputs are as follows\:
 %
-%   - *Scanner* name of scanner, map to a *parameters.txt file  e.g. 'Scanner', 'SiemensBiograph'
+%   - *Scanner* name of scanner, map to a \*parameters.txt file  e.g. 'Scanner', 'SiemensBiograph'
 %   - *TimeZero* when was the tracer injected                   e.g. 'TimeZero','11:05:01'
 %   - *ModeOfAdministration*                                    e.g. 'ModeOfAdministration', 'bolus'
 %   - *TracerName* which tracer was used                        e.g. 'TracerName','DASB'
@@ -55,7 +54,7 @@ function metadata = get_pet_metadata(varargin)
 %    FrameTimesStart            = 0;
 %
 % .. note::
-%   TimeZero also can be [] or 'ScanStart' indicating that the scanning time 
+%   TimeZero also can be [] or 'ScanStart' indicating that the scanning time
 %   should be used as TimeZero. If TimeZero is not the scan time, we strongly
 %   advice to input ScanStart and InjectionStart making sure timing is correct
 %
@@ -228,7 +227,7 @@ else
      
     % evaluate key-value pairs for optional arguments from txt file
     parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
-    if ~any(cellfun(@exist, optional))
+    if any(cellfun(@exist, optional))
         if exist(parameter_file,'file')
             setmetadata = importdata(parameter_file);
             for opt = 1:length(setmetadata)

@@ -1,4 +1,4 @@
-.. _installation
+.. _installation:
 
 Installation
 ============
@@ -6,7 +6,8 @@ Installation
 Matlab
 ------
 
-In short, add the contents of the `matlab` folder to your matlab path with `addpath`:
+Clone the repo at https://github.com/openneuropet/PET2BIDS.git and the contents of the `matlab` folder to your matlab
+path with `addpath`:
 
 .. code-block::
 
@@ -23,7 +24,7 @@ Python
 ------
 
 The python version of PET2BIDS (from herein referenced by it's library name *pypet2bids*) can be installed
-via pip for Python versions >3.7.1,<3.10
+via pip for Python versions >3.7.1,=<3.11
 
 .. code-block::
 
@@ -35,11 +36,15 @@ via pip for Python versions >3.7.1,<3.10
     <script id="asciicast-TZJg5BglDMFM2fEEX9dSpnJEy" src="https://asciinema.org/a/TZJg5BglDMFM2fEEX9dSpnJEy.js"
     async data-autoplay="true" data-speed="1" data-loop="true"></script>
 
-Additional Install Notes
-========================
+If you wish to contribute, are unable to install from PyPi, or simply wish to run pypet2bids from source, continue
+reading the `Additional Install Notes`_ section below.
 
-Matlab
-------
+Additional Install Notes
+------------------------
+
+**Matlab**
+
+------------------------------------------------------------------------------------------------------------------------
 
 **Dependencies**
 
@@ -72,16 +77,47 @@ all arguments in although this is also possible). You can find templates of such
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Python
-------
+**Python**
 
-pypet2bids can be run from source by cloning the source code at our Github_.
+If you are unable to install this library from PyPi you can clone this repository to build and install the package
+as distributed on PyPi yourself with poetry.
 
-.. _Github: https://github.com/openneuropet/PET2BIDS
+We use `poetry <https://python-poetry.org/>`_ to build this package, no other build methods are supported,
+further we encourage the use of `GNU make <https://www.gnu.org/software/make/>`_ and a bash-like shell to simplify the
+build process.
+
+After installing poetry, you can build and install this package to your local version of Python with the following
+commands (keep in mind the commands below are executed in a bash-like shell):
 
 .. code-block::
 
-    git clone git@github.com:openneuropet/PET2BIDS.git
+    cd PET2BIDS
+    cp -R metadata/ pypet2bids/pypet2bids/metadata
+    cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
+    cd pypet2bids && poetry lock && poetry build
+    pip install dist/pypet2bids-X.X.X-py3-none-any.whl
+
+.. note::
+
+    Make and the additional scripts contained in the `scripts/` directory are for the convenience of
+    non-windows users.
+
+If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the
+following:
+
+.. code-block::
+
+    cd PET2BIDS
+    make installpoetry buildpackage installpackage
+
+.. _Github: https://github.com/openneuropet/PET2BIDS
+
+
+pypet2bids can be run from source by cloning the source code at our Github_.
+
+.. code-block::
+
+    git clone https://github.com/openneuropet/PET2BIDS
 
 and then installing it's dependencies via pip:
 
@@ -90,12 +126,19 @@ and then installing it's dependencies via pip:
     cd PET2BIDS/pypet2bids
     pip install .
 
-Or with `Poetry <https://python-poetry.org/>`_:
+or installing them with `Poetry <https://python-poetry.org/>`_:
 
 .. code-block::
 
     cd PET2BIDS/pypet2bids
     poetry install
+
+After either poetry or pip installation of dependencies modules can be executed as follows:
+
+.. code-block::
+
+    cd PET2BIDS/pypet2bids
+    python dcm2niix4pet.py --help
 
 **Windows Only**
 
@@ -133,5 +176,3 @@ Or using the *dcm2niix4pet* tool itself to set up the configuration:
 .. code-block::
 
     dcm2niix4pet --set-dcm2niix-path \path\to\dcm2niix.exe
-
-------------------------------------------------------------------------------------------------------------------------

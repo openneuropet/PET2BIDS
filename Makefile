@@ -43,3 +43,47 @@ installpackage:
 
 testphantoms:
 	@scripts/testphantoms
+
+html:
+	@cd docs && make html
+
+installdependencies:
+	@cd pypet2bids; \
+	python -m pip install --upgrade pip; \
+	pip install poetry; \
+	poetry install --with dev
+
+collectphantoms:
+ifeq (, $(wildcard ./PHANTOMS.zip))
+	@wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
+else
+	@echo "PHANTOMS.zip already exists"
+endif
+
+decompressphantoms:
+	@unzip -o PHANTOMS.zip
+
+testecatcli:
+	@cd pypet2bids; \
+	poetry run python -m pypet2bids.ecat_cli --help; \
+	poetry run python -m pypet2bids.ecat_cli ../OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v --dump
+
+testecatread:
+	@cd pypet2bids; \
+	export TEST_ECAT_PATH="../OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v"; \
+	export READ_ECAT_SAVE_AS_MATLAB="$$PWD/tests/ECAT7_multiframe.mat"; \
+	export NIBABEL_READ_ECAT_SAVE_AS_MATLAB="$$PWD/tests/ECAT7_multiframe.nibabel.mat"; \
+	poetry run python3 -m tests.test_ecatread
+
+testotherpython:
+	cd pypet2bids; \
+	export TEST_DICOM_IMAGE_FOLDER="../OpenNeuroPET-Phantoms/sourcedata/SiemensBiographPETMR-NIMH/AC_TOF"; \
+	poetry run pytest --ignore=tests/test_write_ecat.py tests/ -vvv
+
+pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
+	@echo finished running python tests
+
+black:
+	@for file in `find pypet2bids/ -name "*.py"`; do \
+		black $$file; \
+	done

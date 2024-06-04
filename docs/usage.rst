@@ -10,7 +10,7 @@ Matlab
 
 BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one
 reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created
-overwise.
+otherwise.
 
 
 
@@ -27,7 +27,7 @@ The simplest way to convert DICOM files is to call
 `dcm2niix4pet.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m>`_ which wraps around
 dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json
 - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata
-as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.
+as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2niix.
 
 *Note for windows user*: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
@@ -303,3 +303,90 @@ Then point the optional `metadatapath` flag at the spreadsheet location:
     dcm2niix4pet /folder/containing/PET/dicoms/
     --destination /folder/containing/PET/nifti_jsons
     --metadatapath /file/PET_metadata.xlsx
+
+Development and Testing
+-----------------------
+
+PET2BIDS makes use of both unit and integration tests to ensure that the code is working as expected. Phantom,
+synthetic imaging, and blood test data can be retrieved directly from either this repository or via the url contained
+within the **collectphantoms** make command in the top level Makefile. Tests are written with relative paths to the test
+data contained in several directories within this repository:
+
+1) metadata/
+2) ecat_validation/
+3) tests/
+4) OpenNeuroPET-Phantoms/ (this last directory needs be downloaded separately with the make commands `collectphantoms` and `unzipphantoms`)
+
+
+The unit tests for Python can be found in the `tests` folder and are run using the `pytest` library. Python tests are
+best run with `poetry run`:
+
+.. code-block::
+
+    poetry run pytest test/<test_file_name>.py
+
+
+The matlab unit tests can be found in the `matlab/unit_tests` folder and are run in Matlab after adding this repository
+and its contents to you Matlab path.
+
+.. code-block::
+
+    addpath('path/to/PET2BIDS/matlab')
+    addpath('path/to/PET2BIDS/matlab/unit_tests')
+
+Integration tests are run using the `make testphantoms` command. However, running the Matlab integration tests requires
+the user add the script located in `OpenNeuroPET-Phantoms/code/matlab_conversions.m` to their Matlab path.
+
+To emulate the CI/CD pipeline, the following commands can be run locally in the following order:
+
+.. code-block::
+
+    make testphantoms
+    make testpython
+
+Documentation for Read the Docs can be built and previewed locally using the following command:
+
+.. code-block::
+
+    make html
+
+The output of the build can be found at docs/_build/html/ and previewed by opening any of the html files contained
+therein with a web browser. Chances are good if you're able to build with no errors locally than any changes you make
+to the documentation rst files will be built successfully on Read the Docs, but not guaranteed.
+
+
+Working with existing NiFTi and JSON files
+------------------------------------------
+
+PET2BIDS is primarily designed to work with DICOM and ECAT files, but it can also be used to add or update sidecar json
+metadata after conversion to NiFTi (whether by PET2BIDS or some other tool). This can be done using the
+`updatejsonpetfile.m` function in Matlab or the `updatepetjson` command line tool in Python. Additionally, if one has
+dicom or ecat files available to them they can use `updatepetjsonfromdicom` or `updatepetjsonfromecat` respectively
+instead of `updatepetjson` or `updatejsonpetfile.m`.
+
+
+*Disclaimer:
+Again, we strongly encourage users to use PET2BIDS or dcm2niix to convert their data from dicom or ecat into nifti.
+We have observed that nifti's not produced by dcm2niix are often missing dicom metadata such as frame timing or image
+orientation. Additionally some non-dcm2niix nifti's contain extra singleton dimensions or extended but undefined main
+image headers.*
+
+
+Examples of using the command line tools can be seen below:
+
+
+.. code-block::
+
+    updatepetjson /path/to/nifti.nii /path/to/json.json --kwargs TimeZero=12:12:12
+    updatepetjsonfromdicom /path/to/dicom.dcm /path/to/json.json --kwargs TimeZero=12:12:12
+    updatepetjsonfromecat /path/to/ecat.v /path/to/json.json --kwargs TimeZero=12:12:12
+
+
+.. code-block::
+
+    # run matlab to get this output
+    >> jsonfilename = fullfile(pwd,'DBS_Gris_13_FullCT_DBS_Az_2mm_PRR_AC_Images_20151109090448_48.json');
+    >> metadata = get_SiemensBiograph_metadata('TimeZero','ScanStart','tracer','AZ10416936','Radionuclide','C11',
+       ... 'ModeOfAdministration','bolus','Radioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66);
+    >> dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm');
+    >> status = updatejsonpetfile(jsonfilename,metadata,dcminfo);

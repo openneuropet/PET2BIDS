@@ -31,19 +31,19 @@ import pathlib
 
 
 # get absolute path to python project files
-python_project_path = pathlib.Path(os.path.abspath('../pypet2bids'))
+python_project_path = pathlib.Path(os.path.abspath("../pypet2bids"))
 matlab_project_path = os.path.join(python_project_path.parent)
 sys.path.insert(0, str(python_project_path))
 sys.path.insert(0, matlab_project_path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'PET2BIDS'
-copyright = '2022, OpenNeuroPET'
-author = 'OpenNeuroPET'
+project = "PET2BIDS"
+copyright = "2022, OpenNeuroPET"
+author = "OpenNeuroPET"
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.11'
+release = "0.0.11"
 
 # -- General configuration ---------------------------------------------------
 
@@ -54,21 +54,21 @@ matlab_src_dir = matlab_project_path
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx_rtd_theme',
-    'sphinxcontrib.matlab',
+    "sphinx.ext.duration",
+    "sphinx.ext.doctest",
+    "sphinx.ext.autodoc",
+    "sphinx_rtd_theme",
+    "sphinxcontrib.matlab",
 ]
-#autodoc_mock_imports = ['pypet2bids']
+# autodoc_mock_imports = ['pypet2bids']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'tests']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "tests"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -77,7 +77,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'tests']
 # a list of builtin themes.
 #
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

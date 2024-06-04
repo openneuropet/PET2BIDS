@@ -1,10 +1,7 @@
 .. _pypet2bids-package:
 
-pypet2bids package
-==================
-
-Submodules
-----------
+pypet2bids
+==========
 
 pypet2bids.ecat\_cli module
 ---------------------------
@@ -75,6 +72,14 @@ pypet2bids.multiple\_spreadsheets module
 ----------------------------------------
 
 .. automodule:: pypet2bids.multiple_spreadsheets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pypet2bids.update_pet_json module
+---------------------------------
+
+.. automodule:: pypet2bids.update_json_pet_file
     :members:
     :undoc-members:
     :show-inheritance:
