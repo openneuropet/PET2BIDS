@@ -31,17 +31,17 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
+        # matlab not supported on MacOS!! at this time
+      - name: Perform setup-matlab
+        uses: matlab-actions/setup-matlab@v2
+        if: matrix.os == 'ubuntu-latest'
+
       - name: Debug
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         timeout-minutes: 15
         with:
           limit-access-to-actor: true
-
-        # matlab not supported on MacOS!! at this time
-      - name: Perform setup-matlab
-        uses: matlab-actions/setup-matlab@v2
-        if: matrix.os == 'ubuntu-latest'
 
         # Again only running this on ubuntu
       - name: Add Matlab Code Folder to Path and Run Tests
@@ -51,7 +51,7 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}')
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests')
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt')
-            addpath('${{ env.MATLAB_CODE_PATH }}/ecat_validation')
+            addpath('${{ github.workspace }}/ecat_validation')
             addpath('${{ env.METADATA_PATH }}')
             ecat2nii_test('${{ env.TEST_ECAT_PATH }}')
         if: matrix.os == 'ubuntu-latest'
