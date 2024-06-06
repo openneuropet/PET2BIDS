@@ -40,7 +40,7 @@ jobs:
 
         # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@v2
         if: matrix.os == 'ubuntu-latest'
 
         # Again only running this on ubuntu
