@@ -25,6 +25,7 @@ else
     ecatfile = varargin{1};
 end
 
+groundtruth = [ecatfile(1:end-5) '.mat'];
 meta.info = 'just running a test';
 meta.TimeZero = datestr(now,'hh:mm:ss');
 cd(fileparts(ecatfile))

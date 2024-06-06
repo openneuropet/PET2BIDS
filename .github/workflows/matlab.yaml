@@ -53,5 +53,5 @@ jobs:
             addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
             addpath('${{ env.MATLAB_CODE_PATH }}/ecat_validation');
             addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test
+            ecat2nii_test('${{ env.TEST_ECAT_PATH }}');
         if: matrix.os == 'ubuntu-latest'
