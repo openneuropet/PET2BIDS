@@ -45,7 +45,7 @@ jobs:
 
         # Again only running this on ubuntu
       - name: Add Matlab Code Folder to Path and Run Tests
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v2
         with:
           command: |
             addpath('${{ env.MATLAB_CODE_PATH }}');
