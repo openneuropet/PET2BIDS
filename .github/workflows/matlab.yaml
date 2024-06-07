@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer16x16x16x4.v.gz
+      TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer_16x16x16x4.v.gz
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
 
