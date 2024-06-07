@@ -17,19 +17,20 @@ function ecat2nii_test(varargin)
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
 
-if nargin ==0 || isempty(varargin{1})
+if nargin==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
         ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v.gz']);
 else
     ecatfile = varargin{1};
 end
+
 groundtruth = [ecatfile(1:end-5) '.mat'];
 
 meta.info = 'just running a test';
 meta.TimeZero = datestr(now,'hh:mm:ss');
 cd(fileparts(ecatfile))
 
-if exist('groundtruth','var')
+if isfile(groundtruth) % exist('groundtruth','var')
     ecat2nii(ecatfile,{meta},'gz',false)
     img                 = load(groundtruth);
     meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
@@ -45,7 +46,7 @@ if exist('groundtruth','var')
 else
     ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
     [filepath,filename] = fileparts(ecatfile);
-    img                 = load(fullfile(filepath,[filename(1:end-2) '.ecat.mat']));
+    img                 = load(fullfile(filepath,[filename(1:end-2) 'ecat.mat']));
     img                 = img.(cell2mat(fieldnames(img)));
     img_reread          = nii_tool('img', fullfile(filepath,[filename(1:end-2) '.nii']));
     
