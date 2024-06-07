@@ -426,63 +426,65 @@ ReconFilterSize=2
 
 # General Electric Medical Systems Advance
 # -----------------------------------------
-dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-JHU/ --destination-path $DESTINATION/sub-GeneralElectricAdvanceJHU/pet --kwargs \
-Manufacturer='GE MEDICAL SYSTEMS' \
-ManufacturersModelName='GE Advance' \
-InstitutionName='Johns Hopkins University, USA' \
-BodyPart='Phantom' \
-Units='Bq/mL' \
-TracerName='FDG' \
-TracerRadionuclide='F18' \
-InjectedRadioactivity=0.788 \
-InjectedRadioactivityUnits='mCi' \
-SpecificRadioactivity='n/a' \
-SpecificRadioactivityUnits='n/a' \
-ModeOfAdministration='infusion' \
-ScanStart=0 \
-InjectionStart=-5336 \
-FrameTimesStart="[0]" \
-AcquisitionMode='list mode' \
-ImageDecayCorrected='true' \
-ImageDecayCorrectionTime=0 \
-ScatterCorrectionMethod='Single-scatter simulation' \
-ReconMethodParameterLabels='["none"]' \
-ReconMethodParameterUnits='["none"]' \
-ReconMethodParameterValues='[0]' \
-ReconFilterType="none" \
-ReconFilterSize=0 \
-AttenuationCorrection='2D-acquired transmission scan with a 68Ge pin'
-
-
-
-# Chesapeake Medical Imaging
-# --------------------------
-
-
-# Canon Cartesion Prime PET-CT
-# ----------------------------
-dcm2niix4pet $SOURCE_FOLDER/CanonCartesionPrimePETCT-NIA --destination-path $DESTINATION/sub-CanonCartesionPrimeNIA/pet --kwargs \
-Manufacturer='Canon Medical Systems' \
-ManufacturersModelName='Cartesion Prime' \
-InstitutionName='Chesapeake Medical Imaging, USA' \
-BodyPart='Phantom' \
-Units='Bq/mL' \
-TracerName='FDG' \
-TracerRadionuclide='F18' \
-InjectedRadioactivity=0.87 \
-InjectedRadioactivityUnits='mCi' \
-SpecificRadioactivity='n/a' \
-SpecificRadioactivityUnits='n/a' \
-ModeOfAdministration='infusion' \
-ScanStart=0 \
-InjectionStart=-2312 \
-FrameTimesStart="[0, 300, 600, 900]" \
-AcquisitionMode='list mode' \
-ImageDecayCorrected='true' \
-ImageDecayCorrectionTime=0 \
-ReconMethodParameterValues="[24, 5]" \
-ReconMethodParameterUnits="['none', 'none']" \
-ReconMethodParameterLabels="['subsets', 'iterations']" \
-ReconFilterType="Gaussian" \
-ReconFilterSize=4
+#echo "${SOURCE_FOLDER}/GeneralElectricAdvance-JHU"
+#dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-JHU/ --destination-path $DESTINATION/sub-GeneralElectricAdvanceJHU/pet --kwargs \
+#Manufacturer='GE MEDICAL SYSTEMS' \
+#ManufacturersModelName='GE Advance' \
+#InstitutionName='Johns Hopkins University, USA' \
+#BodyPart='Phantom' \
+#Units='Bq/mL' \
+#TracerName='FDG' \
+#TracerRadionuclide='F18' \
+#InjectedRadioactivity=0.788 \
+#InjectedRadioactivityUnits='mCi' \
+#SpecificRadioactivity='n/a' \
+#SpecificRadioactivityUnits='n/a' \
+#ModeOfAdministration='infusion' \
+#ScanStart=0 \
+#InjectionStart=-5336 \
+#FrameTimesStart="[0]" \
+#AcquisitionMode='list mode' \
+#ImageDecayCorrected='true' \
+#ImageDecayCorrectionTime=0 \
+#ScatterCorrectionMethod='Single-scatter simulation' \
+#ReconMethodParameterLabels='["none"]' \
+#ReconMethodParameterUnits='["none"]' \
+#ReconMethodParameterValues='[0]' \
+#ReconFilterType="none" \
+#ReconFilterSize=0 \
+#AttenuationCorrection='2D-acquired transmission scan with a 68Ge pin'
+#
+#
+#
+## Chesapeake Medical Imaging
+## --------------------------
+#
+#
+## Canon Cartesion Prime PET-CT
+## ----------------------------
+#echo "${SOURCE_FOLDER}/CanonCartesionPrimePETCT-NIA"
+#dcm2niix4pet $SOURCE_FOLDER/CanonCartesionPrimePETCT-NIA --destination-path $DESTINATION/sub-CanonCartesionPrimeNIA/pet --kwargs \
+#Manufacturer='Canon Medical Systems' \
+#ManufacturersModelName='Cartesion Prime' \
+#InstitutionName='Chesapeake Medical Imaging, USA' \
+#BodyPart='Phantom' \
+#Units='Bq/mL' \
+#TracerName='FDG' \
+#TracerRadionuclide='F18' \
+#InjectedRadioactivity=0.87 \
+#InjectedRadioactivityUnits='mCi' \
+#SpecificRadioactivity='n/a' \
+#SpecificRadioactivityUnits='n/a' \
+#ModeOfAdministration='infusion' \
+#ScanStart=0 \
+#InjectionStart=-2312 \
+#FrameTimesStart="[0, 300, 600, 900]" \
+#AcquisitionMode='list mode' \
+#ImageDecayCorrected='true' \
+#ImageDecayCorrectionTime=0 \
+#ReconMethodParameterValues="[24, 5]" \
+#ReconMethodParameterUnits="['none', 'none']" \
+#ReconMethodParameterLabels="['subsets', 'iterations']" \
+#ReconFilterType="Gaussian" \
+#ReconFilterSize=4
 

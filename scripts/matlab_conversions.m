@@ -479,7 +479,9 @@ try
 
     out = ecat2nii(fullfile(source,['SiemensHRRT-JHU' filesep 'Hoffman.v']),...
         meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTJHU'  filesep 'pet' filesep 'sub-SiemensHRRTJHU.nii']));
-
+catch
+    disp(message);
+end
 
 %% Johns Hopkins University
 % ----------------------------------------------
@@ -524,42 +526,42 @@ end
 
 % General Electric Medical Systems Advance
 % -----------------------------------------
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'GE MEDICAL SYSTEMS';
-    meta.ManufacturersModelName     = 'GE Advance';
-    meta.InstitutionName            = 'Johns Hopkins University, USA';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 0.788;
-    meta.InjectedRadioactivityUnits = 'mCi';
-    meta.SpecificRadioactivity      = 'n/a';
-    meta.SpecificRadioactivityUnits = 'n/a';
-    meta.ModeOfAdministration       = 'infusion';
-    meta.ScanStart                  = 0;
-    meta.InjectionStart             = -5336;
-    meta.FrameTimesStart            = 0;
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.ScatterCorrectionMethod    = 'Single-scatter simulation';
-    meta.ReconMethodName            = '3D Reprojection';
-    meta.ReconMethodParameterLabels = ["none"];
-    meta.ReconParameterUnits        = ["none"];
-    meta.ReconMethodParameterValues = [0];
-    meta.ReconFilterType            = "none";
-    meta.ReconFilterSize            = 0;
-    meta.AttenuationCorrection     = '2D-acquired transmission scan with a 68Ge pin';
-
-    dcm2niix4pet(fullfile(source,'GeneralElectricAdvance-JHU'),...
-        meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceJHU' filesep 'pet'])); 
-     
-catch
-    disp(message);
-end
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'GE MEDICAL SYSTEMS';
+%    meta.ManufacturersModelName     = 'GE Advance';
+%    meta.InstitutionName            = 'Johns Hopkins University, USA';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 0.788;
+%    meta.InjectedRadioactivityUnits = 'mCi';
+%    meta.SpecificRadioactivity      = 'n/a';
+%    meta.SpecificRadioactivityUnits = 'n/a';
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.ScanStart                  = 0;
+%    meta.InjectionStart             = -5336;
+%    meta.FrameTimesStart            = 0;
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.ScatterCorrectionMethod    = 'Single-scatter simulation';
+%    meta.ReconMethodName            = '3D Reprojection';
+%    meta.ReconMethodParameterLabels = ["none"];
+%    meta.ReconParameterUnits        = ["none"];
+%    meta.ReconMethodParameterValues = [0];
+%    meta.ReconFilterType            = "none";
+%    meta.ReconFilterSize            = 0;
+%    meta.AttenuationCorrection     = '2D-acquired transmission scan with a 68Ge pin';
+%
+%    dcm2niix4pet(fullfile(source,'GeneralElectricAdvance-JHU'),...
+%        meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceJHU' filesep 'pet']));
+%
+%catch
+%    disp(message);
+%end
 
 %% Chesapeake Medical Imaging
 % ----------------------------------------------
@@ -567,36 +569,36 @@ end
 % Canon Cartesion Prime PET-CT
 % ----------------------
 
-try
-    clear meta
-    meta.TimeZero                   = 'ScanStart';
-    meta.Manufacturer               = 'Canon Medical Systems';
-    meta.ManufacturersModelName     = 'Cartesion Prime';
-    meta.InstitutionName            = 'Chesapeake Medical Imaging, USA';
-    meta.BodyPart                   = 'Phantom';
-    meta.Units                      = 'Bq/mL';
-    meta.TracerName                 = 'FDG';
-    meta.TracerRadionuclide         = 'F18';
-    meta.InjectedRadioactivity      = 0.87;
-    meta.InjectedRadioactivityUnits = 'mCi';
-    meta.SpecificRadioactivity      = 'n/a';
-    meta.SpecificRadioactivityUnits = 'n/a';
-    meta.ModeOfAdministration       = 'infusion';
-    meta.ScanStart                  = 0;
-    meta.InjectionStart             = -2312;
-    meta.FrameTimesStart            = [0 300 600 900];
-    meta.AcquisitionMode            = 'list mode';
-    meta.ImageDecayCorrected        = 'true';
-    meta.ImageDecayCorrectionTime   = 0;
-    meta.ReconMethodParameterLabels = ["subsets" "iterations"];
-    meta.ReconMethodParameterLabels = ["none" "none"];
-    meta.ReconMethodParameterValues = [24 5];
-    meta.ReconFilterType            = "Gaussian";
-    meta.ReconFilterSize            = 4;
-
-    dcm2niix4pet(fullfile(source,'CanonCartesionPrimePETCT-NIA'),...
-        meta,'o',fullfile(destination,['sub-CanonCartesionPrimeNIA' filesep 'pet'])); 
-     
-catch
-    disp(message);
-end
+%try
+%    clear meta
+%    meta.TimeZero                   = 'ScanStart';
+%    meta.Manufacturer               = 'Canon Medical Systems';
+%    meta.ManufacturersModelName     = 'Cartesion Prime';
+%    meta.InstitutionName            = 'Chesapeake Medical Imaging, USA';
+%    meta.BodyPart                   = 'Phantom';
+%    meta.Units                      = 'Bq/mL';
+%    meta.TracerName                 = 'FDG';
+%    meta.TracerRadionuclide         = 'F18';
+%    meta.InjectedRadioactivity      = 0.87;
+%    meta.InjectedRadioactivityUnits = 'mCi';
+%    meta.SpecificRadioactivity      = 'n/a';
+%    meta.SpecificRadioactivityUnits = 'n/a';
+%    meta.ModeOfAdministration       = 'infusion';
+%    meta.ScanStart                  = 0;
+%    meta.InjectionStart             = -2312;
+%    meta.FrameTimesStart            = [0 300 600 900];
+%    meta.AcquisitionMode            = 'list mode';
+%    meta.ImageDecayCorrected        = 'true';
+%    meta.ImageDecayCorrectionTime   = 0;
+%    meta.ReconMethodParameterLabels = ["subsets" "iterations"];
+%    meta.ReconMethodParameterLabels = ["none" "none"];
+%    meta.ReconMethodParameterValues = [24 5];
+%    meta.ReconFilterType            = "Gaussian";
+%    meta.ReconFilterSize            = 4;
+%
+%    dcm2niix4pet(fullfile(source,'CanonCartesionPrimePETCT-NIA'),...
+%        meta,'o',fullfile(destination,['sub-CanonCartesionPrimeNIA' filesep 'pet']));
+%
+%catch
+%    disp(message);
+%end
