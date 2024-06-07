@@ -36,7 +36,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: R2023a
-          cache:
+          cache: true
           products: >
             Simulink
             Simulink_Test
