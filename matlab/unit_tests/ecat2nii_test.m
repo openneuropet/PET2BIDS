@@ -46,7 +46,7 @@ if isfile(groundtruth) % exist('groundtruth','var')
 else
     ecat2nii(ecatfile,{meta},'gz',false,'savemat',true)
     [filepath,filename] = fileparts(ecatfile);
-    img                 = load(fullfile(filepath,[filename(1:end-2) 'ecat.mat']));
+    img                 = load(fullfile(filepath,[filename(1:end-2) '.ecat.mat']));
     img                 = img.(cell2mat(fieldnames(img)));
     img_reread          = nii_tool('img', fullfile(filepath,[filename(1:end-2) '.nii']));
     
