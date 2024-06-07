@@ -36,13 +36,12 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: R2023a
-          cache: true
+          cache:
           products: >
             Simulink
             Simulink_Test
             5G_Toolbox                                            
             AUTOSAR_Blockset                                      
-            Aerospace-Blockset                                    
             Aerospace_Toolbox                                     
             Antenna_Toolbox                                       
             Audio_Toolbox                                         
@@ -76,8 +75,8 @@ jobs:
             Lidar_Toolbox                                         
             MATLAB_Coder                                          
             MATLAB_Compiler                                       
-            MATLAB_Compiler SDK                                   
-            MATLAB_Report Generator                               
+            MATLAB_Compiler_SDK                                   
+            MATLAB_Report_Generator                               
             MATLAB_Test                                           
             Mapping_Toolbox                                       
             Medical_Imaging_Toolbox                               
@@ -121,7 +120,6 @@ jobs:
             Simulink_Coverage                                     
             Simulink_Design_Optimization                          
             Simulink_Design_Verifier                              
-            Simulink_Fault_Analyzer                               
             Simulink_PLC_Coder                                    
             Simulink_Report_Generator                             
             Simulink_Test                                         
