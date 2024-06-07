@@ -144,6 +144,10 @@ jobs:
       - name: SetupMatlab
         if: ${{ matrix.os == 'ubuntu-20.04' }}
         uses: matlab-actions/setup-matlab@v1
+        # note matlab-actions/setup-matlab@v2 breaks this script, don't update unless you're forced to
+        #with:
+          #release: 'R2023a'
+          #cache: true
 
       - name: Run Matlab Conversion Script on Phantoms
         if: ${{ matrix.os == 'ubuntu-20.04' }}
