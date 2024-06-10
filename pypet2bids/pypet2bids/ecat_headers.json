@@ -572,7 +572,7 @@
                     "byte": 204,
                     "variable_name": "MULTIPLES",
                     "type": "Integer*4",
-                    "comment": "Total multiples collected in thes frame/gate",
+                    "comment": "Total multiples collected in the frame/gate",
                     "struct": "l"
                 },
                 {
@@ -2702,7 +2702,7 @@
                     "byte": 66,
                     "variable_name": "DELAYED",
                     "type": "Integer*4",
-                    "comment": "Total delays collected in thes frame/gate",
+                    "comment": "Total delays collected in the frame/gate",
                     "struct": "l"
                 },
                 {
@@ -4529,7 +4529,7 @@
                     "byte": 66,
                     "variable_name": "DELAYED",
                     "type": "Integer*4",
-                    "comment": "Total delays collected in thes frame/gate",
+                    "comment": "Total delays collected in the frame/gate",
                     "struct": "l"
                 },
                 {
