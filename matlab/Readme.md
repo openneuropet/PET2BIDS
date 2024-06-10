@@ -1,6 +1,6 @@
 # Read and write raw scanner files as nifti + json
 
-BIDS requires nifti files and json. While json can be writen be hand, this is more convenient to populate them as one reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created overwise.
+BIDS requires nifti files and json. While json can be written be hand, this is more convenient to populate them as one reads data. One issue is that some information is not encoded in ecat/dicom headers and thus needs to be created otherwise.
 
 ## Dependencies
 

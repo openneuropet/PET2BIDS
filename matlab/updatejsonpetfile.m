@@ -11,7 +11,7 @@ function status = updatejsonpetfile(varargin)
 % :param newfields: (optional) a structure with the newfields to go into the json file
 % :param dcminfo: (optional) a dcmfile or the dicominfo structure from a representative
 %                    dicom file. This information is used to also update the json
-%                    file, and if a comflict exists, it returns warning messages,
+%                    file, and if a conflict exists, it returns warning messages,
 %                    assumnimg the newfield provided is correct (i.e. as a user you
 %                    know better than default dicom, presumably)
 %
@@ -28,7 +28,7 @@ function status = updatejsonpetfile(varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-warning on % set to off to ignore our usefull warnings
+warning on % set to off to ignore our useful warnings
 status = struct('state',[],'messages',{''});
 
 % check data in
@@ -281,7 +281,7 @@ else % -------------- update ---------------
     if isfield(filemetadata,'ImageDecayCorrected')
         if ischar(filemetadata.ImageDecayCorrected)
             if strcmpi(filemetadata.ImageDecayCorrected,'true')
-                filemetadata.ImageDecayCorrected = true; % bolean
+                filemetadata.ImageDecayCorrected = true; % boolean
             else
                 filemetadata.ImageDecayCorrected = false; 
             end
@@ -348,7 +348,7 @@ if sum(input_check) ~= 0
     end
 end
 
-% check our libray from names we know
+% check our library from names we know
 if isfield(filemetadata,'ReconstructionMethod')
     [filemetadata.ReconMethodName,iteration,subset] = get_recon_method(filemetadata.ReconstructionMethod);
 elseif isfield(filemetadata,'ReconMethodName')
@@ -437,8 +437,8 @@ else
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)
-% hack a la Anthony making sure the validtor is happy 
-% make some scalar an array (i.e. a cell in matlab writen as array in json)
+% hack a la Anthony making sure the validator is happy 
+% make some scalar an array (i.e. a cell in matlab written as array in json)
 
 updated = 0;
 shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...

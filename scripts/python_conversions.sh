@@ -460,7 +460,7 @@ ReconFilterSize=2
 ## --------------------------
 #
 #
-## Canon Cartesion Prime PET-CT
+## Canon Cartesian Prime PET-CT
 ## ----------------------------
 #echo "${SOURCE_FOLDER}/CanonCartesionPrimePETCT-NIA"
 #dcm2niix4pet $SOURCE_FOLDER/CanonCartesionPrimePETCT-NIA --destination-path $DESTINATION/sub-CanonCartesionPrimeNIA/pet --kwargs \

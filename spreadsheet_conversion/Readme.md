@@ -10,4 +10,4 @@ The example files, show the excel file and the resulting conversion as json.
 
 ## convert_spreadsheet_metadata.m
 
-The matlab function `convert_spreadsheet_metadata.m` can be called and users are prompted to select a spreadsheet, or it can be passed directly as input. If command line is used, output name can also be specified, overwise the same location and name is used to create the json file.
+The matlab function `convert_spreadsheet_metadata.m` can be called and users are prompted to select a spreadsheet, or it can be passed directly as input. If command line is used, output name can also be specified, otherwise the same location and name is used to create the json file.

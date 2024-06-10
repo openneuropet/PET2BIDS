@@ -25,7 +25,7 @@ except ModuleNotFoundError:
 
 
 # debug variable
-# save steps for debugging, for mor infor see ecat_testing/README.md
+# save steps for debugging, for more info see ecat_testing/README.md
 ecat_save_steps = os.environ.get("ECAT_SAVE_STEPS", 0)
 if ecat_save_steps == "1":
     # check to see if the code directory is available, if it's not create it and
@@ -160,7 +160,7 @@ def ecat2nii(
         single_frame = True
     if img_shape != shape_from_headers and not single_frame:
         raise Exception(
-            f"Mis-match between expected X,Y,Z, and Num. Frames dimensions ({shape_from_headers} obtained from headers"
+            f"Mismatch between expected X,Y,Z, and Num. Frames dimensions ({shape_from_headers} obtained from headers"
             f"and shape of imaging data ({img_shape}"
         )
 

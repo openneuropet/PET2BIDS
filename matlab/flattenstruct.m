@@ -6,7 +6,7 @@ function structout = flattenstruct(structin)
 % :format: - structout = flattenstruct(structin)
 %
 % :param structin: a structure with nested fields
-% :returns structout: a flat sructure with all the fields
+% :returns structout: a flat structure with all the fields
 %                  
 %.. note::
 %

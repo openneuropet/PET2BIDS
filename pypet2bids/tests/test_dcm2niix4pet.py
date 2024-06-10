@@ -224,7 +224,7 @@ def test_manufacturers():
                 converter = Dcm2niix4PET(input_path, output_path)
 
                 converter.run_dcm2niix()
-                print(f"running converson on images at {input_path}")
+                print(f"running conversion on images at {input_path}")
                 # add jsons to the manufacturer_paths
                 output_path_files = os.listdir(output_path)
                 jsons = [

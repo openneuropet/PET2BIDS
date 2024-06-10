@@ -15,6 +15,6 @@ if poetry_add.returncode == 0:
     command = f"cd pypet2bids && poetry export -f requirements.txt --output requirements.txt --without-hashes"
     print(f"Updating requirements.txt from using poetry export.")
     subprocess.run(command, shell=True)
-    print(f"{python_library} sucess")
+    print(f"{python_library} success")
 else:
     sys.exit(1)
