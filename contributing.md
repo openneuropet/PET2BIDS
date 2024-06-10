@@ -21,7 +21,7 @@ How do you know that you joined? well, you're here and you likely used PET2BIDS 
 
 ## Contributing without writing a line of code
 
-There are many ways you can contribute to the project without having to wite a single line of code!
+There are many ways you can contribute to the project without having to write a single line of code!
 - editing and updating the help/documentation is a fantastic contribution.
 - making any tutorials, examples available is great too
 

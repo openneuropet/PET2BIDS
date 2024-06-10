@@ -174,7 +174,7 @@ ecatpet2bids for converting ecat data into nii & json
       --nifti file_name, -n file_name
                             Name of nifti output file
       --subheader, -s       Display subheaders
-      --sidecar             Output a bids formatted sidecar for pairing witha nifti.
+      --sidecar             Output a bids formatted sidecar for pairing with a nifti.
       --kwargs [KWARGS ...], -k [KWARGS ...]
                             Include additional values int the nifti sidecar json or override values extracted from the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the
                             calculated TimeZero. Any number of additional arguments can be supplied after --kwargs e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.

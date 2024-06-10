@@ -95,12 +95,12 @@ if nargin == 0
         'blood sampling', ...
         'manual', 'autosampler', 'both', 'manual');
     if isempty(type)
-        warning('selection aborded - exiting'); return
+        warning('selection aborted - exiting'); return
     end
     
     outputname = inputdlg('please input the base name for the files to save');
     if isempty(outputname)
-        warning('name aborded - exiting'); return
+        warning('name aborted - exiting'); return
     else
         outputname = fullfile(pathnames,cell2mat(outputname));
     end

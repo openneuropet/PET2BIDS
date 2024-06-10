@@ -86,7 +86,7 @@ else:
         "DEFAULT_METADATA_JSON", module_folder / "template_json.json"
     )
     # set the default metadata json to the template json included in this library in our environment so
-    # we don't trip up retrival of the default metadata json later
+    # we don't trip up retrieval of the default metadata json later
     environ["DEFAULT_METADATA_JSON"] = str(module_folder / "template_json.json")
     default_metadata_json = module_folder / "template_json.json"
 

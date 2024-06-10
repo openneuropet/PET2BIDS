@@ -166,7 +166,7 @@ optional arguments:
   --nifti file_name, -n file_name
                         Name of nifti output file
   --subheader, -s       Display subheaders
-  --sidecar             Output a bids formatted sidecar for pairing witha nifti.
+  --sidecar             Output a bids formatted sidecar for pairing with a nifti.
   --kwargs [KWARGS ...], -k [KWARGS ...]
                         Include additional values int the nifti sidecar json or
                         override values extracted from the supplied nifti. e.g.

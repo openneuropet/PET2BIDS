@@ -43,7 +43,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %.. note::
 %
 %   See also get_pet_metadata.m to generate the metadata structure
-%            updatejsonpetfile to see how the json file gets updated and checked agains DICOM tags
+%            updatejsonpetfile to see how the json file gets updated and checked against DICOM tags
 %
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*

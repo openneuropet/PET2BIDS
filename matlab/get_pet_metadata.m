@@ -233,7 +233,7 @@ else
             for opt = 1:length(setmetadata)
                 if contains(setmetadata{opt},'=')
                     try
-                        eval(setmetadata{opt}); % shoul evaluate the = sign, creating name/value pairs
+                        eval(setmetadata{opt}); % should evaluate the = sign, creating name/value pairs
                         if isempty(setmetadata{opt})
                             error('''%s'' from %sparameters.txt is empty\n',optional{opt},Scanner)
                         end
