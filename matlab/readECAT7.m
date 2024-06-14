@@ -228,10 +228,10 @@ if (ecat_save_steps == '1')
     fprintf(step_2_file, '%s', sub_header_json);
     fclose(step_2_file);
 
-    % write out endianess and datatype of the pixel data matrix
+    % write out endianness and datatype of the pixel data matrix
     step_3_struct = {};
     x.data_type = class(data{1});
-    x.endianess = file_endianess;
+    x.endianness = file_endianess;
     step_3_json = (jsonencode(x, PrettyPrint=true));
     step_3_file = fopen([ecat_save_steps_dir filesep '3_determine_data_type_matlab.json'], 'w');
     fprintf(step_3_file, '%s', step_3_json);

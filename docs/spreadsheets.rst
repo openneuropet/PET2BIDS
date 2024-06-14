@@ -22,7 +22,7 @@ Handled Types of Spreadsheets (known)
 - Here is an example of a
   `Many Subject Spreadsheet <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_example.xlsx>`_
   paired with a `single subject spreadsheet  <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subject_>`_
-  these can be used when updating BIDS datasets w/ homogenous scanner/experiment data along with heterogeneous (subject)
+  these can be used when updating BIDS datasets w/ homogeneous scanner/experiment data along with heterogeneous (subject)
   data.
 
 **Some more notes/quirks about Excel:**

@@ -479,7 +479,7 @@ def read_ecat(
 
         if ecat_save_steps == "1":
 
-            # write out the endianess and datatype of the pixel data matrix
+            # write out the endianness and datatype of the pixel data matrix
             step_3_dict = {
                 "datatype": pixel_data_matrix_4d.dtype.name,
                 "endianness": pixel_data_matrix_4d.dtype.byteorder,

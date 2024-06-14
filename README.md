@@ -124,7 +124,7 @@ No matter the way you prefer inputting metadata (passing all arguments, using tx
 
 ### ecat_validation
 
-This folder contains code generating Siemens HRRT scanner data using ecat file format and validating the matlab and python conversion tools (i.e. giving the data generated as ecat, do our nifti images reflect acurately the data).
+This folder contains code generating Siemens HRRT scanner data using ecat file format and validating the matlab and python conversion tools (i.e. giving the data generated as ecat, do our nifti images reflect accurately the data).
 
 ## Citation 
 

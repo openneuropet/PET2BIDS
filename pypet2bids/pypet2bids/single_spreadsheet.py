@@ -207,7 +207,7 @@ def cli():
     parser.add_argument(
         "spreadsheet",
         type=pathlib.Path,
-        help="Path to a spreadsheet with data applicable to mulitiple subjects",
+        help="Path to a spreadsheet with data applicable to multiple subjects",
     )
     parser.add_argument("--output-path", "-o", type=pathlib.Path)
     parser.add_argument("--bids-tree", "-b", action="store_true")

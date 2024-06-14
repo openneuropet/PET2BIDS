@@ -1,0 +1,7 @@
+[codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = .git*,*.pdf,*.lock,.codespellrc
+check-hidden = true
+# Some domain specific variables, names, and some specific variable choices
+ignore-regex =  \b(TE|PROMIS|Claus|nam|bais)\b
+# ignore-words-list =

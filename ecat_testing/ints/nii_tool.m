@@ -36,7 +36,7 @@ function varargout = nii_tool(cmd, varargin)
 %      parameter/value pairs. See nii_tool('RGBstyle') for meaning of rgb_dim.
 %      
 %      Note that the setting will be saved for future use. If one wants to change the
-%      settting temporarily, it is better to return the oldVal, and to restore it
+%      setting temporarily, it is better to return the oldVal, and to restore it
 %      after done:
 %      
 %      oldVal = nii_tool('default', 'version', 2); % set version 2 as default
@@ -251,7 +251,7 @@ function varargout = nii_tool(cmd, varargin)
 % 160531 fopen uses 'W' for 'w': performance benefit according to Yair.
 % 160701 subFuncHelp: bug fix for mfile case.
 % 161018 gunzipOS: use unique name for outName, to avoid problem with parfor.
-% 161025 Make included linux pigz executible; fix "dd" for windows.
+% 161025 Make included linux pigz executable; fix "dd" for windows.
 % 161031 gunzip_mem(), nii_bytes() for hdr/ext read: read uint8 then parse;
 %        Replace hdr.machine with hdr.swap_endian.
 % 170212 Extract decode_ext() from 'ext' cmd so call it in 'update' cmd.
@@ -260,7 +260,7 @@ function varargout = nii_tool(cmd, varargin)
 % 170410 read_img(): turn off auto RGB dim detection, and use rgb_dim.
 % 170714 'save': force to version 2 if img dim exceeds 2^15-1.
 % 170716 Add functionSignatures.json file for tab auto-completion.
-% 171031 'LocalFunc' makes eaiser to call local functions.
+% 171031 'LocalFunc' makes easier to call local functions.
 % 171206 Allow file name ext other than .nii, .hdr, .img.
 % 180104 check_gzip: add /usr/local/bin to PATH for unix if needed.
 % 180119 use jsystem for better speed.
@@ -314,7 +314,7 @@ elseif strcmpi(cmd, 'save')
     else
         error('Provide a valid file name as the third input');
     end
-    if ~ispc && strncmp(fname, '~/', 2) % matlab may err with this abbrevation
+    if ~ispc && strncmp(fname, '~/', 2) % matlab may err with this abbreviation
         fname = [getenv('HOME') fname(2:end)];
     end
     [pth, fname, fext] = fileparts(fname);
@@ -519,7 +519,7 @@ elseif strcmpi(cmd, 'ext')
     if isempty(hdr.extension) || hdr.extension(1)==0
         varargout{1} = [];
     else
-        if hdr.vox_offset>0, nByte = hdr.vox_offset + 64; % .nii arbituary +64
+        if hdr.vox_offset>0, nByte = hdr.vox_offset + 64; % .nii arbitrary +64
         else, nByte = inf;
         end
         b = nii_bytes(fname, nByte);
@@ -875,7 +875,7 @@ function dd = check_dd
 m_dir = fileparts(mfilename('fullpath'));
 if strcmpi(pwd, m_dir), cd ..; clnObj = onCleanup(@() cd(m_dir)); end
 [err, ~] = jsystem({'dd' '--version'});
-if ~err, dd = 'dd'; return; end % dd with linix/mac, and maybe windows
+if ~err, dd = 'dd'; return; end % dd with linux/mac, and maybe windows
 
 if ispc % rename it as exe
     dd = [m_dir '\dd'];
@@ -1025,7 +1025,7 @@ for i = 1:numel(ext)
             ind = [-2 ind]; % -2+3=1: start of first para
             for k = 1:numel(ind)-1
                 a = str(ind(k)+3 : ind(k+1));
-                a(a==0) = []; % to be safe. strtrim wont remove null
+                a(a==0) = []; % to be safe. strtrim won't remove null
                 a = strtrim(a);
                 if isempty(a), continue; end
                 try

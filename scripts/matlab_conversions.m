@@ -566,7 +566,7 @@ end
 %% Chesapeake Medical Imaging
 % ----------------------------------------------
 
-% Canon Cartesion Prime PET-CT
+% Canon Cartesian Prime PET-CT
 % ----------------------
 
 %try

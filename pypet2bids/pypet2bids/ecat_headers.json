@@ -572,7 +572,7 @@
                     "byte": 204,
                     "variable_name": "MULTIPLES",
                     "type": "Integer*4",
-                    "comment": "Total multiples collected in thes frame/gate",
+                    "comment": "Total multiples collected in the frame/gate",
                     "struct": "l"
                 },
                 {
@@ -1531,7 +1531,7 @@
                     "byte": 62,
                     "variable_name": "ATTENUATION_MAX",
                     "type": "Real*4",
-                    "comment": "Maximum value in the attentuation data",
+                    "comment": "Maximum value in the attenuation data",
                     "struct": "f"
                 },
                 {
@@ -1603,7 +1603,7 @@
                     "byte": 0,
                     "variable_name": "DATA_TYPE",
                     "type": "Integer*2",
-                    "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
+                    "comment": "Enumerated type (0=Unknown Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
                     "struct": "H"
                 },
                 {
@@ -2702,7 +2702,7 @@
                     "byte": 66,
                     "variable_name": "DELAYED",
                     "type": "Integer*4",
-                    "comment": "Total delays collected in thes frame/gate",
+                    "comment": "Total delays collected in the frame/gate",
                     "struct": "l"
                 },
                 {
@@ -3358,7 +3358,7 @@
                     "byte": 62,
                     "variable_name": "ATTENUATION_MAX",
                     "type": "Real*4",
-                    "comment": "Maximum value in the attentuation data",
+                    "comment": "Maximum value in the attenuation data",
                     "struct": "f"
                 },
                 {
@@ -3430,7 +3430,7 @@
                     "byte": 0,
                     "variable_name": "DATA_TYPE",
                     "type": "Integer*2",
-                    "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
+                    "comment": "Enumerated type (0=Unknown Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
                     "struct": "H"
                 },
                 {
@@ -4529,7 +4529,7 @@
                     "byte": 66,
                     "variable_name": "DELAYED",
                     "type": "Integer*4",
-                    "comment": "Total delays collected in thes frame/gate",
+                    "comment": "Total delays collected in the frame/gate",
                     "struct": "l"
                 },
                 {
@@ -5186,7 +5186,7 @@
                     "byte": 62,
                     "variable_name": "ATTENUATION_MAX",
                     "type": "Real*4",
-                    "comment": "Maximum value in the attentuation data",
+                    "comment": "Maximum value in the attenuation data",
                     "struct": "f"
                 },
                 {
@@ -5258,7 +5258,7 @@
                     "byte": 0,
                     "variable_name": "DATA_TYPE",
                     "type": "Integer*2",
-                    "comment": "Enumerated type (0=Unkonwn Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
+                    "comment": "Enumerated type (0=Unknown Matrix Data Type, 1=Byte Data, 2=VAX_Ix2, 3=VAX_Ix4, 4=VAX_Rx4, 5=IEEE Float, 6=Sun short, 7=Sun long)",
                     "struct": "H"
                 },
                 {

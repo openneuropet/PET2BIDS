@@ -2,7 +2,7 @@
 
 PMOD is a popular software for kinetic modeling requiring blood data to be imported in a specific manner
 (see https://doc.pmod.com/pkin/importofblooddata6839.html). Here, we convert those files to create _blood.tsv files
-according to BIDS. By default (although this can be turned off), the accompagning json file is also created
+according to BIDS. By default (although this can be turned off), the accompanying json file is also created
 (but requires more user input).
 
 ## Matlab

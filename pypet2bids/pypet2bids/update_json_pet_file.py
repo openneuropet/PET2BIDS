@@ -184,7 +184,7 @@ def update_json_with_dicom_value(
     :param missing_values: dictionary output from check_json indicating missing fields and/or values
     :param dicom_header: the dicom or dicoms that may contain information not picked up by dcm2niix
     :param dicom2bids_json: a json file that maps dicom header entities to their corresponding BIDS entities
-    :return: a dictionary of sucessfully updated (written to the json file) fields and values
+    :return: a dictionary of successfully updated (written to the json file) fields and values
     """
 
     if silent:

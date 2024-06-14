@@ -6,7 +6,7 @@ function metadata = get_pet_metadata(varargin)
 % converters, ecat2nii.m or dcm2niix4pet.m allowing to produce a .nii
 % file with a BIDS compliant json file.
 %
-% :param Default:  \(aquisition and reconstruction parameters\) can be
+% :param Default:  \(acquisition and reconstruction parameters\) can be
 %    stored in a \*_parameters.txt seating on disk next to this function
 %    or passed as argument in. Replace \* by the name of your scanner \- for now we
 %    tested 'SiemensBiograph', 'SiemensHRRT', 'GEAdvance', 'PhillipsVereos',
@@ -15,7 +15,7 @@ function metadata = get_pet_metadata(varargin)
 %    all info is necessarily needed\)
 % :param inputs: a series of key/value pairs are expected
 % :returns metadata: a structure with BIDS fields filled \(such structure is ready
-%   to be writen as json file using e.g. the bids matlab jsonwrite
+%   to be written as json file using e.g. the bids matlab jsonwrite
 %   function, typically associated with the \*_pet.nii file\)
 %
 % :format:  metadata = get_pet_metadata(key,value)
@@ -233,7 +233,7 @@ else
             for opt = 1:length(setmetadata)
                 if contains(setmetadata{opt},'=')
                     try
-                        eval(setmetadata{opt}); % shoul evaluate the = sign, creating name/value pairs
+                        eval(setmetadata{opt}); % should evaluate the = sign, creating name/value pairs
                         if isempty(setmetadata{opt})
                             error('''%s'' from %sparameters.txt is empty\n',optional{opt},Scanner)
                         end
@@ -265,7 +265,7 @@ end
 
 %% make the metadata structure
 
-% this part is not really usefull for BIDS, but helps users know which
+% this part is not really useful for BIDS, but helps users know which
 % scanner we tested -- 
 if contains(Scanner,'Siemens','IgnoreCase',true)
     metadata.Manufacturer = 'Siemens';

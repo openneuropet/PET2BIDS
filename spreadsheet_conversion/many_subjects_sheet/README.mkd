@@ -2,7 +2,7 @@
 
 The conversion relies on two files: _scanner_metadata_ and _subjects_metadata_ with the idea that scanner information is generic and thus does not need to be repeated while subject information requires subject specific information. 
 
-Note that this distinction is arbitrary, and that any valid BIDS fields can be used in any of those files. In addition, a subject specific information overwrittes the generic information. In the example given, sub-01 has a slightly different FrameTimesStart and FrameDuration at frame 15 (because say he/she ran to the toilet for 10 min). Only this subject has the information encoded in the _subjects_metadata_ file, overwritting the FrameTimesStart and FrameDuration specified in _scanner_metadata_. Similarly, maybe some metadata are available only for some subjects (here DecayCorrectionFactor for sub-03) and this is also accomodated by leaving blank for other subjects.
+Note that this distinction is arbitrary, and that any valid BIDS fields can be used in any of those files. In addition, a subject specific information overwrites the generic information. In the example given, sub-01 has a slightly different FrameTimesStart and FrameDuration at frame 15 (because say he/she ran to the toilet for 10 min). Only this subject has the information encoded in the _subjects_metadata_ file, overwriting the FrameTimesStart and FrameDuration specified in _scanner_metadata_. Similarly, maybe some metadata are available only for some subjects (here DecayCorrectionFactor for sub-03) and this is also accommodated by leaving blank for other subjects.
 
 # understanding scanner_metadata.xlsx
 
