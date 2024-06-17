@@ -16,30 +16,30 @@ authors:
   - name: Adam G. Thomas
     orcid: 0000-0002-2850-1419
     affiliation: 1
-  - name: Gabriel Gonzalez-Escamilla
-    orcid: 0000-0002-7209-1736
-    affiliation: 6
+  - name: Robert B. Innis
+    orcid: 0000-0003-1238-7209
+    affiliation: 1
   - name: Claus Svarer
     orcid: 0000-0001-7811-1825
     affiliation: 2
+  - name: Gitte M. Knudsen
+    orcid: 0000-0003-1508-6866
+    affiliation: 2
+  - name: Melanie Ganz
+    orcid: 0000-0002-9120-8098
+    affiliation: "2, 3"
+  - name: Gabriel Gonzalez-Escamilla
+    orcid: 0000-0002-7209-1736
+    affiliation: 5 
+  - name: Cyrus Eierud
+    orcid: 0000-0002-9942-676X
+    affiliation: 6
   - name: Chris Rorden
     orcid: 0000-0002-7554-6142
     affiliation: 7
   - name: Granville J. Matheson
     orcid: 0000-0002-5646-4547
     affiliation: "8, 9"
-  - name: Gitte M. Knudsen
-    orcid: 0000-0003-1508-6866
-    affiliation: 2
-  - name: Robert B. Innis
-    orcid: 0000-0003-1238-7209
-    affiliation: 1
-  - name: Melanie Ganz
-    orcid: 0000-0002-9120-8098
-    affiliation: "2, 3"
-  - name: Cyrus Eierud
-    orcid: 0000-0002-9942-676X
-    affiliation: 5
   - name: Murat Bilgel
     orcid: 0000-0001-5042-7422
     affiliation: 10
@@ -55,9 +55,9 @@ affiliations:
     index: 3
   - name: Department of Psychology, Stanford University, CA, USA
     index: 4
-  - name: TReNDS Center, Georgia State University, Atlanta, GA, USA
-    index: 5
   - name: University Medical Center of the Johannes Gutenberg University Mainz, Mainz, Germany
+    index: 5
+  - name: TReNDS Center, Georgia State University, Atlanta, GA, USA
     index: 6
   - name: Department of Psychology, University of South Carolina, Columbia, SC, USA
     index: 7
@@ -67,7 +67,7 @@ affiliations:
     index: 9
   - name: National Institute on Aging Intramural Research Program, Baltimore, MD, USA
     index: 10
-date: 22 August 2023
+date: 17 August 2024
 bibliography: paper.bib
 
 ---
