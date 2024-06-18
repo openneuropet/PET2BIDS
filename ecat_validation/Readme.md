@@ -82,7 +82,7 @@ write_ecat(ecat_file=int_golden_ecat_path,
 ### Results
 
 The  validation ecat2nii_test.m then read the .v, convert to .nii, and reread the .nii. It then compares the reread values to
-expected ones (from the .mat). Ideally we would have the same values but (1) we have different dymamic range 
+expected ones (from the .mat). Ideally we would have the same values but (1) we have different dynamic range 
 (here only 1 out of 16bits ~0.0003) because ecat2nii rescale your data to 16bits and (2) precisions around 0 differs as 
 well, some small changes are expected. This can be seen in the figure below. Reread vs Original show a 
 perfect correlation, but with an average difference of -0.000001 with min -05 and max 0.5 
@@ -97,7 +97,7 @@ The ecat file ECAT7_multiframe.v was converted here as a test, with ecat2nii.m a
 
 ```matlab
 file          = fullfile(pwd,'ECAT7_multiframe.v.gz'); % edit with the right path
-meta.TimeZero = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
+meta.TimeZero = datestr(now,'hh:mm:ss'); % that metadata cannot be skipped
 ecat2nii(file,meta)
 ```
 

@@ -363,7 +363,7 @@ class Convert:
         """
         Writes out blood and modified `*_pet.json` file at destination path
 
-        :param manual_path: user supplied path to write out jsons to, if None writes the json to the ouput directory supplied to Convert class object destination_path.
+        :param manual_path: user supplied path to write out jsons to, if None writes the json to the output directory supplied to Convert class object destination_path.
 
         :return: The name of the json file written to.
 

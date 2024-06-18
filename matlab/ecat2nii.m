@@ -43,7 +43,7 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %% defaults
 % ---------
 
-warning on % set to off to ignore our usefull warnings
+warning on % set to off to ignore our useful warnings
 sifout  = false; % 0/1 to indicate if sif file are also created
 gz      = true;  % compress nifti
 savemat = false; % save ecat data as .mat
@@ -162,7 +162,7 @@ for j=1:length(FileListIn)
         end
         Nframes  = mh.num_frames;
         
-        % Create data reading 1 frame at a time - APLYING THE SCALE FACTOR
+        % Create data reading 1 frame at a time - APPLYING THE SCALE FACTOR
         img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
         for i=Nframes:-1:1
             fprintf('Working at frame: %i\n',i);
@@ -494,7 +494,7 @@ for j=1:length(FileListIn)
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
     end
     
-    if exist('newfile','var') % i.e. decompresed .nii.gz
+    if exist('newfile','var') % i.e. decompressed .nii.gz
         delete(newfile{1});
     end
 end

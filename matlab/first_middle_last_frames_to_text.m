@@ -1,6 +1,6 @@
 function [output_folder, step_name] = first_middle_last_frames_to_text(four_d_array_like_object,output_folder, step_name)
 %takes a times series of 3d images and writes out sub sections of that time
-%series as  2D frames. Frames are labled as zero indexed to aligne with
+%series as  2D frames. Frames are labeled as zero indexed to align with
 %python conventions. Up to 3 frames are selected from the time series
 %corresponding to the first, middle, and last frames.
 %   four_d_array_like_object: input time series

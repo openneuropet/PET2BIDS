@@ -9,7 +9,7 @@ function convert_pmod_to_blood(varargin)
 % PMOD (https://www.pmod.com/web/) PKIN software works with two or three files
 % https://www.pmod.com/files/download/v31/doc/pkin/2235.htm
 % WholebloodActivity: overall blood activity
-%      = tracer in the red blood cells and tracer metabolites, moslty in the plasma.
+%      = tracer in the red blood cells and tracer metabolites, mostly in the plasma.
 % Plasma: overall plasma activity (tracer and metabolites)
 % ParentFraction: free unchanged tracer from plasma (ie 'after' interacting
 %                 with tissue) relative to total blood - this is the input to the brain
@@ -95,12 +95,12 @@ if nargin == 0
         'blood sampling', ...
         'manual', 'autosampler', 'both', 'manual');
     if isempty(type)
-        warning('selection aborded - exiting'); return
+        warning('selection aborted - exiting'); return
     end
     
     outputname = inputdlg('please input the base name for the files to save');
     if isempty(outputname)
-        warning('name aborded - exiting'); return
+        warning('name aborted - exiting'); return
     else
         outputname = fullfile(pathnames,cell2mat(outputname));
     end
@@ -152,7 +152,7 @@ end
 for i=length(filein):-1:1
     if any(contains(datain{i}.Properties.VariableNames,'value','IgnoreCase',true))
         [~,name] = fileparts(filein{i});
-        warning('no variable name in %s, infering from file name',name)
+        warning('no variable name in %s, inferring from file name',name)
         if any(contains(name,'Fraction','IgnoreCase',true))
             ParentFraction = datain{i};
         elseif any(contains(name,'Whole','IgnoreCase',true)) && ...

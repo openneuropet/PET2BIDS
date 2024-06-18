@@ -56,7 +56,7 @@ def cli():
     :type --nifti: path
     :param --subheader: display just the subheaders to the stdout
     :type --subheader: flag
-    :param --sidecar: output a bids formatted sidecar with the nifti, defalts to True
+    :param --sidecar: output a bids formatted sidecar with the nifti, defaults to True
     :type --sidecar: flag
     :param --kwargs: include additional key/pair arguments to append to a sidecar file post conversion to nifti
     :type --kwargs: strings, nargs

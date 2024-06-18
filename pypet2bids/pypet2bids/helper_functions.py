@@ -398,7 +398,7 @@ def open_meta_data(
     file's extension.
     :param metadata_path: Path or pathlike object/string to a spreadsheet file
     :type metadata_path: Path or str
-    :param separator: Optional seperator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
+    :param separator: Optional separator argument, used to try and parse tricky spreadsheets. e.g. ',' '\t', ' '
     :type separator: str
     :return: a pandas dataframe representation of the spreadsheet/metadatafile
     """
@@ -412,7 +412,7 @@ def open_meta_data(
     else:
         raise FileExistsError(metadata_path)
 
-    # collect suffix from metadata and use the approriate pandas method to read the data
+    # collect suffix from metadata and use the appropriate pandas method to read the data
     extension = metadata_path.suffix
 
     methods = {"excel": read_excel, "csv": read_csv, "tsv": read_csv, "txt": read_csv}
@@ -555,7 +555,7 @@ def collect_bids_part(bids_part: str, path_like: Union[str, pathlib.Path]) -> st
     :param bids_part: the bids part to find in the path e.g. subject id, session id, recording, etc etc
     :type bids_part: string
     :param path_like: a pathlike input, this is strictly for parsing file paths or file like strings
-    :type path_like: string or pathlib.Path object, we don't descriminate
+    :type path_like: string or pathlib.Path object, we don't discriminate
     :return: the collected bids part
     :rtype: string
     """
@@ -612,7 +612,7 @@ def get_coordinates_containing(
     single=False,
 ) -> typing.Union[list, tuple]:
     """
-    Collects the co-ordinates (row and column) containing an input value, that value could be a string, integer, or
+    Collects the coordinates (row and column) containing an input value, that value could be a string, integer, or
     float. When searching for integers or floats it is most likely best to use set the exact argument to True; the same
     goes for finding the exact match of a string. This method is primarily meant to find the row corresponding to a
     subject ID, e.g.
@@ -624,7 +624,7 @@ def get_coordinates_containing(
     sub-NDAR2     3              3
 
     And you provided the arguments: `containing='sub-NDAR', exact=False` you would return a set of the following
-    co-ordinates
+    coordinates
 
     [(0, 'subject_id'), (1, 'subject_id')]
 
@@ -644,10 +644,10 @@ def get_coordinates_containing(
     :param exact: Boolean proscribing an exact match to containing; default is to locate a string or value that holds
         the input containing
     :type exact: bool
-    :param single: return only the first co-ordinate, use only if the string/contains your searching for is unique and
+    :param single: return only the first coordinate, use only if the string/contains your searching for is unique and
         you have high confidence in your data
     :type single: bool
-    :return: A co-ordinate in the form of (row, column) or a list containing a set of co-ordinates [(row, column), ...]
+    :return: A coordinate in the form of (row, column) or a list containing a set of coordinates [(row, column), ...]
     :rtype: tuple or list of tuples
 
     """
@@ -725,8 +725,6 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
     contents = ReconstructionMethodString.replace(" ", "")
     subsets = None
     iterations = None
-    ReconMethodParameterUnits = ["none", "none"]
-    ReconMethodParameterLabels = ["subsets", "iterations"]
 
     # determine order of recon iterations and subsets, this is not  a surefire way to determine this...
     iter_sub_combos = {
@@ -836,11 +834,20 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
         ReconMethodName = dimension + " " * len(dimension) + expanded_name.rstrip()
         ReconMethodName = " ".join(ReconMethodName.split())
 
+    if ReconMethodName in ["Filtered Back Projection", "3D Reprojection"]:
+        ReconMethodParameterLabels = []
+        ReconMethodParameterUnits = []
+        ReconMethodParameterValues = []
+    else:  # assume it is OSEM or a variant
+        ReconMethodParameterLabels = ["subsets", "iterations"]
+        ReconMethodParameterUnits = ["none", "none"]
+        ReconMethodParameterValues = [subsets, iterations]
+
     reconstruction_dict = {
         "ReconMethodName": ReconMethodName,
         "ReconMethodParameterUnits": ReconMethodParameterUnits,
         "ReconMethodParameterLabels": ReconMethodParameterLabels,
-        "ReconMethodParameterValues": [subsets, iterations],
+        "ReconMethodParameterValues": ReconMethodParameterValues,
     }
 
     if None in reconstruction_dict["ReconMethodParameterValues"]:
@@ -952,11 +959,11 @@ def ad_hoc_checks(
     if items_that_should_be_checked is None:
         items_that_should_be_checked = {}
     hardcoded_items = {
-        "InjectedRadioactivityUnits": "MBq",
-        "SpecificRadioactivityUnits": ["Bq/g", "MBq/ug"],
-        "InjectedMassUnits": "ug",
-        "MolarActivityUnits": "GBq/umolug",
-        "MolecularWeightUnits": "g/mol",
+        'InjectedRadioactivityUnits': ['MBq', 'mCi'],
+        'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
+        'InjectedMassUnits': 'ug',
+        'MolarActivityUnits': 'GBq/umolug',
+        'MolecularWeightUnits': 'g/mol'
     }
 
     # if none are

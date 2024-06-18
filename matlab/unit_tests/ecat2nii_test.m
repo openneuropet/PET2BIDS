@@ -1,11 +1,11 @@
 function ecat2nii_test(varargin)
 
-% simple routine testing if the nifti file is writen out like the ecat data
+% simple routine testing if the nifti file is written out like the ecat data
 % FORMAT: ecat2nii_test(ecatfile)
 % INPUT:  ecatfile is the fullfile name ([] for using test file)
-% OUTPUT: a figure imdicating the correspondance and errors in writing as nifti
+% OUTPUT: a figure imdicating the correspondence and errors in writing as nifti
 %         (if INPUT is [], the synthetic example is used and compared to
-%         the known values in the coresponding txt file -- see
+%         the known values in the corresponding txt file -- see
 %         /ecat_validation)
 %
 % USAGE
@@ -32,7 +32,7 @@ cd(fileparts(ecatfile))
 if exist('groundtruth','var')
     ecat2nii(ecatfile,{meta},'gz',false)
     img                 = load(groundtruth);
-    meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannnot be skipped
+    meta.TimeZero       = datestr(now,'hh:mm:ss'); % that metadata cannot be skipped
     niftiout            = ecat2nii(ecatfile,meta);
     img_reread          = nii_tool('img', niftiout{1});
     delete(niftiout{1}); delete([niftiout{1}(1:end-6) 'json']);

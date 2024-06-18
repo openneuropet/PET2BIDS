@@ -206,7 +206,7 @@ def cli():
         "--general-spreadsheet",
         "-g",
         type=pathlib.Path,
-        help="Path to a spreadsheet with data applicable to mulitiple subjects",
+        help="Path to a spreadsheet with data applicable to multiple subjects",
     )
     parser.add_argument(
         "--many-subjects-spreadsheet",

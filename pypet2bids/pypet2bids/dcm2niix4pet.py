@@ -86,14 +86,14 @@ else:
         "DEFAULT_METADATA_JSON", module_folder / "template_json.json"
     )
     # set the default metadata json to the template json included in this library in our environment so
-    # we don't trip up retrival of the default metadata json later
+    # we don't trip up retrieval of the default metadata json later
     environ["DEFAULT_METADATA_JSON"] = str(module_folder / "template_json.json")
     default_metadata_json = module_folder / "template_json.json"
 
 
 def dicom_datetime_to_dcm2niix_time(dicom=None, date="", time=""):
     """
-    Dcm2niix provides the option of outputing the scan data and time into the .nii and .json filename at the time of
+    Dcm2niix provides the option of outputting the scan data and time into the .nii and .json filename at the time of
     conversion if '%t' is provided following the '-f' flag. The result is the addition of a date time string of the
     format. This function similarly generates the same datetime string from a dicom header.
 
@@ -138,7 +138,7 @@ def collect_date_time_from_file_name(file_name):
     Collects the date and time from a nifti or a json produced by dcm2niix when dcm2niix is run with the options
     %p_%i_%t_%s. This datetime us used to match a dicom header object to the resultant file. E.G. if there are missing
     BIDS fields in the json produced by dcm2niix it's hopeful that the dicom header may contain the missing info.
-    :param file_name: name of the file to extract the date time info from, this should be a json ouput file from
+    :param file_name: name of the file to extract the date time info from, this should be a json output file from
     dcm2niix
     :return: a date and time object
     """

@@ -3,7 +3,7 @@ This program will create an ecat file if provided an ecat schema and a dictionar
 with.
 
 First this program collects the same schemas that read_ecat.py does, from read_ecat import ecat_header_maps.
-Next this program selects one of the header maps as speficified by some input e.g. if given: ecat7.3 it would 
+Next this program selects one of the header maps as specified by some input e.g. if given: ecat7.3 it would 
 select the standard image matrix at: ecat_header_maps['ecat_headers']['73']['mainheader'] 
 and the subheader map at: ecat_header_maps['ecat_headers']['73']['11'] or whatever number is corresponding to 
 the type of ecat header you wish to write. Perhaps these should belong in a reverse sort of dictionary going to
@@ -269,7 +269,7 @@ def write_ecat(
             },
             pixel_byte_size=pixel_byte_size,
         )
-        # write the directory tabel to the file
+        # write the directory table to the file
         write_directory_table(file=outfile, directory_tables=directory_table)
 
         position_post_table_write = outfile.tell()

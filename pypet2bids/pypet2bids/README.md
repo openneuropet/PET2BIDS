@@ -166,7 +166,7 @@ optional arguments:
   --nifti file_name, -n file_name
                         Name of nifti output file
   --subheader, -s       Display subheaders
-  --sidecar             Output a bids formatted sidecar for pairing witha nifti.
+  --sidecar             Output a bids formatted sidecar for pairing with a nifti.
   --kwargs [KWARGS ...], -k [KWARGS ...]
                         Include additional values int the nifti sidecar json or
                         override values extracted from the supplied nifti. e.g.
@@ -204,7 +204,7 @@ Scannerparam files are configured as simply as environment variables, that is to
 ```bash
 # Number signs can be used for comments
 # String variables such as institution name are entered after the equals sign
-InstitutionName='Your Prestigous Institution'
+InstitutionName='Your Prestigious Institution'
 # a list of strings would be entered as a bracketed list of comma separated quoted strings
 ReconMethodParameterUnits=['None','None', 'keV', 'keV']
 # A list of real numbers

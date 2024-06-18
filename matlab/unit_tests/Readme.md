@@ -1,6 +1,6 @@
 # Convert ecat file to nii+json
 
-Siemens ecat (.v) files version 7+ can be converted to nifti (.nii) and accompagning json (.json) file in a [BIDS](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html) compliant fashion.
+Siemens ecat (.v) files version 7+ can be converted to nifti (.nii) and accompanying json (.json) file in a [BIDS](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html) compliant fashion.
 
 ### nifti
 

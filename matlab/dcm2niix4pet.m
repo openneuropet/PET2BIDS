@@ -43,7 +43,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %.. note::
 %
 %   See also get_pet_metadata.m to generate the metadata structure
-%            updatejsonpetfile to see how the json file gets updated and checked agains DICOM tags
+%            updatejsonpetfile to see how the json file gets updated and checked against DICOM tags
 %
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
@@ -159,7 +159,7 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'d')
         d = varargin{var+1};
         if ~num(d)
-            error('invalid compression experession, not a numeric');
+            error('invalid compression expression, not a numeric');
         elseif d>9
             error('invalid compression value, must be between 0 and 9');
         end
@@ -266,7 +266,7 @@ for folder = 1:size(FolderList,1)
         delete(fullfile(outputdir{folder},'*dcm'))
     end
     
-    % rename if BIDS folfer sub-
+    % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
         if strcmpi(z,'y')
             data  = dir(fullfile(outputdir{folder},'*.nii.gz'));
