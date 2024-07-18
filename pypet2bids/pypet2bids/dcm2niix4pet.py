@@ -42,6 +42,7 @@ try:
         metadata_dictionaries,
         get_metadata_from_spreadsheet,
     )
+    from telemetry import send_telemetry, count_input_files, enable_disable_telemetry, count_output_files
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
@@ -54,6 +55,7 @@ except ModuleNotFoundError:
         metadata_dictionaries,
         get_metadata_from_spreadsheet,
     )
+    from pypet2bids.telemetry import send_telemetry, count_input_files, enable_disable_telemetry, count_output_files
 
 logger = helper_functions.logger("pypet2bids")
 
@@ -319,6 +321,7 @@ class Dcm2niix4PET:
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
         elif metadata_path and not metadata_translation_script or metadata_path == "":
+            self.metadata_path = Path(metadata_path)
             if not self.spreadsheet_metadata.get("nifti_json", None):
                 self.spreadsheet_metadata["nifti_json"] = {}
 
@@ -833,8 +836,37 @@ class Dcm2niix4PET:
                 json.dump(blood_json_data, outfile, indent=4)
 
     def convert(self):
+        # check the size of out the output folder
+        before_output_files = {}
+        if self.destination_path.exists():
+            before_output_files = count_output_files(self.destination_path)
         self.run_dcm2niix()
         self.post_dcm2niix()
+
+        # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
+        if enable_disable_telemetry:
+            # count the number of files
+            data_out = count_input_files(self.image_folder)
+            # record if a blood tsv and json file were created
+            if self.spreadsheet_metadata.get("blood_tsv", {}):
+                data_out["blood_tsv"] = True
+            if self.spreadsheet_metadata.get("blood_json", {}):
+                data_out["blood_json"] = True
+            # record if a metadata spreadsheet was used
+            if self.metadata_path == "" or self.metadata_path is not None:
+                data_out["metadata_spreadsheet_used"] = True
+
+            # count the output files
+            after_output_files = count_output_files(self.destination_path)
+
+            if before_output_files != {}:
+                for key, value in after_output_files.items():
+                    data_out[key] = abs(after_output_files[key] - before_output_files[key])
+
+            send_telemetry(data_out)
+
+
+
 
     def match_dicom_header_to_file(self, destination_path=None):
         """
