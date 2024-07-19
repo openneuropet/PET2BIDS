@@ -53,14 +53,9 @@ def count_input_files(input_file_path: Union[str, pathlib.Path]):
             if file.is_file():
                 total_files += 1
                 total_files_size += file.stat().st_size
-                if file.suffix == ".dcm" or file.suffix == ".ima" or file.suffix == ".img" or file.suffix == "":
-                    num_dicom_files += 1
-                    dicom_files_size += file.stat().st_size
     return {
         "TotalInputFiles": total_files,
         "TotalInputFilesSize": total_files_size,
-        "DicomFiles": num_dicom_files,
-        "DicomFilesSize": dicom_files_size
     }
 
 
@@ -79,13 +74,13 @@ def count_output_files(output_file_path: Union[str, pathlib.Path]):
         nifti_files_size = 0
         total_files = 0
         total_files_size = 0
-        for file in all_files:
-            if file.is_file():
+        for f in all_files:
+            if f.is_file():
                 total_files += 1
-                total_files_size += file.stat().st_size
-                if file.suffix == ".nii" or file.suffix == ".nii.gz":
+                total_files_size += f.stat().st_size
+                if str(f).endswith('.nii') or str(f).endswith('.nii.gz'):
                     num_nifti_files += 1
-                    nifti_files_size += file.stat().st_size
+                    nifti_files_size += f.stat().st_size
     return {
         "TotalOutputFiles": total_files,
         "TotalOutputFilesSize": total_files_size,

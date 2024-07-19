@@ -204,7 +204,7 @@ class Dcm2niix4PET:
         # check to see if dcm2niix is installed
         self.blood_json = None
         self.blood_tsv = None
-
+        self.telemetry_data = {}
         self.dcm2niix_path = self.check_for_dcm2niix()
         if not self.dcm2niix_path:
             logger.error(
@@ -455,10 +455,15 @@ class Dcm2niix4PET:
             file_format_args = ""
         with TemporaryDirectory(dir=self.tempdir_location) as tempdir:
             tempdir_pathlike = Path(tempdir)
+            self.tempdir_location = tempdir_pathlike
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
             cmd = f"{self.dcm2niix_path} -b y -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
+            self.telemetry_data['dcm2niix'] = {
+                "returncode": convert.returncode,
+            }
+            self.telemetry_data.update(count_output_files(self.tempdir_location))
 
             if convert.returncode != 0:
                 print(
@@ -838,32 +843,24 @@ class Dcm2niix4PET:
     def convert(self):
         # check the size of out the output folder
         before_output_files = {}
-        if self.destination_path.exists():
-            before_output_files = count_output_files(self.destination_path)
         self.run_dcm2niix()
         self.post_dcm2niix()
 
         # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
         if enable_disable_telemetry:
             # count the number of files
-            data_out = count_input_files(self.image_folder)
+            self.telemetry_data.update(count_input_files(self.image_folder))
             # record if a blood tsv and json file were created
             if self.spreadsheet_metadata.get("blood_tsv", {}):
-                data_out["blood_tsv"] = True
+                self.telemetry_data["blood_tsv"] = True
             if self.spreadsheet_metadata.get("blood_json", {}):
-                data_out["blood_json"] = True
+                self.telemetry_data["blood_json"] = True
             # record if a metadata spreadsheet was used
             if self.metadata_path == "" or self.metadata_path is not None:
-                data_out["metadata_spreadsheet_used"] = True
+                self.telemetry_data["metadata_spreadsheet_used"] = True
 
-            # count the output files
-            after_output_files = count_output_files(self.destination_path)
 
-            if before_output_files != {}:
-                for key, value in after_output_files.items():
-                    data_out[key] = abs(after_output_files[key] - before_output_files[key])
-
-            send_telemetry(data_out)
+            send_telemetry(self.telemetry_data)
 
 
 
