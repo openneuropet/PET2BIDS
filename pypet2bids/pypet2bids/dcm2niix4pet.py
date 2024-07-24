@@ -42,7 +42,12 @@ try:
         metadata_dictionaries,
         get_metadata_from_spreadsheet,
     )
-    from telemetry import send_telemetry, count_input_files, enable_disable_telemetry, count_output_files
+    from telemetry import (
+        send_telemetry,
+        count_input_files,
+        telemetry_enabled,
+        count_output_files,
+    )
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
@@ -55,7 +60,12 @@ except ModuleNotFoundError:
         metadata_dictionaries,
         get_metadata_from_spreadsheet,
     )
-    from pypet2bids.telemetry import send_telemetry, count_input_files, enable_disable_telemetry, count_output_files
+    from pypet2bids.telemetry import (
+        send_telemetry,
+        count_input_files,
+        telemetry_enabled,
+        count_output_files,
+    )
 
 logger = helper_functions.logger("pypet2bids")
 
@@ -460,7 +470,7 @@ class Dcm2niix4PET:
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
             cmd = f"{self.dcm2niix_path} -b y -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
-            self.telemetry_data['dcm2niix'] = {
+            self.telemetry_data["dcm2niix"] = {
                 "returncode": convert.returncode,
             }
             self.telemetry_data.update(count_output_files(self.tempdir_location))
@@ -847,23 +857,23 @@ class Dcm2niix4PET:
         self.post_dcm2niix()
 
         # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
-        if enable_disable_telemetry:
+        if telemetry_enabled:
             # count the number of files
             self.telemetry_data.update(count_input_files(self.image_folder))
             # record if a blood tsv and json file were created
-            if self.spreadsheet_metadata.get("blood_tsv", {}):
+            if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
                 self.telemetry_data["blood_tsv"] = True
-            if self.spreadsheet_metadata.get("blood_json", {}):
-                self.telemetry_data["blood_json"] = True
+            else:
+                self.telemetry_data["blood_tsv"] = False
             # record if a metadata spreadsheet was used
-            if self.metadata_path == "" or self.metadata_path is not None:
+            if helper_functions.collect_spreadsheets(self.metadata_path):
                 self.telemetry_data["metadata_spreadsheet_used"] = True
+            else:
+                self.telemetry_data["metadata_spreadsheet_used"] = False
 
+            self.telemetry_data["InputType"] = "DICOM"
 
             send_telemetry(self.telemetry_data)
-
-
-
 
     def match_dicom_header_to_file(self, destination_path=None):
         """

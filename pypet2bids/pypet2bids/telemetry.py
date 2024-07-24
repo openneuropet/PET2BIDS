@@ -1,6 +1,7 @@
 import requests
 import os
 import pathlib
+import subprocess
 from dotenv import load_dotenv
 from typing import Union
 
@@ -9,7 +10,7 @@ from typing import Union
 from pypet2bids.helper_functions import get_version
 
 
-def enable_disable_telemetry(config_path=None):
+def telemetry_enabled(config_path=None):
     # load dcm2niix file
     if not config_path:
         config_file = pathlib.Path.home() / ".pet2bidsconfig"
@@ -20,16 +21,25 @@ def enable_disable_telemetry(config_path=None):
         load_dotenv(dotenv_path=config_file)
 
     # check to see if telemetry is disabled
-    if os.getenv("PET2BIDS_TELEMETRY_ENABLED") == "False".upper():
+    if os.getenv("PET2BIDS_TELEMETRY_ENABLED", "").lower() == "false":
         return False
     else:
         return True
 
 
 def send_telemetry(json_data: dict, url: str = "http://52.87.154.236/telemetry/"):
-    if enable_disable_telemetry():
+    if telemetry_enabled():
         # update data with version of pet2bids
-        json_data['pypet2bids_version'] = get_version()
+        json_data["pypet2bids_version"] = get_version()
+        # check if it's one of the dev's running this
+        running_from_cloned_repository = subprocess.run(
+            ["git", "status"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        if running_from_cloned_repository.returncode == 0:
+            json_data["running_from_cloned_repository"] = True
+
+        json_data["description"] = "pet2bids_python_telemetry"
+
         # Send a POST request to the telemetry server
         requests.post(url, json=json_data)
     else:
@@ -78,12 +88,12 @@ def count_output_files(output_file_path: Union[str, pathlib.Path]):
             if f.is_file():
                 total_files += 1
                 total_files_size += f.stat().st_size
-                if str(f).endswith('.nii') or str(f).endswith('.nii.gz'):
+                if str(f).endswith(".nii") or str(f).endswith(".nii.gz"):
                     num_nifti_files += 1
                     nifti_files_size += f.stat().st_size
     return {
         "TotalOutputFiles": total_files,
         "TotalOutputFilesSize": total_files_size,
         "NiftiFiles": num_nifti_files,
-        "NiftiFilesSize": nifti_files_size
+        "NiftiFilesSize": nifti_files_size,
     }

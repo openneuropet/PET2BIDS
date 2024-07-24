@@ -959,11 +959,11 @@ def ad_hoc_checks(
     if items_that_should_be_checked is None:
         items_that_should_be_checked = {}
     hardcoded_items = {
-        'InjectedRadioactivityUnits': ['MBq', 'mCi'],
-        'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
-        'InjectedMassUnits': 'ug',
-        'MolarActivityUnits': 'GBq/umolug',
-        'MolecularWeightUnits': 'g/mol'
+        "InjectedRadioactivityUnits": ["MBq", "mCi"],
+        "SpecificRadioactivityUnits": ["Bq/g", "MBq/ug"],
+        "InjectedMassUnits": "ug",
+        "MolarActivityUnits": "GBq/umolug",
+        "MolecularWeightUnits": "g/mol",
     }
 
     # if none are
