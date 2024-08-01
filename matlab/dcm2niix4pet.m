@@ -50,11 +50,11 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
+    error('for windows machine please edit the function line 51 and indicate the dcm2niix path')
 end
 
 if ~ispc % overwrite if not windowns (as it should be in the computer path)
-    dcm2niixpath = 'dcm2niix';
+    dcm2niixpath = '/usr/local/bin/dcm2niix';
 end
 
 % we rely on more recent version of dcm2niix, certain pet fields are unavailable in the sidecar jsons for versions
@@ -62,9 +62,19 @@ end
 
 minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
-version_cmd = ['dcm2niix', ' -v'];
+%version_cmd = ['dcm2niix', ' -v']; % TODO fix this as it's not detecting dcm2niix running matlab on osx as of matlab v2023b.
+version_cmd = ['/usr/local/bin/dcm2niix', ' -v'];
+
 [status, version_output_string] = system(version_cmd);
-version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
+version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match'); % TODO this returns an array with two of the same versions
+
+% initalize telemetry data fror later uploading
+telemetry_data = {};
+dcm2niix_data = {};
+dcm2niix_data.version = version;
+dcm2niix_data.returncode = 0;
+telemetry_data.dcm2niix = dcm2niix_data;
+telemetry_data.description = "Matlab_dcm2niix4pet.m"
 
 if length(version) >= 1
     version_date = version{1}(6:end);
@@ -249,10 +259,16 @@ for folder = 1:size(FolderList,1)
     end
     
     out = system(command);
+    telemetry_data.dcm2niix.returncode = out;
+    % we still want to send telemetry even if this fails
     if out ~= 0
+        telemetry_data.returncode = 1;
+        telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
+        
     end
-   
+
+
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(
@@ -318,4 +334,9 @@ for folder = 1:size(FolderList,1)
         jsonfilename = newmetadata;
     end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
+
+    % if this all goes well update the telemetry data and send it with a positive return code of 0
+    telemetry_data.returncode = 0;
+    telemetry(telemetry_data, FolderList{folder})
+
 end

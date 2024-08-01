@@ -873,6 +873,8 @@ class Dcm2niix4PET:
 
             self.telemetry_data["InputType"] = "DICOM"
 
+            self.telemetry_data["returncode"] = 0
+
             send_telemetry(self.telemetry_data)
 
     def match_dicom_header_to_file(self, destination_path=None):
