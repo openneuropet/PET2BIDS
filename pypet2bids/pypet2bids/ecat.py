@@ -173,7 +173,7 @@ class Ecat:
         else:
             self.nifti_file = nifti_file
 
-        self.telemetry_data["InputType"] = "ECAT" + str(self.ecat_header["SV_VERSION"])
+        self.telemetry_data["InputType"] = "ECAT" + str(self.ecat_header["SW_VERSION"])
         self.telemetry_data["TotalInputFiles"] = 1
         self.telemetry_data["TotalInputFilesSize"] = (
             pathlib.Path(self.ecat_file).stat().st_size
