@@ -15,6 +15,7 @@ Some of the modules in this library that depend on this module are:
 | *Copyright OpenNeuroPET team*
 """
 
+
 import os
 import gzip
 import re
@@ -285,7 +286,7 @@ def decompress(file_like_object, output_path: str = None):
     return output_path
 
 
-def load_vars_from_config(path_to_config: str):
+def load_vars_from_config(path_to_config: str=pathlib.Path.home() / ".pet2bidsconfig"):
     """
     Loads values from a .env file given a path to said .env file.
 
