@@ -174,7 +174,7 @@ def cli():
         help="Update/create a json sidecar file from an ECAT given a path to that each "
         "file,. e.g."
         "ecatpet2bids ecatfile.v --update path/to/sidecar.json "
-        "additionally one can pass metadat to the sidecar via inclusion of the "
+        "additionally one can pass metadata to the sidecar via inclusion of the "
         "--kwargs flag or"
         "the --metadata-path flag. If both are included the --kwargs flag will "
         "override any"
@@ -201,7 +201,7 @@ Usage examples are below, the first being the most brutish way of injecting BIDS
 into the output from ecatpet2bids. Additional arguments/fields are passed via the kwargs flag
 in key value pairs.
 
-example 1 (Passing PET metadat via the --kwargs argument):
+example 1 (Passing PET metadata via the --kwargs argument):
     
     # Note `#` denotes a comment
     

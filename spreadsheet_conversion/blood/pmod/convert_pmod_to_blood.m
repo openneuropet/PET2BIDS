@@ -79,7 +79,7 @@ end
 
 %% deal with input file
 if nargin == 0
-    [filenames, pathnames] = uigetfile({'*.bld','speadsheet';'*.txt','text'}, 'Pick the pmod files (N=2 or 3)', 'multiselect','on');
+    [filenames, pathnames] = uigetfile({'*.bld','spreadsheet';'*.txt','text'}, 'Pick the pmod files (N=2 or 3)', 'multiselect','on');
     if isequal(filenames, 0) || isequal(pathnames, 0)
         disp('Selection cancelled');
         return
