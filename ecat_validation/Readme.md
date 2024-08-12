@@ -116,4 +116,4 @@ pip install pypet2bids
 ecatpet2bids ECAT7_multiframe.v.gz --convert
 ```
 
-This illustrates [what metadata are extracted from the ecat file](https://github.com/openneuropet/PET2BIDS/blob/main/ecat_validation/ECAT7_multiframe.json) - which does not comform with BIDS because radiochemistry and pharmaceutical metadata are missing.
+This illustrates [what metadata are extracted from the ecat file](https://github.com/openneuropet/PET2BIDS/blob/main/ecat_validation/ECAT7_multiframe.json) - which does not conform with BIDS because radiochemistry and pharmaceutical metadata are missing.
