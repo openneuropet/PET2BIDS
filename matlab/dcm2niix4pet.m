@@ -28,7 +28,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *p*          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
 %   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 %
 % .. code-block::
@@ -91,7 +91,7 @@ m          = '2';    % merge 2D slices from same series regardless of echo, expo
 p          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
 v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 z          = 'y';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 
 %% check dcm2nii inputs
