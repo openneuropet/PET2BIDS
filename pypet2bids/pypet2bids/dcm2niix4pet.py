@@ -1109,7 +1109,14 @@ def cli():
         action="version",
         version=f"{helper_functions.get_version()}",
     )
-
+    parser.add_argument(
+        "--notrack",
+        action="store_true",
+        default=False,
+        help="Opt-out of sending tracking information of this run to the PET2BIDS developers. "
+             "This information helps to improve PET2BIDS and provides an indicator of real world "
+             "usage crucial for obtaining funding."
+    )
     return parser
 
 
@@ -1261,6 +1268,8 @@ def main():
             "DEFAULT_METADATA_JSON", cli_args.set_default_metadata_json
         )
         sys.exit(0)
+    if cli_args.notrack:
+        environ["PET2BIDS_TRACK"] = "False"
 
     elif cli_args.folder:
         # instantiate class

@@ -13,11 +13,24 @@ try:
     from helper_functions import get_version, load_vars_from_config, modify_config_file
 except ModuleNotFoundError:
     # collect pet2bids version
-    from pypet2bids.helper_functions import get_version, load_vars_from_config, modify_config_file
+    from pypet2bids.helper_functions import (
+        get_version,
+        load_vars_from_config,
+        modify_config_file,
+    )
 
 pet2bids_config = load_vars_from_config()
-telemetry_default_url = pet2bids_config.get("TELEMETRY_URL", "http://52.87.154.236/telemetry/")
+telemetry_default_url = pet2bids_config.get(
+    "TELEMETRY_URL", "http://52.87.154.236/telemetry/"
+)
+# check environment variables as well as the config file
+telemetry_enabled_env = os.getenv("PET2BIDS_TELEMETRY_ENABLED", True)
 telemetry_enabled = pet2bids_config.get("TELEMETRY_ENABLED", True)
+
+# if telemetry is disabled in the config file or the environment variable disable its use.
+if telemetry_enabled_env is False or telemetry_enabled is False:
+    telemetry_enabled = False
+
 telemetry_notify_user = pet2bids_config.get("NOTIFY_USER_OF_TELEMETRY", False)
 
 
@@ -31,12 +44,16 @@ def ask_user_to_opt_out(timeout=10):
         The user input if provided within the timeout, otherwise None.
     """
 
-    print("Do you want to opt out of telemetry? (yes/no): ".format(timeout), end="", flush=True)
+    print(
+        "Do you want to opt out of telemetry? (yes/no): ".format(timeout),
+        end="",
+        flush=True,
+    )
     sys.stdout.flush()
 
     ready, _, _ = select.select([sys.stdin], [], [], timeout)
     if ready:
-        response = sys.stdin.readline().rstrip('\n')
+        response = sys.stdin.readline().rstrip("\n")
         if response.lower() == "yes":
             return True
     else:
@@ -177,5 +194,3 @@ def count_output_files(output_file_path: Union[str, pathlib.Path]):
         "NiftiFiles": num_nifti_files,
         "NiftiFilesSize": nifti_files_size,
     }
-
-
