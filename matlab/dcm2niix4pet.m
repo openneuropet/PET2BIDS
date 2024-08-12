@@ -1,4 +1,4 @@
-function dcm2niix4pet(FolderList,MetaList,varargin, notrack)
+function dcm2niix4pet(FolderList,MetaList,varargin)
 
 % Converts dicom image file to nifti+json calling dcm2niix augmenting the
 % json file to be BIDS compliant. Note that you are always right when it
@@ -220,6 +220,11 @@ for var=1:length(varargin)
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
+    elseif strcmpi(varargin{var},'notrack')
+        notrack = varargin{var+1};
+        if notrack; setenv('TELEMETRY_ENABLED', 'False'); end
+    else
+        error('unknown option %s',varargin{var})
     end
 
 end
@@ -237,24 +242,6 @@ if ~iscell(outputdir)
     end
 end
 
-% check to see if the user has disabled telemetry
-no_track_string = lower(string(notrack));
-if strcmp(no_track_string, 'true')
-    tracking = false;
-elseif strcmp(no_track_string, 'false')
-    tracking = true;
-else
-    try
-        numeric_notrack = str2num(no_track_string);
-        tracking = logical(numeric_notrack);
-    catch
-        % don't do anything
-    end
-end
-
-if ~tracking
-    setenv('PET2BIDS_TELEMETRY_ENABLED', 'false');
-end
 
 
 %% convert

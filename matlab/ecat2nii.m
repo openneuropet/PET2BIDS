@@ -114,6 +114,9 @@ for v=1:length(varargin)
         gz = varargin{v+1};
     elseif strcmpi(varargin{v},'savemat')
         savemat = varargin{v+1};
+    elseif strcmpi(varargin{v},'notrack')
+        notrack = varargin{v+1};
+        if notrack; setenv('TELEMETRY_ENABLED', 'False'); end
     end
 end
 
