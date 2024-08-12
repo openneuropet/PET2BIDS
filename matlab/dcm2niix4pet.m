@@ -221,8 +221,7 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
     elseif strcmpi(varargin{var},'notrack')
-        notrack = varargin{var+1};
-        if notrack; setenv('TELEMETRY_ENABLED', 'False'); end
+        setenv('TELEMETRY_ENABLED', 'False')
     else
         error('unknown option %s',varargin{var})
     end

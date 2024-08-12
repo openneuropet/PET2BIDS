@@ -31,8 +31,8 @@ function e = telemetry_enabled()
     % checks to see if the telemetry is enabled or disabled 
     environment = getenv();
     % check environment too before loading the config file
-    if isfield(environment, 'PET2BIDS_TELEMETRY_ENABLED')
-        disable_telemetry_env = strcmpi(getenv("PET2BIDS_TELEMETRY_ENABLED"), 'false');
+    if isfield(environment, 'TELEMETRY_ENABLED')
+        disable_telemetry_env = strcmpi(getenv("TELEMETRY_ENABLED"), 'false');
     else
         disable_telemetry_env = false;
     end
@@ -40,7 +40,7 @@ function e = telemetry_enabled()
     home_dir = environment("HOME");
     loadenv(fullfile(home_dir, '.pet2bidsconfig'), FileType='env');
     % convert string to boolean/logical
-    disable_telemetry = strcmpi(getenv("PET2BIDS_TELEMETRY_ENABLED"), 'false');
+    disable_telemetry = strcmpi(getenv("TELEMETRY_ENABLED"), 'false');
     
     if disable_telemetry | disable_telemetry_env
         e = false;
