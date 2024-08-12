@@ -1,4 +1,4 @@
-function dcm2niix4pet(FolderList,MetaList,varargin)
+function dcm2niix4pet(FolderList,MetaList,varargin, notrack)
 
 % Converts dicom image file to nifti+json calling dcm2niix augmenting the
 % json file to be BIDS compliant. Note that you are always right when it
@@ -12,7 +12,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 % :param FolderList: Cell array of char strings with filenames and paths
 % :param MetaList: Cell array of structures for metadata
-% :param options:
+% :param varargin:
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
 %                 IF the folder is BIDS sub-xx files are renamed automatically
@@ -30,6 +30,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+% :param notrack: boolean to Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
 %
 % .. code-block::
 %
@@ -220,6 +221,7 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
     end
+
 end
 
 if isempty(outputdir)
@@ -234,6 +236,26 @@ if ~iscell(outputdir)
         error('outputdir must be a cell array of directory names')
     end
 end
+
+% check to see if the user has disabled telemetry
+no_track_string = lower(string(notrack));
+if strcmp(no_track_string, 'true')
+    tracking = false;
+elseif strcmp(no_track_string, 'false')
+    tracking = true;
+else
+    try
+        numeric_notrack = str2num(no_track_string);
+        tracking = logical(numeric_notrack);
+    catch
+        % don't do anything
+    end
+end
+
+if ~tracking
+    setenv('PET2BIDS_TELEMETRY_ENABLED', 'false');
+end
+
 
 %% convert
 % ----------
