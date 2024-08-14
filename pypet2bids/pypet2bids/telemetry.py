@@ -34,41 +34,6 @@ if telemetry_enabled_env is False or telemetry_enabled is False:
 telemetry_notify_user = pet2bids_config.get("NOTIFY_USER_OF_TELEMETRY", False)
 
 
-def ask_user_to_opt_out(timeout=10):
-    """Waits for user input for a specified number of seconds.
-
-    Args:
-        timeout: Number of seconds to wait for input.
-
-    Returns:
-        The user input if provided within the timeout, otherwise None.
-    """
-
-    print(
-        "Do you want to opt out of telemetry? (yes/no): ".format(timeout),
-        end="",
-        flush=True,
-    )
-    sys.stdout.flush()
-
-    ready, _, _ = select.select([sys.stdin], [], [], timeout)
-    if ready:
-        response = sys.stdin.readline().rstrip("\n")
-        if response.lower() == "yes":
-            return True
-    else:
-        return False
-
-
-if telemetry_notify_user is False:
-    opt_out = ask_user_to_opt_out()
-    if opt_out:
-        # update the config file
-        modify_config_file("TELEMETRY_ENABLED", False)
-
-    modify_config_file("NOTIFY_USER_OF_TELEMETRY", True)
-
-
 def telemetry_enabled(config_path=None):
     """
     Check if telemetry is enabled, if it isn't disabled in the .pet2bidsconfig file
