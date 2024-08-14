@@ -297,7 +297,10 @@ def load_vars_from_config(
     if os.path.isfile(path_to_config):
         parameters = dotenv.main.dotenv_values(path_to_config)
     else:
-        raise FileNotFoundError(path_to_config)
+        log = logger("pypet2bids")
+        log.warning(f"Unable to locate {path_to_config}, returning empty dictionary.")
+        parameters = {}
+        #raise FileNotFoundError(path_to_config)
 
     for parameter, value in parameters.items():
         try:
