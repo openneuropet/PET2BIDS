@@ -195,8 +195,8 @@ def cli():
         action="store_true",
         default=False,
         help="Opt-out of sending tracking information of this run to the PET2BIDS developers. "
-             "This information helps to improve PET2BIDS and provides an indicator of real world "
-             "usage crucial for obtaining funding."
+        "This information helps to improve PET2BIDS and provides an indicator of real world "
+        "usage crucial for obtaining funding.",
     )
 
     return parser

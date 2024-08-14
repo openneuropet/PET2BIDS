@@ -300,7 +300,7 @@ def load_vars_from_config(
         log = logger("pypet2bids")
         log.warning(f"Unable to locate {path_to_config}, returning empty dictionary.")
         parameters = {}
-        #raise FileNotFoundError(path_to_config)
+        # raise FileNotFoundError(path_to_config)
 
     for parameter, value in parameters.items():
         try:
