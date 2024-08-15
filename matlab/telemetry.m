@@ -38,8 +38,13 @@ function e = telemetry_enabled()
     end
 
     home_dir = environment("HOME");
-    loadenv(fullfile(home_dir, '.pet2bidsconfig'), FileType='env');
-    % convert string to boolean/logical
+    try
+        loadenv(fullfile(home_dir, '.pet2bidsconfig'), FileType='env');
+        % convert string to boolean/logical
+    catch ME
+        disable_telemetry = false;
+    end
+
     disable_telemetry = strcmpi(getenv("TELEMETRY_ENABLED"), 'false');
     
     if disable_telemetry | disable_telemetry_env
