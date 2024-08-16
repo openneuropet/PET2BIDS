@@ -2,41 +2,41 @@
 
 Table taken from https://dicom.nema.org/medical/Dicom/2016b/output/chtml/part16/sect_CID_4020.html
 
-| Code Value |  Code Meaning   |
-|:----------:|:---------------:|
-| C-105A1    | ^11^Carbon      |
-| C-107A1    | ^13^Nitrogen    |  
-| C-1018C    | ^14^Oxygen      | 
-| C-B1038    | ^15^Oxygen      |
-| C-111A1    | ^18^Fluorine    |
-| C-155A1    | ^22^Sodium      |
-| C-135A4    | ^38^Potassium   |
-| 126605     | ^43^Scandium    |
-| 126600     | ^44^Scandium    |
-| C-166A2    | ^45^Titanium    |
-| 126601     | ^51^Manganese   |
-| C-130A1    | ^52^Iron        |
-| C-149A1    | ^52^Manganese   |
-| 126607     | ^52m^Manganese  |
-| C-127A4    | ^60^Copper      |
-| C-127A1    | ^61^Copper      |
-| C-127A5    | ^62^Copper      |
-| C-141A1    | ^62^Zinc        |
-| C-127A     | ^64^Copper      |
-| C-131A1    | ^66^Gallium     |
-| C-131A3    | ^68^Gallium     |
-| C-128A2    | ^68^Germanium   |
-| 126602     | ^70^Arsenic     |
-| C-115A2    | ^72^Arsenic     |
-| C-116A2    | ^73^Selenium    |
-| C-113A1    | ^75^Bromine     |
-| C-113A2    | ^76^Bromine     |
-| C-113A3    | ^77^Bromine     |
-| C-159A2    | ^82^Rubidium    |
-| C-162A3    | ^86^Yttrium     |
-| C-168A4    | ^89^Zirconium   |
-| 126603     | ^90^Niobium     |
-| C-162A7    | ^90^Yttrium     |
-| C-163AA    | ^94m^Technetium |
-| C-114A5    | ^124^Iodine     |
-| 126606     | ^152^Terbium    |
+| Code Value |  Code Meaning   | Isotope Abbreviation |
+|:----------:|:---------------:|:--------------------:|
+| C-105A1    | ^11^Carbon      | 11C                  |
+| C-107A1    | ^13^Nitrogen    | 13N                  |
+| C-1018C    | ^14^Oxygen      | 14O                  |
+| C-B1038    | ^15^Oxygen      | 150                  |
+| C-111A1    | ^18^Fluorine    | 18F                  |
+| C-155A1    | ^22^Sodium      | 22Na                 |
+| C-135A4    | ^38^Potassium   | 38K                  |
+| 126605     | ^43^Scandium    | 43Sc                 |
+| 126600     | ^44^Scandium    | 44Sc                 |
+| C-166A2    | ^45^Titanium    | 45Ti                 |
+| 126601     | ^51^Manganese   | 51Mn                 |
+| C-130A1    | ^52^Iron        | 52Fe                 |
+| C-149A1    | ^52^Manganese   | 52Mn                 |
+| 126607     | ^52m^Manganese  | 52mMn                |
+| C-127A4    | ^60^Copper      | 60Cu                 |
+| C-127A1    | ^61^Copper      | 61Cu                 |
+| C-127A5    | ^62^Copper      | 62Cu                 |
+| C-141A1    | ^62^Zinc        | 62Zn                 |
+| C-127A     | ^64^Copper      | 64Cu                 |
+| C-131A1    | ^66^Gallium     | 66Ga                 |
+| C-131A3    | ^68^Gallium     | 68Ga                 |
+| C-128A2    | ^68^Germanium   | 68Ge                 |
+| 126602     | ^70^Arsenic     | 70As                 |
+| C-115A2    | ^72^Arsenic     | 72As                 |
+| C-116A2    | ^73^Selenium    | 73Se                 |
+| C-113A1    | ^75^Bromine     | 75Br                 |
+| C-113A2    | ^76^Bromine     | 76Br                 |
+| C-113A3    | ^77^Bromine     | 77Br                 |
+| C-159A2    | ^82^Rubidium    | 82Rb                 |
+| C-162A3    | ^86^Yttrium     | 86Y                  |
+| C-168A4    | ^89^Zirconium   | 89Zr                 |
+| 126603     | ^90^Niobium     | 90Nb                 |
+| C-162A7    | ^90^Yttrium     | 90Y                  |
+| C-163AA    | ^94m^Technetium | 94mTc                |
+| C-114A5    | ^124^Iodine     | 124I                 |
+| 126606     | ^152^Terbium    | 152Tb                |
