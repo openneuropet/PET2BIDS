@@ -47,27 +47,27 @@ authors:
     orcid: 0000-0003-4010-4632
     affiliation: 2
 affiliations:
-  - name: National Institutes of Health, Bethesda, MD, USA
+  - name: National Institutes of Health, Bethesda, MD, United States
     index: 1
   - name: Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
     index: 2
   - name: Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
     index: 3
-  - name: Department of Psychology, Stanford University, CA, USA
+  - name: Department of Psychology, Stanford University, CA, United States
     index: 4
   - name: University Medical Center of the Johannes Gutenberg University Mainz, Mainz, Germany
     index: 5
-  - name: Department of Psychology, University of South Carolina, Columbia, SC, USA
+  - name: Department of Psychology, University of South Carolina, Columbia, SC, United States
     index: 6
-  - name: Mailman school of Public Health, Columbia University, New York, NY, USA
+  - name: Mailman school of Public Health, Columbia University, New York, NY, United States
     index: 7
   - name: Department of Clinical Neuroscience, Karolinska Institutet and Stockholm County Council, Stockholm, Sweden
     index: 8
   - name: Karolinska Institutet
     index: 9
-  - name: TReNDS Center, Georgia State University, Atlanta, GA, USA
+  - name: TReNDS Center, Georgia State University, Atlanta, GA, United States
     index: 10
-  - name: National Institute on Aging Intramural Research Program, Baltimore, MD, USA
+  - name: National Institute on Aging Intramural Research Program, Baltimore, MD, United States
     index: 11
 date: 26 June 2024
 bibliography: paper.bib
