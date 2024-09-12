@@ -18,7 +18,7 @@ function telemetry(telemetry_data, input_path, output_path)
             telemetry_data.TotalInputFileSize = input_file_count.TotalInputFileSize;
         end
 
-        url = 'http://52.87.154.236/telemetry/';
+        url = 'http://openneuropet.org/pet2bids/';
         options = weboptions('MediaType', 'application/json');
         response = webwrite(url, telemetry_data, options);
 
