@@ -69,7 +69,7 @@ version_cmd = ['dcm2niix', ' -v'];
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
 
 
-% initalize telemetry data fror later uploading
+% initialize telemetry data fror later uploading
 telemetry_data = {};
 dcm2niix_data = {};
 dcm2niix_data.version = version(1);
