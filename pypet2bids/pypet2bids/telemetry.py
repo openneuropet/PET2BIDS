@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 
 pet2bids_config = load_vars_from_config()
 telemetry_default_url = pet2bids_config.get(
-    "TELEMETRY_URL", "http://52.87.154.236/telemetry/"
+    "TELEMETRY_URL", "http://openneuropet.org/pet2bids/"
 )
 # check environment variables as well as the config file
 telemetry_enabled_env = os.getenv("PET2BIDS_TELEMETRY_ENABLED", True)
@@ -82,8 +82,11 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
 
         json_data["description"] = "pet2bids_python_telemetry"
 
-        # Send a POST request to the telemetry server
-        requests.post(url, json=json_data)
+        try:
+            # Send a POST request to the telemetry server
+            requests.post(url, json=json_data)
+        except requests.exceptions.RequestException as e:
+            pass
     else:
         pass
 
