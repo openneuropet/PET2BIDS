@@ -106,7 +106,7 @@ jobs:
           dcm2niix4pet -h
 
       - name: Set Up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
 
       - name: Install BIDS Validator
         run: npm install -g bids-validator

@@ -350,7 +350,7 @@ def test_reorder_isotope():
         "11C": ["C11", "^11^C", "C-11", "11-C", "11C", "c11", "c-11", "11c"],
         "18F": ["F18", "^18^F", "F-18", "18-F", "18F"],
         "68Ga": ["Ga68", "^68^Ga", "Ga-68", "68-Ga", "68Ga"],
-        "52mMn": ["Mn52m", "Mn-52m", "52m-Mn", "52mMn"]
+        "52mMn": ["Mn52m", "Mn-52m", "52m-Mn", "52mMn"],
     }
 
     for isotope, isotope_variants in isotopes.items():
