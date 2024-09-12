@@ -190,6 +190,14 @@ def cli():
         action="version",
         version=f"{helper_functions.get_version()}",
     )
+    parser.add_argument(
+        "--notrack",
+        action="store_true",
+        default=False,
+        help="Opt-out of sending tracking information of this run to the PET2BIDS developers. "
+        "This information helps to improve PET2BIDS and provides an indicator of real world "
+        "usage crucial for obtaining funding.",
+    )
 
     return parser
 
@@ -261,6 +269,9 @@ def main():
     if cli_args.show_examples:
         print(example1)
         sys.exit(0)
+
+    if cli_args.notrack:
+        os.environ["PET2BIDS_TELEMETRY_ENABLED"] = "False"
 
     collect_pixel_data = False
     if cli_args.convert or cli_args.update:

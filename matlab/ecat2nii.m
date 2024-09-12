@@ -58,6 +58,10 @@ end
 parts = strsplit(ecat_save_steps_dir, filesep);
 ecat_save_steps_dir = strjoin([parts(1:end-2), 'ecat_testing', 'steps'], filesep);
 
+%% initialize telemetry variable for reporting
+telemetry_data = {};
+telemetry_data.description = "Matlab_ecat2nii";
+
 %% check inputs
 % ------------
 
@@ -110,6 +114,8 @@ for v=1:length(varargin)
         gz = varargin{v+1};
     elseif strcmpi(varargin{v},'savemat')
         savemat = varargin{v+1};
+    elseif strcmpi(varargin{v},'notrack')
+        setenv('TELEMETRY_ENABLED', 'False')
     end
 end
 
@@ -131,14 +137,18 @@ end
 %% Read and write data
 % --------------------
 for j=1:length(FileListIn)
-    
+
     try
         fprintf('Conversion of file: %s\n',FileListIn{j});
-        
+
         % quickly ensure we have the TimeZero - key to all analyzes!
         info     = MetaList{1};
         if ~isfield(info,'TimeZero')
-            error('Metadata TimeZero is missing - set to ScanStart or empty to use the scanning time as injection time')
+            error_text = 'Metadata TimeZero is missing - set to ScanStart or empty to use the scanning time as injection time';
+            telemetry_data.returncode = 1;
+            telemetry_data.error = error_text;
+            telemetry(telemetry_data, FileListIn{j})
+            error(error_text)
         end
         
         % Read ECAT file headers
@@ -180,6 +190,9 @@ for j=1:length(FileListIn)
             end
         end
 
+        % capture ecat version
+        telemetry_data.InputType = append("ECAT", string(mh.sw_version));
+
         % save debugging steps 6 and 7
         if (ecat_save_steps == '1')
             first_middle_last_frames_to_text_cell(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
@@ -205,8 +218,6 @@ for j=1:length(FileListIn)
             fprintf(fid,'Scaling factor * ECAT Cal Factor: %10.10f\n',x);
             fclose(fid);
         end
-
-
 
         % save debugging step 8 - rescale to 16 bits
         if (ecat_save_steps == '1')
@@ -489,8 +500,14 @@ for j=1:length(FileListIn)
         %     FileListOut{j} = [filenameout '_pet.nii'];
         %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
         % end
+
+        telemetry_data.returncode = 0;
+        telemetry(telemetry_data, FileListIn{j});
         
     catch conversionerr
+        telemetry_data.returncode = 1;
+        telemetry_data.error = conversionerr.message;
+        telemetry(telemetry_data, FileListIn{j});
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
     end
     
