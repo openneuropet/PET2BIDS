@@ -12,7 +12,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 % :param FolderList: Cell array of char strings with filenames and paths
 % :param MetaList: Cell array of structures for metadata
-% :param options:
+% :param varargin:
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
 %                 IF the folder is BIDS sub-xx files are renamed automatically
@@ -30,6 +30,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+%  - *notrack* Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
 %
 % .. code-block::
 %
@@ -50,7 +51,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
+    error('for windows machine please edit the function line 51 and indicate the dcm2niix path')
 end
 
 if ~ispc % overwrite if not windowns (as it should be in the computer path)
@@ -63,8 +64,18 @@ end
 minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
 version_cmd = ['dcm2niix', ' -v'];
+
 [status, version_output_string] = system(version_cmd);
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
+
+
+% initialize telemetry data fror later uploading
+telemetry_data = {};
+dcm2niix_data = {};
+dcm2niix_data.version = version(1);
+dcm2niix_data.returncode = 0;
+telemetry_data.dcm2niix = dcm2niix_data;
+telemetry_data.description = "Matlab_dcm2niix4pet.m";
 
 if length(version) >= 1
     version_date = version{1}(6:end);
@@ -209,7 +220,10 @@ for var=1:length(varargin)
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
+    elseif strcmpi(varargin{var},'notrack')
+        setenv('TELEMETRY_ENABLED', 'False')
     end
+
 end
 
 if isempty(outputdir)
@@ -224,6 +238,8 @@ if ~iscell(outputdir)
         error('outputdir must be a cell array of directory names')
     end
 end
+
+
 
 %% convert
 % ----------
@@ -249,10 +265,16 @@ for folder = 1:size(FolderList,1)
     end
     
     out = system(command);
+    telemetry_data.dcm2niix.returncode = out;
+    % we still want to send telemetry even if this fails
     if out ~= 0
+        telemetry_data.returncode = 1;
+        telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
+        
     end
-   
+
+
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(
@@ -318,4 +340,9 @@ for folder = 1:size(FolderList,1)
         jsonfilename = newmetadata;
     end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
+
+    % if this all goes well update the telemetry data and send it with a positive return code of 0
+    telemetry_data.returncode = 0;
+    telemetry(telemetry_data, FolderList{folder})
+
 end

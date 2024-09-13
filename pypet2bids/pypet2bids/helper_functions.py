@@ -285,7 +285,9 @@ def decompress(file_like_object, output_path: str = None):
     return output_path
 
 
-def load_vars_from_config(path_to_config: str):
+def load_vars_from_config(
+    path_to_config: str = pathlib.Path.home() / ".pet2bidsconfig",
+):
     """
     Loads values from a .env file given a path to said .env file.
 
@@ -295,7 +297,10 @@ def load_vars_from_config(path_to_config: str):
     if os.path.isfile(path_to_config):
         parameters = dotenv.main.dotenv_values(path_to_config)
     else:
-        raise FileNotFoundError(path_to_config)
+        log = logger("pypet2bids")
+        log.warning(f"Unable to locate {path_to_config}, returning empty dictionary.")
+        parameters = {}
+        # raise FileNotFoundError(path_to_config)
 
     for parameter, value in parameters.items():
         try:
@@ -959,11 +964,11 @@ def ad_hoc_checks(
     if items_that_should_be_checked is None:
         items_that_should_be_checked = {}
     hardcoded_items = {
-        'InjectedRadioactivityUnits': ['MBq', 'mCi'],
-        'SpecificRadioactivityUnits': ['Bq/g', 'MBq/ug'],
-        'InjectedMassUnits': 'ug',
-        'MolarActivityUnits': 'GBq/umolug',
-        'MolecularWeightUnits': 'g/mol'
+        "InjectedRadioactivityUnits": ["MBq", "mCi"],
+        "SpecificRadioactivityUnits": ["Bq/g", "MBq/ug"],
+        "InjectedMassUnits": "ug",
+        "MolarActivityUnits": "GBq/umolug",
+        "MolecularWeightUnits": "g/mol",
     }
 
     # if none are
@@ -1149,3 +1154,38 @@ def first_middle_last_frames_to_text(
             delimiter="\t",
             fmt="%s",
         )
+
+
+def reorder_isotope(isotope: str) -> str:
+    """
+    Reorders the isotope string to be in the format of "isotope""element name"
+    :param isotope: isotope string
+    :type isotope: str
+    :return: reordered isotope string
+    :rtype: str
+    """
+    # remove all non-alphanumeric characters from isotope
+    isotope = re.findall(r"[a-zA-Z0-9]+", isotope)
+    # combine all elements in isotope into one string
+    isotope = "".join(isotope)
+    # collect the isotope number from the isotope string
+    isotope_num = re.findall(r"\d+", isotope)
+    # collect the element name from the isotope string
+    element_name = re.findall(r"[a-zA-Z]+", isotope)
+
+    # capitalize the first letter of the element name if the element name's length is <= 2
+    if 1 < len(element_name[0]) <= 2:
+        e = element_name[0][0].capitalize()
+        if len(element_name[0]) == 2:
+            e += element_name[0][1].lower()
+    elif len(element_name[0]) == 1:
+        e = element_name[0].capitalize()
+
+    # special case for 52mMn
+    if "".join(element_name).lower() == "mmn" or "".join(element_name).lower() == "mnm":
+        e = "mMn"
+
+    # reorder to put the number before the element name
+    isotope = f"{isotope_num[0]}{e}"
+
+    return isotope

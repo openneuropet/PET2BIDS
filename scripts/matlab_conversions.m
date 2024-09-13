@@ -31,7 +31,7 @@ if ismac
     [status, results] = system('which dcm2niix');
     if status == 0
        dcm2niix_path = results;
-        system([dcm2niix_path, ' -h'])
+       system(dcm2niix_path, ' -h')
     else
         print_me = ['This script expects to find dcm2niix at /opt/homebrew/bin, for a default brew installed dcm2niix.'];
         disp(print_me)
