@@ -75,7 +75,7 @@ dcm2niix_data = {};
 dcm2niix_data.version = version(1);
 dcm2niix_data.returncode = 0;
 telemetry_data.dcm2niix = dcm2niix_data;
-telemetry_data.description = "Matlab_dcm2niix4pet.m"
+telemetry_data.description = "Matlab_dcm2niix4pet.m";
 
 if length(version) >= 1
     version_date = version{1}(6:end);
@@ -222,8 +222,6 @@ for var=1:length(varargin)
         outputdir = varargin{var+1};
     elseif strcmpi(varargin{var},'notrack')
         setenv('TELEMETRY_ENABLED', 'False')
-    else
-        error('unknown option %s',varargin{var})
     end
 
 end

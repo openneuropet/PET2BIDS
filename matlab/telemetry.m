@@ -19,9 +19,12 @@ function telemetry(telemetry_data, input_path, output_path)
         end
 
         url = 'http://openneuropet.org/pet2bids/';
-        options = weboptions('MediaType', 'application/json');
-        response = webwrite(url, telemetry_data, options);
-
+        options = weboptions('MediaType', 'application/json', 'Timeout', 5);
+        try
+            response = webwrite(url, telemetry_data, options);
+        catch ME
+            % do nothing
+        end
     else
         % don't do anything
     end
