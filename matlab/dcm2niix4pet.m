@@ -30,7 +30,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
-% :param notrack: boolean to Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
+%  - *notrack* Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
 %
 % .. code-block::
 %
