@@ -25,6 +25,7 @@ try:
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
+    from telemetry import telemetry_enabled, send_telemetry
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.sidecar as sidecar
@@ -35,6 +36,7 @@ except ModuleNotFoundError:
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
+    from pypet2bids.telemetry import telemetry_enabled, send_telemetry
 
 from dateutil import parser
 
@@ -107,6 +109,8 @@ class Ecat:
         self.output_path = None
         self.metadata_path = metadata_path
 
+        self.telemetry_data = {}
+
         # load config file
         default_json_path = helper_functions.check_pet2bids_config(
             "DEFAULT_METADATA_JSON"
@@ -169,6 +173,12 @@ class Ecat:
         else:
             self.nifti_file = nifti_file
 
+        self.telemetry_data["InputType"] = "ECAT" + str(self.ecat_header["SW_VERSION"])
+        self.telemetry_data["TotalInputFiles"] = 1
+        self.telemetry_data["TotalInputFilesSize"] = (
+            pathlib.Path(self.ecat_file).stat().st_size
+        )
+
         # que up metadata path for spreadsheet loading later
         if self.metadata_path:
             if (
@@ -198,6 +208,16 @@ class Ecat:
                 load_spreadsheet_data["blood_json"]
             )
 
+            if helper_functions.collect_spreadsheets(self.metadata_path):
+                self.telemetry_data.update({"metadata_spreadsheet_user": True})
+            else:
+                self.telemetry_data.update({"metadata_spreadsheet_user": False})
+
+            if self.spreadsheet_metadata.get("blood_tsv", None):
+                self.telemetry_data.update({"blood_tsv": True})
+            else:
+                self.telemetry_data.update({"blood_tsv": False})
+
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file.
@@ -220,6 +240,9 @@ class Ecat:
             nifti_file=output,
             affine=self.affine,
         )
+
+        self.telemetry_data["NiftiFiles"] = 1
+        self.telemetry_data["NiftiFilesSize"] = pathlib.Path(output).stat().st_size
 
         if "nii.gz" not in output:
             output = helper_functions.compress(output)
@@ -653,3 +676,6 @@ class Ecat:
         self.prune_sidecar()
         self.show_sidecar(output_path=self.sidecar_path)
         self.write_out_blood_files()
+
+        if telemetry_enabled:
+            send_telemetry(self.telemetry_data)

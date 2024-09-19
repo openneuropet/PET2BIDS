@@ -343,5 +343,20 @@ def test_collect_pet_spreadsheets():
     assert len(pet_spreadsheets) == 3
 
 
+def test_reorder_isotope():
+    # tests whether the isotope is reordered correctly with the numerical part appearing before the string part
+    # and if any non-alphanumeric characters are present
+    isotopes = {
+        "11C": ["C11", "^11^C", "C-11", "11-C", "11C", "c11", "c-11", "11c"],
+        "18F": ["F18", "^18^F", "F-18", "18-F", "18F"],
+        "68Ga": ["Ga68", "^68^Ga", "Ga-68", "68-Ga", "68Ga"],
+        "52mMn": ["Mn52m", "Mn-52m", "52m-Mn", "52mMn"],
+    }
+
+    for isotope, isotope_variants in isotopes.items():
+        for isotope_variant in isotope_variants:
+            assert helper_functions.reorder_isotope(isotope_variant) == isotope
+
+
 if __name__ == "__main__":
     unittest.main()
