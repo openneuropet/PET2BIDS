@@ -9,6 +9,7 @@ import argparse
 import pydicom
 import datetime
 from typing import Union
+from pandas import Timestamp
 
 try:
     import helper_functions
@@ -774,19 +775,6 @@ def get_metadata_from_spreadsheet(
             **additional_arguments,
         )
 
-    # remove any dates from the spreadsheet time values
-    for key, value in spreadsheet_values.items():
-        if "time" in key.lower():
-            if isinstance(value, str):
-                # check to see if the value converts to a datetime object with a date
-                try:
-                    time_value = parser.parse(value).time().strftime("%H:%M:%S")
-                    spreadsheet_values[key] = time_value
-                except ValueError:
-                    pass
-            if isinstance(value, datetime.datetime):
-                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
-
     if Path(metadata_path).is_dir() or metadata_path == "":
         # we accept folder input as well as no input, in the
         # event of no input we search for spreadsheets in the
@@ -808,6 +796,24 @@ def get_metadata_from_spreadsheet(
                     **additional_arguments,
                 )
             )
+
+        # remove any dates from the spreadsheet time values
+    for key, value in spreadsheet_values.items():
+        if "time" in key.lower():
+            if isinstance(value, str):
+                # check to see if the value converts to a datetime object with a date
+                try:
+                    time_value = parser.parse(value).time().strftime("%H:%M:%S")
+                    spreadsheet_values[key] = time_value
+                except ValueError:
+                    pass
+            elif isinstance(value, datetime.datetime):
+                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
+            elif isinstance(value, Timestamp):
+                value = value.to_pydatetime()
+                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
+            else:
+                pass
 
     # check for any blood (tsv) data or otherwise in the given spreadsheet values
     blood_tsv_columns = [
