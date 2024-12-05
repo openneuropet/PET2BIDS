@@ -20,7 +20,6 @@ try:
     import sidecar
     import read_ecat
     import ecat2nii
-    import dcm2niix4pet
     from update_json_pet_file import (
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
@@ -31,7 +30,6 @@ except ModuleNotFoundError:
     import pypet2bids.sidecar as sidecar
     import pypet2bids.read_ecat as read_ecat
     import pypet2bids.ecat2nii as ecat2nii
-    import pypet2bids.dcm2niix4pet as dcm2niix4pet
     from pypet2bids.update_json_pet_file import (
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,

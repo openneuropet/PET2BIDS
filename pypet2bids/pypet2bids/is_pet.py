@@ -14,11 +14,9 @@ from joblib import Parallel, delayed
 try:
     import helper_functions
     import ecat
-    import dcm2niix4pet
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.ecat as ecat
-    import pypet2bids.dcm2niix4pet as dcm2niix4pet
 
 
 def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
