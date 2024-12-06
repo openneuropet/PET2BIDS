@@ -4,7 +4,7 @@ When data are already converted, it can be easier to create metadata separately,
 
 ## Spreadsheet
 
-You can use the [template](https://github.com/openneuropet/BIDS-converter/blob/main/Metadata_in/metadata_excel_template.xlsx) to prepare the metadata. Note that new/old excel (.xlsx .xls) or open format (.ods) can be used.  
+You can use the [single-subject template](https://github.com/openneuropet/PET2BIDS/raw/refs/heads/main/spreadsheet_conversion/single_subject_sheet/subject_metadata_template.xlsx) to prepare the metadata. Note that new/old excel (.xlsx .xls) or open format (.ods) can be used.  For reference, here is an [example spreadsheet](https://github.com/openneuropet/PET2BIDS/raw/refs/heads/main/spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx)
 
 The example files, show the excel file and the resulting conversion as json.
 
