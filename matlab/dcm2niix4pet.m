@@ -239,8 +239,6 @@ if ~iscell(outputdir)
     end
 end
 
-
-
 %% convert
 % ----------
 for folder = 1:size(FolderList,1)
@@ -271,10 +269,8 @@ for folder = 1:size(FolderList,1)
         telemetry_data.returncode = 1;
         telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
-        
     end
-
-
+   
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(

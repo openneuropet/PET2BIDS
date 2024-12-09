@@ -53,7 +53,10 @@ def telemetry_enabled(config_path=None):
         load_dotenv(dotenv_path=config_file)
 
     # check to see if telemetry is disabled
-    if os.getenv("PET2BIDS_TELEMETRY_ENABLED", "").lower() == "false" or os.getenv("CI", "false") == "true":
+    if (
+        os.getenv("PET2BIDS_TELEMETRY_ENABLED", "").lower() == "false"
+        or os.getenv("CI", "false") == "true"
+    ):
         return False
     else:
         return True

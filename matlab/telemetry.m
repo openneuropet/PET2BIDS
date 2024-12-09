@@ -52,7 +52,7 @@ function e = telemetry_enabled()
 
     % if running in CI don't run telemetry
     running_in_ci = strcmpi(getenv("CI"), 'true');
-    
+
     if disable_telemetry | disable_telemetry_env | running_in_ci
         e = false;
     else

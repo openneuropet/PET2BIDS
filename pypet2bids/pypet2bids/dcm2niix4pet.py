@@ -690,6 +690,16 @@ class Dcm2niix4PET:
                     sidecar_json.update(self.spreadsheet_metadata.get("nifti_json", {}))
                     sidecar_json.update(self.additional_arguments)
 
+                    # set ModeOfAdministration to lower case
+                    if sidecar_json.get("ModeOfAdministration"):
+                        sidecar_json.update(
+                            {
+                                "ModeOfAdministration": sidecar_json.get(
+                                    "ModeOfAdministration"
+                                ).lower()
+                            }
+                        )
+
                     # this is mostly for ezBIDS, but it helps us to make better use of the series description that
                     # dcm2niix generates by default for PET imaging
                     collect_these_fields = {
