@@ -67,12 +67,6 @@ jobs:
             brew install dcm2niix
           fi
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
 
       - name: Check dcm2niix is installed and on path
         if: runner.os != 'Windows'
@@ -106,10 +100,10 @@ jobs:
           dcm2niix4pet -h
 
       - name: Set Up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
 
       - name: Install BIDS Validator
-        run: npm install -g bids-validator
+        run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
@@ -169,6 +163,13 @@ jobs:
       - name: Validate Python Conversion
         run: |
           bids-validator OpenNeuroPET-Phantoms/python
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
 
       - name: Validate Matlab Conversion
         run: |

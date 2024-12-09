@@ -1155,6 +1155,7 @@ def first_middle_last_frames_to_text(
             fmt="%s",
         )
 
+
 def reorder_isotope(isotope: str) -> str:
     """
     Reorders the isotope string to be in the format of "isotope""element name"

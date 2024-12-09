@@ -18,10 +18,13 @@ function telemetry(telemetry_data, input_path, output_path)
             telemetry_data.TotalInputFileSize = input_file_count.TotalInputFileSize;
         end
 
-        url = 'http://52.87.154.236/telemetry/';
-        options = weboptions('MediaType', 'application/json');
-        response = webwrite(url, telemetry_data, options);
-
+        url = 'http://openneuropet.org/pet2bids/';
+        options = weboptions('MediaType', 'application/json', 'Timeout', 5);
+        try
+            response = webwrite(url, telemetry_data, options);
+        catch ME
+            % do nothing
+        end
     else
         % don't do anything
     end
@@ -46,8 +49,11 @@ function e = telemetry_enabled()
     end
 
     disable_telemetry = strcmpi(getenv("TELEMETRY_ENABLED"), 'false');
-    
-    if disable_telemetry | disable_telemetry_env
+
+    % if running in CI don't run telemetry
+    running_in_ci = strcmpi(getenv("CI"), 'true');
+
+    if disable_telemetry | disable_telemetry_env | running_in_ci
         e = false;
     else
         e = true;

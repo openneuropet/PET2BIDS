@@ -30,7 +30,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
 %   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
-% :param notrack: boolean to Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
+%  - *notrack* Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
 %
 % .. code-block::
 %
@@ -69,13 +69,13 @@ version_cmd = ['dcm2niix', ' -v'];
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
 
 
-% initalize telemetry data fror later uploading
+% initialize telemetry data fror later uploading
 telemetry_data = {};
 dcm2niix_data = {};
 dcm2niix_data.version = version(1);
 dcm2niix_data.returncode = 0;
 telemetry_data.dcm2niix = dcm2niix_data;
-telemetry_data.description = "Matlab_dcm2niix4pet.m"
+telemetry_data.description = "Matlab_dcm2niix4pet.m";
 
 if length(version) >= 1
     version_date = version{1}(6:end);
@@ -222,8 +222,6 @@ for var=1:length(varargin)
         outputdir = varargin{var+1};
     elseif strcmpi(varargin{var},'notrack')
         setenv('TELEMETRY_ENABLED', 'False')
-    else
-        error('unknown option %s',varargin{var})
     end
 
 end
@@ -240,8 +238,6 @@ if ~iscell(outputdir)
         error('outputdir must be a cell array of directory names')
     end
 end
-
-
 
 %% convert
 % ----------
@@ -273,10 +269,8 @@ for folder = 1:size(FolderList,1)
         telemetry_data.returncode = 1;
         telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
-        
     end
-
-
+   
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(

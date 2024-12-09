@@ -14,14 +14,14 @@ dedicated to the topic of spreadsheets and PET blood/radioligand/radioactivity d
 Handled Types of Spreadsheets (known)
 -------------------------------------
 
-`link to repository section <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion>`_
+`link to repository section <https://github.com/openneuropet/PET2BIDS/tree/main/spreadsheet_conversion>`_
 
 **Excel**
 
-- `Ideal single subject example <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx>`_
+- `Ideal single subject example <https://github.com/openneuropet/PET2BIDS/raw/refs/heads/main/spreadsheet_conversion/single_subject_sheet/subject_metadata_example.xlsx>`_
 - Here is an example of a
-  `Many Subject Spreadsheet <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_example.xlsx>`_
-  paired with a `single subject spreadsheet  <https://github.com/OpenNeuroPET/PET2BIDS/spreadsheet_conversion/many_subjects_sheet/subject_>`_
+  `Many Subject Spreadsheet <https://github.com/openneuropet/PET2BIDS/raw/refs/heads/main/spreadsheet_conversion/many_subjects_sheet/scanner_metadata_example.xlsx>`_
+  paired with a `single subject spreadsheet  <https://github.com/openneuropet/PET2BIDS/raw/refs/heads/main/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_example.xlsx>`_
   these can be used when updating BIDS datasets w/ homogeneous scanner/experiment data along with heterogeneous (subject)
   data.
 

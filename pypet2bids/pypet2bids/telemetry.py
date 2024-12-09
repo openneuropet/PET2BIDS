@@ -53,7 +53,7 @@ def telemetry_enabled(config_path=None):
         load_dotenv(dotenv_path=config_file)
 
     # check to see if telemetry is disabled
-    if os.getenv("PET2BIDS_TELEMETRY_ENABLED", "").lower() == "false":
+    if os.getenv("PET2BIDS_TELEMETRY_ENABLED", "").lower() == "false" or os.getenv("CI", "false") == "true":
         return False
     else:
         return True
@@ -122,16 +122,16 @@ def count_input_files(input_file_path: Union[str, pathlib.Path]):
 
 def count_output_files(output_file_path: Union[str, pathlib.Path]):
     """
-    Count the number of output files in the output file path. This can be usefull
+    Count the number of output files in the output file path. This can be useful
     in determining whether any additional files were created during the conversion process.
     However, this is only useful if the conversion process initially takes place from within
     a temporary directory.
 
     # TODO check the last modified date of the files to determine if they were created during
-    # TODO the conversion process. That should make this usefull in all cases.
+    # TODO the conversion process. That should make this useful in all cases.
     :param output_file_path: location of the output files
     :type output_file_path: Union[str, pathlib.Path]
-    :return: The number of output files and their size and spefically the number of nifti files and
+    :return: The number of output files and their size and specifically the number of nifti files and
     their size
     :rtype: dict
     """

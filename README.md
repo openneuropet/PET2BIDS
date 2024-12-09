@@ -4,6 +4,9 @@
 [![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml) 
 [![Documentation Status](https://readthedocs.org/projects/pet2bids/badge/?version=latest)](https://pet2bids.readthedocs.io/en/latest/?badge=latest)
 [![phantoms](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06067/status.svg)](https://doi.org/10.21105/joss.06067)
+
+Galassi, A., Norgaard, M., Gonzalez-Escamilla, G., Svarer, C., Rorden, C., Matheson, G.J, Knudsen, G.M, Innis, R.B., Ganz, M., Eierud, C., Bilgel., M. & Pernet, C. (2024). PET2BIDS: a library for converting Positron Emission Tomography data to BIDS. Journal of Open Source Software, 9(100), 6067.
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). 
 The work to create these tools is funded by [Novo Nordisk Foundation](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the 
