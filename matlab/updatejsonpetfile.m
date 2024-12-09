@@ -289,6 +289,11 @@ else % -------------- update ---------------
     end
     filemetadata = update_arrays(filemetadata);
 
+    % set ModeOfAdministration to lower case
+    if isfield(filemetadata,'ModeOfAdministration')
+        filemetadata.ModeOfAdministration = lower(filemetadata.ModeOfAdministration);
+    end
+
     % clean-up
     fn_check = fieldnames(filemetadata);
     for f=1:size(fn_check,1)

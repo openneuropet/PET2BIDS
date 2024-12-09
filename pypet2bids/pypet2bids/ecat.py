@@ -453,6 +453,12 @@ class Ecat:
         meta_radio_inputs = check_meta_radio_inputs(self.sidecar_template)
         self.sidecar_template.update(**meta_radio_inputs)
 
+        # set ModeOfAdministration to lower case
+        if self.sidecar_template.get("ModeOfAdministration", ""):
+            self.sidecar_template["ModeOfAdministration"] = self.sidecar_template[
+                "ModeOfAdministration"
+            ].lower()
+
     def prune_sidecar(self):
         """
         Eliminate unpopulated fields in sidecar while leaving in mandatory fields even if they are unpopulated.
