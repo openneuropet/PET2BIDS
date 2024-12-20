@@ -125,19 +125,22 @@ def flatten_series(series):
 
 def collect_spreadsheets(folder_path: pathlib.Path):
     spreadsheet_files = []
-    all_files = [
-        folder_path / pathlib.Path(file)
-        for file in os.listdir(folder_path)
-        if os.path.isfile(os.path.join(folder_path, file))
-    ]
-    for file in all_files:
-        if (
-            file.suffix == ".xlsx"
-            or file.suffix == ".csv"
-            or file.suffix == ".xls"
-            or file.suffix == ".tsv"
-        ):
-            spreadsheet_files.append(file)
+    if folder_path.is_file():
+        spreadsheet_files.append(folder_path)
+    else:
+        all_files = [
+            folder_path / pathlib.Path(file)
+            for file in os.listdir(folder_path)
+            if os.path.isfile(os.path.join(folder_path, file))
+        ]
+        for file in all_files:
+            if (
+                file.suffix == ".xlsx"
+                or file.suffix == ".csv"
+                or file.suffix == ".xls"
+                or file.suffix == ".tsv"
+            ):
+                spreadsheet_files.append(file)
     return spreadsheet_files
 
 
