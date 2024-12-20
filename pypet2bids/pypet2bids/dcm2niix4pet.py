@@ -301,6 +301,15 @@ class Dcm2niix4PET:
         # we consider values stored in a default JSON file to be additional arguments, we load those
         # values first and then overwrite them with any user supplied values
 
+        # check to make sure the dicom is a PET dicom
+        modalities = [dicom.Modality for dicom in self.dicom_headers.values()]
+        non_pet_dicom = [modality for modality in modalities if modality != "PT"]
+
+        if len(non_pet_dicom) > 0:
+            logger.warning(
+                f"Non PET dicoms found in {self.image_folder}. Modalities f{non_pet_dicom} detected"
+            )
+
         # load config file
         default_json_path = helper_functions.check_pet2bids_config(
             "DEFAULT_METADATA_JSON"
@@ -499,6 +508,32 @@ class Dcm2niix4PET:
             files_created_by_dcm2niix = [
                 join(tempdir_pathlike, file) for file in listdir(tempdir_pathlike)
             ]
+
+            # check to see if there are any modalities present that aren't PET
+            remove_these_non_pet_files = []
+            for json_file in [f for f in files_created_by_dcm2niix if ".json" in f]:
+                with open(json_file, "r") as infile:
+                    json_data = json.load(infile)
+                    if json_data.get("Modality") != "PT":
+                        logger.warning(
+                            f"Non PET modality found in {json_file}, skipping. Files relating to this json and it's"
+                            f"nifti will not be included at the destination folder {self.destination_folder}"
+                        )
+                        remove_these_non_pet_files.append(json_file)
+                        remove_these_non_pet_files.append(
+                            json_file.replace(".json", ".nii.gz")
+                        )
+                        remove_these_non_pet_files.append(
+                            json_file.replace(".json", ".nii")
+                        )
+
+            # if there are non PET files remove them from files_created_by_dcm2niix
+            if remove_these_non_pet_files:
+                for file in remove_these_non_pet_files:
+                    try:
+                        files_created_by_dcm2niix.remove(file)
+                    except ValueError:
+                        pass
 
             # make sure destination path exists if not try creating it.
             try:

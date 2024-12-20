@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "1.3.15"
+version = "1.3.16"
 description = "A python library for converting PET imaging and blood data to BIDS."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -30,6 +30,7 @@ pandas = ">=1.4.4"
 pyxlsb = "^1.0.9"
 joblib = "^1.2.0"
 toml = ">=0.10.2"
+requests = "^2.32.3"
 
 
 [tool.poetry.dev-dependencies]
