@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "1.3.16"
+version = "1.3.17"
 description = "A python library for converting PET imaging and blood data to BIDS."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -32,13 +32,6 @@ joblib = "^1.2.0"
 toml = ">=0.10.2"
 requests = "^2.32.3"
 
-
-[tool.poetry.dev-dependencies]
-pytest = ">=6.2.5, <8.0.0"
-sphinx = "<=4.5.0"
-sphinx-rtd-theme = "^1.0.0"
-sphinxcontrib-matlabdomain = "^0.21.4"
-
 [tool.poetry.scripts]
 ecatpet2bids = 'pypet2bids.ecat_cli:main'
 dcm2petbids = 'pypet2bids.dicom_convert:cli'
@@ -55,6 +48,9 @@ ecatheaderupdate = 'pypet2bids.ecat_header_update:main'
 pyinstaller = "^5.4.1"
 build = "^0.9.0"
 sphinx-rtd-theme = "^1.2.2"
+pytest = ">=6.2.5, <8.0.0"
+sphinx = "<=4.5.0"
+sphinxcontrib-matlabdomain = "^0.21.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
