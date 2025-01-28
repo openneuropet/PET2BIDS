@@ -7,8 +7,10 @@ from json_maj.main import JsonMAJ
 
 try:
     import helper_functions
+    import metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
+    import pypet2bids.metadata as metadata
 
 # from pypet2bids.helper_functions import single_spreadsheet_reader, \
 #    collect_bids_part, open_meta_data, load_pet_bids_requirements_json, ParseKwargs
@@ -37,7 +39,7 @@ def read_single_subject_spreadsheets(
     Copyright Open NeuroPET team
     """
 
-    required_fields = helper_functions.load_pet_bids_requirements_json()
+    required_fields = metadata.PET_metadata
 
     subject_id = kwargs.get("subject_id", None)
     session_id = kwargs.get("session_id", None)

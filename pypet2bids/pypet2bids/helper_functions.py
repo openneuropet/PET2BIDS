@@ -40,6 +40,11 @@ import argparse
 from typing import Union
 from platform import system
 
+try:
+    import metadata
+except ImportError:
+    from pypet2bids import  metadata
+
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
 if "PET2BIDS" not in project_dir.parts:
@@ -55,14 +60,13 @@ pet_reconstruction_metadata_json = os.path.join(
 )
 
 # load bids schema
-bids_schema_path = os.path.join(metadata_dir, "schema.json")
-schema = json.load(open(bids_schema_path, "r"))
+schema = metadata.schema
 
 # putting these paths here as they are reused in dcm2niix4pet.py, update_json_pet_file.py, and ecat.py
 module_folder = Path(__file__).parent.resolve()
 python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
-metadata_folder = os.path.join(pet2bids_folder, "metadata")
+#metadata_folder = os.path.join(pet2bids_folder, "metadata")
 
 loggers = {}
 
@@ -820,9 +824,7 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
         dimension = re.search(search_criteria, ReconMethodName)[0]
 
     # doing some more manipulation of the recon method name to expand it from not so helpful acronyms
-    possible_names = load_pet_bids_requirements_json(pet_reconstruction_metadata_json)[
-        "reconstruction_names"
-    ]
+    possible_names =  metadata.PET_reconstruction_methods.get(ReconMethodName, [])
 
     # we want to sort the possible names by longest first that we don't break up an acronym prematurely
     sorted_df = pandas.DataFrame(possible_names).sort_values(
