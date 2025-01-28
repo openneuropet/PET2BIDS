@@ -39,6 +39,7 @@ import importlib
 import argparse
 from typing import Union
 from platform import system
+import importlib
 
 try:
     import metadata
@@ -325,21 +326,31 @@ def get_version():
     # this scripts directory path
     scripts_dir = pathlib.Path(os.path.dirname(__file__))
 
-    try:
-        # if this is bundled as a package look next to this file for the pyproject.toml
-        toml_path = os.path.join(scripts_dir, "pyproject.toml")
-        with open(toml_path, "r") as infile:
-            tomlfile = toml.load(infile)
-    except FileNotFoundError:
-        # when in development the toml file with the version is 2 directories above (e.g. where it should actually live)
-        toml_dir = scripts_dir.parent
-        toml_path = os.path.join(toml_dir, "pyproject.toml")
-        with open(toml_path, "r") as infile:
-            tomlfile = toml.load(infile)
+    # first try using importlib.metadata.verision to determine version
 
-    attrs = tomlfile.get("tool", {})
-    poetry = attrs.get("poetry", {})
-    version = poetry.get("version", "")
+    version = importlib.metadata.version("pypet2bids")
+
+    if not version:
+        tomlfile = {}
+
+        try:
+            # if this is bundled as a package look next to this file for the pyproject.toml
+            toml_path = os.path.join(scripts_dir, "pyproject.toml")
+            with open(toml_path, "r") as infile:
+                tomlfile = toml.load(infile)
+        except FileNotFoundError:
+            # when in development the toml file with the version is 2 directories above (e.g. where it should actually live)
+            try:
+                toml_dir = scripts_dir.parent
+                toml_path = os.path.join(toml_dir, "pyproject.toml")
+                with open(toml_path, "r") as infile:
+                    tomlfile = toml.load(infile)
+            except FileNotFoundError:
+                pass
+
+        attrs = tomlfile.get("tool", {})
+        poetry = attrs.get("poetry", {})
+        version = poetry.get("version", "")
 
     return version
 
