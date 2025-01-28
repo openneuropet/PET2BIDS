@@ -26,7 +26,6 @@ add:
 
 # copies metadata to path included in pypet2bids project to enable packaging of those files w/ poetry
 buildpackage:
-	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
 	@rm -rf pypet2bids/dist
 	@cd pypet2bids && poetry lock && poetry build
