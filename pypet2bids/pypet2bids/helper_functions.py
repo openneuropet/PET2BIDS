@@ -320,13 +320,13 @@ def load_vars_from_config(
 
 def get_version():
     """
-    Gets the version of this software from the toml file
-    :return: version number from pyproject.toml
+    Gets the version of this software
+    :return: version number
     """
     # this scripts directory path
     scripts_dir = pathlib.Path(os.path.dirname(__file__))
 
-    # first try using importlib.metadata.verision to determine version
+    # first try using importlib.metadata.version to determine version
 
     version = importlib.metadata.version("pypet2bids")
 
