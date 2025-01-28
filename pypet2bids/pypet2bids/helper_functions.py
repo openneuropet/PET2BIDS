@@ -43,7 +43,7 @@ from platform import system
 try:
     import metadata
 except ImportError:
-    from pypet2bids import  metadata
+    from pypet2bids import metadata
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent.parent
@@ -66,7 +66,6 @@ schema = metadata.schema
 module_folder = Path(__file__).parent.resolve()
 python_folder = module_folder.parent
 pet2bids_folder = python_folder.parent
-#metadata_folder = os.path.join(pet2bids_folder, "metadata")
 
 loggers = {}
 
@@ -824,7 +823,7 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
         dimension = re.search(search_criteria, ReconMethodName)[0]
 
     # doing some more manipulation of the recon method name to expand it from not so helpful acronyms
-    possible_names =  metadata.PET_reconstruction_methods.get(ReconMethodName, [])
+    possible_names =  metadata.PET_reconstruction_methods.get("reconstruction_names", [])
 
     # we want to sort the possible names by longest first that we don't break up an acronym prematurely
     sorted_df = pandas.DataFrame(possible_names).sort_values(

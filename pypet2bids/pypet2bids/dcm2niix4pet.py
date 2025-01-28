@@ -588,7 +588,7 @@ class Dcm2niix4PET:
                             created_path,
                             check_for_missing,
                             dicom_header,
-                            dicom2bids_json=metadata_dictionaries["dicom2bids.json"],
+                            dicom2bids_json=metadata_dictionaries["dicom2bids"],
                             **self.additional_arguments,
                         )
 
