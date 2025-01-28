@@ -244,7 +244,7 @@ class Ecat:
         self.telemetry_data["NiftiFiles"] = 1
         self.telemetry_data["NiftiFilesSize"] = pathlib.Path(output).stat().st_size
 
-        if "nii.gz" not in output:
+        if "nii.gz" not in pathlib.Path(output).name:
             output = helper_functions.compress(output)
 
         return output
