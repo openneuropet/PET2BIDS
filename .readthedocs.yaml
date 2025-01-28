@@ -21,7 +21,7 @@ build:
     post_create_environment:
       - cp -r metadata pypet2bids/pypet2bids/
       # install poetry
-      - pip install poetry
+      - pip install poetry==1.6.1
       - poetry config virtualenvs.create false
       # just use poetry to export a requirements.txt as that worked much better than the previous attempts
       - cd pypet2bids && poetry lock && poetry export --without-hashes --with dev --format=requirements.txt > requirements.txt
