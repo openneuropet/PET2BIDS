@@ -14,48 +14,23 @@ from pandas import Timestamp
 try:
     import helper_functions
     import is_pet
+    import metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
+    import pypet2bids.metadata as metadata
 
 # import logging
 logger = helper_functions.logger("pypet2bids")
 
-# load module and metadata_json paths from helper_functions
-module_folder, metadata_folder = (
-    helper_functions.module_folder,
-    helper_functions.metadata_folder,
-)
-
-try:
-    # collect metadata jsons in dev mode
-    metadata_jsons = [
-        Path(join(metadata_folder, metadata_json))
-        for metadata_json in listdir(metadata_folder)
-        if ".json" in metadata_json
-    ]
-except FileNotFoundError:
-    metadata_jsons = [
-        Path(join(module_folder, "metadata", metadata_json))
-        for metadata_json in listdir(join(module_folder, "metadata"))
-        if ".json" in metadata_json
-    ]
-
 # create a dictionary to house the PET metadata files
-metadata_dictionaries = {}
-
-for metadata_json in metadata_jsons:
-    try:
-        with open(metadata_json, "r") as infile:
-            dictionary = json.load(infile)
-
-        metadata_dictionaries[metadata_json.name] = dictionary
-    except FileNotFoundError as err:
-        raise Exception(
-            f"Missing pet metadata file {metadata_json} in {metadata_folder}, unable to validate metadata."
-        )
-    except json.decoder.JSONDecodeError as err:
-        raise IOError(f"Unable to read from {metadata_json}")
+metadata_dictionaries = {
+    "blood_metadata": metadata.blood_metadata,
+    "dicom2bids": metadata.dicom2bids,
+    "PET_reconstruction_methods": metadata.PET_reconstruction_methods,
+    "schema": metadata.schema,
+    "PET_metadata": metadata.PET_metadata
+}
 
 
 def check_json(
@@ -96,7 +71,7 @@ def check_json(
 
     # check for default argument for dictionary of items to check
     if items_to_check is None:
-        items_to_check = metadata_dictionaries["PET_metadata.json"]
+        items_to_check = metadata_dictionaries["PET_metadata"]
         # remove blood tsv data from items to check
         if items_to_check.get("blood_recording_fields", None):
             items_to_check.pop("blood_recording_fields")
@@ -497,7 +472,7 @@ def get_radionuclide(pydicom_dicom):
 
     if extraction_good:
         # check to see if these nucleotides appear in our verified values
-        verified_nucleotides = metadata_dictionaries["dicom2bids.json"][
+        verified_nucleotides = metadata_dictionaries["dicom2bids"][
             "RadionuclideCodes"
         ]
 

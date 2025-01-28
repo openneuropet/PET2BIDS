@@ -5,7 +5,6 @@ description = "A python library for converting PET imaging and blood data to BID
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
 include = [
-    'pypet2bids/metadata/*',
     'pypet2bids/pyproject.toml',
     'pypet2bids/README.md',
     ]

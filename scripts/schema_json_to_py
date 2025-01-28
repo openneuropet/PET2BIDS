@@ -1,0 +1,27 @@
+#! /usr/bin/env python3
+
+import json
+import os
+import subprocess
+from pathlib import Path
+# get all json files in metadata folder
+json_files = [Path(f) for f in os.listdir("metadata/") if ".json" in f]
+
+# create python versions of those files
+one_python_import_to_rule_them = {}
+for js in json_files:
+    infile = open(os.path.join('metadata', js), 'r')
+    js_content = json.load(infile)
+    infile.close()
+
+    one_python_import_to_rule_them[js.name.replace('.json', '')] = js_content
+
+
+python_file_name = os.path.join('pypet2bids', 'pypet2bids', 'metadata.py')
+# open a python file and write the data out
+python_file = open(python_file_name, 'w')
+for metadata_name, metadata in one_python_import_to_rule_them.items():
+    print(f"{metadata_name} = {metadata}", file=python_file)
+
+python_file.close()
+subprocess.run(f"black {python_file_name}", shell=True)
