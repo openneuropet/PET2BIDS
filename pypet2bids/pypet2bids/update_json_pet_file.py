@@ -303,9 +303,16 @@ def update_json_with_dicom_value(
 
     # lastly if ezbids is true update the sidecar with acquisition data
     if ezbids:
+        acquisition_date = parser.parse(dicom_header.get("AcquisitionDate", ""))
+        acquisition_time = parser.parse(dicom_header.get("AcquisitionTime", ""))
+        if acquisition_time and acquisition_date:
+            acquisition_datetime = datetime.datetime.combine(acquisition_date.date(), acquisition_time.time())
+        else:
+            acquisition_datetime = "0000-00-00T00:00:00"
         json_updater.update(
-            {"AcquisitionDate": dicom_header.get("AcquisitionDate", ""),
-             "AcquisitionTime": dicom_header.get("AcquisitionTime", ""),
+            {"AcquisitionDate": f"{acquisition_date.date()}",
+             "AcquisitionTime": f"{acquisition_time.time()}",
+             "AcquisitionDateTime": f"{acquisition_datetime.isoformat()}"
              })
 
     # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
