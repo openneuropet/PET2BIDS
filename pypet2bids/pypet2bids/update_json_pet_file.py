@@ -149,6 +149,7 @@ def update_json_with_dicom_value(
     dicom_header,
     dicom2bids_json=None,
     silent=True,
+    ezbids=False,
     **additional_arguments,
 ):
     """
@@ -160,6 +161,9 @@ def update_json_with_dicom_value(
     :param missing_values: dictionary output from check_json indicating missing fields and/or values
     :param dicom_header: the dicom or dicoms that may contain information not picked up by dcm2niix
     :param dicom2bids_json: a json file that maps dicom header entities to their corresponding BIDS entities
+    :param silent: run silently without error, status, or warning messages
+    :param ezbids: boolean to supply additional data that ezbids or other software requires, defaults to false. When
+    true the sidecar json will be updated with AcquisitionDate, AcquisitionTime, and AcquisitionDateTime
     :return: a dictionary of successfully updated (written to the json file) fields and values
     """
 
@@ -296,6 +300,13 @@ def update_json_with_dicom_value(
 
     # remove scandate if it exists
     json_updater.remove("ScanDate")
+
+    # lastly if ezbids is true update the sidecar with acquisition data
+    if ezbids:
+        json_updater.update(
+            {"AcquisitionDate": dicom_header.get("AcquisitionDate", ""),
+             "AcquisitionTime": dicom_header.get("AcquisitionTime", ""),
+             })
 
     # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
     updated_values = json.load(open(path_to_json, "r"))
