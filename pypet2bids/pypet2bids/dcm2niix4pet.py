@@ -175,6 +175,7 @@ class Dcm2niix4PET:
         file_format="%p_%i_%t_%s",
         silent=False,
         tempdir_location=None,
+        ezbids=False
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -215,6 +216,7 @@ class Dcm2niix4PET:
         self.blood_json = None
         self.blood_tsv = None
         self.telemetry_data = {}
+        self.ezbids=ezbids
         self.dcm2niix_path = self.check_for_dcm2niix()
         if not self.dcm2niix_path:
             logger.error(
@@ -589,6 +591,7 @@ class Dcm2niix4PET:
                             check_for_missing,
                             dicom_header,
                             dicom2bids_json=metadata_dictionaries["dicom2bids"],
+                            ezbids=self.ezbids,
                             **self.additional_arguments,
                         )
 
@@ -1162,6 +1165,13 @@ def cli():
         "This information helps to improve PET2BIDS and provides an indicator of real world "
         "usage crucial for obtaining funding.",
     )
+    parser.add_argument(
+        "--ezbids",
+        action="store_true",
+        default=False,
+        help="Add fields to json output that are useful for ezBIDS or other conversion software. This will de-anonymize"
+             " pet2bids output and add AcquisitionDate an AcquisitionTime into the output json."
+    )
     return parser
 
 
@@ -1328,6 +1338,7 @@ def main():
             additional_arguments=cli_args.kwargs,
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent,
+            ezbids=cli_args.ezbids,
         )
 
         if cli_args.trc:
