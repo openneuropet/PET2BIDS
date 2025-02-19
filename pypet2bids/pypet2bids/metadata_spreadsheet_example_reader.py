@@ -5,15 +5,14 @@ import pathlib
 
 try:
     import helper_functions
+    import metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
+    import pypet2bids.metadata as metadata
 
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
 project_dir = parent_dir.parent
-metadata_dir = join(project_dir, "metadata")
-pet_metadata_json = join(metadata_dir, "PET_metadata.json")
-permalink_pet_metadata_json = "https://github.com/openneuropet/PET2BIDS/blob/76d95cf65fa8a14f55a4405df3fdec705e2147cf/metadata/PET_metadata.json"
 
 """
 

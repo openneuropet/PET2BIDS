@@ -51,7 +51,7 @@ def check_json(
     :type spreadsheet_metadata:
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
     :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
-           PET_metadata.json contained in this repository
+           PET_metadata imported from metadata.PET_metadata
     :param silent: Raises warnings or errors to stdout if this flag is set to True
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
             corresponding entry in the json the same can be said of value
