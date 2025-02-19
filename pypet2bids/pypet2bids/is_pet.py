@@ -15,28 +15,21 @@ try:
     import helper_functions
     import ecat
     import dcm2niix4pet
+    import metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.ecat as ecat
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
+    import pypet2bids.metadata
 
 
 def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
     # load data from spreadsheet
     data = helper_functions.open_meta_data(sourcefile)
 
-    # load BIDS PET requirements
     try:
-        with open(
-            helper_functions.pet_metadata_json, "r"
-        ) as pet_field_requirements_json:
-            pet_field_requirements = json.load(pet_field_requirements_json)
-    except (FileNotFoundError, json.JSONDecodeError) as error:
-        print(
-            f"Unable to load list of required, recommended, and optional PET BIDS fields from"
-            f" {helper_functions.pet_metadata_json}, will not be able to determine if sourcefile contains"
-            f" PET BIDS specific metadata"
-        )
+        pet_field_requirements = metadata.PET_metadata
+    except:
         pet_field_requirements = {}
 
     mandatory_fields = pet_field_requirements.get("mandatory", [])
