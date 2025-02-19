@@ -135,7 +135,7 @@ def single_spreadsheet_reader(
 ) -> dict:
 
     spreadsheet_metadata = {}
-    metadata_fields = pet2bids_metadata.PET_metadata
+    metadata_fields = pet2bids_metadata
 
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
