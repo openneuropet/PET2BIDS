@@ -5,11 +5,14 @@ import typing
 import os
 import argparse
 
+from numpy.lib.recfunctions import require_fields
 
 try:
     import pypet2bids.helper_functions as helper_functions
+    import pypet2bids.metadata as metadata
 except ModuleNotFoundError:
     import helper_functions
+    import metadata
 
 
 def read_multi_subject_spreadsheets(
@@ -40,7 +43,7 @@ def read_multi_subject_spreadsheets(
 
     """
 
-    required_fields = helper_functions.load_pet_bids_requirements_json()
+    required_fields = metadata.PET_metadata
 
     if (
         general_metadata_spreadsheet.is_file()
@@ -52,7 +55,6 @@ def read_multi_subject_spreadsheets(
         multiple_subject_metadata = helper_functions.open_meta_data(
             multiple_subject_spreadsheet
         )
-        multiple_subject_metadata
 
         column_set = set(
             list(general_metadata.keys()) + list(multiple_subject_metadata.columns)

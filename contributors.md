@@ -12,6 +12,7 @@ Granville Matheson 📝 🐛 ✅
 Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
 Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️  
 Chris Rorden 💻 🐛 📖  
+Maximilian Cosmo Sitter 💻
 Claus Svarer 💻 💡⚠️   
 Adam G Thomas  🔍 🤔  
 Robert Innis 💡⚠️💵   

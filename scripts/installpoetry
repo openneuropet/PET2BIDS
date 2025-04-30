@@ -1,2 +1,2 @@
 #! /usr/bin/env bash
-python3 -m pip install poetry
+python3 -m pip install poetry==1.6.1
