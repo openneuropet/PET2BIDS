@@ -27,7 +27,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         python: ["3.10"]
       fail-fast: false
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Cache Node Posix
         if: runner.os != 'Windows' && !env.ACT
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
@@ -45,7 +45,7 @@ jobs:
       - name: Cache Phantoms
         if: ${{ !env.ACT }}
         id: phantom-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-phantoms
         with:
@@ -136,7 +136,7 @@ jobs:
           bash python_conversions.sh
 
       - name: SetupMatlab
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: matlab-actions/setup-matlab@v1
         # note matlab-actions/setup-matlab@v2 breaks this script, don't update unless you're forced to
         #with:
@@ -144,7 +144,7 @@ jobs:
           #cache: true
 
       - name: Run Matlab Conversion Script on Phantoms
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: matlab-actions/run-command@v1
         with:
           command: |
