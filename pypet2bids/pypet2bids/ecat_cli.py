@@ -203,7 +203,6 @@ def cli():
     parser.add_argument(
         "--ezbids",
         default=False,
-        type=bool,
         action="store_true",
         help="Enable or disable extra steps performed for ezBIDS.",
     )
