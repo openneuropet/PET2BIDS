@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypet2bids"
-version = "1.4.1"
+version = "1.4.2"
 description = "A python library for converting PET imaging and blood data to BIDS."
 authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
 license = "MIT"
@@ -13,7 +13,7 @@ repository = "https://github.com/openneuropet/pet2bids/"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=3.12"
+python = ">=3.9,<=3.12"
 nibabel = ">=3.2.1"
 numpy = "^1.21.3"
 pyparsing = "^3.0.4"
@@ -52,8 +52,9 @@ ecatheaderupdate = 'pypet2bids.ecat_header_update:main'
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.4.1"
-build = "^0.9.0"
+build = "^0.10.0"
 sphinx-rtd-theme = "^1.2.2"
+briefcase = "^0.3.23"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

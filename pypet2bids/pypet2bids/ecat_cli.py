@@ -68,6 +68,8 @@ def cli():
     :type --show-examples: flag
     :param --metadata-path: path to a spreadsheet containing PET metadata
     :type --metadata-path: path
+    :param --ezbids: perform additional actions for ezbids
+    :type --ezbids: flag
 
     :return: argparse.ArgumentParser.args for later use in executing conversions or ECAT methods
     """
@@ -198,6 +200,13 @@ def cli():
         "This information helps to improve PET2BIDS and provides an indicator of real world "
         "usage crucial for obtaining funding.",
     )
+    parser.add_argument(
+        "--ezbids",
+        default=False,
+        type=bool,
+        action="store_true",
+        help="Enable or disable extra steps performed for ezBIDS.",
+    )
 
     return parser
 
@@ -309,6 +318,7 @@ def main():
         collect_pixel_data=collect_pixel_data,
         metadata_path=cli_args.metadata_path,
         kwargs=cli_args.kwargs,
+        ezbids=cli_args.ezbids,
     )
     if cli_args.json:
         ecat.json_out()
