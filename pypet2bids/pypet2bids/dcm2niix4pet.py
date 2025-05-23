@@ -175,7 +175,7 @@ class Dcm2niix4PET:
         file_format="%p_%i_%t_%s",
         silent=False,
         tempdir_location=None,
-        ezbids=False
+        ezbids=False,
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -216,7 +216,7 @@ class Dcm2niix4PET:
         self.blood_json = None
         self.blood_tsv = None
         self.telemetry_data = {}
-        self.ezbids=ezbids
+        self.ezbids = ezbids
         self.dcm2niix_path = self.check_for_dcm2niix()
         if not self.dcm2niix_path:
             logger.error(
@@ -763,9 +763,11 @@ class Dcm2niix4PET:
                     if self.session_id:
                         collection_of_fields["ses"] = self.session_id
 
-                    hash_string = helper_functions.hash_fields(**collection_of_fields)
-
-                    sidecar_json.update({"SeriesDescription": hash_string})
+                    if self.ezbids:
+                        hash_string = helper_functions.hash_fields(
+                            **collection_of_fields
+                        )
+                        sidecar_json.update({"SeriesDescription": hash_string})
 
                 # if there's a subject id rename the output file to use it
                 if self.subject_id:
@@ -1170,7 +1172,7 @@ def cli():
         action="store_true",
         default=False,
         help="Add fields to json output that are useful for ezBIDS or other conversion software. This will de-anonymize"
-             " pet2bids output and add AcquisitionDate an AcquisitionTime into the output json."
+        " pet2bids output and add AcquisitionDate an AcquisitionTime into the output json.",
     )
     return parser
 

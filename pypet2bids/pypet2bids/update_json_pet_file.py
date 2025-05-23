@@ -29,7 +29,7 @@ metadata_dictionaries = {
     "dicom2bids": metadata.dicom2bids,
     "PET_reconstruction_methods": metadata.PET_reconstruction_methods,
     "schema": metadata.schema,
-    "PET_metadata": metadata.PET_metadata
+    "PET_metadata": metadata.PET_metadata,
 }
 
 
@@ -306,14 +306,18 @@ def update_json_with_dicom_value(
         acquisition_date = parser.parse(dicom_header.get("AcquisitionDate", ""))
         acquisition_time = parser.parse(dicom_header.get("AcquisitionTime", ""))
         if acquisition_time and acquisition_date:
-            acquisition_datetime = datetime.datetime.combine(acquisition_date.date(), acquisition_time.time())
+            acquisition_datetime = datetime.datetime.combine(
+                acquisition_date.date(), acquisition_time.time()
+            )
         else:
             acquisition_datetime = "0000-00-00T00:00:00"
         json_updater.update(
-            {"AcquisitionDate": f"{acquisition_date.date()}",
-             "AcquisitionTime": f"{acquisition_time.time()}",
-             "AcquisitionDateTime": f"{acquisition_datetime.isoformat()}"
-             })
+            {
+                "AcquisitionDate": f"{acquisition_date.date()}",
+                "AcquisitionTime": f"{acquisition_time.time()}",
+                "AcquisitionDateTime": f"{acquisition_datetime.isoformat()}",
+            }
+        )
 
     # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
     updated_values = json.load(open(path_to_json, "r"))
@@ -490,9 +494,7 @@ def get_radionuclide(pydicom_dicom):
 
     if extraction_good:
         # check to see if these nucleotides appear in our verified values
-        verified_nucleotides = metadata_dictionaries["dicom2bids"][
-            "RadionuclideCodes"
-        ]
+        verified_nucleotides = metadata_dictionaries["dicom2bids"]["RadionuclideCodes"]
 
         check_code_value = ""
         check_code_meaning = ""

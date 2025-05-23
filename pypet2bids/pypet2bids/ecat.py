@@ -72,6 +72,7 @@ class Ecat:
         collect_pixel_data=True,
         metadata_path=None,
         kwargs={},
+        ezbids=False,
     ):
         """
         Initialization of this class requires only a path to an ecat file.
@@ -108,6 +109,7 @@ class Ecat:
         self.kwargs = kwargs
         self.output_path = None
         self.metadata_path = metadata_path
+        self.ezbids = ezbids
 
         self.telemetry_data = {}
 
@@ -527,8 +529,9 @@ class Ecat:
                 "ses", self.output_path
             )
 
-        hash_string = helper_functions.hash_fields(**collection_of_fields)
-        self.sidecar_template["SeriesDescription"] = hash_string
+        if self.ezbids:
+            hash_string = helper_functions.hash_fields(**collection_of_fields)
+            self.sidecar_template["SeriesDescription"] = hash_string
 
         if output_path:
             if not isinstance(output_path, pathlib.Path):

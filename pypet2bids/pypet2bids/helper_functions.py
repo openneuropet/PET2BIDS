@@ -796,7 +796,7 @@ def get_recon_method(ReconstructionMethodString: str) -> dict:
         dimension = re.search(search_criteria, ReconMethodName)[0]
 
     # doing some more manipulation of the recon method name to expand it from not so helpful acronyms
-    possible_names =  metadata.PET_reconstruction_methods.get("reconstruction_names", [])
+    possible_names = metadata.PET_reconstruction_methods.get("reconstruction_names", [])
 
     # we want to sort the possible names by longest first that we don't break up an acronym prematurely
     sorted_df = pandas.DataFrame(possible_names).sort_values(
