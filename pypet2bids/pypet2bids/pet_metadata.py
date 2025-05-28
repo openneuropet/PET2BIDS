@@ -1,3 +1,6 @@
+import sys
+from types import SimpleNamespace
+
 blood_metadata = {
     "mandatory": [
         "PlasmaAvail",
@@ -10708,3 +10711,13 @@ PET_metadata = {
         "whole_blood_radioactivity",
     ],
 }
+
+sys.modules[__name__] = SimpleNamespace(
+    blood_metadata=blood_metadata,
+    dicom2bids=dicom2bids,
+    PET_reconstruction_filters=PET_reconstruction_filters,
+    definitions=definitions,
+    PET_reconstruction_methods=PET_reconstruction_methods,
+    schema=schema,
+    PET_metadata=PET_metadata,
+)

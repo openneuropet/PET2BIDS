@@ -5,10 +5,10 @@ import pathlib
 
 try:
     import helper_functions
-    import metadata
+    import pet_metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-    import pypet2bids.metadata as metadata
+    import pypet2bids.pet_metadata as pet_metadata
 
 
 parent_dir = pathlib.Path(__file__).parent.resolve()

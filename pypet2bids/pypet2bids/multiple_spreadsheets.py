@@ -9,10 +9,10 @@ from numpy.lib.recfunctions import require_fields
 
 try:
     import pypet2bids.helper_functions as helper_functions
-    import pypet2bids.metadata as metadata
+    import pypet2bids.pet_metadata as pet_metadata
 except ModuleNotFoundError:
     import helper_functions
-    import metadata
+    import pet_metadata
 
 
 def read_multi_subject_spreadsheets(
@@ -43,7 +43,7 @@ def read_multi_subject_spreadsheets(
 
     """
 
-    required_fields = metadata.PET_metadata
+    required_fields = pet_metadata.PET_metadata
 
     if (
         general_metadata_spreadsheet.is_file()

@@ -7,10 +7,10 @@ from json_maj.main import JsonMAJ
 
 try:
     import helper_functions
-    import metadata
+    import pet_metadata as metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-    import pypet2bids.metadata as metadata
+    import pypet2bids.pet_metadata as metadata
 
 # from pypet2bids.helper_functions import single_spreadsheet_reader, \
 #    collect_bids_part, open_meta_data, load_pet_bids_requirements_json, ParseKwargs

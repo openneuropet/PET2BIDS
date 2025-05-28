@@ -42,15 +42,14 @@ from platform import system
 import importlib
 
 try:
-    import metadata
+    from importlib import metadata
 except ImportError:
-    from pypet2bids import metadata
+    import importlib_metadata as metadata
 
-parent_dir = pathlib.Path(__file__).parent.resolve()
-project_dir = parent_dir.parent.parent
-if "PET2BIDS" not in project_dir.parts:
-    project_dir = parent_dir
-
+try:
+    import pet_metadata as metadata
+except ImportError:
+    import pypet2bids.pet_metadata as metadata
 
 # load bids schema
 schema = metadata.schema
@@ -287,14 +286,13 @@ def get_version():
     """
     # this scripts directory path
     scripts_dir = pathlib.Path(os.path.dirname(__file__))
-
-    # first try using importlib.metadata.version to determine version
-
-    version = importlib.metadata.version("pypet2bids")
+    try:
+        version = metadata.version("pypet2bids")
+    except Exception:
+        version = None
 
     if not version:
         tomlfile = {}
-
         try:
             # if this is bundled as a package look next to this file for the pyproject.toml
             toml_path = os.path.join(scripts_dir, "pyproject.toml")
