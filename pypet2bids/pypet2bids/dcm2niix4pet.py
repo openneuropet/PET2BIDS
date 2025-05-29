@@ -486,15 +486,23 @@ class Dcm2niix4PET:
             }
             self.telemetry_data.update(count_output_files(self.tempdir_location))
 
-            if convert.returncode != 0:
+            if (
+                convert.returncode != 0
+                or "error" in convert.stderr.decode("utf-8").lower()
+            ):
                 print(
                     "Check output .nii files, dcm2iix returned these errors during conversion:"
                 )
+                # raise error if missing images is found
+                if "missing images" in convert.stderr.decode("utf8").lower():
+                    error_message = convert.stderr.decode("utf8").replace("Error:", "")
+                    error_message = f"{error_message}for dicoms in {image_folder}"
+                    raise FileNotFoundError(error_message)
                 if (
                     bytes("Skipping existing file name", "utf-8") not in convert.stdout
                     or convert.stderr
                 ):
-                    print(convert.stderr)
+                    print(convert.stderr.decode("utf-8"))
                 elif (
                     convert.returncode != 0
                     and bytes("Error: Check sorted order", "utf-8") in convert.stdout
@@ -557,6 +565,17 @@ class Dcm2niix4PET:
                     matched_dicoms_and_headers = self.match_dicom_header_to_file(
                         destination_path=tempdir_pathlike
                     )
+
+                    # Additionally we want to check to see if the frame timing information is correct
+                    # often a series of dicoms is incomplete (missing files) but dcm2niix can still
+                    # output a nifti at the end. We can compare the outputs of dcm2niix with the
+                    # frame information in the dicom header.
+
+                    # collect the number of frames that are present in the nifti
+
+                    # collect the number of frames that are listed in the sidecar, duration, etc
+
+                    # collect any frame timing info that may be contained in additional arguments or the spreadsheet metadata
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
