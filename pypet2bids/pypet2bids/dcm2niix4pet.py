@@ -29,6 +29,7 @@ from tempfile import TemporaryDirectory
 import shutil
 import argparse
 import importlib
+from nibabel import load
 
 try:
     import helper_functions
@@ -176,6 +177,7 @@ class Dcm2niix4PET:
         silent=False,
         tempdir_location=None,
         ezbids=False,
+        ignore_dcm2niix_errors=False,
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -223,7 +225,7 @@ class Dcm2niix4PET:
                 "dcm2niix not found, this module depends on it for conversions, exiting."
             )
             sys.exit(1)
-
+        self.ignore_dcm2niix_errors = ignore_dcm2niix_errors
         # check for the version of dcm2niix
         minimum_version = "v1.0.20220720"
         version_string = subprocess.run([self.dcm2niix_path, "-v"], capture_output=True)
@@ -489,7 +491,7 @@ class Dcm2niix4PET:
             if (
                 convert.returncode != 0
                 or "error" in convert.stderr.decode("utf-8").lower()
-            ):
+            ) and not self.ignore_dcm2niix_errors:
                 print(
                     "Check output .nii files, dcm2iix returned these errors during conversion:"
                 )
@@ -570,12 +572,46 @@ class Dcm2niix4PET:
                     # often a series of dicoms is incomplete (missing files) but dcm2niix can still
                     # output a nifti at the end. We can compare the outputs of dcm2niix with the
                     # frame information in the dicom header.
-
-                    # collect the number of frames that are present in the nifti
-
-                    # collect the number of frames that are listed in the sidecar, duration, etc
-
-                    # collect any frame timing info that may be contained in additional arguments or the spreadsheet metadata
+                    for dicom, matched in matched_dicoms_and_headers.items():
+                        matched_dicom = pydicom.dcmread(
+                            join(self.image_folder, dicom), stop_before_pixels=True
+                        )
+                        matched_json = next(
+                            (f for f in matched if f.endswith(".json")), None
+                        )
+                        matched_nii = next(
+                            (
+                                load(f)
+                                for f in matched
+                                if f.endswith(".nii") or f.endswith(".nii.gz")
+                            ),
+                            None,
+                        )
+                        if matched_nii:
+                            try:
+                                nifti_time_dim = matched_nii.shape[3]
+                            except IndexError:
+                                nifti_time_dim = 0
+                            if (
+                                matched_dicom.get("NumberOfTimeSlices")
+                                != nifti_time_dim
+                                and not self.ignore_dcm2niix_errors
+                            ):
+                                raise Exception(
+                                    f"NifTi produced has {nifti_time_dim} timing frames, should have {matched_dicom.get('NumberOfTimeSlices')} instead."
+                                )
+                        if matched_json:
+                            with open(matched_json, "r") as infile:
+                                matched_json = json.load(infile)
+                            json_num_frames = len(matched_json.get("FrameDuration", []))
+                            if (
+                                matched_dicom.get("NumberOfTimeSlices")
+                                != json_num_frames
+                                and not self.ignore_dcm2niix_errors
+                            ):
+                                raise Exception(
+                                    f"Length of FrameDuration is {json_num_frames} should match {matched_dicom.filename}'s NumberOfTimeSlices value {matched_dicom.get('NumberOfTimeSlices')} instead"
+                                )
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
@@ -1193,6 +1229,13 @@ def cli():
         help="Add fields to json output that are useful for ezBIDS or other conversion software. This will de-anonymize"
         " pet2bids output and add AcquisitionDate an AcquisitionTime into the output json.",
     )
+    parser.add_argument(
+        "--ignore-dcm2niix-errors",
+        action="store_true",
+        default=False,
+        help="Accept any NifTi produced by dcm2niix even if it contains errors. This flag should only be used for "
+        "batch processing and only if you're performing robust QC after the fact.",
+    )
     return parser
 
 
@@ -1360,6 +1403,7 @@ def main():
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent,
             ezbids=cli_args.ezbids,
+            ignore_dcm2niix_errors=cli_args.ignore_dcm2niix_errors,
         )
 
         if cli_args.trc:
