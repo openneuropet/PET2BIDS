@@ -15,12 +15,12 @@ try:
     import helper_functions
     import ecat
     import dcm2niix4pet
-    import metadata
+    import pet_metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.ecat as ecat
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
-    import pypet2bids.metadata
+    import pypet2bids.pet_metadata as pet_metadata
 
 
 def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
@@ -28,7 +28,7 @@ def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
     data = helper_functions.open_meta_data(sourcefile)
 
     try:
-        pet_field_requirements = metadata.PET_metadata
+        pet_field_requirements = pet_metadata.PET_metadata
     except:
         pet_field_requirements = {}
 

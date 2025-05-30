@@ -176,6 +176,7 @@ class Dcm2niix4PET:
         silent=False,
         tempdir_location=None,
         ezbids=False,
+        ignore_dcm2niix_errors=False,
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -223,7 +224,7 @@ class Dcm2niix4PET:
                 "dcm2niix not found, this module depends on it for conversions, exiting."
             )
             sys.exit(1)
-
+        self.ignore_dcm2niix_errors = ignore_dcm2niix_errors
         # check for the version of dcm2niix
         minimum_version = "v1.0.20220720"
         version_string = subprocess.run([self.dcm2niix_path, "-v"], capture_output=True)
@@ -486,15 +487,23 @@ class Dcm2niix4PET:
             }
             self.telemetry_data.update(count_output_files(self.tempdir_location))
 
-            if convert.returncode != 0:
+            if (
+                convert.returncode != 0
+                or "error" in convert.stderr.decode("utf-8").lower()
+            ) and not self.ignore_dcm2niix_errors:
                 print(
                     "Check output .nii files, dcm2iix returned these errors during conversion:"
                 )
+                # raise error if missing images is found
+                if "missing images" in convert.stderr.decode("utf8").lower():
+                    error_message = convert.stderr.decode("utf8").replace("Error:", "")
+                    error_message = f"{error_message}for dicoms in {image_folder}"
+                    raise FileNotFoundError(error_message)
                 if (
                     bytes("Skipping existing file name", "utf-8") not in convert.stdout
                     or convert.stderr
                 ):
-                    print(convert.stderr)
+                    print(convert.stderr.decode("utf-8"))
                 elif (
                     convert.returncode != 0
                     and bytes("Error: Check sorted order", "utf-8") in convert.stdout
@@ -1174,6 +1183,13 @@ def cli():
         help="Add fields to json output that are useful for ezBIDS or other conversion software. This will de-anonymize"
         " pet2bids output and add AcquisitionDate an AcquisitionTime into the output json.",
     )
+    parser.add_argument(
+        "--ignore-dcm2niix-errors",
+        action="store_true",
+        default=False,
+        help="Accept any NifTi produced by dcm2niix even if it contains errors. This flag should only be used for "
+        "batch processing and only if you're performing robust QC after the fact.",
+    )
     return parser
 
 
@@ -1341,6 +1357,7 @@ def main():
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent,
             ezbids=cli_args.ezbids,
+            ignore_dcm2niix_errors=cli_args.ignore_dcm2niix_errors,
         )
 
         if cli_args.trc:

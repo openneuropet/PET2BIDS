@@ -14,11 +14,11 @@ from pandas import Timestamp
 try:
     import helper_functions
     import is_pet
-    import metadata
+    import pet_metadata as metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
-    import pypet2bids.metadata as metadata
+    import pypet2bids.pet_metadata as metadata
 
 # import logging
 logger = helper_functions.logger("pypet2bids")
@@ -51,7 +51,7 @@ def check_json(
     :type spreadsheet_metadata:
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
     :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
-           PET_metadata imported from metadata.PET_metadata
+           PET_metadata imported from pet_metadata.PET_metadata
     :param silent: Raises warnings or errors to stdout if this flag is set to True
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
             corresponding entry in the json the same can be said of value
@@ -181,7 +181,7 @@ def update_json_with_dicom_value(
     # purely to clean up the generated read the docs page from sphinx, otherwise the entire json appears in the
     # read the docs page.
     if dicom2bids_json is None:
-        dicom2bids_json = metadata_dictionaries["dicom2bids.json"]
+        dicom2bids_json = metadata_dictionaries["dicom2bids"]
 
     # Units gets written as Unit in older versions of dcm2niix here we check for missing Units and present Unit entity
     units = missing_values.get("Units", None)
