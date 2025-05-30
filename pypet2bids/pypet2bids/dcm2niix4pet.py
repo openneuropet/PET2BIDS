@@ -29,7 +29,6 @@ from tempfile import TemporaryDirectory
 import shutil
 import argparse
 import importlib
-from nibabel import load
 
 try:
     import helper_functions
@@ -567,7 +566,6 @@ class Dcm2niix4PET:
                     matched_dicoms_and_headers = self.match_dicom_header_to_file(
                         destination_path=tempdir_pathlike
                     )
-
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
