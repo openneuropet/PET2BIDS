@@ -568,50 +568,6 @@ class Dcm2niix4PET:
                         destination_path=tempdir_pathlike
                     )
 
-                    # Additionally we want to check to see if the frame timing information is correct
-                    # often a series of dicoms is incomplete (missing files) but dcm2niix can still
-                    # output a nifti at the end. We can compare the outputs of dcm2niix with the
-                    # frame information in the dicom header.
-                    for dicom, matched in matched_dicoms_and_headers.items():
-                        matched_dicom = pydicom.dcmread(
-                            join(self.image_folder, dicom), stop_before_pixels=True
-                        )
-                        matched_json = next(
-                            (f for f in matched if f.endswith(".json")), None
-                        )
-                        matched_nii = next(
-                            (
-                                load(f)
-                                for f in matched
-                                if f.endswith(".nii") or f.endswith(".nii.gz")
-                            ),
-                            None,
-                        )
-                        if matched_nii:
-                            try:
-                                nifti_time_dim = matched_nii.shape[3]
-                            except IndexError:
-                                nifti_time_dim = 0
-                            if (
-                                matched_dicom.get("NumberOfTimeSlices")
-                                != nifti_time_dim
-                                and not self.ignore_dcm2niix_errors
-                            ):
-                                raise Exception(
-                                    f"NifTi produced has {nifti_time_dim} timing frames, should have {matched_dicom.get('NumberOfTimeSlices')} instead."
-                                )
-                        if matched_json:
-                            with open(matched_json, "r") as infile:
-                                matched_json = json.load(infile)
-                            json_num_frames = len(matched_json.get("FrameDuration", []))
-                            if (
-                                matched_dicom.get("NumberOfTimeSlices")
-                                != json_num_frames
-                                and not self.ignore_dcm2niix_errors
-                            ):
-                                raise Exception(
-                                    f"Length of FrameDuration is {json_num_frames} should match {matched_dicom.filename}'s NumberOfTimeSlices value {matched_dicom.get('NumberOfTimeSlices')} instead"
-                                )
 
                     # we check to see what's missing from our recommended and required jsons by gathering the
                     # output of check_json silently
