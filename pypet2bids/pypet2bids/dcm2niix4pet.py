@@ -671,13 +671,18 @@ class Dcm2niix4PET:
                         else:
                             # collect filter size
                             recon_filter_size = ""
-                            if re.search(
-                                r"\d+.\d+", sidecar_json.get("ConvolutionKernel")
-                            ):
-                                recon_filter_size = re.search(
-                                    r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
-                                )[0]
-                                recon_filter_size = float(recon_filter_size)
+                            if re.search(r"\d+.\d+", sidecar_json.get("ConvolutionKernel")):
+                                try:
+                                    recon_filter_size = re.search(
+                                        r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
+                                    )[0]
+                                    recon_filter_size = float(recon_filter_size)
+                                except ValueError:
+                                    # If float conversion fails, try splitting and take first part
+                                    match_str = re.search(
+                                        r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
+                                    )[0]
+                                    recon_filter_size = float(match_str.split()[0])
                                 sidecar_json.update(
                                     {"ReconFilterSize": float(recon_filter_size)}
                                 )
