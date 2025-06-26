@@ -93,7 +93,7 @@ jobs:
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          uv pip install -e .[dev] --system
+          pip install -e .[dev]
 
       - name: Install UV Build Package
         run: |
