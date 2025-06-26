@@ -88,12 +88,12 @@ jobs:
             pypet2bids/pyproject.toml
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          uv sync --dev
+          uv pip install -e .[dev]
 
       - name: Install UV Build Package
         run: |
