@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
-        python: ['3.9', '3.10']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
       - name: Checkout Repo
@@ -48,13 +48,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          python -m pip install --upgrade pip
-          pip install poetry==1.6.1
-          poetry install --with dev
+          uv sync --dev
 
       - name: Collect ECAT and other phantoms
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
@@ -73,12 +73,12 @@ jobs:
       - name: Test CLI --help
         run: |
           cd pypet2bids/
-          poetry run python3 -m pypet2bids.ecat_cli --help
+          uv run python3 -m pypet2bids.ecat_cli --help
 
       - name: Test CLI Ecat Dump
         run: |
           cd pypet2bids/
-          poetry run python3 -m pypet2bids.ecat_cli ${{ env.REAL_ECAT_TEST_PATH }} --dump
+          uv run python3 -m pypet2bids.ecat_cli ${{ env.REAL_ECAT_TEST_PATH }} --dump
 
       # the larger real data file uses too much ram for the github runner, we use the small file for
       # heavy io operations instead
@@ -87,9 +87,9 @@ jobs:
           gzip -d ${{ env.SMALLER_ECAT_PATH }}
       
       - name: Test ecatread
-        run: "cd pypet2bids/ && poetry run python3 -m tests.test_ecatread"
+        run: "cd pypet2bids/ && uv run python3 -m tests.test_ecatread"
 
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          poetry run pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
+          uv run pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
