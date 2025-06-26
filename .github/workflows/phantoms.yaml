@@ -93,13 +93,13 @@ jobs:
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          uv pip install -e .[dev]
+          uv pip install -e .[dev] --system
 
       - name: Install UV Build Package
         run: |
           make installuv
           make buildpackage
-          make installpackage
+          cd pypet2bids && uv pip install dist/pypet2bids-*.whl --system
           dcm2niix4pet -h
 
       - name: Set Up Node

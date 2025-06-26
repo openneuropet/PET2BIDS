@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd pypet2bids
-          uv pip install -e .[dev]
+          uv pip install -e .[dev] --system
 
       - name: Collect ECAT and other phantoms
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
