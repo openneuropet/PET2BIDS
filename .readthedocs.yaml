@@ -11,23 +11,15 @@ submodules:
     - golden_ecat.py
     - tests
 
-
 # Set the version of Python and other tools you might need
 build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
   jobs:
-    post_create_environment:
-      - cp -r metadata pypet2bids/pypet2bids/
-      # just use poetry to export a requirements.txt as that worked much better than the previous attempts
+    create_environment:
       - cd pypet2bids && pip install -e .[dev]
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
-
-# Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: pypet2bids/pyproject.toml
