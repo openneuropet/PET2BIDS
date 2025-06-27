@@ -11,26 +11,20 @@ submodules:
     - golden_ecat.py
     - tests
 
-
 # Set the version of Python and other tools you might need
 build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
-  jobs:
-    post_create_environment:
-      - cp -r metadata pypet2bids/pypet2bids/
-      # install poetry
-      - pip install poetry==1.6.1
-      - poetry config virtualenvs.create false
-      # just use poetry to export a requirements.txt as that worked much better than the previous attempts
-      - cd pypet2bids && poetry lock && poetry export --without-hashes --with dev --format=requirements.txt > requirements.txt
+
+# Install Python dependencies
+python:
+  install:
+    - method: pip
+      path: pypet2bids
+      extra_requirements:
+        - dev
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
-
-# Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: pypet2bids/requirements.txt
