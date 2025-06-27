@@ -480,7 +480,7 @@ class Dcm2niix4PET:
             self.tempdir_location = tempdir_pathlike
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
-            cmd = f"{self.dcm2niix_path} -b y -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
+            cmd = f"{self.dcm2niix_path} -b y -m Y -w 1 -z y -s y {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
             self.telemetry_data["dcm2niix"] = {
                 "returncode": convert.returncode,
@@ -671,13 +671,18 @@ class Dcm2niix4PET:
                         else:
                             # collect filter size
                             recon_filter_size = ""
-                            if re.search(
-                                r"\d+.\d+", sidecar_json.get("ConvolutionKernel")
-                            ):
-                                recon_filter_size = re.search(
-                                    r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
-                                )[0]
-                                recon_filter_size = float(recon_filter_size)
+                            if re.search(r"\d+.\d+", sidecar_json.get("ConvolutionKernel")):
+                                try:
+                                    recon_filter_size = re.search(
+                                        r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
+                                    )[0]
+                                    recon_filter_size = float(recon_filter_size)
+                                except ValueError:
+                                    # If float conversion fails, try splitting and take first part
+                                    match_str = re.search(
+                                        r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
+                                    )[0]
+                                    recon_filter_size = float(match_str.split()[0])
                                 sidecar_json.update(
                                     {"ReconFilterSize": float(recon_filter_size)}
                                 )
