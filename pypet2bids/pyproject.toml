@@ -46,7 +46,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=6.2.5,<8.0.0",
-    "sphinx<=4.5.0",
+    "sphinx>=5.0.0,<7.0.0",
     "sphinx-rtd-theme>=1.2.2",
     "sphinxcontrib-matlabdomain>=0.21.4",
     "pyinstaller>=5.4.1",
