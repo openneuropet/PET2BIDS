@@ -172,6 +172,7 @@ class Dcm2niix4PET:
         metadata_path=None,
         metadata_translation_script=None,
         additional_arguments={},
+        dcm2niix_options="",
         file_format="%p_%i_%t_%s",
         silent=False,
         tempdir_location=None,
@@ -364,6 +365,23 @@ class Dcm2niix4PET:
                 load_spreadsheet_data["blood_json"]
             )
 
+            # we default to these options, a user may supply their own combination, this will allow full customization of all
+        # but the file arguments for dcm2niix
+        if dcm2niix_options:
+            # Filter out -f flag and its value from custom options since file format is handled separately
+            options_list = dcm2niix_options.split()
+            filtered_options = []
+            i = 0
+            while i < len(options_list):
+                if options_list[i] == "-f" and i + 1 < len(options_list):
+                    # Skip -f and its value
+                    i += 2
+                else:
+                    filtered_options.append(options_list[i])
+                    i += 1
+            self.dcm2niix_options = " ".join(filtered_options)
+        else:
+            self.dcm2niix_options = "-b y -w 1 -z y"
         self.file_format = file_format
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
@@ -480,7 +498,7 @@ class Dcm2niix4PET:
             self.tempdir_location = tempdir_pathlike
             # people use screwy paths, we do this before running dcm2niix to account for that
             image_folder = helper_functions.sanitize_bad_path(self.image_folder)
-            cmd = f"{self.dcm2niix_path} -b y -w 1 -z y {file_format_args} -o {tempdir_pathlike} {image_folder}"
+            cmd = f"{self.dcm2niix_path} {self.dcm2niix_options} {file_format_args} -o {tempdir_pathlike} {image_folder}"
             convert = subprocess.run(cmd, shell=True, capture_output=True)
             self.telemetry_data["dcm2niix"] = {
                 "returncode": convert.returncode,
@@ -674,10 +692,19 @@ class Dcm2niix4PET:
                             if re.search(
                                 r"\d+.\d+", sidecar_json.get("ConvolutionKernel")
                             ):
-                                recon_filter_size = re.search(
-                                    r"\d+.\d*", sidecar_json.get("ConvolutionKernel")
-                                )[0]
-                                recon_filter_size = float(recon_filter_size)
+                                try:
+                                    recon_filter_size = re.search(
+                                        r"\d+.\d*",
+                                        sidecar_json.get("ConvolutionKernel"),
+                                    )[0]
+                                    recon_filter_size = float(recon_filter_size)
+                                except ValueError:
+                                    # If float conversion fails, try splitting and take first part
+                                    match_str = re.search(
+                                        r"\d+.\d*",
+                                        sidecar_json.get("ConvolutionKernel"),
+                                    )[0]
+                                    recon_filter_size = float(match_str.split()[0])
                                 sidecar_json.update(
                                     {"ReconFilterSize": float(recon_filter_size)}
                                 )
@@ -1037,9 +1064,11 @@ epilog = textwrap.dedent(
     
     example usage:
     
-    dcm2niix4pet folder_with_pet_dicoms/ --destinationp-path sub-ValidBidSSubject/pet # the simplest conversion
+    dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidSSubject/pet # the simplest conversion
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
     # use with an input spreadsheet
+    dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --dcm2niix-options -v y -w 1 -z y \
+    # use with custom dcm2niix options
     
 """
 )
@@ -1189,6 +1218,14 @@ def cli():
         default=False,
         help="Accept any NifTi produced by dcm2niix even if it contains errors. This flag should only be used for "
         "batch processing and only if you're performing robust QC after the fact.",
+    )
+    parser.add_argument(
+        "--dcm2niix-options",
+        nargs="*",
+        default=[],
+        help="Additional dcm2niix options to pass through. Use the same format as dcm2niix command line. "
+        "Note: -f flag and its value will be filtered out as file format is handled separately. "
+        "Example: --dcm2niix-options -v y -w 1 -z y",
     )
     return parser
 
@@ -1354,6 +1391,9 @@ def main():
                 cli_args.translation_script_path
             ),
             additional_arguments=cli_args.kwargs,
+            dcm2niix_options=(
+                " ".join(cli_args.dcm2niix_options) if cli_args.dcm2niix_options else ""
+            ),
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent,
             ezbids=cli_args.ezbids,
