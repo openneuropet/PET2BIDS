@@ -381,7 +381,26 @@ class Dcm2niix4PET:
                     i += 1
             self.dcm2niix_options = " ".join(filtered_options)
         else:
-            self.dcm2niix_options = "-b y -w 1 -z y"
+            # Check for dcm2niix options in config file and environment variable
+            config_options = helper_functions.check_pet2bids_config(
+                "PET2BIDS_DCM2NIIX_OPTIONS"
+            )
+            env_options = environ.get("PET2BIDS_DCM2NIIX_OPTIONS")
+
+            # Priority: command line > environment variable > config file > default
+            if env_options:
+                self.dcm2niix_options = env_options
+                logger.info(
+                    f"Using dcm2niix options from environment variable: {env_options}"
+                )
+            elif config_options:
+                self.dcm2niix_options = config_options
+                logger.info(
+                    f"Using dcm2niix options from config file: {config_options}"
+                )
+            else:
+                self.dcm2niix_options = "-b y -w 1 -z y"
+                logger.debug("Using default dcm2niix options: -b y -w 1 -z y")
         self.file_format = file_format
         # we may want to include additional information to the sidecar, tsv, or json files generated after conversion
         # this variable stores the mapping between output files and a single dicom header used to generate those files
@@ -1069,6 +1088,8 @@ epilog = textwrap.dedent(
     # use with an input spreadsheet
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --dcm2niix-options -v y -w 1 -z y \
     # use with custom dcm2niix options
+    dcm2niix4pet --set-dcm2niix-options '-v y -w 1 -z y' \
+    # set default dcm2niix options in config file
     
 """
 )
@@ -1165,6 +1186,13 @@ def cli():
         type=pathlib.Path,
     )
     parser.add_argument(
+        "--set-dcm2niix-options",
+        help="Provide dcm2niix options to be used as defaults, writes to config "
+        f"file {Path.home()}/.pet2bidsconfig under the variable "
+        f"PET2BIDS_DCM2NIIX_OPTIONS. Example: --set-dcm2niix-options '-v y -w 1 -z y'",
+        type=str,
+    )
+    parser.add_argument(
         "--set-default-metadata-json",
         help="Provide a path to a default metadata file json file."
         "This file will be used to fill in missing metadata not"
@@ -1225,6 +1253,7 @@ def cli():
         default=[],
         help="Additional dcm2niix options to pass through. Use the same format as dcm2niix command line. "
         "Note: -f flag and its value will be filtered out as file format is handled separately. "
+        "You can also set default options using --set-dcm2niix-options or the PET2BIDS_DCM2NIIX_OPTIONS environment variable. "
         "Example: --dcm2niix-options -v y -w 1 -z y",
     )
     return parser
@@ -1371,6 +1400,12 @@ def main():
 
     if cli_args.set_dcm2niix_path:
         helper_functions.modify_config_file("DCM2NIIX_PATH", cli_args.set_dcm2niix_path)
+        sys.exit(0)
+
+    if cli_args.set_dcm2niix_options:
+        helper_functions.modify_config_file(
+            "PET2BIDS_DCM2NIIX_OPTIONS", cli_args.set_dcm2niix_options
+        )
         sys.exit(0)
 
     if cli_args.set_default_metadata_json:
