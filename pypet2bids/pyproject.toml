@@ -4,7 +4,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pypet2bids"
-version = "1.4.3"
 version = "1.4.4"
 description = "A python library for converting PET imaging and blood data to BIDS."
 authors = [
