@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pypet2bids"
-version = "1.4.3"
+version = "1.4.4"
 description = "A python library for converting PET imaging and blood data to BIDS."
 authors = [
     {name = "anthony galassi", email = "28850131+bendhouseart@users.noreply.github.com"}
@@ -52,6 +52,7 @@ dev = [
     "pyinstaller>=5.4.1",
     "build>=0.10.0",
     "briefcase>=0.3.23; python_version>='3.9'",
+    "black>=23.0.0",
 ]
 
 [project.scripts]
@@ -78,3 +79,21 @@ include = [
     "/pypet2bids",
     "/README.md",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
