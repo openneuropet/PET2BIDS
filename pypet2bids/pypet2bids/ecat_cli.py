@@ -282,7 +282,7 @@ def main():
         os.environ["PET2BIDS_TELEMETRY_ENABLED"] = "False"
 
     collect_pixel_data = False
-    if cli_args.convert or cli_args.update:
+    if cli_args.convert or cli_args.update or cli_args.sidecar:
         collect_pixel_data = True
     if cli_args.scannerparams is not None:
         # if no args are supplied to --scannerparams/-s
