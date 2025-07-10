@@ -82,16 +82,24 @@ if pypet2bids_config.exists():
     default_metadata_json = helper_functions.check_pet2bids_config(
         "DEFAULT_METADATA_JSON"
     )
-    if default_metadata_json and Path(default_metadata_json).exists():
+    if default_metadata_json and Path(str(default_metadata_json)).exists():
         # do nothing
         pass
-    else:
+    elif default_metadata_json and not Path(str(default_metadata_json)).exists():
+        # Copy template to the specified path
         try:
+            # Ensure the parent directory exists before copying
+            Path(default_metadata_json).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(
                 Path(metadata_folder) / "template_json.json", default_metadata_json
             )
         except FileNotFoundError:
+            # Fallback to module folder template
+            Path(default_metadata_json).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(module_folder / "template_json.json", default_metadata_json)
+    else:
+        # No DEFAULT_METADATA_JSON set in config, do nothing
+        pass
 else:
     # if it doesn't exist use the default one included in this library
     helper_functions.modify_config_file(

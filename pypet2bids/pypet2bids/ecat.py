@@ -523,11 +523,11 @@ class Ecat:
                     )
                 else:
                     collection_of_fields[field] = self.sidecar_template.get(field)
-
-        if helper_functions.collect_bids_part("ses", self.output_path) != "":
-            collection_of_fields["ses"] = helper_functions.collect_bids_part(
-                "ses", self.output_path
-            )
+        if self.output_path:
+            if helper_functions.collect_bids_part("ses", self.output_path) != "":
+                collection_of_fields["ses"] = helper_functions.collect_bids_part(
+                    "ses", self.output_path
+                )
 
         if self.ezbids:
             hash_string = helper_functions.hash_fields(**collection_of_fields)
