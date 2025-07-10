@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.10"]
+        python: ["3.12"]
       fail-fast: false
 
     steps:
@@ -87,16 +87,19 @@ jobs:
           cache-dependency-path: |
             pypet2bids/pyproject.toml
 
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          pip install .
+          pip install -e .[dev]
 
-      - name: Install Poetry Build Package
+      - name: Install UV Build Package
         run: |
-          make installpoetry
+          make installuv
           make buildpackage
-          make installpackage
+          cd pypet2bids && uv pip install dist/pypet2bids-*.whl --system
           dcm2niix4pet -h
 
       - name: Set Up Node
