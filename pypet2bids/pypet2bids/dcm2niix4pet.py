@@ -87,10 +87,14 @@ if pypet2bids_config.exists():
         pass
     else:
         try:
+            # Ensure the parent directory exists before copying
+            Path(default_metadata_json).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(
                 Path(metadata_folder) / "template_json.json", default_metadata_json
             )
         except FileNotFoundError:
+            # Ensure the parent directory exists before copying
+            Path(default_metadata_json).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(module_folder / "template_json.json", default_metadata_json)
 else:
     # if it doesn't exist use the default one included in this library

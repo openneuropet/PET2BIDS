@@ -73,11 +73,19 @@ Repository = "https://github.com/openneuropet/pet2bids/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pypet2bids"]
+include = [
+    "pypet2bids/template_json.json",
+    "pypet2bids/ecat_headers.json",
+    "pypet2bids/template.env",
+]
 
 [tool.hatch.build.targets.sdist]
 include = [
     "/pypet2bids",
     "/README.md",
+    "pypet2bids/template_json.json",
+    "pypet2bids/ecat_headers.json",
+    "pypet2bids/template.env",
 ]
 
 [tool.black]
