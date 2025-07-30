@@ -32,7 +32,7 @@ def spread_sheet_check_for_pet(sourcefile: Union[str, Path], **kwargs):
     except:
         pet_field_requirements = {}
 
-    mandatory_fields = pet_field_requirements.get("mandatory", [])
+    mandatory_fields = pet_field_requirements.get("required", [])
     recommended_fields = pet_field_requirements.get("recommended", [])
     optional_fields = pet_field_requirements.get("optional", [])
     blood_recording_fields = pet_field_requirements.get("blood_recording_fields", [])

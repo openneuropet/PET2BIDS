@@ -73,6 +73,10 @@ Repository = "https://github.com/openneuropet/pet2bids/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pypet2bids"]
+include = [
+    "pypet2bids/*.json",
+    "pypet2bids/template.env",
+]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -97,3 +101,8 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
