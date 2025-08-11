@@ -454,8 +454,13 @@ shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
 for f = 1:length(shouldBarray)
     if isfield(filemetadata,shouldBarray{f})
         if isscalar(filemetadata.(shouldBarray{f}))
-            filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
-            updated = 1;
+            if ~iscell(filemetadata.(shouldBarray{f}))
+                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+                updated = 1;
+            elseif isnumeric(filemetadata.(shouldBarray{f}){1})
+                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+                updated = 1;
+            end
         elseif all(size(filemetadata.(shouldBarray{f})) == 1)
             if any(contains(filemetadata.(shouldBarray{f}),{'none'}))
                 filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
