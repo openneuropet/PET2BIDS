@@ -17,42 +17,42 @@ def flatten_series(series):
     elif len(simplified_series_object) == 1:
         simplified_series_object = simplified_series_object[0]
     else:
-        raise(f"Invalid Series: {series}")
+        raise (f"Invalid Series: {series}")
     return simplified_series_object
 
 
 def translate_metadata(metadata_dataframe, image_path=NotImplemented):
 
     nifti_json = {
-        'Manufacturer': '',
-        'ManufacturersModelName': '',
-        'Units': '',
-        'TracerName': '',
-        'TracerRadionuclide': '',
-        'InjectedRadioactivity': 0,
-        'InjectedRadioactivityUnits': '',
-        'InjectedMass': 0,
-        'InjectedMassUnits': '',
-        'SpecificRadioactivity': 0,
-        'SpecificRadioactivityUnits': '',
-        'ModeOfAdministration': '',
-        'TimeZero': 0,
-        'ScanStart': 0,
-        'InjectionStart': 0,
-        'FrameTimesStart': [],
-        'FrameDuration': [],
-        'AcquisitionMode': '',
-        'ImageDecayCorrected': '',
-        'ImageDecayCorrectionTime': 0,
-        'ReconMethodName': '',
-        'ReconMethodParameterLabels': [],
-        'ReconMethodParameterUnits': [],
-        'ReconMethodParameterValues': [],
-        'ReconFilterType': '',
-        'ReconFilterSize': 0,
-        'AttenuationCorrection': '',
-        'InstitutionName': '',
-        'InstitutionalDepartmentName': ''
+        "Manufacturer": "",
+        "ManufacturersModelName": "",
+        "Units": "",
+        "TracerName": "",
+        "TracerRadionuclide": "",
+        "InjectedRadioactivity": 0,
+        "InjectedRadioactivityUnits": "",
+        "InjectedMass": 0,
+        "InjectedMassUnits": "",
+        "SpecificRadioactivity": 0,
+        "SpecificRadioactivityUnits": "",
+        "ModeOfAdministration": "",
+        "TimeZero": 0,
+        "ScanStart": 0,
+        "InjectionStart": 0,
+        "FrameTimesStart": [],
+        "FrameDuration": [],
+        "AcquisitionMode": "",
+        "ImageDecayCorrected": "",
+        "ImageDecayCorrectionTime": 0,
+        "ReconMethodName": "",
+        "ReconMethodParameterLabels": [],
+        "ReconMethodParameterUnits": [],
+        "ReconMethodParameterValues": [],
+        "ReconFilterType": "",
+        "ReconFilterSize": 0,
+        "AttenuationCorrection": "",
+        "InstitutionName": "",
+        "InstitutionalDepartmentName": "",
     }
 
     for key in nifti_json.keys():
@@ -61,12 +61,8 @@ def translate_metadata(metadata_dataframe, image_path=NotImplemented):
         except KeyError:
             warnings.warn(f"{key} not found in metadata extracted from spreadsheet")
 
-    blood_json = {
+    blood_json = {}
 
-    }
+    blood_tsv = {}
 
-    blood_tsv = {
-
-    }
-
-    return {'nifti_json': nifti_json, 'blood_json': blood_json, 'blood_tsv': blood_tsv}
+    return {"nifti_json": nifti_json, "blood_json": blood_json, "blood_tsv": blood_tsv}

@@ -55,6 +55,22 @@
       ]
     },
     {
+      "contents": "OP_OSEM3D",
+      "ReconMethodName": "Ordinary Poisson 3D Ordered Subset Expectation Maximization",
+      "ReconMethodParameterUnits": [
+        null,
+        null
+      ],
+      "ReconMethodParameterLabels": [
+        "subsets",
+        "iterations"
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ]
+    },
+    {
       "contents": "LOR-RAMLA",
       "ReconMethodName": "Line Of Response - Row Action Maximum Likelihood",
       "ReconMethodParameterLabels": [
@@ -79,6 +95,15 @@
       "ReconMethodParameterLabels": [
         "none"
       ]
+    },
+    {
+      "contents": "3DKinahan-Rogers",
+      "subsets": null,
+      "iterations": null,
+      "ReconMethodName": "3D Reprojection",
+      "ReconMethodParameterLabels": [],
+      "ReconMethodParameterValues": [],
+      "ReconMethodParameterUnits": []
     }
   ],
   "reconstruction_names": [

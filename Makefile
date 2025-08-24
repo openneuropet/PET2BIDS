@@ -20,22 +20,21 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# add a dependency, this is an alias for poetry add that also updates the requirements.txt file
+# add a dependency, this is an alias for uv add that also updates the pyproject.toml file
 add:
 	@scripts/add_python_dependency $(ARGUMENTS)
 
-# copies metadata to path included in pypet2bids project to enable packaging of those files w/ poetry
+# builds package using standard Python packaging tools
 buildpackage:
-	@cp -R metadata/ pypet2bids/pypet2bids/metadata
 	@cp pypet2bids/pyproject.toml pypet2bids/pypet2bids/pyproject.toml
 	@rm -rf pypet2bids/dist
-	@cd pypet2bids && poetry lock && poetry build
+	@cd pypet2bids && uv build
 
 publish:
-	@cd pypet2bids && poetry publish
+	@cd pypet2bids && uv publish
 
-installpoetry:
-	@cd scripts && ./installpoetry
+installuv:
+	@cd scripts && ./installuv
 
 # installs latest package
 installpackage:
@@ -44,14 +43,18 @@ installpackage:
 testphantoms:
 	@scripts/testphantoms
 
+# test package across all supported Python versions
+test-all-python-versions:
+	@scripts/test_all_python_versions
+
 html:
 	@cd docs && make html
 
 installdependencies:
 	@cd pypet2bids; \
 	python -m pip install --upgrade pip; \
-	pip install poetry; \
-	poetry install --with dev
+	pip install uv; \
+	uv sync --dev
 
 collectphantoms:
 ifeq (, $(wildcard ./PHANTOMS.zip))
@@ -65,22 +68,23 @@ decompressphantoms:
 
 testecatcli:
 	@cd pypet2bids; \
-	poetry run python -m pypet2bids.ecat_cli --help; \
-	poetry run python -m pypet2bids.ecat_cli ../OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v --dump
+	uv run python -m pypet2bids.ecat_cli --help; \
+	uv run python -m pypet2bids.ecat_cli ../OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v --dump
 
 testecatread:
 	@cd pypet2bids; \
 	export TEST_ECAT_PATH="../OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/Hoffman.v"; \
 	export READ_ECAT_SAVE_AS_MATLAB="$$PWD/tests/ECAT7_multiframe.mat"; \
 	export NIBABEL_READ_ECAT_SAVE_AS_MATLAB="$$PWD/tests/ECAT7_multiframe.nibabel.mat"; \
-	poetry run python3 -m tests.test_ecatread
+	uv run python3 -m tests.test_ecatread
 
 testotherpython:
 	cd pypet2bids; \
 	export TEST_DICOM_IMAGE_FOLDER="../OpenNeuroPET-Phantoms/sourcedata/SiemensBiographPETMR-NIMH/AC_TOF"; \
-	poetry run pytest --ignore=tests/test_write_ecat.py tests/ -vvv
+	uv run pytest --ignore=tests/test_write_ecat.py tests/ -vvv
 
 pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
 	@echo finished running python tests
 
-
+black:
+	@black pypet2bids/

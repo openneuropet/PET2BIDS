@@ -12,7 +12,7 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %
 % :param FolderList: Cell array of char strings with filenames and paths
 % :param MetaList: Cell array of structures for metadata
-% :param options:
+% :param varargin:
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
 %                 IF the folder is BIDS sub-xx files are renamed automatically
@@ -28,8 +28,9 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *p*          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
 %   - *v*          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 %   - *w*          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+%   - *x*          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 %   - *z*          = 'n';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
+%  - *notrack* Opt-out of sending tracking information of this run to the PET2BIDS developers. This information helps to improve PET2BIDS and provides an indicator of real world usage crucial for obtaining funding."
 %
 % .. code-block::
 %
@@ -43,14 +44,14 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %.. note::
 %
 %   See also get_pet_metadata.m to generate the metadata structure
-%            updatejsonpetfile to see how the json file gets updated and checked agains DICOM tags
+%            updatejsonpetfile to see how the json file gets updated and checked against DICOM tags
 %
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
 if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 42 and indicate the dcm2niix path')
+    error('for windows machine please edit the function line 51 and indicate the dcm2niix path')
 end
 
 if ~ispc % overwrite if not windowns (as it should be in the computer path)
@@ -63,8 +64,18 @@ end
 minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
 version_cmd = ['dcm2niix', ' -v'];
+
 [status, version_output_string] = system(version_cmd);
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
+
+
+% initialize telemetry data fror later uploading
+telemetry_data = {};
+dcm2niix_data = {};
+dcm2niix_data.version = version(1);
+dcm2niix_data.returncode = 0;
+telemetry_data.dcm2niix = dcm2niix_data;
+telemetry_data.description = "Matlab_dcm2niix4pet.m";
 
 if length(version) >= 1
     version_date = version{1}(6:end);
@@ -91,7 +102,7 @@ m          = '2';    % merge 2D slices from same series regardless of echo, expo
 p          = 'y';    % Philips precise float (not display) scaling (y/n, default y)
 v          = 1;      % verbose (n/y or 0/1/2, default 0) [no, yes, logorrheic]
 w          = 2;      % write behavior for name conflicts (0,1,2, default 2: 0=skip duplicates, 1=overwrite, 2=add suffix)
-x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquistions)
+x          = 'n';    % crop 3D acquisitions (y/n/i, default n, use 'i'gnore to neither crop nor rotate 3D acquisitions)
 z          = 'y';    % gz compress images (y/o/i/n/3, default y) [y=pigz, o=optimal pigz, i=internal:miniz, n=no, 3=no,3D]
 
 %% check dcm2nii inputs
@@ -159,7 +170,7 @@ for var=1:length(varargin)
     elseif strcmpi(varargin{var},'d')
         d = varargin{var+1};
         if ~num(d)
-            error('invalid compression experession, not a numeric');
+            error('invalid compression expression, not a numeric');
         elseif d>9
             error('invalid compression value, must be between 0 and 9');
         end
@@ -209,7 +220,10 @@ for var=1:length(varargin)
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
+    elseif strcmpi(varargin{var},'notrack')
+        setenv('TELEMETRY_ENABLED', 'False')
     end
+
 end
 
 if isempty(outputdir)
@@ -249,7 +263,11 @@ for folder = 1:size(FolderList,1)
     end
     
     out = system(command);
+    telemetry_data.dcm2niix.returncode = out;
+    % we still want to send telemetry even if this fails
     if out ~= 0
+        telemetry_data.returncode = 1;
+        telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
     end
    
@@ -266,7 +284,7 @@ for folder = 1:size(FolderList,1)
         delete(fullfile(outputdir{folder},'*dcm'))
     end
     
-    % rename if BIDS folfer sub-
+    % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
         if strcmpi(z,'y')
             data  = dir(fullfile(outputdir{folder},'*.nii.gz'));
@@ -318,4 +336,9 @@ for folder = 1:size(FolderList,1)
         jsonfilename = newmetadata;
     end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
+
+    % if this all goes well update the telemetry data and send it with a positive return code of 0
+    telemetry_data.returncode = 0;
+    telemetry(telemetry_data, FolderList{folder})
+
 end

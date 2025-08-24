@@ -27,8 +27,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        python: ["3.10"]
+        os: [ubuntu-latest]
+        python: ["3.12"]
       fail-fast: false
 
     steps:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Cache Node Posix
         if: runner.os != 'Windows' && !env.ACT
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
@@ -45,7 +45,7 @@ jobs:
       - name: Cache Phantoms
         if: ${{ !env.ACT }}
         id: phantom-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-phantoms
         with:
@@ -67,6 +67,12 @@ jobs:
             brew install dcm2niix
           fi
 
+
+      - name: Check dcm2niix is installed and on path
+        if: runner.os != 'Windows'
+        run:
+          dcm2niix -h 
+
       - name: Install dcm2niix windows
         if: runner.os == 'Windows'
         run: |
@@ -81,23 +87,26 @@ jobs:
           cache-dependency-path: |
             pypet2bids/pyproject.toml
 
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Install Python Dependencies
         run: |
           cd pypet2bids
-          pip install .
+          pip install -e .[dev]
 
-      - name: Install Poetry Build Package
+      - name: Install UV Build Package
         run: |
-          make installpoetry
+          make installuv
           make buildpackage
-          make installpackage
+          cd pypet2bids && uv pip install dist/pypet2bids-*.whl --system
           dcm2niix4pet -h
 
       - name: Set Up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
 
       - name: Install BIDS Validator
-        run: npm install -g bids-validator
+        run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
@@ -130,11 +139,15 @@ jobs:
           bash python_conversions.sh
 
       - name: SetupMatlab
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: matlab-actions/setup-matlab@v1
+        # note matlab-actions/setup-matlab@v2 breaks this script, don't update unless you're forced to
+        #with:
+          #release: 'R2023a'
+          #cache: true
 
       - name: Run Matlab Conversion Script on Phantoms
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: matlab-actions/run-command@v1
         with:
           command: |
@@ -153,6 +166,13 @@ jobs:
       - name: Validate Python Conversion
         run: |
           bids-validator OpenNeuroPET-Phantoms/python
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
 
       - name: Validate Matlab Conversion
         run: |

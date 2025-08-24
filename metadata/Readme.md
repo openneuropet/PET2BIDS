@@ -1,6 +1,6 @@
 # metadata
 
-This folder contains metadata informations for PET, some of them being loaded by our Matlab and Python code (ensuring both use the same info).
+This folder contains metadata information for PET, some of them being loaded by our Matlab and Python code (ensuring both use the same info).
 
 ## [definitions](https://github.com/openneuropet/PET2BIDS/blob/main/metadata/definitions.json)
 

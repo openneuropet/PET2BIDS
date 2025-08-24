@@ -12,7 +12,7 @@ function status = updatejsonpetfile(varargin)
 % :param newfields: (optional) a structure with the newfields to go into the json file
 % :param dcminfo: (optional) a dcmfile or the dicominfo structure from a representative
 %                    dicom file. This information is used to also update the json
-%                    file, and if a comflict exists, it returns warning messages,
+%                    file, and if a conflict exists, it returns warning messages,
 %                    assumnimg the newfield provided is correct (i.e. as a user you
 %                    know better than default dicom, presumably)
 %
@@ -29,7 +29,7 @@ function status = updatejsonpetfile(varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-warning on % set to off to ignore our usefull warnings
+warning on % set to off to ignore our useful warnings
 status = struct('state',[],'messages',{''});
 
 % check data in
@@ -80,6 +80,9 @@ if nargin == 1
     [filemetadata,updated] = update_arrays(filemetadata);
     if updated && exist('jsonfilename','var')
         warning('some scalars were changed to array')
+        if strcmpi(filemetadata.ReconFilterType,"none") 
+            filemetadata.ReconFilterSize = 0; % not necessary once the validator takes conditinonal
+        end
         jsonwrite(jsonfilename,orderfields(filemetadata));
     end
     
@@ -104,11 +107,10 @@ if nargin == 1
         petmetadata.recommended(strcmpi('ReconFilterType',petmetadata.recommended))=[];
     end
 
-    % test
     for m=length(petmetadata.mandatory):-1:1
         test(m) = isfield(filemetadata,petmetadata.mandatory{m});
     end
-    
+
     if sum(test)~=length(petmetadata.mandatory)
         status.state    = 0;
         missing         = find(test==0);
@@ -300,13 +302,18 @@ else % -------------- update ---------------
     if isfield(filemetadata,'ImageDecayCorrected')
         if ischar(filemetadata.ImageDecayCorrected)
             if strcmpi(filemetadata.ImageDecayCorrected,'true')
-                filemetadata.ImageDecayCorrected = true; % bolean
+                filemetadata.ImageDecayCorrected = true; % boolean
             else
                 filemetadata.ImageDecayCorrected = false; 
             end
         end
     end
     filemetadata = update_arrays(filemetadata);
+
+    % set ModeOfAdministration to lower case
+    if isfield(filemetadata,'ModeOfAdministration')
+        filemetadata.ModeOfAdministration = lower(filemetadata.ModeOfAdministration);
+    end
 
     % clean-up
     fn_check = fieldnames(filemetadata);
@@ -367,7 +374,7 @@ if sum(input_check) ~= 0
     end
 end
 
-% check our libray from names we know
+% check our library from names we know
 if isfield(filemetadata,'ReconstructionMethod')
     [filemetadata.ReconMethodName,iteration,subset] = get_recon_method(filemetadata.ReconstructionMethod);
 elseif isfield(filemetadata,'ReconMethodName')
@@ -407,10 +414,13 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
         if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
             filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
+            if strcmp(filemetadata.ReconFilterType,"none")
+                filemetadata.ReconFilterSize = 0; 
+            end
         end
     else
         filemetadata.ReconFilterType = "none";
-        % filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+        filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
     end
     
     if exist('filtername','var')
@@ -460,8 +470,8 @@ else
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)
-% hack a la Anthony making sure the validtor is happy 
-% make some scalar an array (i.e. a cell in matlab writen as array in json)
+% hack a la Anthony making sure the validator is happy 
+% make some scalar an array (i.e. a cell in matlab written as array in json)
 
 updated = 0;
 shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
@@ -472,8 +482,13 @@ shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
 for f = 1:length(shouldBarray)
     if isfield(filemetadata,shouldBarray{f})
         if isscalar(filemetadata.(shouldBarray{f}))
-            filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
-            updated = 1;
+            if ~iscell(filemetadata.(shouldBarray{f}))
+                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+                updated = 1;
+            elseif isnumeric(filemetadata.(shouldBarray{f}){1})
+                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
+                updated = 1;
+            end
         elseif all(size(filemetadata.(shouldBarray{f})) == 1)
             if any(contains(filemetadata.(shouldBarray{f}),{'none'}))
                 filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};

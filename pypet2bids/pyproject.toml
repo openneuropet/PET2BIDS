@@ -1,56 +1,99 @@
-[tool.poetry]
-name = "pypet2bids"
-version = "1.3.6"
-description = "A python implementation of an ECAT to BIDS converter."
-authors = ["anthony galassi <28850131+bendhouseart@users.noreply.github.com>"]
-license = "MIT"
-include = [
-    'pypet2bids/metadata/*',
-    'pypet2bids/pyproject.toml',
-    ]
-
-[tool.poetry.dependencies]
-python = ">=3.8,<=3.11.6"
-nibabel = ">=3.2.1"
-numpy = "^1.21.3"
-pyparsing = "^3.0.4"
-python-dateutil = "^2.8.2"
-python-dotenv = "^0.19.1"
-scipy = "^1.7.1"
-six = "^1.16.0"
-pydicom = "^2.2.2"
-openpyxl = "^3.0.9"
-xlrd = "^2.0.1"
-json-maj = "^0.0.8"
-pandas = "^1.4.4"
-pyxlsb = "^1.0.9"
-joblib = "^1.2.0"
-toml = ">=0.10.2"
-
-
-[tool.poetry.dev-dependencies]
-pytest = ">=6.2.5, <8.0.0"
-sphinx = "<=4.5.0"
-sphinx-rtd-theme = "^1.0.0"
-sphinxcontrib-matlabdomain = "^0.21.4"
-
-[tool.poetry.scripts]
-ecatpet2bids = 'pypet2bids.ecat_cli:main'
-dcm2petbids = 'pypet2bids.dicom_convert:cli'
-dcm2niix4pet = 'pypet2bids.dcm2niix4pet:main'
-pet2bids-spreadsheet-template = 'pypet2bids.helper_functions:write_out_module'
-convert-pmod-to-blood = 'pypet2bids.convert_pmod_to_blood:main'
-ispet = 'pypet2bids.is_pet:main'
-updatepetjsonfromdicom = 'pypet2bids.dcm2niix4pet:update_json_with_dicom_value_cli'
-updatepetjsonfromecat = 'pypet2bids.ecat_cli:update_json_with_ecat_value_cli'
-updatepetjson = 'pypet2bids.update_json:update_json_cli'
-ecatheaderupdate = 'pypet2bids.ecat_header_update:main'
-
-[tool.poetry.group.dev.dependencies]
-pyinstaller = "^5.4.1"
-build = "^0.9.0"
-sphinx-rtd-theme = "^1.2.2"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pypet2bids"
+version = "1.4.4"
+description = "A python library for converting PET imaging and blood data to BIDS."
+authors = [
+    {name = "anthony galassi", email = "28850131+bendhouseart@users.noreply.github.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "nibabel>=3.2.1",
+    "numpy>=1.21.3",
+    "pyparsing>=3.0.4",
+    "python-dateutil>=2.8.2",
+    "python-dotenv>=0.19.1",
+    "scipy>=1.7.1",
+    "six>=1.16.0",
+    "pydicom>=2.2.2",
+    "openpyxl>=3.0.9",
+    "xlrd>=2.0.1",
+    "json-maj>=0.0.8",
+    "pandas>=1.4.4",
+    "pyxlsb>=1.0.9",
+    "joblib>=1.2.0",
+    "toml>=0.10.2",
+    "requests>=2.32.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.5,<8.0.0",
+    "sphinx>=5.0.0,<7.0.0",
+    "sphinx-rtd-theme>=1.2.2",
+    "sphinxcontrib-matlabdomain>=0.21.4",
+    "pyinstaller>=5.4.1",
+    "build>=0.10.0",
+    "briefcase>=0.3.23; python_version>='3.9'",
+    "black>=23.0.0",
+]
+
+[project.scripts]
+ecatpet2bids = "pypet2bids.ecat_cli:main"
+dcm2petbids = "pypet2bids.dicom_convert:cli"
+dcm2niix4pet = "pypet2bids.dcm2niix4pet:main"
+pet2bids-spreadsheet-template = "pypet2bids.helper_functions:write_out_module"
+convert-pmod-to-blood = "pypet2bids.convert_pmod_to_blood:main"
+ispet = "pypet2bids.is_pet:main"
+updatepetjsonfromdicom = "pypet2bids.dcm2niix4pet:update_json_with_dicom_value_cli"
+updatepetjsonfromecat = "pypet2bids.ecat_cli:update_json_with_ecat_value_cli"
+updatepetjson = "pypet2bids.update_json:update_json_cli"
+ecatheaderupdate = "pypet2bids.ecat_header_update:main"
+
+[project.urls]
+Documentation = "https://pypet2bids.readthedocs.io/en/latest/"
+Repository = "https://github.com/openneuropet/pet2bids/"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pypet2bids"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/pypet2bids",
+    "/README.md",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''

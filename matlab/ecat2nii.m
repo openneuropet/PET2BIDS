@@ -43,10 +43,24 @@ function FileListOut = ecat2nii(FileListIn,MetaList,varargin)
 %% defaults
 % ---------
 
-warning on % set to off to ignore our usefull warnings
+warning on % set to off to ignore our useful warnings
 sifout  = false; % 0/1 to indicate if sif file are also created
 gz      = true;  % compress nifti
 savemat = false; % save ecat data as .mat
+
+%% debebugging
+% ------------
+ecat_save_steps = getenv('ECAT_SAVE_STEPS');
+ecat_save_steps_dir = mfilename('fullpath');
+if contains(ecat_save_steps_dir, 'LiveEditorEvaluationHelper')
+    ecat_save_steps_dir = matlab.desktop.editor.getActiveFilename;
+end
+parts = strsplit(ecat_save_steps_dir, filesep);
+ecat_save_steps_dir = strjoin([parts(1:end-2), 'ecat_testing', 'steps'], filesep);
+
+%% initialize telemetry variable for reporting
+telemetry_data = {};
+telemetry_data.description = "Matlab_ecat2nii";
 
 %% check inputs
 % ------------
@@ -100,6 +114,8 @@ for v=1:length(varargin)
         gz = varargin{v+1};
     elseif strcmpi(varargin{v},'savemat')
         savemat = varargin{v+1};
+    elseif strcmpi(varargin{v},'notrack')
+        setenv('TELEMETRY_ENABLED', 'False')
     end
 end
 
@@ -121,14 +137,18 @@ end
 %% Read and write data
 % --------------------
 for j=1:length(FileListIn)
-    
+
     try
         fprintf('Conversion of file: %s\n',FileListIn{j});
-        
+
         % quickly ensure we have the TimeZero - key to all analyzes!
         info     = MetaList{1};
         if ~isfield(info,'TimeZero')
-            error('Metadata TimeZero is missing - set to ScanStart or empty to use the scanning time as injection time')
+            error_text = 'Metadata TimeZero is missing - set to ScanStart or empty to use the scanning time as injection time';
+            telemetry_data.returncode = 1;
+            telemetry_data.error = error_text;
+            telemetry(telemetry_data, FileListIn{j})
+            error(error_text)
         end
         
         % Read ECAT file headers
@@ -143,13 +163,16 @@ for j=1:length(FileListIn)
         end
         
         pet_file = [pet_file ext];
-        [mh,sh]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
+        [mh,sh,data]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
+        if (ecat_save_steps == '1')
+            first_middle_last_frames_to_text_cell(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
+        end
         if sh{1}.data_type ~= 6
             error('Conversion for 16 bit data only (type 6 in ecat file) - error loading ecat file');
         end
         Nframes  = mh.num_frames;
         
-        % Create data reading 1 frame at a time - APLYING THE SCALE FACTOR
+        % Create data reading 1 frame at a time - APPLYING THE SCALE FACTOR
         img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
         for i=Nframes:-1:1
             fprintf('Working at frame: %i\n',i);
@@ -166,7 +189,16 @@ for j=1:length(FileListIn)
                 Randoms(i)    = 0;
             end
         end
-        
+
+        % capture ecat version
+        telemetry_data.InputType = append("ECAT", string(mh.sw_version));
+
+        % save debugging steps 6 and 7
+        if (ecat_save_steps == '1')
+            first_middle_last_frames_to_text_cell(data,ecat_save_steps_dir, '6_ecat2nii_matlab');
+            first_middle_last_frames_to_text(img_temp,ecat_save_steps_dir, '7_flip_ecat2nii_matlab');
+        end
+
         % rescale to 16 bits
         rg = max(img_temp(:))-min(img_temp(:));
         if rg ~= 32767 % same as range(img_temp(:)) but no need of stats toolbox
@@ -178,8 +210,20 @@ for j=1:length(FileListIn)
                 img_temp = img_temp/MinImg*(-32768);
                 Sca      = Sca*MinImg/(-32768);
             end
+
+            % % save scaling factor to file located at ecat_save_steps_dir/8.5_sca_matlab.txt
+            % fid = fopen([ecat_save_steps_dir filesep '8.5_sca_matlab.txt'],'w');
+            % fprintf(fid,'Scaling factor: %10e\n',Sca);
+            % x = mh.ecat_calibration_factor * Sca;
+            % fprintf(fid,'Scaling factor * ECAT Cal Factor: %10.10f\n',x);
+            % fclose(fid);
         end
-        
+
+        % save debugging step 8 - rescale to 16 bits
+        if (ecat_save_steps == '1')
+            first_middle_last_frames_to_text(img_temp,ecat_save_steps_dir, '8_rescale_to_16_ecat2nii_matlab');
+        end
+
         % check names
         if ~exist('FileListOut','var')
             [~,pet_filename]           = fileparts(pet_file);
@@ -215,7 +259,7 @@ for j=1:length(FileListIn)
         end
         
         % save raw data
-        if savemat
+        if savemat or ecat_save_steps == '1'
             if mh.calibration_units == 1 % see line 337
                 ecat = img_temp.*Sca;
             else
@@ -239,10 +283,23 @@ for j=1:length(FileListIn)
                 end
                 
             else % annotation is blank - no info on method
-                warning('no reconstruction method information found - invalid BIDS metadata')
-                info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
-                info.ReconMethodParameterUnits    = {'keV', 'keV'};
-                info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                if isfield(info.ReconMethodName) % user provided
+                    [info.ReconMethodName,i,s] = get_recon_method(deblank(info.ReconMethodName));
+                    if ~isempty(i) && ~isempty(s)
+                        info.ReconMethodParameterLabels   = {'iterations', 'subsets', 'lower_threshold', 'upper_threshold'};
+                        info.ReconMethodParameterUnits    = {'none', 'none', 'keV', 'keV'};
+                        info.ReconMethodParameterValues   = [str2double(i), str2double(s), mh.lwr_true_thres, mh.upr_true_thres];
+                    else % some method without iteration and subset e.g. back projection
+                        info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                        info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                        info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                    end
+                else
+                    warning('no reconstruction method information found - invalid BIDS metadata')
+                    info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
+                    info.ReconMethodParameterUnits    = {'keV', 'keV'};
+                    info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
+                end
             end
             
         else % no info on method
@@ -336,6 +393,9 @@ for j=1:length(FileListIn)
         
         if mh.calibration_units == 1 % do calibrate
             img_temp                          = single(round(img_temp).*(Sca*mh.ecat_calibration_factor)); % scale and dose calibrated
+            if ecat_save_steps == '1'
+                first_middle_last_frames_to_text(img_temp,ecat_save_steps_dir, '9_scal_cal_units_ecat2nii_matlab');
+            end
             warning('it looks like the source data are not dose calibrated - ecat2nii is thus scaling the data')
         else % do not calibrate
             img_temp                          = single(round(img_temp).*Sca); % just the 16 bit scaling, img_temp is already dose calibrated
@@ -415,9 +475,19 @@ for j=1:length(FileListIn)
         if gz
             fnm = [fnm '.gz']; %#ok<*AGROW>
         end
-        
+
+
+        if ecat_save_steps == '1'
+            first_middle_last_frames_to_text(img_temp, ecat_save_steps_dir, '10_save_nii_cat2nii_matlab');
+        end
         nii_tool('save', nii, fnm);
         FileListOut{j} = fnm;
+
+        if ecat_save_steps == '1'
+            % open the nifti file just written and check to see if the written values differ from the original
+            nii = nii_tool('load', fnm);
+            first_middle_last_frames_to_text(nii.img, ecat_save_steps_dir, '11_read_saved_nii_matlab');
+        end
         
         % optionally one can use niftiwrite from the Image Processing Toolbox
         % warning different versions of matlab may provide different nifti results
@@ -430,12 +500,18 @@ for j=1:length(FileListIn)
         %     FileListOut{j} = [filenameout '_pet.nii'];
         %     niftiwrite(img_temp,FileListOut{j},info,'Endian','little','Compressed',false);
         % end
+
+        telemetry_data.returncode = 0;
+        telemetry(telemetry_data, FileListIn{j});
         
     catch conversionerr
-        FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message);
+        telemetry_data.returncode = 1;
+        telemetry_data.error = conversionerr.message;
+        telemetry(telemetry_data, FileListIn{j});
+        FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
     end
     
-    if exist('newfile','var') % i.e. decompresed .nii.gz
+    if exist('newfile','var') % i.e. decompressed .nii.gz
         delete(newfile{1});
     end
 end

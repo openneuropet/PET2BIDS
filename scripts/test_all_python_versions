@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# Test pypet2bids installation across multiple Python versions
+# This script emulates building and installing pypet2bids for each supported Python version
+
+set -e  # Exit on any error
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PYPET2BIDS_DIR="$PROJECT_ROOT/pypet2bids"
+
+# Python versions to test
+PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12" "3.13")
+
+# Function to print colored output
+print_status() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Function to check if Python version is available
+check_python_version() {
+    local version=$1
+    if command -v "python$version" &> /dev/null; then
+        local installed_version=$(python$version --version 2>&1 | cut -d' ' -f2)
+        print_success "Found Python $version ($installed_version)"
+        return 0
+    else
+        print_warning "Python $version not found, skipping"
+        return 1
+    fi
+}
+
+# Function to test a specific Python version
+test_python_version() {
+    local version=$1
+    local python_cmd="python$version"
+    
+    print_status "Testing Python $version..."
+    
+    # Create a temporary virtual environment
+    local venv_dir="/tmp/pypet2bids_test_py$version"
+    rm -rf "$venv_dir"
+    
+    print_status "Creating virtual environment with $python_cmd..."
+    if ! $python_cmd -m venv "$venv_dir"; then
+        print_error "Failed to create virtual environment for Python $version"
+        return 1
+    fi
+    
+    # Activate virtual environment
+    source "$venv_dir/bin/activate"
+    
+    # Upgrade pip and install UV
+    print_status "Installing UV in Python $version environment..."
+    if ! pip install --upgrade pip uv; then
+        print_error "Failed to install UV for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    # Change to pypet2bids directory
+    cd "$PYPET2BIDS_DIR"
+    
+    # Try to sync dependencies (without dev dependencies to avoid conflicts)
+    print_status "Installing dependencies for Python $version..."
+    if ! uv sync --no-dev --python "$python_cmd"; then
+        print_error "Failed to sync dependencies for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    # Build the package
+    print_status "Building package for Python $version..."
+    if ! uv build --python "$python_cmd"; then
+        print_error "Failed to build package for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    # Test importing the package
+    print_status "Testing package import for Python $version..."
+    if ! uv run --python "$python_cmd" python -c "import pypet2bids; print('Successfully imported pypet2bids')"; then
+        print_error "Failed to import pypet2bids for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    # Try to get version (optional, don't fail if it doesn't work)
+    print_status "Attempting to get version for Python $version..."
+    uv run --python "$python_cmd" python -c "import pypet2bids; print('Version:', getattr(pypet2bids, '__version__', 'unknown'))" || true
+    
+    # Test CLI commands
+    print_status "Testing CLI commands for Python $version..."
+    if ! uv run --python "$python_cmd" ecatpet2bids --help > /dev/null; then
+        print_error "Failed to run ecatpet2bids CLI for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    if ! uv run --python "$python_cmd" dcm2niix4pet --help > /dev/null; then
+        print_error "Failed to run dcm2niix4pet CLI for Python $version"
+        deactivate
+        rm -rf "$venv_dir"
+        return 1
+    fi
+    
+    # Clean up
+    deactivate
+    rm -rf "$venv_dir"
+    
+    print_success "Python $version: All tests passed!"
+    return 0
+}
+
+# Main execution
+main() {
+    print_status "Starting pypet2bids multi-version test suite"
+    print_status "Project root: $PROJECT_ROOT"
+    print_status "Testing versions: ${PYTHON_VERSIONS[*]}"
+    echo
+    
+    # Check UV is installed
+    if ! command -v uv &> /dev/null; then
+        print_error "UV is not installed. Please run 'make installuv' first."
+        exit 1
+    fi
+    
+    local successful_versions=()
+    local failed_versions=()
+    local skipped_versions=()
+    
+    # Test each Python version
+    for version in "${PYTHON_VERSIONS[@]}"; do
+        echo
+        print_status "========================================="
+        print_status "Testing Python $version"
+        print_status "========================================="
+        
+        if check_python_version "$version"; then
+            if test_python_version "$version"; then
+                successful_versions+=("$version")
+            else
+                failed_versions+=("$version")
+            fi
+        else
+            skipped_versions+=("$version")
+        fi
+    done
+    
+    # Print summary
+    echo
+    print_status "========================================="
+    print_status "TEST SUMMARY"
+    print_status "========================================="
+    
+    if [ ${#successful_versions[@]} -gt 0 ]; then
+        print_success "Successful versions: ${successful_versions[*]}"
+    fi
+    
+    if [ ${#failed_versions[@]} -gt 0 ]; then
+        print_error "Failed versions: ${failed_versions[*]}"
+    fi
+    
+    if [ ${#skipped_versions[@]} -gt 0 ]; then
+        print_warning "Skipped versions (not installed): ${skipped_versions[*]}"
+    fi
+    
+    echo
+    if [ ${#failed_versions[@]} -eq 0 ]; then
+        print_success "All available Python versions passed!"
+        exit 0
+    else
+        print_error "Some Python versions failed. See details above."
+        exit 1
+    fi
+}
+
+# Run main function
+main "$@" 

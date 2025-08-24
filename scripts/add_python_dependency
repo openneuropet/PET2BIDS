@@ -5,16 +5,12 @@ import sys
 # collect arguments following the calling of this script
 python_library = input("Enter name of python library: ")
 
-# add dependency to toml file
-command = f"cd pypet2bids && poetry add {python_library}"
+# add dependency to pyproject.toml file
+command = f"cd pypet2bids && uv add {python_library}"
 print(f"Updating dependencies:\n{command}")
-poetry_add = subprocess.run(command, shell=True)
+uv_add = subprocess.run(command, shell=True)
 
-if poetry_add.returncode == 0:
-    # update requirements.txt file
-    command = f"cd pypet2bids && poetry export -f requirements.txt --output requirements.txt --without-hashes"
-    print(f"Updating requirements.txt from using poetry export.")
-    subprocess.run(command, shell=True)
-    print(f"{python_library} sucess")
+if uv_add.returncode == 0:
+    print(f"{python_library} added successfully to pyproject.toml")
 else:
     sys.exit(1)

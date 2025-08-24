@@ -10,4 +10,4 @@ From the 2nd row, values are entered. When multiple values are required, these a
 
 # format
 
-While the current template and example are in .xlsx (microsoft excel),  other speadsheet formats can be used.
+While the current template and example are in .xlsx (microsoft excel),  other spreadsheet formats can be used.

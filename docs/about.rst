@@ -4,7 +4,7 @@ About
 **What does this tool do?**
 
 PET2BIDS accepts PET imaging and blood data as inputs (e.g. dicom, ecat, spreadsheets)
-and delivers BIDS fomatted outputs (e.g. nifti, json, and tsv files). See the below diagram:
+and delivers BIDS formatted outputs (e.g. nifti, json, and tsv files). See the below diagram:
 
 .. image:: media/pypet2bids_floow.drawio.png
 
