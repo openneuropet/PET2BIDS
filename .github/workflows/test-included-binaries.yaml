@@ -46,6 +46,12 @@ jobs:
           powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
           echo "$env:USERPROFILE\.cargo\bin" >> $env:GITHUB_PATH
 
+      - name: Install dependencies
+        run: |
+          cd pypet2bids
+          uv add --dev pytest
+          uv sync
+
       - name: Debug Session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
