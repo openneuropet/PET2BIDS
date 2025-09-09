@@ -27,7 +27,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         python: ["3.12"]
       fail-fast: false
 
@@ -55,30 +55,6 @@ jobs:
             ${{ runner.os }}-${{ env.cache-name }}-
             ${{ runner.os }}- 
 
-      - name: Install dcm2niix posix
-        if: runner.os != 'Windows'
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            mkdir dcm2niix_install/ && cd dcm2niix_install/
-            curl -fLO https://github.com/rordenlab/dcm2niix/releases/download/v1.0.20230411/dcm2niix_lnx.zip
-            unzip dcm2niix*.zip
-            echo "${{ github.workspace }}/dcm2niix_install/" >> $GITHUB_PATH
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install dcm2niix
-          fi
-
-
-      - name: Check dcm2niix is installed and on path
-        if: runner.os != 'Windows'
-        run:
-          dcm2niix -h 
-
-      - name: Install dcm2niix windows
-        if: runner.os == 'Windows'
-        run: |
-          curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
-          powershell -command "Expand-Archive dcm2niix_win.zip"
-          
       - name: Set up python
         uses: actions/setup-python@v4
         with:
