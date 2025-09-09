@@ -36,13 +36,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache Node Posix
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && env.ACT != 'true'
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
+        if: env.ACT != 'true'
         id: phantom-cache
         uses: actions/cache@v4
         env:
@@ -88,29 +89,26 @@ jobs:
         run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms (Linux/macOS)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os != 'Windows' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Collect Phantoms (Windows)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
         run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
 
-      - name: Decompress phantoms windows
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
-        run: powershell -command "Expand-Archive PHANTOMS.zip -DestinationPath . -Force"
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
 
-      - name: Debug Windows extraction
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
-        run: |
-          echo "Contents of OpenNeuroPET-Phantoms directory:"
-          ls -la OpenNeuroPET-Phantoms/
-          echo "Contents of sourcedata directory:"
-          ls -la OpenNeuroPET-Phantoms/sourcedata/
-          echo "Contents of SiemensHRRT-JHU directory:"
-          ls -la OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/ || echo "SiemensHRRT-JHU directory not found"
+      - name: Decompress phantoms windows
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        run: powershell -command "Expand-Archive PHANTOMS.zip"
 
       - name: Decompress phantoms posix
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os != 'Windows' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
       - name: Copy Conversion Scripts from Version Control
@@ -119,12 +117,6 @@ jobs:
           cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
           cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
 
       - name: Run Python Conversion Script on Phantoms
         run: |
@@ -161,14 +153,8 @@ jobs:
         run: |
           bids-validator OpenNeuroPET-Phantoms/python
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
 
       - name: Validate Matlab Conversion
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-latest'}}
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
