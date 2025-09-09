@@ -106,7 +106,7 @@ jobs:
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
         run: |
-          powershell -command "Expand-Archive PHANTOMS.zip -DestinationPath . -Force"
+          powershell -command "Expand-Archive PHANTOMS.zip"
           # Move contents from PHANTOMS/OpenNeuroPET-Phantoms/ to OpenNeuroPET-Phantoms/
           if [ -d "PHANTOMS/OpenNeuroPET-Phantoms" ]; then
             mv PHANTOMS/OpenNeuroPET-Phantoms .
