@@ -143,6 +143,7 @@ jobs:
             matlab_conversions
 
       - name: Check Parity
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           python scripts/compare_jsons.py OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
 
@@ -158,5 +159,6 @@ jobs:
           limit-access-to-actor: true
 
       - name: Validate Matlab Conversion
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
