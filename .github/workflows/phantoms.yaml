@@ -91,9 +91,13 @@ jobs:
       - name: Install BIDS Validator
         run: npm install -g bids-validator@1.14.6
 
-      - name: Collect Phantoms
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
+      - name: Collect Phantoms (Linux/macOS)
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os != 'Windows'
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
+
+      - name: Collect Phantoms (Windows)
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os == 'Windows'
+        run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
 
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
