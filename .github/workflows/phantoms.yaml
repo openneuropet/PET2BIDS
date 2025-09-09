@@ -108,10 +108,8 @@ jobs:
         run: |
           powershell -command "Expand-Archive PHANTOMS.zip"
           # Move contents from PHANTOMS/OpenNeuroPET-Phantoms/ to OpenNeuroPET-Phantoms/
-          if [ -d "PHANTOMS/OpenNeuroPET-Phantoms" ]; then
-            mv PHANTOMS/OpenNeuroPET-Phantoms .
-            rm -rf PHANTOMS
-          fi
+          mv PHANTOMS/OpenNeuroPET-Phantoms .
+          rm -rf PHANTOMS
 
       - name: Decompress phantoms posix
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
