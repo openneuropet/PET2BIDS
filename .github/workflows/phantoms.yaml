@@ -114,12 +114,17 @@ jobs:
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
-      - name: Copy Conversion Scripts from Version Control
+      - name: Copy Conversion Scripts from Version Control (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           mkdir -p OpenNeuroPET-Phantoms/code/
           cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
           cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 
+      - name: Copy Conversion Scripts from Version Control (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 
       - name: Run Python Conversion Script on Phantoms
         run: |
