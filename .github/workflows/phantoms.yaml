@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache Node Posix
-        if: runner.os != 'Windows' && !env.ACT
+        if: ${{ matrix.os != 'windows-latest' }} && ${{ !env.ACT }}
         uses: actions/cache@v4
         with:
           path: ~/.npm
@@ -64,11 +64,11 @@ jobs:
             pypet2bids/pyproject.toml
 
       - name: Install UV (Linux/macOS)
-        if: runner.os != 'Windows'
+        if: ${{ matrix.os != 'windows-latest' }}
         run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install UV (Windows)
-        if: runner.os == 'Windows'
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
           echo "$env:USERPROFILE\.cargo\bin" >> $env:GITHUB_PATH
@@ -92,19 +92,19 @@ jobs:
         run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms (Linux/macOS)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os != 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os != 'windows-latest' }}
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Collect Phantoms (Windows)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os == 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os == 'windows-latest' }}
         run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
 
       - name: Decompress phantoms windows
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os == 'windows-latest' }}
         run: powershell -command "Expand-Archive PHANTOMS.zip"
 
       - name: Decompress phantoms posix
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os != 'windows-latest' }}
         run: unzip PHANTOMS.zip
 
       - name: Copy Conversion Scripts from Version Control
