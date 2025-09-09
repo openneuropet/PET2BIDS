@@ -63,8 +63,15 @@ jobs:
           cache-dependency-path: |
             pypet2bids/pyproject.toml
 
-      - name: Install UV
+      - name: Install UV (Linux/macOS)
+        if: runner.os != 'Windows'
         run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install UV (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+          echo "$env:USERPROFILE\.cargo\bin" >> $env:GITHUB_PATH
 
       - name: Install Python Dependencies
         run: |
