@@ -97,7 +97,17 @@ jobs:
 
       - name: Decompress phantoms windows
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
-        run: powershell -command "Expand-Archive PHANTOMS.zip"
+        run: powershell -command "Expand-Archive PHANTOMS.zip -DestinationPath . -Force"
+
+      - name: Debug Windows extraction
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
+        run: |
+          echo "Contents of OpenNeuroPET-Phantoms directory:"
+          ls -la OpenNeuroPET-Phantoms/
+          echo "Contents of sourcedata directory:"
+          ls -la OpenNeuroPET-Phantoms/sourcedata/
+          echo "Contents of SiemensHRRT-JHU directory:"
+          ls -la OpenNeuroPET-Phantoms/sourcedata/SiemensHRRT-JHU/ || echo "SiemensHRRT-JHU directory not found"
 
       - name: Decompress phantoms posix
         if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' && runner.os != 'Windows' }}
