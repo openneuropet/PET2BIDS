@@ -67,3 +67,5 @@ ecat_testing/**/*.nii*
 
 matlab/SiemensHRRTparameters.txt
 
+dcm2niix
+dcm2niix.exe
