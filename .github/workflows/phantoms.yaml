@@ -43,7 +43,7 @@ jobs:
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
-        if: !env.ACT
+        if: ${{ !env.ACT }}
         id: phantom-cache
         uses: actions/cache@v4
         env:
@@ -59,9 +59,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-          cache: 'pip'
-          cache-dependency-path: |
-            pypet2bids/pyproject.toml
 
       - name: Install UV (Linux/macOS)
         if: runner.os != 'Windows'
@@ -92,19 +89,19 @@ jobs:
         run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms (Linux/macOS)
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os != 'Windows'
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Collect Phantoms (Windows)
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os == 'Windows'
         run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
 
       - name: Decompress phantoms windows
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os == 'Windows'
         run: powershell -command "Expand-Archive PHANTOMS.zip"
 
       - name: Decompress phantoms posix
-        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
+        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
       - name: Copy Conversion Scripts from Version Control
