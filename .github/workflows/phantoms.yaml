@@ -36,14 +36,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache Node Posix
-        if: ${{ matrix.os != 'windows-latest' }} && ${{ !env.ACT }}
+        if: runner.os != 'Windows' && !env.ACT
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
-        if: ${{ !env.ACT }}
+        if: !env.ACT
         id: phantom-cache
         uses: actions/cache@v4
         env:
@@ -64,11 +64,11 @@ jobs:
             pypet2bids/pyproject.toml
 
       - name: Install UV (Linux/macOS)
-        if: ${{ matrix.os != 'windows-latest' }}
+        if: runner.os != 'Windows'
         run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install UV (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: runner.os == 'Windows'
         run: |
           powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
           echo "$env:USERPROFILE\.cargo\bin" >> $env:GITHUB_PATH
@@ -92,19 +92,19 @@ jobs:
         run: npm install -g bids-validator@1.14.6
 
       - name: Collect Phantoms (Linux/macOS)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os != 'windows-latest' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
 
       - name: Collect Phantoms (Windows)
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os == 'windows-latest' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
         run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
 
       - name: Decompress phantoms windows
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os == 'windows-latest' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
         run: powershell -command "Expand-Archive PHANTOMS.zip"
 
       - name: Decompress phantoms posix
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }} && ${{ matrix.os != 'windows-latest' }}
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
       - name: Copy Conversion Scripts from Version Control
@@ -115,7 +115,7 @@ jobs:
 
       - name: Debug
         uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
         timeout-minutes: 15
         with:
           limit-access-to-actor: true
@@ -157,7 +157,7 @@ jobs:
 
       - name: Debug
         uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
         timeout-minutes: 15
         with:
           limit-access-to-actor: true
