@@ -219,7 +219,7 @@ for j=1:length(FileListIn)
             
             fprintf(fid,'Scaling factor: %10e\n',Sca);
             x = mh.ecat_calibration_factor * Sca;
-            fprintf(fid,'Scaling factor * ECAT Cal Factor: %10.10f\n',x);   
+            fprintf(fid,'Scaling factor * ECAT Cal Factor: %10.10f\n',x);
             
         end
 
