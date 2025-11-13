@@ -10,7 +10,7 @@ function [method,iteration,subset] = get_recon_method(headervalue)
 % :returns iteration: the number of iterations or 'none'
 % :returns subset: the number of subsets or 'none'
 %
-% | *Cyril Pernet 2022*
+% | *Cyril Pernet 2025*
 % | *Copyright Open NeuroPET team*
 
 
