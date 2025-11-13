@@ -37,6 +37,22 @@
       ]
     },
     {
+      "contents": "TOF-OP-OSEM",
+      "ReconMethodName": "Time Of Flight - Ordinary Poisson - Ordered Subset Expectation Maximization",
+      "ReconMethodParameterUnits": [
+        null,
+        null
+      ],
+      "ReconMethodParameterLabels": [
+        "subsets",
+        "iterations"
+      ],
+      "ReconMethodParameterValues": [
+        null,
+        null
+      ]
+    },
+    {
       "contents": "OSEM3D-OP-PSFi10s16",
       "subsets": 16,
       "iterations": 10,
