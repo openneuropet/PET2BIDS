@@ -64,8 +64,8 @@ convert-pmod-to-blood = "pypet2bids.convert_pmod_to_blood:main"
 ispet = "pypet2bids.is_pet:main"
 updatepetjsonfromdicom = "pypet2bids.dcm2niix4pet:update_json_with_dicom_value_cli"
 updatepetjsonfromecat = "pypet2bids.ecat_cli:update_json_with_ecat_value_cli"
-updatepetjson = "pypet2bids.update_json:update_json_cli"
-ecatheaderupdate = "pypet2bids.ecat_header_update:main"
+updatepetjson = "pypet2bids.update_json_pet_file:update_json_cli"
+ecatheaderupdate = "pypet2bids.ecat_header_update:cli"
 
 [project.urls]
 Documentation = "https://pypet2bids.readthedocs.io/en/latest/"
