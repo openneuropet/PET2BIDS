@@ -4,10 +4,10 @@ try:
     import read_ecat
     import helper_functions
 except ImportError:
-    from pypet2bids.ecat import ecat
-    from pypet2bids.write_ecat import write_ecat
-    from pypet2bids.read_ecat import read_ecat
-    from pypet2bids import helper_functions
+    import pypet2bids.ecat as ecat
+    import pypet2bids.write_ecat as write_ecat
+    import pypet2bids.read_ecat as read_ecat
+    import pypet2bids.helper_functions as helper_functions
 
 # collect ecat header jsons
 ecat_headers = read_ecat.ecat_header_maps.get("ecat_headers")
