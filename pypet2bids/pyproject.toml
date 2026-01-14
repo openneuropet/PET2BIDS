@@ -78,6 +78,7 @@ packages = ["pypet2bids"]
 include = [
     "/pypet2bids",
     "/README.md",
+    "/pypet2bids/dcm2niix_binaries/*.zip"
 ]
 
 [tool.black]
