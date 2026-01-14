@@ -10,7 +10,7 @@ The example files, show the excel file and the resulting conversion as json.
 
 ## 1 spreadsheet for many subjects
 
-In most cases, you subjects are converted (say using dcm2niix) and you need to update the json files with the metadata for all subjects. This is easily achieved using our preformated [scanner excel sheet](https://github.com/openneuropet/PET2BIDS/blob/main/spreadsheet_conversion/many_subjects_sheet/scanner_metadata_template.xlsx) which applies that information to all and the [tracer related excel sheet](https://github.com/openneuropet/PET2BIDS/blob/main/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_template.xlsx).
+In most cases, you subjects are converted (say using dcm2niix) and you need to update the json files with the metadata for all subjects. This is easily achieved using our preformated [scanner excel sheet](https://github.com/openneuropet/PET2BIDS/blob/main/spreadsheet_conversion/many_subjects_sheet/scanner_metadata_template.xlsx) which applies that information to all and the [tracer related excel sheet](https://github.com/openneuropet/PET2BIDS/blob/main/spreadsheet_conversion/many_subjects_sheet/subjects_metadata_template.xlsx). 
 
 ## convert_spreadsheet_metadata.m
 

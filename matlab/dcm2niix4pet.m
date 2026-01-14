@@ -58,6 +58,11 @@ if ~ispc % overwrite if not windowns (as it should be in the computer path)
     dcm2niixpath = 'dcm2niix';
 end
 
+status = system('dcm2niix');
+if status ~=0
+    error('no dcm2niix found')
+end
+
 % we rely on more recent version of dcm2niix, certain pet fields are unavailable in the sidecar jsons for versions
 % before v1.0.20220720
 
@@ -65,16 +70,15 @@ minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
 version_cmd = ['dcm2niix', ' -v'];
 
-[status, version_output_string] = system(version_cmd);
+[~, version_output_string] = system(version_cmd);
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
 
-
 % initialize telemetry data fror later uploading
-telemetry_data = {};
-dcm2niix_data = {};
-dcm2niix_data.version = version(1);
-dcm2niix_data.returncode = 0;
-telemetry_data.dcm2niix = dcm2niix_data;
+telemetry_data             = {};
+dcm2niix_data              = {};
+dcm2niix_data.version      = version(1);
+dcm2niix_data.returncode   = 0;
+telemetry_data.dcm2niix    = dcm2niix_data;
 telemetry_data.description = "Matlab_dcm2niix4pet.m";
 
 if length(version) >= 1

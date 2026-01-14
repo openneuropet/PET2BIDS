@@ -3,7 +3,12 @@
     {
       "value": "XYZGAUSSIAN3.00",
       "ReconFilterSize": 3,
-      "ReconFilterType": "GAUSSIAN"
+      "ReconFilterType": "Gaussian"
+    },
+    {
+      "value": "Gauss2",
+      "ReconFilterSize": 2,
+      "ReconFilterType": "Gaussian"
     }
   ]  
 }
