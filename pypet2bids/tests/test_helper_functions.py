@@ -358,5 +358,94 @@ def test_reorder_isotope():
             assert helper_functions.reorder_isotope(isotope_variant) == isotope
 
 
+def test_remove_zero_rows():
+    """
+    Tests the remove_zero_rows function which removes rows where all values are 0.0
+    """
+    # Test case 1: DataFrame with some zero rows that should be removed
+    data_with_zeros = pandas.DataFrame(
+        {
+            "time": [0.0, 10.0, 20.0, 0.0, 30.0],
+            "plasma_radioactivity": [0.0, 5.5, 6.2, 0.0, 7.1],
+            "whole_blood_radioactivity": [0.0, 4.2, 5.0, 0.0, 6.0],
+        }
+    )
+    result = helper_functions.remove_zero_rows(data_with_zeros)
+    # Should have 3 rows remaining (rows 1, 2, 4)
+    assert len(result) == 3
+    pandas.testing.assert_frame_equal(
+        result.reset_index(drop=True),
+        pandas.DataFrame(
+            {
+                "time": [10.0, 20.0, 30.0],
+                "plasma_radioactivity": [5.5, 6.2, 7.1],
+                "whole_blood_radioactivity": [4.2, 5.0, 6.0],
+            }
+        ),
+    )
+
+    # Test case 2: DataFrame with no zero rows (should remain unchanged)
+    data_no_zeros = pandas.DataFrame(
+        {
+            "time": [10.0, 20.0, 30.0],
+            "plasma_radioactivity": [5.5, 6.2, 7.1],
+            "whole_blood_radioactivity": [4.2, 5.0, 6.0],
+        }
+    )
+    result_no_zeros = helper_functions.remove_zero_rows(data_no_zeros)
+    pandas.testing.assert_frame_equal(data_no_zeros, result_no_zeros)
+
+    # Test case 3: DataFrame with all zero rows (should return empty DataFrame)
+    data_all_zeros = pandas.DataFrame(
+        {
+            "time": [0.0, 0.0, 0.0],
+            "plasma_radioactivity": [0.0, 0.0, 0.0],
+            "whole_blood_radioactivity": [0.0, 0.0, 0.0],
+        }
+    )
+    result_all_zeros = helper_functions.remove_zero_rows(data_all_zeros)
+    assert len(result_all_zeros) == 0
+    assert list(result_all_zeros.columns) == [
+        "time",
+        "plasma_radioactivity",
+        "whole_blood_radioactivity",
+    ]
+
+    # Test case 4: DataFrame with mixed zeros (some columns zero, but not all in a row)
+    data_mixed = pandas.DataFrame(
+        {
+            "time": [0.0, 10.0, 0.0, 20.0],
+            "plasma_radioactivity": [0.0, 5.5, 0.0, 6.2],
+            "whole_blood_radioactivity": [0.0, 4.2, 3.0, 5.0,],
+        }
+    )
+    result_mixed = helper_functions.remove_zero_rows(data_mixed)
+    # Row 0 should be removed (all zeros), rows 1, 2, and 3 should remain
+    assert len(result_mixed) == 3
+    pandas.testing.assert_frame_equal(
+        result_mixed.reset_index(drop=True),
+        pandas.DataFrame(
+            {
+                "time": [10.0, 0.0, 20.0],
+                "plasma_radioactivity": [5.5, 0.0, 6.2],
+                "whole_blood_radioactivity": [4.2, 3.0, 5.0],
+            }
+        ),
+    )
+
+    # Test case 5: Empty DataFrame (should return empty DataFrame)
+    empty_data = pandas.DataFrame()
+    result_empty = helper_functions.remove_zero_rows(empty_data)
+    assert len(result_empty) == 0
+
+    # Test case 6: Single column DataFrame
+    single_col = pandas.DataFrame({"value": [0.0, 1.0, 0.0, 2.0, 0.0]})
+    result_single = helper_functions.remove_zero_rows(single_col)
+    assert len(result_single) == 2
+    pandas.testing.assert_frame_equal(
+        result_single.reset_index(drop=True), pandas.DataFrame({"value": [1.0, 2.0]})
+    )
+
+
 if __name__ == "__main__":
     unittest.main()

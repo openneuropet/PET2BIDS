@@ -970,6 +970,10 @@ class Dcm2niix4PET:
             if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
+                
+                # remove any empty rows
+                blood_tsv_data = helper_functions.remove_zero_rows(blood_tsv_data)
+
                 # write out blood_tsv using pandas csv write
                 blood_tsv_data.to_csv(
                     join(self.destination_folder, blood_file_name + ".tsv"),

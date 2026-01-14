@@ -1164,3 +1164,10 @@ def reorder_isotope(isotope: str) -> str:
     isotope = f"{isotope_num[0]}{e}"
 
     return isotope
+
+def remove_zero_rows(sheet: pandas.DataFrame) -> pandas.DataFrame:
+    zero_rows = sheet.eq(0.0).all(axis=1)
+    if True in zero_rows.values:
+        fixed_tsv = sheet[~zero_rows]
+        sheet = fixed_tsv
+    return sheet    
