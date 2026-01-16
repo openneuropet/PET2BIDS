@@ -233,7 +233,7 @@ def ecat2nii(
         min_img = img_temp.min()
         if min_img < -32768:
             img_temp = img_temp / (min_img * -32768)
-            sca = sca * (min_img * -32768)
+            sca = sca * min_img /  -32768
     if ecat_save_steps == "1":
         with open(os.path.join(steps_dir, "8.5_sca.txt"), "w") as sca_file:
             sca_file.write(f"Scaling factor: {sca}\n")
