@@ -46,7 +46,6 @@ def ecat2nii(
     sif_out=False,
     affine=None,
     save_binary=False,
-    **kwargs,
 ):
     """
     Converts an ECAT file into a nifti and a sidecar json, used in conjunction with
@@ -60,8 +59,6 @@ def ecat2nii(
     :param sif_out: outputs a .sif file containing the images pixel data
     :param affine: a user supplied affine, this is gathered from the ECAT if not supplied.
     :param save_binary: dumps a pickled ECAT object, you probably shouldn't be using this.
-    :param kwargs: additional key value pairs that one wishes to add to the sidecar json accompanying a converted ECAT
-        nii image
     :return: a nibabel nifti object if one wishes to muddle with the object in python and not in a .nii file
 
     """
@@ -135,15 +132,6 @@ def ecat2nii(
 
     # set the byte order and the pixel data type from the input array
     pixel_data_type = data.dtype
-
-    # check for TimeZero supplied via kwargs
-    if kwargs.get("TimeZero", None):
-        TimeZero = kwargs["TimeZero"]
-    else:
-        logger.warning(
-            "Metadata TimeZero is missing -- set to ScanStart or empty to use the scanning time as "
-            "injection time"
-        )
 
     # get image shape
     img_shape = data.shape
