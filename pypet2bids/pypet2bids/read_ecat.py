@@ -1,4 +1,4 @@
-"""
+r"""
 This module contains methods used to read ecat files (\*.v), the primary method pulled/imported from this module
 is read_ecat which returns the contents of a singular ecat file divided into three parts:
 
