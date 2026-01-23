@@ -241,7 +241,7 @@ class Ecat:
             ecat_pixel_data=self.data,
             nifti_file=output,
             affine=self.affine,
-            kwargs=self.kwargs,
+            **self.kwargs,
         )
 
         self.telemetry_data["NiftiFiles"] = 1
