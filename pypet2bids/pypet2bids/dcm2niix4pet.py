@@ -20,6 +20,7 @@ from platform import system
 import subprocess
 import pandas as pd
 from os.path import join
+from os import chmod
 from os import listdir, walk, environ
 from pathlib import Path
 import json
@@ -29,6 +30,8 @@ from tempfile import TemporaryDirectory
 import shutil
 import argparse
 import importlib
+import zipfile
+import stat
 
 try:
     import helper_functions
@@ -170,6 +173,50 @@ def collect_date_time_from_file_name(file_name):
         raise Exception(f"Unable to parse date_time string from filename: {file_name}")
 
     return date, time
+
+
+def use_included_binary():
+    # get system platform
+    systems_system = system().lower()
+    module_folder = Path(__file__).parent.resolve()
+    binary_folder = module_folder / "dcm2niix_binaries"
+    dcm2niix_zip = "dcm2niix_{}.zip"
+    if "darwin" in systems_system:
+        zipped = binary_folder / dcm2niix_zip.format("mac")
+    elif "linux" in systems_system:
+        zipped = binary_folder / dcm2niix_zip.format("lnx")
+    elif "windows" in systems_system:
+        zipped = binary_folder / dcm2niix_zip.format("win")
+    else:
+        raise ValueError(
+            f"System must be Darwin, Linux, or Windows to use included binaries, got {system()}"
+        )
+
+    # Check if binary already exists
+    if systems_system == "windows":
+        dcm2niix_binary = binary_folder / "dcm2niix.exe"
+    else:
+        dcm2niix_binary = binary_folder / "dcm2niix"
+
+    # Only extract if binary doesn't exist
+    if not dcm2niix_binary.exists() and zipped.exists():
+        try:
+            with zipfile.ZipFile(zipped, "r") as ref:
+                ref.extractall(zipped.parent)
+        except zipfile.BadZipFile as e:
+            logger.error(
+                f"Unable to extract {zipped}, try manually setting DCM2NIIX_PATH in env or .pypet2bids_config"
+            )
+            raise e
+
+    # Check to make sure binary is there and set permissions
+    if dcm2niix_binary.exists():
+        if systems_system != "windows":
+            chmod(dcm2niix_binary, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        helper_functions.modify_config_file("DCM2NIIX_PATH", dcm2niix_binary)
+        return dcm2niix_binary
+    else:
+        return None
 
 
 class Dcm2niix4PET:
@@ -445,17 +492,21 @@ class Dcm2niix4PET:
             dcm2niix_path = helper_functions.check_pet2bids_config()
 
         if not dcm2niix_path:
-            pkged = "https://github.com/rordenlab/dcm2niix/releases"
-            instructions = "https://github.com/rordenlab/dcm2niix#install"
-            no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in 
-                        $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here 
-                        {instructions} 
-                        and packaged versions can be found at 
-                        {pkged}
-                        Alternatively, you can set the path to dcm2niix in the config file at $HOME/.pet2bidsconfig
-                        using the command dcm2niix4pet --set-dcm2niix-path."""
-            logger.error(no_dcm2niix)
-            dcm2niix_path = None
+            # determine if osx or linux
+            dcm2niix_path = use_included_binary()
+
+            if not dcm2niix_path:
+                pkged = "https://github.com/rordenlab/dcm2niix/releases"
+                instructions = "https://github.com/rordenlab/dcm2niix#install"
+                no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in 
+                            $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here 
+                            {instructions} 
+                            and packaged versions can be found at 
+                            {pkged}
+                            Alternatively, you can set the path to dcm2niix in the config file at $HOME/.pet2bidsconfig
+                            using the command dcm2niix4pet --set-dcm2niix-path."""
+                logger.error(no_dcm2niix)
+                dcm2niix_path = None
 
         return dcm2niix_path
 
@@ -465,8 +516,8 @@ class Dcm2niix4PET:
 
         :return: status code of the command dcm2niix -h
         """
-
-        if system().lower() != "windows":
+        operating_system = system().lower()
+        if operating_system != "windows":
             dcm2niix_path = self.check_posix()
             # fall back and check the config file if it's not on the path
             if not dcm2niix_path:
@@ -919,6 +970,10 @@ class Dcm2niix4PET:
             if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
+                
+                # remove any empty rows
+                blood_tsv_data = helper_functions.remove_zero_rows(blood_tsv_data)
+
                 # write out blood_tsv using pandas csv write
                 blood_tsv_data.to_csv(
                     join(self.destination_folder, blood_file_name + ".tsv"),

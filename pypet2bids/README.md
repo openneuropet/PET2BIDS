@@ -77,7 +77,7 @@ make installpoetry buildpackage installpackage
 <details> 
 <summary>Run Directly From Source</summary>
 
-Lastly, if one wishes run pypet2bids directly from the source code in this repository or to help contribute to the python portion of this project or any of the documentation they can do so via the following options:
+If one wishes run pypet2bids directly from the source code in this repository or to help contribute to the python portion of this project or any of the documentation they can do so via the following options:
 
 ```bash
 cd PET2BIDS/pypet2bids
@@ -98,6 +98,25 @@ cd PET2BIDS/pypet2bids
 python dcm2niix4pet.py --help
 ```
 
+</details>
+
+<details>
+<summary>Run Using Docker</summary>
+Lastly, we provide a Docker container that includes dcm2niix and pypet2bids. This can be installed using Docker. To build the docker file run:
+
+```
+docker build . -t openneuropet/pet2bids
+```
+
+Then mount and run conversions on your input folders like so:
+
+```
+docker run --rm -it \ 
+-v /path/to/dicoms:/dicoms:ro \ 
+-v /path/to/outputdir:/out \ 
+openneuropet/pet2bids dcm2niix4pet /dicoms --destination-path /out
+```
+Please note the latest version of dcm2niix is pulled and installed at the time of building the Docker container.
 </details>
 
 **Note:**

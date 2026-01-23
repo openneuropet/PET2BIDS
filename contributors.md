@@ -6,7 +6,8 @@ some icons needs to be added or your name is not listed, please add it.
 Murat Bilgel 💻 🐛 💡  
 Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️  
 Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋  
-Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀  
+Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀 
+Rami Hamati 💻 🐛 
 Gitte Knudsen 💡💵  
 Granville Matheson 📝 🐛 ✅  
 Martin Norgaard 💻 💬 🤔 ⚠️ 👀  

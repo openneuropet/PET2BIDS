@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pathlib import Path
 from os.path import join
 from os import listdir
@@ -13,11 +15,15 @@ from pandas import Timestamp
 
 try:
     import helper_functions
-    import is_pet
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+    # prevent circular import
+    #import is_pet
     import pet_metadata as metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-    import pypet2bids.is_pet as is_pet
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+    # prevent circular import
+    #import pypet2bids.is_pet as is_pet
     import pypet2bids.pet_metadata as metadata
 
 # import logging
@@ -761,6 +767,12 @@ def get_metadata_from_spreadsheet(
     :return: dictionary of metadata
     :rtype: dict
     """
+    # Import is_pet here to avoid circular import
+    try:
+        import is_pet
+    except ModuleNotFoundError:
+        import pypet2bids.is_pet as is_pet
+
     spreadsheet_metadata = {"nifti_json": {}, "blood_json": {}, "blood_tsv": {}}
     spreadsheet_values = {}
     if Path(metadata_path).is_file():

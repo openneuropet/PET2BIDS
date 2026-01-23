@@ -27,7 +27,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         python: ["3.12"]
       fail-fast: false
 
@@ -36,14 +36,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache Node Posix
-        if: runner.os != 'Windows' && !env.ACT
+        if: runner.os != 'Windows' && env.ACT != 'true'
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ env.cache-name }}
 
       - name: Cache Phantoms
-        if: ${{ !env.ACT }}
+        if: env.ACT != 'true'
         id: phantom-cache
         uses: actions/cache@v4
         env:
@@ -55,40 +55,20 @@ jobs:
             ${{ runner.os }}-${{ env.cache-name }}-
             ${{ runner.os }}- 
 
-      - name: Install dcm2niix posix
-        if: runner.os != 'Windows'
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            mkdir dcm2niix_install/ && cd dcm2niix_install/
-            curl -fLO https://github.com/rordenlab/dcm2niix/releases/download/v1.0.20230411/dcm2niix_lnx.zip
-            unzip dcm2niix*.zip
-            echo "${{ github.workspace }}/dcm2niix_install/" >> $GITHUB_PATH
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install dcm2niix
-          fi
-
-
-      - name: Check dcm2niix is installed and on path
-        if: runner.os != 'Windows'
-        run:
-          dcm2niix -h 
-
-      - name: Install dcm2niix windows
-        if: runner.os == 'Windows'
-        run: |
-          curl -fLO https://github.com/rordenlab/dcm2niix/releases/latest/download/dcm2niix_win.zip
-          powershell -command "Expand-Archive dcm2niix_win.zip"
-          
       - name: Set up python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-          cache: 'pip'
-          cache-dependency-path: |
-            pypet2bids/pyproject.toml
 
-      - name: Install UV
+      - name: Install UV (Linux/macOS)
+        if: runner.os != 'Windows'
         run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install UV (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+          echo "$env:USERPROFILE\.cargo\bin" >> $env:GITHUB_PATH
 
       - name: Install Python Dependencies
         run: |
@@ -108,30 +88,43 @@ jobs:
       - name: Install BIDS Validator
         run: npm install -g bids-validator@1.14.6
 
-      - name: Collect Phantoms
-        if: ${{ steps.cache-phantoms.outputs.cache-hit != 'true' }} && ${{ !env.ACT }}
+      - name: Collect Phantoms (Linux/macOS)
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: wget -O PHANTOMS.zip https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip
+
+      - name: Collect Phantoms (Windows)
+        if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
+        run: Invoke-WebRequest -Uri "https://openneuropet.s3.amazonaws.com/US-sourced-OpenNeuroPET-Phantoms.zip" -OutFile "PHANTOMS.zip"
+
+      - name: Debug
+        uses: mxschmitt/action-tmate@v3
+        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
 
       - name: Decompress phantoms windows
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os == 'Windows'
-        run: powershell -command "Expand-Archive PHANTOMS.zip"
+        run: |
+          powershell -command "Expand-Archive PHANTOMS.zip"
+          # Move contents from PHANTOMS/OpenNeuroPET-Phantoms/ to OpenNeuroPET-Phantoms/
+          mv PHANTOMS/OpenNeuroPET-Phantoms .
 
       - name: Decompress phantoms posix
         if: steps.cache-phantoms.outputs.cache-hit != 'true' && !env.ACT && runner.os != 'Windows'
         run: unzip PHANTOMS.zip
 
-      - name: Copy Conversion Scripts from Version Control
+      - name: Copy Conversion Scripts from Version Control (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           mkdir -p OpenNeuroPET-Phantoms/code/
           cp scripts/matlab_conversions.m OpenNeuroPET-Phantoms/code/matlab_conversions.m
           cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
+      - name: Copy Conversion Scripts from Version Control (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cp scripts/python_conversions.sh OpenNeuroPET-Phantoms/code/python_conversions.sh
 
       - name: Run Python Conversion Script on Phantoms
         run: |
@@ -160,6 +153,7 @@ jobs:
             matlab_conversions
 
       - name: Check Parity
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           python scripts/compare_jsons.py OpenNeuroPET-Phantoms/python OpenNeuroPET-Phantoms/matlab
 
@@ -167,13 +161,8 @@ jobs:
         run: |
           bids-validator OpenNeuroPET-Phantoms/python
 
-      - name: Debug
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
 
       - name: Validate Matlab Conversion
+        if: ${{ matrix.os == 'ubuntu-latest'}}
         run: |
           bids-validator OpenNeuroPET-Phantoms/matlab
