@@ -447,5 +447,18 @@ def test_remove_zero_rows():
     )
 
 
+def test_get_version():
+    """get_version returns a non-empty version string (from metadata or pyproject.toml)."""
+    import re
+
+    version = helper_functions.get_version()
+    assert isinstance(version, str), "get_version should return a string"
+    assert len(version) > 0, "get_version should return a non-empty version"
+    # Should look like a version (e.g. 1.4.6 or 0.0.0.dev0)
+    assert re.match(r"^\d+\.\d+\.\d+", version), (
+        f"get_version should return a version-like string (e.g. 1.4.6), got {version!r}"
+    )
+
+
 if __name__ == "__main__":
     unittest.main()
