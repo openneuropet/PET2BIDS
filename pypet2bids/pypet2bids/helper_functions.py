@@ -308,9 +308,6 @@ def get_version():
             except FileNotFoundError:
                 pass
 
-        attrs = tomlfile.get("tool", {})
-        poetry = attrs.get("poetry", {})
-        version = poetry.get("version", "")
         if not version:
             # PEP 621 / hatchling: version under [project]
             version = tomlfile.get("project", {}).get("version", "")
