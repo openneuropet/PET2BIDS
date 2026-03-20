@@ -1176,7 +1176,7 @@ def cli():
         "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.",
     )
     parser.add_argument(
-        "folder", nargs="?", type=str, help="Folder path containing imaging data",
+        "folder", nargs="?", help="Folder path containing imaging data",
         type=DirPath
     )
     parser.add_argument(
