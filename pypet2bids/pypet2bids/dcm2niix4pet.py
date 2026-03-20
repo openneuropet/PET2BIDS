@@ -23,6 +23,7 @@ from os.path import join
 from os import chmod
 from os import listdir, walk, environ
 from pathlib import Path
+from beeline.inputs import DirPath, FilePath
 import json
 import pydicom
 import re
@@ -1175,28 +1176,22 @@ def cli():
         "them to BIDS compliant nifti (using dcm2niix), json, and tsv files.",
     )
     parser.add_argument(
-        "folder", nargs="?", type=str, help="Folder path containing imaging data"
+        "folder", nargs="?", type=str, help="Folder path containing imaging data",
+        type=DirPath
     )
     parser.add_argument(
         "--metadata-path",
         "-m",
-        type=str,
+        type=FilePath,
         default=None,
         const="",
         nargs="?",
         help="Path to metadata file for scan",
     )
     parser.add_argument(
-        "--translation-script-path",
-        "-t",
-        default=None,
-        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS"
-        + " compliant text files (tsv and json)",
-    )
-    parser.add_argument(
         "--destination-path",
         "-d",
-        type=str,
+        type=DirPath,
         default=None,
         help="Destination path to send converted imaging and metadata files to. If subject id and "
         "session id is included in the path files created by dcm2niix4pet will be named as such. "
@@ -1207,7 +1202,7 @@ def cli():
     )
     parser.add_argument(
         "--tempdir",
-        type=str,
+        type=DirPath,
         default=None,
         help="User-specified tempdir location (overrides default system tempfile default)",
         required=False,
@@ -1246,7 +1241,7 @@ def cli():
         help="Provide a path to a dcm2niix install/exe, writes path to config "
         f"file {Path.home()}/.pet2bidsconfig under the variable "
         f"DCM2NIIX_PATH",
-        type=pathlib.Path,
+        type=FilePath,
     )
     parser.add_argument(
         "--set-dcm2niix-options",
@@ -1262,6 +1257,7 @@ def cli():
         "contained within dicom headers or spreadsheet metadata."
         "Sets given path to DEFAULT_METADATA_JSON var in "
         f"{Path.home()}/.pet2bidsconfig",
+        type=FilePath
     )
     parser.add_argument(
         "--trc",
