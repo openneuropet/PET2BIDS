@@ -173,7 +173,7 @@ def ecat2nii(
     for index in reversed(
         range(img_shape[3])
     ):  # Don't throw stones working from existing matlab code
-        print(f"Loading frame {index + 1}")
+        logger.info(f"Loading frame {index + 1}")
         img_temp[:, :, :, index] = numpy.flip(
             numpy.flip(
                 numpy.flip(

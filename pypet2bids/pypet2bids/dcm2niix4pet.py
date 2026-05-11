@@ -587,7 +587,7 @@ class Dcm2niix4PET:
                 convert.returncode != 0
                 or "error" in convert.stderr.decode("utf-8").lower()
             ) and not self.ignore_dcm2niix_errors:
-                print(
+                helper_functions.logger("pypet2bids").warning(
                     "Check output .nii files, dcm2iix returned these errors during conversion:"
                 )
                 # raise error if missing images is found
@@ -599,7 +599,7 @@ class Dcm2niix4PET:
                     bytes("Skipping existing file name", "utf-8") not in convert.stdout
                     or convert.stderr
                 ):
-                    print(convert.stderr.decode("utf-8"))
+                    helper_functions.logger("pypet2bids").warning(convert.stderr.decode("utf-8"))
                 elif (
                     convert.returncode != 0
                     and bytes("Error: Check sorted order", "utf-8") in convert.stdout
@@ -608,8 +608,8 @@ class Dcm2niix4PET:
                     print(
                         "Possible error with frame order, is this a phillips dicom set?"
                     )
-                    print(convert.stdout)
-                    print(convert.stderr)
+                    helper_functions.logger("pypet2bids").warning(convert.stdout)
+                    helper_functions.logger("pypet2bids").warning(convert.stderr)
 
             # collect contents of the tempdir
             files_created_by_dcm2niix = [
@@ -1130,7 +1130,8 @@ class Dcm2niix4PET:
                 spec.loader.exec_module(module)
                 text_file_data = module.translate_metadata(self.metadata_dataframe)
             except AttributeError as err:
-                print(f"Unable to locate metadata_translation_script")
+               helper_functions.logger("pypet2bids").error(f"Unable to locate metadata_translation_script")
+               raise err
 
             self.spreadsheet_metadata["blood_tsv"] = text_file_data.get("blood_tsv", {})
             self.spreadsheet_metadata["blood_json"] = text_file_data.get(

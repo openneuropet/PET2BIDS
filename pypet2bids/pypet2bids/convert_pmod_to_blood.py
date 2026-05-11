@@ -280,7 +280,7 @@ class PmodToBlood:
                 "sub", self.output_path
             )
         else:
-            print("Subject id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning("Subject id not found in output_path, checking key pair input.")
             self.subject_id = self.kwargs.get("subject_id", "")
 
         if helper_functions.collect_bids_part("ses", str(self.output_path)):
@@ -288,7 +288,7 @@ class PmodToBlood:
                 "ses", self.output_path
             )
         else:
-            print("Session id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning("Session id not found in output_path, checking key pair input.")
             self.session_id = self.kwargs.get("session_id", "")
 
         self.output_json = output_json
@@ -767,7 +767,7 @@ class PmodToBlood:
                 )
                 break
             else:
-                print(
+                helper_functions.logger("pypet2bids").warning(
                     f"You entered {how}; please enter either M or A to exit this prompt"
                 )
 
