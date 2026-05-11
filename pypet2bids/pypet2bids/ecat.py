@@ -142,7 +142,7 @@ class Ecat:
         try:
             self.ecat = nibabel.ecat.load(self.ecat_file)
         except nibabel.filebasedimages.ImageFileError as err:
-            print("\nFailed to load ecat image.\n")
+            helper_functions.logger("pypet2bids").error("\nFailed to load ecat image.\n")
             raise err
 
         directory_byte_block = read_ecat.read_bytes(

@@ -112,6 +112,24 @@ collect releases from the [rorden lab/dcm2niix/releases](https://github.com/rord
 observed that package managers such as yum or apt or apt-get often install much older versions of dcm2niix e.g. 
 v1.0.2017XXXX, v1.0.2020XXXXX. You may run into invalid-BIDS or errors with this software with older versions.* 
 
+### Controlling Logging Output
+
+If you import `pypet2bids` in your own Python project and want to reduce or silence library logging, configure
+the `pypet2bids` logger in your application:
+
+```python
+import logging
+
+# Option 1: silence all logs from this library
+logging.getLogger("pypet2bids").disabled = True
+
+# Option 2: keep only critical messages
+logger = logging.getLogger("pypet2bids")
+logger.setLevel(logging.CRITICAL)
+for handler in logger.handlers:
+    handler.setLevel(logging.CRITICAL)
+```
+
 
 ### spreadsheet_conversion (custom and pmod)
 

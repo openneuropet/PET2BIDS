@@ -32,7 +32,7 @@ from math import ceil, floor
 from pypet2bids.read_ecat import ecat_header_maps, get_buffer_size
 import numpy
 from pathlib import Path
-
+from pypet2bids.helper_functions import logger
 
 def write_header(
     ecat_file,
@@ -95,13 +95,13 @@ def write_header(
                     value_to_write = 32767
                 elif values["DATA_TYPE"] == 5 and "MIN" in variable_name:
                     value_to_write = -32767
-                    print(
+                    logger.warning(
                         "Uncertain how to handle min and max datatypes for float arrays when writing ecats.\n"
                         "if you know more about what header min and max values should be in the case of an float32\n"
                         "image matrix please consider making a pull request to this library or posting an issue."
                     )
                 else:
-                    print(
+                    logger.error(
                         f"Oh no {value_to_write} is out of range for {struct_fmt}, variable {variable_name}"
                     )
                     raise err
