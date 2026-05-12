@@ -196,7 +196,10 @@ def single_spreadsheet_reader(
     return spreadsheet_metadata
 
 
-def compress(file_like_object, output_path: str = None):
+def compress(
+        file_like_object: Union[str, pathlib.Path], 
+        output_path: Union[str, pathlib.Path] = None,
+    ):
     """
     Compresses a file using gzip.
 
@@ -214,7 +217,7 @@ def compress(file_like_object, output_path: str = None):
         else:
             output_path = file_like_object
 
-    elif not os.path.isfile(file_like_object):
+    elif not file_like_object.exists():
         raise Exception(f"{file_like_object} is not a valid file to compress.")
     else:
         pass
@@ -232,7 +235,10 @@ def compress(file_like_object, output_path: str = None):
     return output_path
 
 
-def decompress(file_like_object, output_path: str = None):
+def decompress(
+    file_like_object: Union[str, pathlib.Path], 
+    output_path: Union[str, pathlib.Path] = None,
+):
     """
     Decompresses a gzip file.
 
@@ -241,10 +247,11 @@ def decompress(file_like_object, output_path: str = None):
         the input file and writes to that amended path
     :return: output_path on successful decompression
     """
-    if not output_path and ".gz" in file_like_object:
-        output_path = re.sub(".gz", "", file_like_object)
-
-    compressed_file = gzip.GzipFile(file_like_object)
+    file_like_object = pathlib.Path(file_like_object).expanduser().resolve()
+    if not output_path and file_like_object.suffix == ".gz":
+        output_path = file_like_object.with_suffix("")
+    
+    compressed_file = gzip.GzipFile(str(file_like_object))
     compressed_input = compressed_file.read()
     compressed_file.close()
 
