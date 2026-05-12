@@ -43,6 +43,35 @@ from dateutil import parser
 logger = helper_functions.logger("pypet2bids")
 
 
+def _as_path(pathlike) -> pathlib.Path:
+    """Normalize str or os.PathLike to pathlib.Path (no I/O)."""
+    if pathlike is None:
+        raise TypeError("path must not be None")
+    if isinstance(pathlike, pathlib.Path):
+        return pathlike
+    return pathlib.Path(pathlike).expanduser()
+
+
+def _suffixes_lower(path: pathlib.Path) -> tuple:
+    return tuple(s.lower() for s in path.suffixes)
+
+
+def _wants_gzip_output(path: pathlib.Path) -> bool:
+    return ".gz" in _suffixes_lower(path)
+
+
+def _uncompressed_nifti_write_path(final: pathlib.Path) -> pathlib.Path:
+    """
+    Path passed to nibabel.save via ecat2nii: always ends in .nii (never .nii.gz).
+    """
+    lower_suffixes = _suffixes_lower(final)
+    if lower_suffixes and lower_suffixes[-1] == ".gz":
+        return final.with_suffix(".nii")
+    if lower_suffixes and lower_suffixes[-1] == ".nii":
+        return final
+    return final.with_suffix(".nii")
+
+
 def parse_this_date(date_like_object) -> str:
     """
     Uses the `dateutil.parser` module to extract a date from a variety of differently formatted date strings
@@ -110,7 +139,6 @@ class Ecat:
         self.output_path = None
         self.metadata_path = metadata_path
         self.ezbids = ezbids
-
         self.telemetry_data = {}
 
         # load config file
@@ -169,11 +197,13 @@ class Ecat:
         self.ecat_info["subheaders"] = self.subheaders
         self.ecat_info["affine"] = self.affine
 
-        # swap file extensions and save output nifti with same name as original ecat
+        # Default output: same stem as ECAT, compressed NIfTI (.nii.gz). User may pass .nii or .nii.gz.
         if not nifti_file:
-            self.nifti_file = os.path.splitext(self.ecat_file)[0] + ".nii"
+            self.nifti_file = pathlib.Path(
+                os.path.splitext(self.ecat_file)[0]
+            ).with_suffix(".nii.gz")
         else:
-            self.nifti_file = nifti_file
+            self.nifti_file = _as_path(nifti_file)
 
         self.telemetry_data["InputType"] = "ECAT" + str(self.ecat_header["SW_VERSION"])
         self.telemetry_data["TotalInputFiles"] = 1
@@ -223,33 +253,36 @@ class Ecat:
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file.
-        :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
-        :param output_path: Optional path to output file to, if not supplied saves nifti in same directory as ECAT
-        :type output_path:
-        :return: the output path the nifti was written to, used later for placing metadata/sidecar files
-        :rtype:
+        :param output_path: Optional str or path to the desired output NIfTI (.nii or .nii.gz). If omitted,
+            uses ``self.nifti_file`` (default from constructor: ``<ecat_stem>.nii.gz``).
+        :return: pathlib.Path to the file on disk (``.nii`` or ``.nii.gz``). Uncompressed ``.nii`` is always
+            written first via ``ecat2nii``; ``.nii.gz`` is produced by gzip when the target name includes ``.gz``.
+        :rtype: pathlib.Path
         """
+        final_target = (
+            _as_path(output_path) if output_path is not None else self.nifti_file
+        )
+        write_path = _uncompressed_nifti_write_path(final_target)
+        write_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # save nifti
-        if output_path is None:
-            output = self.nifti_file
-        else:
-            output = output_path
         ecat2nii.ecat2nii(
             ecat_main_header=self.ecat_header,
             ecat_subheaders=self.subheaders,
             ecat_pixel_data=self.data,
-            nifti_file=output,
+            nifti_file=write_path,
             affine=self.affine,
         )
 
         self.telemetry_data["NiftiFiles"] = 1
-        self.telemetry_data["NiftiFilesSize"] = pathlib.Path(output).stat().st_size
 
-        if "nii.gz" not in pathlib.Path(output).name:
-            output = helper_functions.compress(output)
+        if _wants_gzip_output(final_target):
+            gz_path = helper_functions.compress(write_path, final_target)
+            result = pathlib.Path(gz_path)
+        else:
+            result = write_path
 
-        return output
+        self.telemetry_data["NiftiFilesSize"] = result.stat().st_size
+        return result
 
     def extract_affine(self):
         """
@@ -389,7 +422,10 @@ class Ecat:
         self.sidecar_template["DoseCalibrationFactor"] = sca * self.ecat_header.get(
             "ECAT_CALIBRATION_FACTOR"
         )
-        self.sidecar_template["Filename"] = os.path.basename(self.nifti_file)
+        if self.output_path is not None:
+            self.sidecar_template["Filename"] = pathlib.Path(self.output_path).name
+        else:
+            self.sidecar_template["Filename"] = pathlib.Path(self.nifti_file).name
         self.sidecar_template["ImageSize"] = [
             self.subheaders[0]["X_DIMENSION"],
             self.subheaders[0]["Y_DIMENSION"],

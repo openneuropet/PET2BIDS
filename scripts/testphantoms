@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
-# Install poetry and gdown
-pip install poetry gdown
-
+# Install project + dev extras (includes gdown for optional downloads)
 pushd pypet2bids
-poetry shell
+uv sync --extra dev
+# Uninstall pypet2bids if it exists
+uv pip uninstall pypet2bids
+
+# activate pypet2bids virtual environment
+source .venv/bin/activate
+
 popd
 
-# Uninstall pypet2bids if it exists
-pip uninstall pypet2bids -y
 
 # Package Library
 make buildpackage
@@ -44,5 +46,5 @@ cp dataset_description.json python/
 popd
 
 # Validate 
-bids-validator OpenNeuroPET-Phantoms/python --ignore-warnings --verbose
+deno run -ERWN jsr:@bids/validator OpenNeuroPET-Phantoms/python --ignoreWarnings --verbose
 
