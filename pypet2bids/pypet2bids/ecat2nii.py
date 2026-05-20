@@ -119,8 +119,7 @@ def ecat2nii(
             "nifti_file is required when ecat_file is not provided (in-memory conversion)."
         )
 
-    if not pathlib.Path(nifti_file).parent.exists():
-        pathlib.Path(nifti_file).parent.mkdir(parents=True, exist_ok=True)
+    pathlib.Path(nifti_file).parent.mkdir(parents=True, exist_ok=True)
 
     # collect the output folder from the nifti path will use for .sif files
     output_folder = nifti_file.parent

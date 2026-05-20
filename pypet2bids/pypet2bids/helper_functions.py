@@ -199,9 +199,12 @@ def single_spreadsheet_reader(
 def compress(
         file_like_object: Union[str, pathlib.Path], 
         output_path: Union[str, pathlib.Path] = None,
-    ):
+        delete_orginal=True,
+    ) -> pathlib.Path:
+    
+    delete_original = delete_original
     """
-    Compresses a file using gzip.
+    Compresses a file using gzip in place, set delete_original = False to keep uncompressed image.
 
     :param file_like_object: a file path to an uncompressed file
     :param output_path: an output path to compress the file to, if omitted simply appends .gz to
@@ -218,7 +221,7 @@ def compress(
             output_path = file_like_object
 
     elif not file_like_object.exists():
-        raise Exception(f"{file_like_object} is not a valid file to compress.")
+        raise FileNotFoundError(file_like_object)
     else:
         pass
 
@@ -230,7 +233,8 @@ def compress(
     output.close()
 
     if output_path.exists():
-        file_like_object.unlink(missing_ok=True)
+if output_path.exists() and delete_original:
+file_like_object.unlink(missing_ok=True)
 
     return output_path
 
@@ -238,7 +242,7 @@ def compress(
 def decompress(
     file_like_object: Union[str, pathlib.Path], 
     output_path: Union[str, pathlib.Path] = None,
-):
+) -> pathlib.Path:
     """
     Decompresses a gzip file.
 

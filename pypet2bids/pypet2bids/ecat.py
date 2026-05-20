@@ -165,7 +165,8 @@ class Ecat:
             self.ecat_file = uncompressed_ecat_file
 
         if ".gz" in self.ecat_file and decompress is False:
-            raise Exception("Nifti must be decompressed for reading of file headers")
+            msg = f"ECAT file: {self.ecat_file} must be decompressed for reading of file headers"
+            raise Exception(msg)
 
         try:
             self.ecat = nibabel.ecat.load(self.ecat_file)
@@ -203,7 +204,7 @@ class Ecat:
                 os.path.splitext(self.ecat_file)[0]
             ).with_suffix(".nii.gz")
         else:
-            self.nifti_file = _as_path(nifti_file)
+            self.nifti_file = pathlib.Path(nifti_file).expanduser()
 
         self.telemetry_data["InputType"] = "ECAT" + str(self.ecat_header["SW_VERSION"])
         self.telemetry_data["TotalInputFiles"] = 1
