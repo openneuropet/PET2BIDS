@@ -43,15 +43,6 @@ from dateutil import parser
 logger = helper_functions.logger("pypet2bids")
 
 
-def _as_path(pathlike) -> pathlib.Path:
-    """Normalize str or os.PathLike to pathlib.Path (no I/O)."""
-    if pathlike is None:
-        raise TypeError("path must not be None")
-    if isinstance(pathlike, pathlib.Path):
-        return pathlike
-    return pathlib.Path(pathlike).expanduser()
-
-
 def _suffixes_lower(path: pathlib.Path) -> tuple:
     return tuple(s.lower() for s in path.suffixes)
 
@@ -261,7 +252,7 @@ class Ecat:
         :rtype: pathlib.Path
         """
         final_target = (
-            _as_path(output_path) if output_path is not None else self.nifti_file
+            output_path.expand_user() if output_path is not None else self.nifti_file
         )
         write_path = _uncompressed_nifti_write_path(final_target)
         write_path.parent.mkdir(parents=True, exist_ok=True)
