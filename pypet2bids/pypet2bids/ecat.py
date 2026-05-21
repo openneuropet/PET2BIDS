@@ -135,7 +135,7 @@ class Ecat:
             helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
             self.ecat_file = uncompressed_ecat_file
 
-        if get_zip_extension(self.ecat_file) and decompress is False:
+        if helper_functions.get_zip_extension(self.ecat_file) and decompress is False:
             msg = f"ECAT file: {self.ecat_file} must be decompressed for reading of file headers"
             raise Exception(msg)
 
