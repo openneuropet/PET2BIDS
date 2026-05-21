@@ -9,6 +9,7 @@ and write them out to Nifti files.
 
 import datetime
 import re
+
 import nibabel
 import os
 import json
@@ -41,26 +42,6 @@ except ModuleNotFoundError:
 from dateutil import parser
 
 logger = helper_functions.logger("pypet2bids")
-
-
-def _suffixes_lower(path: pathlib.Path) -> tuple:
-    return tuple(s.lower() for s in path.suffixes)
-
-
-def _wants_gzip_output(path: pathlib.Path) -> bool:
-    return ".gz" in _suffixes_lower(path)
-
-
-def _uncompressed_nifti_write_path(final: pathlib.Path) -> pathlib.Path:
-    """
-    Path passed to nibabel.save via ecat2nii: always ends in .nii (never .nii.gz).
-    """
-    lower_suffixes = _suffixes_lower(final)
-    if lower_suffixes and lower_suffixes[-1] == ".gz":
-        return final.with_suffix(".nii")
-    if lower_suffixes and lower_suffixes[-1] == ".nii":
-        return final
-    return final.with_suffix(".nii")
 
 
 def parse_this_date(date_like_object) -> str:
@@ -145,17 +126,16 @@ class Ecat:
                         f"Unable to load default metadata json file at {default_json_path}, skipping."
                     )
 
-        if os.path.isfile(ecat_file):
-            self.ecat_file = str(ecat_file)
-        else:
+        self.ecat_file = pathlib.Path(ecat_file)
+        if not self.ecat_file.exists():
             raise FileNotFoundError(ecat_file)
 
-        if ".gz" in self.ecat_file and decompress is True:
-            uncompressed_ecat_file = re.sub(".gz", "", self.ecat_file)
+        if helper_functions.get_zip_extension(self.ecat_file) and decompress is True:
+            uncompressed_ecat_file = self.ecat_file.with_suffix('')
             helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
             self.ecat_file = uncompressed_ecat_file
 
-        if ".gz" in self.ecat_file and decompress is False:
+        if get_zip_extension(self.ecat_file) and decompress is False:
             msg = f"ECAT file: {self.ecat_file} must be decompressed for reading of file headers"
             raise Exception(msg)
 
@@ -252,9 +232,16 @@ class Ecat:
         :rtype: pathlib.Path
         """
         final_target = (
-            output_path.expand_user() if output_path is not None else self.nifti_file
+            pathlib.Path(output_path).expand_user() if output_path is not None else self.nifti_file
         )
-        write_path = _uncompressed_nifti_write_path(final_target)
+        gz = helper_functions.get_zip_extension(final_target)
+        if gz:
+            write_path = final_target.parent / final_target.name[: -len(gz)]
+        elif not gz and '.nii' not in final_target.suffix.lower():
+            write_path = final_target.with_suffix('.nii')
+        else:
+            write_path = final_target
+        
         write_path.parent.mkdir(parents=True, exist_ok=True)
 
         ecat2nii.ecat2nii(
@@ -267,7 +254,7 @@ class Ecat:
 
         self.telemetry_data["NiftiFiles"] = 1
 
-        if _wants_gzip_output(final_target):
+        if gz:
             gz_path = helper_functions.compress(write_path, final_target)
             result = pathlib.Path(gz_path)
         else:

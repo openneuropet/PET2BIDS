@@ -199,7 +199,7 @@ def single_spreadsheet_reader(
 def compress(
         file_like_object: Union[str, pathlib.Path], 
         output_path: Union[str, pathlib.Path] = None,
-        delete_orginal=True,
+        delete_original=True,
     ) -> pathlib.Path:
     
     delete_original = delete_original
@@ -214,8 +214,8 @@ def compress(
     file_like_object = pathlib.Path(file_like_object)
 
     if file_like_object.exists() and not output_path:
-        old_suffix = file_like_object.suffix
-        if ".gz" not in old_suffix:
+        if not get_zip_extension(file_like_object):
+            old_suffix = file_like_object.suffix
             output_path = file_like_object.with_suffix(old_suffix + ".gz")
         else:
             output_path = file_like_object
@@ -251,7 +251,7 @@ def decompress(
     :return: output_path on successful decompression
     """
     file_like_object = pathlib.Path(file_like_object).expanduser().resolve()
-    if not output_path and file_like_object.suffix == ".gz":
+    if not output_path and get_zip_extension(file_like_object):
         output_path = file_like_object.with_suffix("")
     
     compressed_file = gzip.GzipFile(str(file_like_object))
@@ -1181,3 +1181,23 @@ def remove_zero_rows(sheet: pandas.DataFrame) -> pandas.DataFrame:
         fixed_tsv = sheet[~zero_rows]
         sheet = fixed_tsv
     return sheet    
+
+def suffixes_lower(path: pathlib.Path) -> tuple:
+    return tuple(s.lower() for s in path.suffixes)
+
+
+def get_zip_extension(path: pathlib.Path) -> (str or None):
+    """
+    Determines if a the provided filepath has a gz extension, if
+    so returns that extension as written.
+
+    :param path: path to check for gzip 
+    :type path: pathlib.Path
+    :return: gzip extension if present
+    :rtype: str
+    """
+    gz = re.search(r'\.[gG][zZ]$', str(path))
+    if gz:
+        return gz.group(0)
+    else:
+        return ''
