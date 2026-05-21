@@ -232,9 +232,8 @@ def compress(
     output.write(input_data)
     output.close()
 
-    if output_path.exists():
-if output_path.exists() and delete_original:
-file_like_object.unlink(missing_ok=True)
+    if output_path.exists() and delete_original:
+        file_like_object.unlink(missing_ok=True)
 
     return output_path
 
