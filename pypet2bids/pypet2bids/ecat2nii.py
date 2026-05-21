@@ -10,6 +10,7 @@ import datetime
 import nibabel
 import numpy
 import pathlib
+from typing import Optional, Union
 from pypet2bids.read_ecat import (
     read_ecat,
     code_dir,
@@ -41,8 +42,8 @@ def ecat2nii(
     ecat_main_header=None,
     ecat_subheaders=None,
     ecat_pixel_data=None,
-    ecat_file=None,
-    nifti_file: str = "",
+    ecat_file: Optional[Union[str, pathlib.Path]] = None,
+    nifti_file: Optional[Union[str, pathlib.Path]] = None,
     sif_out=False,
     affine=None,
     save_binary=False,
@@ -54,7 +55,10 @@ def ecat2nii(
     :param ecat_main_header: the main header of an ECAT file
     :param ecat_subheaders: the subheaders for each frame of the ECAT file
     :param ecat_pixel_data: the imaging/pixel data from the ECAT file
-    :param ecat_file: the path to the ECAT file, required and used to create .nii and .json output files
+    :param ecat_file: path to the ECAT file. Required to read from disk unless
+        ``ecat_main_header``, ``ecat_subheaders``, and ``ecat_pixel_data`` are all supplied.
+        If those are supplied, ``ecat_file`` is optional and only used to choose a default
+        output path next to the ECAT when ``nifti_file`` is omitted.
     :param nifti_file: the desired output path of the nifti file
     :param sif_out: outputs a .sif file containing the images pixel data
     :param affine: a user supplied affine, this is gathered from the ECAT if not supplied.
@@ -63,47 +67,63 @@ def ecat2nii(
 
     """
 
-    # if a nifti file/path is not included write a nifti next to the ecat file
-    if not nifti_file:
-        nifti_file = os.path.splitext(ecat_file)[0] + ".nii"
-    else:
-        nifti_file = nifti_file
+    ecat_path: Optional[pathlib.Path] = None
+    if ecat_file:
+        ecat_path = pathlib.Path(ecat_file).expanduser().resolve()
 
-    if not pathlib.Path(nifti_file).parent.exists():
-        pathlib.Path(nifti_file).parent.mkdir(parents=True, exist_ok=True)
-
-    # collect the output folder from the nifti path will use for .sif files
-    output_folder = pathlib.Path(nifti_file).parent
-    nifti_file_w_out_extension = os.path.splitext(str(pathlib.Path(nifti_file).name))[0]
-
-    # if already read nifti file skip re-reading
-    if (
-        ecat_main_header is None
-        and ecat_subheaders is None
-        and ecat_pixel_data is None
-        and ecat_file
-    ):
-        # collect ecat_file
-        main_header, sub_headers, data = read_ecat(ecat_file=ecat_file)
-    elif (
-        ecat_file is None
-        and type(ecat_main_header) is dict
+    full_in_memory = (
+        type(ecat_main_header) is dict
         and type(ecat_subheaders) is list
         and type(ecat_pixel_data) is numpy.ndarray
-    ):
+    )
+    any_in_memory = any(
+        x is not None
+        for x in (ecat_main_header, ecat_subheaders, ecat_pixel_data)
+    )
+
+    if full_in_memory:
         main_header, sub_headers, data = (
             ecat_main_header,
             ecat_subheaders,
             ecat_pixel_data,
         )
-    else:
-        raise Exception(
-            "Must pass in filepath for ECAT file or "
-            "(ecat_main_header, ecat_subheaders, and ecat_pixel data "
-            f"got ecat_file={ecat_file}, type(ecat_main_header)={type(ecat_main_header)}, "
-            f"type(ecat_subheaders)={type(ecat_subheaders)}, "
-            f"type(ecat_pixel_data)={type(ecat_pixel_data)} instead."
+    elif (
+        ecat_main_header is None
+        and ecat_subheaders is None
+        and ecat_pixel_data is None
+        and ecat_path
+    ):
+        main_header, sub_headers, data = read_ecat(ecat_file=ecat_path)
+    elif ecat_path and any_in_memory and not full_in_memory:
+        raise ValueError(
+            "When ecat_file is provided, pass either no in-memory ECAT components "
+            "(to read from disk) or all three: ecat_main_header (dict), "
+            "ecat_subheaders (list), and ecat_pixel_data (ndarray). "
+            f"Got types: {type(ecat_main_header)}, {type(ecat_subheaders)}, "
+            f"{type(ecat_pixel_data)}."
         )
+    else:
+        raise ValueError(
+            "Supply ecat_file to read from disk, or pass ecat_main_header (dict), "
+            "ecat_subheaders (list), and ecat_pixel_data (ndarray) from a prior read_ecat call. "
+            f"ecat_file={ecat_file!r}, types: {type(ecat_main_header)}, "
+            f"{type(ecat_subheaders)}, {type(ecat_pixel_data)}."
+        )
+
+    if nifti_file:
+        nifti_file = pathlib.Path(nifti_file).expanduser().resolve()
+    elif ecat_path:
+        nifti_file = ecat_path.with_suffix(".nii")
+    else:
+        raise ValueError(
+            "nifti_file is required when ecat_file is not provided (in-memory conversion)."
+        )
+
+    pathlib.Path(nifti_file).parent.mkdir(parents=True, exist_ok=True)
+
+    # collect the output folder from the nifti path will use for .sif files
+    output_folder = nifti_file.parent
+    nifti_file_w_out_extension = nifti_file.stem
 
     # debug step #6 view data as passed to ecat2nii method
     if ecat_save_steps == "1":
@@ -326,7 +346,7 @@ def ecat2nii(
 
     # used for testing veracity of nibabel read and write.
     if save_binary:
-        pickle.dump(img_nii, open(nifti_file + ".pickle", "wb"))
+        pickle.dump(img_nii, open(str(nifti_file) + ".pickle", "wb"))
 
     # write out timing file
     if sif_out:

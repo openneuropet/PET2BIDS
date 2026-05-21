@@ -21,6 +21,8 @@ from os import path
 from os.path import join
 import pathlib
 import re
+
+from pypet2bids import helper_functions
 import numpy
 from pypet2bids.helper_functions import decompress, first_middle_last_frames_to_text
 from pypet2bids.helper_functions import logger
@@ -271,7 +273,7 @@ def read_ecat(
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
 
     """
-    if ".gz" in ecat_file:
+    if helper_functions.get_zip_extension(ecat_file):
         ecat_file = decompress(ecat_file)
 
     # try to determine what type of ecat this is

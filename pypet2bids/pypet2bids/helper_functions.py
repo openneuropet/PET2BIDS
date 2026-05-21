@@ -196,9 +196,15 @@ def single_spreadsheet_reader(
     return spreadsheet_metadata
 
 
-def compress(file_like_object, output_path: str = None):
+def compress(
+        file_like_object: Union[str, pathlib.Path], 
+        output_path: Union[str, pathlib.Path] = None,
+        delete_original=True,
+    ) -> pathlib.Path:
+    
+    delete_original = delete_original
     """
-    Compresses a file using gzip.
+    Compresses a file using gzip in place, set delete_original = False to keep uncompressed image.
 
     :param file_like_object: a file path to an uncompressed file
     :param output_path: an output path to compress the file to, if omitted simply appends .gz to
@@ -208,14 +214,14 @@ def compress(file_like_object, output_path: str = None):
     file_like_object = pathlib.Path(file_like_object)
 
     if file_like_object.exists() and not output_path:
-        old_suffix = file_like_object.suffix
-        if ".gz" not in old_suffix:
+        if not get_zip_extension(file_like_object):
+            old_suffix = file_like_object.suffix
             output_path = file_like_object.with_suffix(old_suffix + ".gz")
         else:
             output_path = file_like_object
 
-    elif not os.path.isfile(file_like_object):
-        raise Exception(f"{file_like_object} is not a valid file to compress.")
+    elif not file_like_object.exists():
+        raise FileNotFoundError(file_like_object)
     else:
         pass
 
@@ -226,13 +232,16 @@ def compress(file_like_object, output_path: str = None):
     output.write(input_data)
     output.close()
 
-    if output_path.exists():
+    if output_path.exists() and delete_original:
         file_like_object.unlink(missing_ok=True)
 
     return output_path
 
 
-def decompress(file_like_object, output_path: str = None):
+def decompress(
+    file_like_object: Union[str, pathlib.Path], 
+    output_path: Union[str, pathlib.Path] = None,
+) -> pathlib.Path:
     """
     Decompresses a gzip file.
 
@@ -241,10 +250,11 @@ def decompress(file_like_object, output_path: str = None):
         the input file and writes to that amended path
     :return: output_path on successful decompression
     """
-    if not output_path and ".gz" in file_like_object:
-        output_path = re.sub(".gz", "", file_like_object)
-
-    compressed_file = gzip.GzipFile(file_like_object)
+    file_like_object = pathlib.Path(file_like_object).expanduser().resolve()
+    if not output_path and get_zip_extension(file_like_object):
+        output_path = file_like_object.with_suffix("")
+    
+    compressed_file = gzip.GzipFile(str(file_like_object))
     compressed_input = compressed_file.read()
     compressed_file.close()
 
@@ -1171,3 +1181,23 @@ def remove_zero_rows(sheet: pandas.DataFrame) -> pandas.DataFrame:
         fixed_tsv = sheet[~zero_rows]
         sheet = fixed_tsv
     return sheet    
+
+def suffixes_lower(path: pathlib.Path) -> tuple:
+    return tuple(s.lower() for s in path.suffixes)
+
+
+def get_zip_extension(path: pathlib.Path) -> (str or None):
+    """
+    Determines if a the provided filepath has a gz extension, if
+    so returns that extension as written.
+
+    :param path: path to check for gzip 
+    :type path: pathlib.Path
+    :return: gzip extension if present
+    :rtype: str
+    """
+    gz = re.search(r'\.[gG][zZ]$', str(path))
+    if gz:
+        return gz.group(0)
+    else:
+        return ''
