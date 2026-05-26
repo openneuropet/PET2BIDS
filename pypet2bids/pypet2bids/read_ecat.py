@@ -21,9 +21,11 @@ from os import path
 from os.path import join
 import pathlib
 import re
+
+from pypet2bids import helper_functions
 import numpy
 from pypet2bids.helper_functions import decompress, first_middle_last_frames_to_text
-
+from pypet2bids.helper_functions import logger
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
@@ -271,7 +273,7 @@ def read_ecat(
     :return: main_header, a list of subheaders for each frame, the imagining data from the subheaders
 
     """
-    if ".gz" in ecat_file:
+    if helper_functions.get_zip_extension(ecat_file):
         ecat_file = decompress(ecat_file)
 
     # try to determine what type of ecat this is
@@ -387,7 +389,7 @@ def read_ecat(
     for i in range(len(directory.T)):
         frame_number = i + 1
         if collect_pixel_data:
-            print(f"Reading subheader from frame {frame_number}")
+            logger("pypet2bids").info(f"Reading subheader from frame {frame_number}")
 
         # collect frame info/column
         frame_info = directory[:, i]

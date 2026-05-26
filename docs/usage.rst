@@ -222,6 +222,25 @@ Pypet2bids is primarily designed to run as a command line utility, design choice
 Additionally, one has access to the underlying python methods and classes if one wishes to use this library from within
 a Python environment.
 
+Controlling logging output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you import `pypet2bids` in your own Python project, you can silence or reduce logging by configuring the
+`pypet2bids` logger directly:
+
+.. code-block:: python
+
+    import logging
+
+    # Option 1: silence all logs from pypet2bids
+    logging.getLogger("pypet2bids").disabled = True
+
+    # Option 2: keep only critical messages
+    logger = logging.getLogger("pypet2bids")
+    logger.setLevel(logging.CRITICAL)
+    for handler in logger.handlers:
+        handler.setLevel(logging.CRITICAL)
+
 ------------------------------------------------------------------------------------------------------------------------
 
 Command line usage:

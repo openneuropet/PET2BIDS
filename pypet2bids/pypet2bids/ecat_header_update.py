@@ -23,7 +23,7 @@ def update_ecat_header(ecat_file: str, new_values: dict):
     """
 
     # read ecat and determine version of ecat file
-    print(f"Reading ECAT file {ecat_file}")
+    helper_functions.logger("pypet2bids").info(f"Reading ECAT file {ecat_file}")
     infile = ecat.Ecat(ecat_file)
 
     # collect the appropriate header schema
@@ -37,12 +37,12 @@ def update_ecat_header(ecat_file: str, new_values: dict):
             if type(infile.ecat_header[name]) == type(value):
                 infile.ecat_header[name] = value
             else:
-                print(
+                helper_functions.logger("pypet2bids").warning(
                     f"WARNING: {name} has type {type(infile.ecat_header[name])} "
                     f"and new value {value} has type {type(value)}"
                 )
         else:
-            print(
+            helper_functions.logger("pypet2bids").warning(
                 f"WARNING: {name} not found in header schema for ECAT {ecat_headers.ecat_header.get('SW_VERSION', 73)} "
                 f"not updating with value {value}"
             )
