@@ -99,3 +99,16 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.ruff]
+line-length = 88
+extend-exclude = [
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".tox",
+  ".venv",
+  "build",
+  "dist",
+]
