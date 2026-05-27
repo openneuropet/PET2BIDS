@@ -53,7 +53,7 @@ dev = [
     "pyinstaller>=5.4.1",
     "build>=0.10.0",
     "briefcase>=0.3.23; python_version>='3.9'",
-    "black>=23.0.0",
+    "ruff>=0.15.0",
 ]
 
 [project.scripts]
