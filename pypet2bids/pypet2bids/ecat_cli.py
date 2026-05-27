@@ -126,7 +126,7 @@ def cli():
     parser.add_argument(
         "--sidecar",
         action="store_true",
-        help="Output a bids formatted sidecar for pairing with" "a nifti.",
+        help="Output a bids formatted sidecar for pairing witha nifti.",
     )
     parser.add_argument(
         "--kwargs",

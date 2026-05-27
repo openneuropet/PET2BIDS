@@ -50,7 +50,6 @@ class TestECATWrite(unittest.TestCase):
         }
 
     def test_create_directory_table(self):
-
         generated_directory_table = create_directory_table(
             self.known_main_header["NUM_FRAMES"],
             self.pixel_dimensions,

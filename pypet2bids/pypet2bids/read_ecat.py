@@ -26,6 +26,7 @@ from pypet2bids import helper_functions
 import numpy
 from pypet2bids.helper_functions import decompress, first_middle_last_frames_to_text
 from pypet2bids.helper_functions import logger
+
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
@@ -480,7 +481,6 @@ def read_ecat(
             pixel_data_matrix_4d[:, :, :, index] = frame
 
         if ecat_save_steps == "1":
-
             # write out the endianness and datatype of the pixel data matrix
             step_3_dict = {
                 "datatype": pixel_data_matrix_4d.dtype.name,

@@ -243,7 +243,6 @@ class PmodToBlood:
         engine="",
         **kwargs,
     ):
-
         if kwargs:
             try:
                 self.kwargs = kwargs["kwargs"]
@@ -280,7 +279,9 @@ class PmodToBlood:
                 "sub", self.output_path
             )
         else:
-            helper_functions.logger("pypet2bids").warning("Subject id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning(
+                "Subject id not found in output_path, checking key pair input."
+            )
             self.subject_id = self.kwargs.get("subject_id", "")
 
         if helper_functions.collect_bids_part("ses", str(self.output_path)):
@@ -288,7 +289,9 @@ class PmodToBlood:
                 "ses", self.output_path
             )
         else:
-            helper_functions.logger("pypet2bids").warning("Session id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning(
+                "Session id not found in output_path, checking key pair input."
+            )
             self.session_id = self.kwargs.get("session_id", "")
 
         self.output_json = output_json
@@ -296,9 +299,7 @@ class PmodToBlood:
         self.auto_sampled = []
         self.manually_sampled = []
         self.blood_series = {}
-        self.duplicates = (
-            {}
-        )  # list of times that are duplicated across manual and automatic samples
+        self.duplicates = {}  # list of times that are duplicated across manual and automatic samples
 
         if whole_blood_activity.is_file():
             self.blood_series["whole_blood_activity"] = self.load_pmod_file(
@@ -580,7 +581,6 @@ class PmodToBlood:
                         != self.blood_series[new_string]["time"][0]
                         and parent_fraction["time"][0] == 0
                     ):
-
                         self.blood_series[new_string].loc[-1] = [0, 0]
                         self.blood_series[new_string].index = (
                             self.blood_series[new_string].index + 1
@@ -610,7 +610,6 @@ class PmodToBlood:
                 ).shape[0]
                 != 0
             ):
-
                 wba = self.blood_series["whole_blood_activity_manually_popped"]
                 new_plasma = (
                     wba["whole_blood_radioactivity"]

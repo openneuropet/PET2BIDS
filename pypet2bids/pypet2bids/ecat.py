@@ -87,12 +87,8 @@ class Ecat:
         self.subheaders = []  # subheader information is placed here
         self.ecat_info = {}
         self.affine = {}  # affine matrix/information is stored here.
-        self.frame_start_times = (
-            []
-        )  # frame_start_times, frame_durations, and decay_factors are all
-        self.frame_durations = (
-            []
-        )  # extracted from ecat subheaders. They're pretty important and get
+        self.frame_start_times = []  # frame_start_times, frame_durations, and decay_factors are all
+        self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
         self.sidecar_template = (
             sidecar.sidecar_template_full
@@ -131,7 +127,7 @@ class Ecat:
             raise FileNotFoundError(ecat_file)
 
         if helper_functions.get_zip_extension(self.ecat_file) and decompress is True:
-            uncompressed_ecat_file = self.ecat_file.with_suffix('')
+            uncompressed_ecat_file = self.ecat_file.with_suffix("")
             helper_functions.decompress(self.ecat_file, uncompressed_ecat_file)
             self.ecat_file = uncompressed_ecat_file
 
@@ -142,7 +138,9 @@ class Ecat:
         try:
             self.ecat = nibabel.ecat.load(self.ecat_file)
         except nibabel.filebasedimages.ImageFileError as err:
-            helper_functions.logger("pypet2bids").error("\nFailed to load ecat image.\n")
+            helper_functions.logger("pypet2bids").error(
+                "\nFailed to load ecat image.\n"
+            )
             raise err
 
         directory_byte_block = read_ecat.read_bytes(
@@ -232,16 +230,18 @@ class Ecat:
         :rtype: pathlib.Path
         """
         final_target = (
-            pathlib.Path(output_path).expand_user() if output_path is not None else self.nifti_file
+            pathlib.Path(output_path).expand_user()
+            if output_path is not None
+            else self.nifti_file
         )
         gz = helper_functions.get_zip_extension(final_target)
         if gz:
             write_path = final_target.parent / final_target.name[: -len(gz)]
-        elif not gz and '.nii' not in final_target.suffix.lower():
-            write_path = final_target.with_suffix('.nii')
+        elif not gz and ".nii" not in final_target.suffix.lower():
+            write_path = final_target.with_suffix(".nii")
         else:
             write_path = final_target
-        
+
         write_path.parent.mkdir(parents=True, exist_ok=True)
 
         ecat2nii.ecat2nii(

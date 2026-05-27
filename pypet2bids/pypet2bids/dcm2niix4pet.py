@@ -599,7 +599,9 @@ class Dcm2niix4PET:
                     bytes("Skipping existing file name", "utf-8") not in convert.stdout
                     or convert.stderr
                 ):
-                    helper_functions.logger("pypet2bids").warning(convert.stderr.decode("utf-8"))
+                    helper_functions.logger("pypet2bids").warning(
+                        convert.stderr.decode("utf-8")
+                    )
                 elif (
                     convert.returncode != 0
                     and bytes("Error: Check sorted order", "utf-8") in convert.stdout
@@ -970,7 +972,7 @@ class Dcm2niix4PET:
             if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
-                
+
                 # remove any empty rows
                 blood_tsv_data = helper_functions.remove_zero_rows(blood_tsv_data)
 
@@ -1130,8 +1132,10 @@ class Dcm2niix4PET:
                 spec.loader.exec_module(module)
                 text_file_data = module.translate_metadata(self.metadata_dataframe)
             except AttributeError as err:
-               helper_functions.logger("pypet2bids").error(f"Unable to locate metadata_translation_script")
-               raise err
+                helper_functions.logger("pypet2bids").error(
+                    f"Unable to locate metadata_translation_script"
+                )
+                raise err
 
             self.spreadsheet_metadata["blood_tsv"] = text_file_data.get("blood_tsv", {})
             self.spreadsheet_metadata["blood_json"] = text_file_data.get(

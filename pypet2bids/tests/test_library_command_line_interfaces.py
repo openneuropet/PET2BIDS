@@ -81,13 +81,12 @@ def test_for_show_examples_argument():
         check_for_show_examples = subprocess.run(
             f"{installed} --show-examples", shell=True, capture_output=True
         )
-        assert (
-            check_for_show_examples.returncode == 0
-        ), f"{installed} does not have a --show-examples option"
+        assert check_for_show_examples.returncode == 0, (
+            f"{installed} does not have a --show-examples option"
+        )
 
 
 def test_kwargs_produce_valid_conversion(tmp_path):
-
     # prepare a set of kwargs (stolen from a valid bids subject/dataset, mum's the word ;) )
     full_set_of_kwargs = {
         "Modality": "PT",
@@ -278,7 +277,6 @@ def test_spreadsheets_produce_valid_conversion_ecatpet2bids(tmp_path):
 
 
 def test_scanner_params_produce_valid_conversion(tmp_path):
-
     # test scanner params txt with ecat conversion
     ecatpet2bids_scanner_params_test_dir = tmp_path / "ecat_scanner_params_test"
     ecatpet2bids_scanner_params_test_dir.mkdir(parents=True, exist_ok=True)

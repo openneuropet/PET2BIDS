@@ -142,7 +142,7 @@ class TestPmodToBlood:
                     Ex_bld_whole_blood_only_files["plasma"][0]
                 ),
                 output_path=pathlib.Path(tempdir),
-                **kwargs_input
+                **kwargs_input,
             )
 
     def test_load_bld_files_mixed(self, Ex_bld_manual_and_autosampled_mixed):
@@ -164,7 +164,7 @@ class TestPmodToBlood:
                     Ex_bld_manual_and_autosampled_mixed["parent"][0]
                 ),
                 output_path=tempdir,
-                **kwargs_input
+                **kwargs_input,
             )
 
     def test_bld_output_manual_popped_values(self, Ex_bld_manual_and_autosampled_mixed):
@@ -187,7 +187,7 @@ class TestPmodToBlood:
                     Ex_bld_manual_and_autosampled_mixed["parent"][0]
                 ),
                 output_path=tempdir,
-                **kwargs_input
+                **kwargs_input,
             )
 
             created_files = [
@@ -234,7 +234,7 @@ class TestPmodToBlood:
                     Ex_txt_manual_and_autosampled_mixed["parent"][0]
                 ),
                 output_path=tempdir,
-                **kwargs_input
+                **kwargs_input,
             )
 
     def test_txt_output_manual_popped_values(self, Ex_txt_manual_and_autosampled_mixed):
@@ -256,7 +256,7 @@ class TestPmodToBlood:
                     Ex_txt_manual_and_autosampled_mixed["parent"][0]
                 ),
                 output_path=tempdir,
-                **kwargs_input
+                **kwargs_input,
             )
 
             created_files = [
