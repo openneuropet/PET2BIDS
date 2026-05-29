@@ -3,21 +3,21 @@ This program will create an ecat file if provided an ecat schema and a dictionar
 with.
 
 First this program collects the same schemas that read_ecat.py does, from read_ecat import ecat_header_maps.
-Next this program selects one of the header maps as specified by some input e.g. if given: ecat7.3 it would 
-select the standard image matrix at: ecat_header_maps['ecat_headers']['73']['mainheader'] 
-and the subheader map at: ecat_header_maps['ecat_headers']['73']['11'] or whatever number is corresponding to 
+Next this program selects one of the header maps as specified by some input e.g. if given: ecat7.3 it would
+select the standard image matrix at: ecat_header_maps['ecat_headers']['73']['mainheader']
+and the subheader map at: ecat_header_maps['ecat_headers']['73']['11'] or whatever number is corresponding to
 the type of ecat header you wish to write. Perhaps these should belong in a reverse sort of dictionary going to
-need to create the directory byte block(s) for an ecat. Basically, reverse the process of reading the 
-directory in lines 227 through 257 in ecat_read. 
-    
+need to create the directory byte block(s) for an ecat. Basically, reverse the process of reading the
+directory in lines 227 through 257 in ecat_read.
+
     determine the number of frames in the image/pixel data
-    create empty table(s) of dtype >i4 dimensions of 4 rows by 64 columns 
+    create empty table(s) of dtype >i4 dimensions of 4 rows by 64 columns
     fill empty tables w/ zeros
-    place the number 2 in the second row, first column of the table if it's the only directory table or the last 
+    place the number 2 in the second row, first column of the table if it's the only directory table or the last
     directory
     table.
     final output should be a bytes: 1024 type object.
-    
+
 After generating the table you should then be able to write the main header, write the directory table,
 then write each subheader and corresponding pixel data
 
@@ -33,6 +33,7 @@ from pypet2bids.read_ecat import ecat_header_maps, get_buffer_size
 import numpy
 from pathlib import Path
 from pypet2bids.helper_functions import logger
+
 
 def write_header(
     ecat_file,
@@ -250,10 +251,8 @@ def write_ecat(
     pixel_byte_size: int,
     pixel_data: list = [],
 ):
-
     # open the ecat file!
     with open(ecat_file, "w+b") as outfile:
-
         # first things first, write the main header with supplied information
         write_header(
             ecat_file=outfile, schema=mainheader_schema, values=mainheader_values

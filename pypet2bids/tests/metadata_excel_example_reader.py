@@ -22,7 +22,6 @@ def flatten_series(series):
 
 
 def translate_metadata(metadata_dataframe, image_path=NotImplemented):
-
     nifti_json = {
         "Manufacturer": "",
         "ManufacturersModelName": "",

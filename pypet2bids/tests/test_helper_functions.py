@@ -416,7 +416,7 @@ def test_remove_zero_rows():
         {
             "time": [0.0, 10.0, 0.0, 20.0],
             "plasma_radioactivity": [0.0, 5.5, 0.0, 6.2],
-            "whole_blood_radioactivity": [0.0, 4.2, 3.0, 5.0,],
+            "whole_blood_radioactivity": [0.0, 4.2, 3.0, 5.0],
         }
     )
     result_mixed = helper_functions.remove_zero_rows(data_mixed)

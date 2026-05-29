@@ -77,8 +77,7 @@ def ecat2nii(
         and type(ecat_pixel_data) is numpy.ndarray
     )
     any_in_memory = any(
-        x is not None
-        for x in (ecat_main_header, ecat_subheaders, ecat_pixel_data)
+        x is not None for x in (ecat_main_header, ecat_subheaders, ecat_pixel_data)
     )
 
     if full_in_memory:
@@ -278,24 +277,18 @@ def ecat2nii(
         final_image = numpy.round(final_image) * sca
 
     qoffset_x = -1 * (
-        (
-            (sub_headers[0]["X_DIMENSION"] * sub_headers[0]["X_PIXEL_SIZE"] * 10 / 2)
-            - sub_headers[0]["X_PIXEL_SIZE"] * 5
-        )
+        (sub_headers[0]["X_DIMENSION"] * sub_headers[0]["X_PIXEL_SIZE"] * 10 / 2)
+        - sub_headers[0]["X_PIXEL_SIZE"] * 5
     )
 
     qoffset_y = -1 * (
-        (
-            (sub_headers[0]["Y_DIMENSION"] * sub_headers[0]["Y_PIXEL_SIZE"] * 10 / 2)
-            - sub_headers[0]["Y_PIXEL_SIZE"] * 5
-        )
+        (sub_headers[0]["Y_DIMENSION"] * sub_headers[0]["Y_PIXEL_SIZE"] * 10 / 2)
+        - sub_headers[0]["Y_PIXEL_SIZE"] * 5
     )
 
     qoffset_z = -1 * (
-        (
-            (sub_headers[0]["Z_DIMENSION"] * sub_headers[0]["Z_PIXEL_SIZE"] * 10 / 2)
-            - sub_headers[0]["Z_PIXEL_SIZE"] * 5
-        )
+        (sub_headers[0]["Z_DIMENSION"] * sub_headers[0]["Z_PIXEL_SIZE"] * 10 / 2)
+        - sub_headers[0]["Z_PIXEL_SIZE"] * 5
     )
 
     # build affine if it's not included in function call
