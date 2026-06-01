@@ -14,7 +14,7 @@ function varargout = jsonwrite(varargin)
 %    - *convertInfAndNaN* encode NaN, Inf and -Inf as "null" [Default: true]
 %
 % :returns: S the serialized JSON structure (string)
-% 
+%
 % References:
 %   JSON Standard: https://www.json.org/
 %   jsonencode: https://www.mathworks.com/help/matlab/ref/jsonencode.html

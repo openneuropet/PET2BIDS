@@ -32,11 +32,11 @@ else
 end
 
 %% check library
-if ~exist('jsonwrite.m', 'file') 
+if ~exist('jsonwrite.m', 'file')
     error(['JSONio library jsonwrite.m file was not found but is needed,', ...
         ' jsonwrite.m is part of https://github.com/gllmflndn/JSONio but can also be found in the ONP matlab converter folder']);
 end
-    
+
 %% deal with input file
 if nargin == 0
     [filename, pathname] = uigetfile({'*.xlsx;*.ods;*.xls'}, 'Pick an spreadsheet file');
@@ -63,7 +63,7 @@ datain = detectImportOptions(filein, 'Sheet', 1);
 for m=length(datain.VariableNames):-1:1
     testM(m)=any(strcmpi(datain.VariableNames{m},mandatory));
     testR(m)=any(strcmpi(datain.VariableNames{m},recommended));
-    testO(m)=any(strcmpi(datain.VariableNames{m},optional));   
+    testO(m)=any(strcmpi(datain.VariableNames{m},optional));
 end
 
 if sum(testM) ~= length(mandatory)
@@ -135,5 +135,3 @@ else % integers
 end
 
 end
-
-    

@@ -16,7 +16,7 @@
 
 0000-0003-1508-6866  Gite Knudsen  Neurobiology Research Unit, Rigshospitalet, Copenhagen, Denmark
 
-0000-0003-1238-7209  Robert Innis  National Institutes of Health, Bethesda, MD, USA 
+0000-0003-1238-7209  Robert Innis  National Institutes of Health, Bethesda, MD, USA
 
 0000-0002-9120-8098  Melanie Ganz-Benjaminse  Department of Computer Science, University of Copenhagen, Copenhagen, Denmark
 

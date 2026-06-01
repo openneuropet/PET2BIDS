@@ -128,7 +128,7 @@ if exist('FileListOut','var')
             error('Name(s) argument must be a cell array of file names')
         end
     end
-    
+
     if any(size(FileListOut)~=size(FileListIn))
         error('The number of files in (FileListIn) does not match the number of file names to create')
     end
@@ -150,18 +150,18 @@ for j=1:length(FileListIn)
             telemetry(telemetry_data, FileListIn{j})
             error(error_text)
         end
-        
+
         % Read ECAT file headers
         if ~exist(FileListIn{j},'file')
             error('the file %s does not exist',FileListIn{j}),
         end
-        
+
         [pet_path,pet_file,ext] = fileparts(FileListIn{j});
         if strcmp(ext,'.gz')
             newfile             = gunzip([pet_path filesep pet_file ext]);
             [~,pet_file,ext]    = fileparts(newfile{1});
         end
-        
+
         pet_file = [pet_file ext];
         [mh,sh,data]  = readECAT7([pet_path filesep pet_file]); % loading the whole file here and iterating to flipdim below only minuimally improves time (0.6sec on NRU server)
         if (ecat_save_steps == '1')
@@ -171,7 +171,7 @@ for j=1:length(FileListIn)
             error('Conversion for 16 bit data only (type 6 in ecat file) - error loading ecat file');
         end
         Nframes  = mh.num_frames;
-        
+
         % Create data reading 1 frame at a time - APPLYING THE SCALE FACTOR
         img_temp = zeros(sh{1}.x_dimension,sh{1}.y_dimension,sh{1}.z_dimension,Nframes);
         for i=Nframes:-1:1
@@ -233,16 +233,16 @@ for j=1:length(FileListIn)
                 pet_path = newpet_path;
             end
         end
-        
+
         filenameout  = [pet_path filesep pet_filename];
         if ~exist(fileparts(filenameout),'dir')
             mkdir(fileparts(filenameout))
         end
-        
+
         % write timing info separately
         if sifout
             pid = fopen([filenameout '.sif'],'w');
-            
+
             if (pid~=0)
                 offset   = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
                 scantime = datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','UTC') + offset;
@@ -257,7 +257,7 @@ for j=1:length(FileListIn)
                 fclose(pid);
             end
         end
-        
+
         % save raw data
         if savemat or ecat_save_steps == '1'
             if mh.calibration_units == 1 % see line 337
@@ -267,7 +267,7 @@ for j=1:length(FileListIn)
             end
             save([filenameout '.ecat.mat'],'ecat','-v7.3');
         end
-        
+
         % write nifti format + json
         if isfield(sh{1,1},'annotation')
             if ~isempty(deblank(sh{1,1}.annotation))
@@ -281,7 +281,7 @@ for j=1:length(FileListIn)
                     info.ReconMethodParameterUnits    = {'keV', 'keV'};
                     info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
                 end
-                
+
             else % annotation is blank - no info on method
                 if isfield(info.ReconMethodName) % user provided
                     [info.ReconMethodName,i,s] = get_recon_method(deblank(info.ReconMethodName));
@@ -301,14 +301,14 @@ for j=1:length(FileListIn)
                     info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
                 end
             end
-            
+
         else % no info on method
             warning('no reconstruction method information found - invalid BIDS metadata')
             info.ReconMethodParameterLabels   = {'lower_threshold', 'upper_threshold'};
             info.ReconMethodParameterUnits    = {'keV', 'keV'};
             info.ReconMethodParameterValues   = [mh.lwr_true_thres, mh.upr_true_thres];
         end
-        
+
         for idx = 1:numel(sh)
             info.ScaleFactor(idx,1)           = 1; % because we apply sh{idx}.scale_factor;
             info.ScatterFraction(idx,1)       = sh{idx}.scatter_fraction;
@@ -320,7 +320,7 @@ for j=1:length(FileListIn)
         info.FrameDuration                    = DeltaTime';
         info.FrameTimesStart                  = zeros(size(info.FrameDuration));
         info.FrameTimesStart(2:end)           = cumsum(info.FrameDuration(1:end-1));
-        
+
         % Time stuff, time zero is kinda required [] or 'ScanStart' or actual value
         if isempty(info.TimeZero) || strcmp(info.TimeZero,'ScanStart')
             offset                            = tzoffset(datetime(mh.scan_start_time, 'ConvertFrom', 'posixtime','TimeZone','local'));
@@ -329,16 +329,16 @@ for j=1:length(FileListIn)
                 warning('TimeZero is set to be scan time adjusted by local time difference to UTC: %s',offset)
             end
         end
-        
+
         % if not specified we infer that injection and scan are together the time zero
         if ~isfield(info,'ScanStart')
             info.ScanStart                    = 0;
         end
-        
+
         if ~isfield(info,'InjectionStart')
             info.InjectionStart               = 0;
         end
-        
+
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
         info.Filemoddate                      = datestr(now);
         info.Version                          = 'NIfTI1';
@@ -347,14 +347,14 @@ for j=1:length(FileListIn)
         info.ImageSize                        = [sh{1}.x_dimension sh{1}.y_dimension sh{1}.z_dimension mh.num_frames];
         info.PixelDimensions                  = [sh{1}.x_pixel_size sh{1}.y_pixel_size sh{1}.z_pixel_size 0].*10;
         info                                  = orderfields(info);
-        
+
         % check radiotracer info - should have been done already in
         % get_pet_metadata ; but user can also populate metadata by hand
         % so let's recheck
         if ~isfield(info,'Units')
             info.Units = 'Bq/mL';
         end
-        
+
         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
             'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
@@ -368,7 +368,7 @@ for j=1:length(FileListIn)
             end
             dataout                = check_metaradioinputs(arguments);
             datafieldnames         = fieldnames(dataout);
-            
+
             % set new info fields
             for f = 1:size(datafieldnames,1)
                 if ~isfield(info,datafieldnames{f})
@@ -376,7 +376,7 @@ for j=1:length(FileListIn)
                 end
             end
         end
-        
+
         % write json file using jsonwrite from Guillaume Flandin
         % $Id: spm_jsonwrite.m
         if ~contains(filenameout,'_pet')
@@ -386,11 +386,11 @@ for j=1:length(FileListIn)
             jsonwrite([filenameout '.json'],info)
             status = updatejsonpetfile([filenameout '.json']); % validate
         end
-        
+
         if status.state ~= 1
             warning('the json file is BIDS invalid')
         end
-        
+
         if mh.calibration_units == 1 % do calibrate
             img_temp                          = single(round(img_temp).*(Sca*mh.ecat_calibration_factor)); % scale and dose calibrated
             if ecat_save_steps == '1'
@@ -416,7 +416,7 @@ for j=1:length(FileListIn)
         info.TransformName                    = 'Sform';
         info.Transform.Dimensionality         = 3;
         info.Qfactor                          = 1; % determinant of the rotation matrix
-        
+
         % map https://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
         info.raw.sizeof_hdr     = 348;
         info.raw.dim_info       = '';
@@ -458,7 +458,7 @@ for j=1:length(FileListIn)
         info.Transform.T        = T;
         info.raw.intent_name    = '';
         info.raw.magic          = 'n+1 ';
-        
+
         % write nifti file using nii_tool
         % Copyright (c) 2016, Xiangrui Li https://github.com/xiangruili/dicm2nii
         % BSD-2-Clause License
@@ -470,7 +470,7 @@ for j=1:length(FileListIn)
         else
             fnm                 = [filenameout '.nii'];
         end
-        
+
         % compress if requested
         if gz
             fnm = [fnm '.gz']; %#ok<*AGROW>
@@ -488,7 +488,7 @@ for j=1:length(FileListIn)
             nii = nii_tool('load', fnm);
             first_middle_last_frames_to_text(nii.img, ecat_save_steps_dir, '11_read_saved_nii_matlab');
         end
-        
+
         % optionally one can use niftiwrite from the Image Processing Toolbox
         % warning different versions of matlab may provide different nifti results
         % this is kept here allowing to uncomment to compare results
@@ -503,14 +503,14 @@ for j=1:length(FileListIn)
 
         telemetry_data.returncode = 0;
         telemetry(telemetry_data, FileListIn{j});
-        
+
     catch conversionerr
         telemetry_data.returncode = 1;
         telemetry_data.error = conversionerr.message;
         telemetry(telemetry_data, FileListIn{j});
         FileListOut{j} = sprintf('%s failed to convert:%s',FileListIn{j},conversionerr.message, conversionerr.stack.line);
     end
-    
+
     if exist('newfile','var') % i.e. decompressed .nii.gz
         delete(newfile{1});
     end

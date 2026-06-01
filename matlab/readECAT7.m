@@ -21,7 +21,7 @@ function [mh,sh,data] = readECAT7(fs,matrix,varargin)
 %                 [rows, cols, planes] or [proj, views, planes] array with the
 %                 data of matrix i. The data are stored in the file as 2 byte signed integers.
 %
-% .. note:: 
+% .. note::
 %
 %   To convert data from cell array of 3D arrays to a 4D array: d=double(cat(4,data{:}));
 %   This could be helpful to convert a time-sequence of image volumes to something
@@ -169,18 +169,18 @@ end
 sh = cell([nmat 1]);
 for m = 1:nmat
     midx = matrix(m);
-    
+
     % attempt to read all matrices irrespective of 'code' in
     % this may allow one to access "deleted" data not seen by CTI  software
     %    code =  1 if matrix exists, access = read/write
     %            0 if data not yet written
     %           -1 if matrix deleted, access = none
     % See notes on dirtable in writeECAT7
-    
+
     % jump to subheader
     fseek(fid,512*(dirtable(2,midx)-1),-1);   % especially needed if
     % last block of previous dataset is not completely filled
-    
+
     % read and parse subheader and advance file position to pixel data
     fp = ftell(fid);
     [sh{m}, sz] = feval(readSubheader, fid, dirtable(:,m));
@@ -188,9 +188,9 @@ for m = 1:nmat
         warning(['readECAT7: There is a problem in subheader read.'  ...
             'Subheader size should be a multiple of 512 bytes.']);
     end
-    
+
     if (nargout > 2)  % if user asked for pixel data
-        
+
         switch sh{m}.data_type
             case 5 % IEEE float (32 bit)
                 data{m} = fread(fid, [sz(1)*sz(2) sz(3)],'float32');
@@ -209,14 +209,14 @@ for m = 1:nmat
                 pixel_data_type = 'unrecognized data type';
         end
         % other sh{m}.data_type: 2 = VAX int16,  3 = VAX int32,  4 = VAX F-float (32 bit),  7 = SUN int32
-        
+
         data{m} = reshape(data{m}, [sz(1) sz(2) sz(3)]);
-        
+
         if calibrated  % convert to double pixels and scale to mh.data_units
             cf = sh{m}.scale_factor*mh.ecat_calibration_factor;  % calibration factor for mh.data_units
             data{m} = cf*data{m};
         end
-        
+
     end % if nargout > 2
 end  % loop over matrices
 

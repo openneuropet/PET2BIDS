@@ -3,20 +3,20 @@
 The following individuals have contributed to the PET2BIDS project (in alphabetical order). If you contributed and
 some icons needs to be added or your name is not listed, please add it.
 
-Murat Bilgel 💻 🐛 💡  
-Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️  
-Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋  
-Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀 
-Rami Hamati 💻 🐛 
-Gitte Knudsen 💡💵  
-Granville Matheson 📝 🐛 ✅  
-Martin Norgaard 💻 💬 🤔 ⚠️ 👀  
-Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️  
-Chris Rorden 💻 🐛 📖  
+Murat Bilgel 💻 🐛 💡
+Anthony Galassi 💻 📖 💬 🎨 💡 ⚠️
+Melanie Ganz-Benjaminsen 🔍 💬 🤔 📋
+Gabriel Gonzalez-Escamilla 💻 ⚠️ 🐛 👀
+Rami Hamati 💻 🐛
+Gitte Knudsen 💡💵
+Granville Matheson 📝 🐛 ✅
+Martin Norgaard 💻 💬 🤔 ⚠️ 👀
+Cyril Pernet 💻 📖 💬 🎨 💡 📋 🤔 ⚠️
+Chris Rorden 💻 🐛 📖
 Maximilian Cosmo Sitter 💻
-Claus Svarer 💻 💡⚠️   
-Adam G Thomas  🔍 🤔  
-Robert Innis 💡⚠️💵   
+Claus Svarer 💻 💡⚠️
+Adam G Thomas  🔍 🤔
+Robert Innis 💡⚠️💵
 
 Legend (source:
 [https://github.com/kentcdodds/all-contributors](https://github.com/kentcdodds/all-contributors))
@@ -43,5 +43,3 @@ Legend (source:
 | ✅    | Tutorials                                                                   |
 | 📢    | Talks                                                                       |
 | 📹    | Videos                                                                      |
-
-

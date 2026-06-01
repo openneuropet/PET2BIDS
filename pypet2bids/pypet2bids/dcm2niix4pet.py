@@ -498,10 +498,10 @@ class Dcm2niix4PET:
             if not dcm2niix_path:
                 pkged = "https://github.com/rordenlab/dcm2niix/releases"
                 instructions = "https://github.com/rordenlab/dcm2niix#install"
-                no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in 
-                            $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here 
-                            {instructions} 
-                            and packaged versions can be found at 
+                no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in
+                            $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here
+                            {instructions}
+                            and packaged versions can be found at
                             {pkged}
                             Alternatively, you can set the path to dcm2niix in the config file at $HOME/.pet2bidsconfig
                             using the command dcm2niix4pet --set-dcm2niix-path."""
@@ -1148,9 +1148,9 @@ class Dcm2niix4PET:
 
 epilog = textwrap.dedent(
     """
-    
+
     example usage:
-    
+
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidSSubject/pet # the simplest conversion
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
     # use with an input spreadsheet
@@ -1158,7 +1158,7 @@ epilog = textwrap.dedent(
     # use with custom dcm2niix options
     dcm2niix4pet --set-dcm2niix-options '-v y -w 1 -z y' \
     # set default dcm2niix options in config file
-    
+
 """
 )
 
@@ -1333,34 +1333,34 @@ example1 = textwrap.dedent(
 Usage examples are below, the first being the most brutish way of making dcm2niix4pet to pass through the
 BIDS validator (with no errors, removing all warnings is left to the user as an exercise) see:
 
-example 1 (Passing PET metadata via the --kwargs argument): 
-    
+example 1 (Passing PET metadata via the --kwargs argument):
+
     # Note `#` denotes a comment
     # dcm2niix4pet is called with the following arguments
-    
+
     # folder -> GeneralElectricSignaPETMR-NIMH/
     # destination-path -> sub-GeneralElectricSignaPETMRINIMH/pet
     # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
 
-    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet 
-    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR" 
-    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate" 
-    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75 
-    ModeOfAdministration="infusion" FrameTimesStart=0 
-    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0 
+    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet
+    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR"
+    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate"
+    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75
+    ModeOfAdministration="infusion" FrameTimesStart=0
+    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0
     ReconMethodParameterValues="[1, 1]" ReconFilterType="n/a" ReconFilterSize=1
 
     # The output of the above command (given some GE phantoms from the NIMH) can be seen below with tree
-    
-    tree sub-GeneralElectricSignaPETMRNIMH 
+
+    tree sub-GeneralElectricSignaPETMRNIMH
     sub-GeneralElectricSignaPETMRNIMH
     └── pet
         ├── sub-GeneralElectricSignaPETMRNIMH_pet.json
         └── sub-GeneralElectricSignaPETMRNIMH_pet.nii.gz
 
     # Further, when we examine the json output file we can see that all of our metadata supplied via kwargs was written
-    # into the sidecar json 
-    
+    # into the sidecar json
+
     cat sub-GeneralElectricSignalPETMRNIMH/pet/sub-GeneralElectricSignaPETMRNIMH_pet.json
     {
         "Modality": "PT",

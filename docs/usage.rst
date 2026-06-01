@@ -20,7 +20,7 @@ To simplify the curation of json files, one uses the
 `get_pet_metadata.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/get_pet_metadata.m>`_ function. This
 function takes as arguments the scanner info (thus loading the relevant *parameters.txt file) and also need some manual
 input related to the injected tracer.
-  
+
 *Feel free to reach out if you have an issue with your scanner files, we can help*.
 
 The simplest way to convert DICOM files is to call
@@ -76,7 +76,7 @@ for instance) and possibly a dicom file to check additional fields. This is show
     dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm');
     status = updatejsonpetfile(jsonfilename,metadata,dcminfo)``
 
-2. Add the metadata 'manually' to the json file, shown below for GE Advance data. 
+2. Add the metadata 'manually' to the json file, shown below for GE Advance data.
 
 .. code-block::
 
@@ -106,7 +106,7 @@ Your SiemensHRRT.txt file is stored next to get_pet_metadata.m
     'InjectedMass', 1.5934,'MolarActivity', 107.66);
 
     ecat2nii({full_file_name},{metadata})
- 
+
 See the `documentation <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/Readme.md>`_ for further
 details on ecat conversion
 

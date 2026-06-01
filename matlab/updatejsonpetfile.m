@@ -38,7 +38,7 @@ if nargin >= 2
     if iscell(newfields)
         newfields = cell2mat(newfields);
     end
-    
+
     if nargin == 3
         dcminfo = varargin{3};
     end
@@ -79,12 +79,12 @@ if nargin == 1
     [filemetadata,updated] = update_arrays(filemetadata);
     if updated && exist('jsonfilename','var')
         warning('some scalars were changed to array')
-        if strcmpi(filemetadata.ReconFilterType,"none") 
+        if strcmpi(filemetadata.ReconFilterType,"none")
             filemetadata.ReconFilterSize = 0; % not necessary once the validator takes conditinonal
         end
         jsonwrite(jsonfilename,orderfields(filemetadata));
     end
-    
+
     % -------------- only check --------------
     for m=length(petmetadata.mandatory):-1:1
         test(m) = isfield(filemetadata,petmetadata.mandatory{m});
@@ -100,21 +100,21 @@ if nargin == 1
     else
         status.state    = 1;
     end
-    
+
 else % -------------- update ---------------
-       
+
     %% run the update
-       
+
     addfields = fields(newfields);
     for f=1:length(addfields)
         filemetadata.(addfields{f}) = newfields.(addfields{f});
     end
-       
+
     if isfield(filemetadata,'TimeZero')
         if strcmpi(filemetadata.TimeZero,'ScanStart') || isempty(filemetadata.TimeZero)
             filemetadata.TimeZero   = datetime(filemetadata.AcquisitionTime,'Format','hh:mm:ss');
-            filemetadata.ScanStart  = 0;     
-            
+            filemetadata.ScanStart  = 0;
+
             if ~isfield(filemetadata,'InjectionStart')
                 filemetadata.InjectionStart = 0;
             end
@@ -125,22 +125,22 @@ else % -------------- update ---------------
     else
         warning('TimeZero is not defined, which is not compliant with PET BIDS')
     end
-  
+
     % recheck those fields, assume 0 is not specified
     if ~isfield(filemetadata,'ScanStart')
         filemetadata.ScanStart     = 0;
     end
-    
+
     if ~isfield(filemetadata,'InjectionStart')
         filemetadata.InjectionStart = 0;
     end
     filemetadata = dcm2bids_internal(filemetadata);
-        
+
     % -------------------------------------------------------------
     % possible dcm fields to recover - this part is truly empirical
     % going over different dcm files and figuring out fields
     % ------------------------------------------------------------
-    
+
     if exist('dcminfo','var')
         if ischar(dcminfo)
             dcminfo = flattenstruct(dicominfo(dcminfo));
@@ -150,7 +150,7 @@ else % -------------- update ---------------
         % here we keep only the last dcm subfield (flattenstrct add '_' with
         % leading subfields initial to make things more tracktable but we
         % don't need it to match dcm names)
-        
+
         dicom_nucleotides = { '^11^Carbon', '^13^Nitrogen', '^14^Oxygen', ...
             '^15^Oxygen','^18^Fluorine', '^22^Sodium', '^38^Potassium', ...
             '^43^Scandium','^44^Scandium','^45^Titanium','^51^Manganese',...
@@ -160,7 +160,7 @@ else % -------------- update ---------------
             '^73^Selenium','^75^Bromine','^76^Bromine','^77^Bromine',...
             '^82^Rubidium','^86^Yttrium','^89^Zirconium','^90^Niobium',...
             '^90^Yttrium','^94m^Technetium','^124^Iodine','^152^Terbium'};
-        
+
         fn = fieldnames(dcminfo);
         for f=1:length(fn)
             if contains(fn{f},'_') && ~contains(fn{f},{'Private','Unknown'})
@@ -176,7 +176,7 @@ else % -------------- update ---------------
                 dcminfo = rmfield(dcminfo,fn{f});
             end
         end
-        
+
         % run dicom check check
         jsontoload = fullfile(root,['metadata' filesep 'dicom2bids.json']);
         if exist(jsontoload,'file')
@@ -186,7 +186,7 @@ else % -------------- update ---------------
         else
             error('looking for %s, but the file is missing',jsontoload)
         end
-        
+
         for f=1:length(dcmfields) % check each field from the library
             if isfield(dcminfo,dcmfields{f}) % if it matches a dicom tag from the image
                 if isfield(filemetadata,jsonfields{f}) % and  the json field exist,
@@ -210,7 +210,7 @@ else % -------------- update ---------------
                                 end
                             else
                                 if ischar(dcminfo.(dcmfields{f}))
-                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' dcminfo.(dcmfields{f})]) 
+                                    warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' dcminfo.(dcmfields{f})])
                                 else
                                     warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})) ' and dicom ' dcmfields{f} ': ' num2str(str2double(dcminfo.(dcmfields{f})))]) % double conversion to remove trailing values
                                 end
@@ -239,7 +239,7 @@ else % -------------- update ---------------
                                 warning(['adding json info ' jsonfields{f} ': ' dcminfo.(dcmfields{f}) ' from dicom field ' dcmfields{f}])
                             end
                         end
-                        
+
                         if ~strcmpi(dcmfields{f},'AcquisitionDate')
                             filemetadata.(jsonfields{f}) = dcminfo.(dcmfields{f});
                         end
@@ -249,13 +249,13 @@ else % -------------- update ---------------
         end
         filemetadata = dcm2bids_internal(filemetadata);
     end
-    
+
     % delete all non BIDS fields ++
     % ------------------------------
     all_bids = [petmetadata.mandatory;petmetadata.recommended;petmetadata.optional];
     all_bids{length(all_bids)+1} = 'ScatterCorrectionMethod';
     all_bids{length(all_bids)+1} = 'RandomsCorrectionMethod';
-    
+
     if isfield(filemetadata,'ScanDate')
         try
             if ~ischar(filemetadata.ScanDate)
@@ -270,7 +270,7 @@ else % -------------- update ---------------
             filemetadata = rmfield(filemetadata,'ScanDate');
         end
     end
-    
+
     % fix possible field formatting errors
     if isfield(filemetadata,'ReconFilterSize')
         if ischar(filemetadata.ReconFilterSize)
@@ -283,7 +283,7 @@ else % -------------- update ---------------
             if strcmpi(filemetadata.ImageDecayCorrected,'true')
                 filemetadata.ImageDecayCorrected = true; % boolean
             else
-                filemetadata.ImageDecayCorrected = false; 
+                filemetadata.ImageDecayCorrected = false;
             end
         end
     end
@@ -297,11 +297,11 @@ else % -------------- update ---------------
     % clean-up
     fn_check = fieldnames(filemetadata);
     for f=1:size(fn_check,1)
-        if ~contains(fn_check{f},all_bids) 
+        if ~contains(fn_check{f},all_bids)
             filemetadata = rmfield(filemetadata,fn_check{f});
         end
     end
-           
+
     %% recursive call to check status
     % -----------------------------
     filemetadata.filename = jsonfilename;
@@ -341,7 +341,7 @@ if sum(input_check) ~= 0
         index = index + 2;
     end
     dataout                = check_metaradioinputs(arguments);
-    
+
     if ~isempty(dataout)
         datafieldnames     = fieldnames(dataout);
         % set new info fields
@@ -366,7 +366,7 @@ if exist('iteration','var') && exist('subset','var')
         filemetadata.ReconMethodParameterUnits      = ["none","none"];
         filemetadata.ReconMethodParameterValues     = [str2double(subset),str2double(iteration)];
     else % returns none if actually seen as empty by get_recon_method
-        filemetadata.ReconMethodParameterLabels     = "none";  
+        filemetadata.ReconMethodParameterLabels     = "none";
         filemetadata.ReconMethodParameterUnits      = "none";
         try
             if isempty(filemetadata.ReconMethodParameterValues) % in case user passes info
@@ -380,7 +380,7 @@ end
 
 if isfield(filemetadata,'ConvolutionKernel') || ...
         isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
-    
+
     if isfield(filemetadata,'ConvolutionKernel')
         if contains(filemetadata.ConvolutionKernel,'/')
             namesplit = strfind(filemetadata.ConvolutionKernel,'/');
@@ -391,19 +391,19 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
         else
             filtername = filemetadata.ConvolutionKernel;
         end
-        
+
     elseif isfield(filemetadata,'ReconFilterType') && isfield(filemetadata,'ReconFilterSize')
         if strcmp(filemetadata.ReconFilterType,filemetadata.ReconFilterSize)
             filtername = filemetadata.ReconFilterType; %% because if was set matching DICOM and BIDS
             if strcmp(filemetadata.ReconFilterType,"none")
-                filemetadata.ReconFilterSize = 0; 
+                filemetadata.ReconFilterSize = 0;
             end
         end
     else
         filemetadata.ReconFilterType = "none";
-        filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+        filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType
     end
-    
+
     if exist('filtername','var')
         % known stuff vs regex
         if any(strcmpi(filtername,{'rectangle','hanning'}))
@@ -417,13 +417,13 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
                 filemetadata.ReconFilterSize = str2double(FilterSize);
             end
         else
-            
+
             % might need to remove trailing .00 for regex to work
             if contains(filtername,'.00') && ~contains(filtername,{'/','\'})
                 loc = strfind(filtername,'.00');
                 filtername(loc:loc+2) = [];
             end
-            
+
             filtersize = regexp(filtername,'\d*','Match');
             if ~isempty(filtersize)
                 filemetadata.ReconFilterSize = cell2mat(filtersize);
@@ -438,11 +438,11 @@ if isfield(filemetadata,'ConvolutionKernel') || ...
     end
 else
     filemetadata.ReconFilterType = "none";
-    filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType 
+    filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType
 end
 
 function [filemetadata,updated] = update_arrays(filemetadata)
-% hack a la Anthony making sure the validator is happy 
+% hack a la Anthony making sure the validator is happy
 % make some scalar an array (i.e. a cell in matlab written as array in json)
 
 updated = 0;

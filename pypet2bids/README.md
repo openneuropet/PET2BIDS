@@ -1,14 +1,14 @@
-# PET2BIDS is a code library to convert source Brain PET data to BIDS 
+# PET2BIDS is a code library to convert source Brain PET data to BIDS
 
 [![python](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/python.yaml)
-[![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml) 
+[![Matlab PET2BIDS Tests](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/matlab.yaml)
 [![Documentation Status](https://readthedocs.org/projects/pet2bids/badge/?version=latest)](https://pet2bids.readthedocs.io/en/latest/?badge=latest)
 [![phantoms](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml/badge.svg)](https://github.com/openneuropet/PET2BIDS/actions/workflows/phantoms.yaml)
 
 This repository is hosting tools to curate PET brain data using the [Brain Imaging Data Structure Specification](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html). The work to create these tools is funded by [Novo Nordisk Foundation](https://novonordiskfonden.dk/en/) (NNF20OC0063277) and the [BRAIN initiative](https://braininitiative.nih.gov/) (MH002977-01).
 
-For DICOM image conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage), 
-collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix 
+For DICOM image conversion, we rely on [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage),
+collaborating with Prof. Chris Rorden without whom we could not convert your data! For more information on dcm2niix
 and nifti please see [The first step for neuroimaging data analysis: DICOM to NIfTI conversion](https://www.ncbi.nlm.nih.gov/pubmed/26945974) paper.
 
 
@@ -40,13 +40,13 @@ If you wish to install directly from this repository see the instructions below 
 a packaged version of `pypet2bids` or how to run the code from source.
 
 <details>
-<summary>Build Package Locally and Install with PIP</summary> 
+<summary>Build Package Locally and Install with PIP</summary>
 
-We use [poetry](https://python-poetry.org/) to build this package, no other build methods are supported, 
-further we encourage the use of [GNU make](https://www.gnu.org/software/make/) and a bash-like shell to simplify the 
+We use [poetry](https://python-poetry.org/) to build this package, no other build methods are supported,
+further we encourage the use of [GNU make](https://www.gnu.org/software/make/) and a bash-like shell to simplify the
 build process.
 
-After installing poetry, you can build and install this package to your local version of Python with the following 
+After installing poetry, you can build and install this package to your local version of Python with the following
 commands (keep in mind the commands below are executed in a bash-like shell):
 
 ```bash
@@ -61,10 +61,10 @@ Why is all the above required? Well, because this is a monorepo and we just have
 
 
 [!NOTE]
-Make and the additional scripts contained in the `scripts/` directory are for the convenience of 
+Make and the additional scripts contained in the `scripts/` directory are for the convenience of
 non-windows users.
 
-If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the 
+If you have GNU make installed and are using a bash or something bash-like in you your terminal of choice, run the
 following:
 
 ```bash
@@ -74,7 +74,7 @@ make installpoetry buildpackage installpackage
 
 </details>
 
-<details> 
+<details>
 <summary>Run Directly From Source</summary>
 
 If one wishes run pypet2bids directly from the source code in this repository or to help contribute to the python portion of this project or any of the documentation they can do so via the following options:
@@ -111,19 +111,19 @@ docker build . -t openneuropet/pet2bids
 Then mount and run conversions on your input folders like so:
 
 ```
-docker run --rm -it \ 
--v /path/to/dicoms:/dicoms:ro \ 
--v /path/to/outputdir:/out \ 
+docker run --rm -it \
+-v /path/to/dicoms:/dicoms:ro \
+-v /path/to/outputdir:/out \
 openneuropet/pet2bids dcm2niix4pet /dicoms --destination-path /out
 ```
 Please note the latest version of dcm2niix is pulled and installed at the time of building the Docker container.
 </details>
 
 **Note:**
-*We recommend using dcm2niix v1.0.20220720 or newer; we rely on metadata included in these later releases. It's best to 
+*We recommend using dcm2niix v1.0.20220720 or newer; we rely on metadata included in these later releases. It's best to
 collect releases from the [rorden lab/dcm2niix/releases](https://github.com/rordenlab/dcm2niix/releases) page. We have
-observed that package managers such as yum or apt or apt-get often install much older versions of dcm2niix e.g. 
-v1.0.2017XXXX, v1.0.2020XXXXX. You may run into invalid-BIDS or errors with this software with older versions.* 
+observed that package managers such as yum or apt or apt-get often install much older versions of dcm2niix e.g.
+v1.0.2017XXXX, v1.0.2020XXXXX. You may run into invalid-BIDS or errors with this software with older versions.*
 
 ### Controlling Logging Output
 
@@ -150,9 +150,9 @@ This folder contains spreadsheets templates and examples of metadata and matlab 
 
 ### metadata
 
-A small collection of json files for our metadata information. 
+A small collection of json files for our metadata information.
 
-### user metadata 
+### user metadata
 
 No matter the way you prefer inputting metadata (passing all arguments, using txt or env file, using spreadsheets), you are always right! DICOM values will be ignored - BUT they are checked and the code tells you if there is inconsistency between your inputs and what DICOM says.
 
@@ -160,7 +160,7 @@ No matter the way you prefer inputting metadata (passing all arguments, using tx
 
 This folder contains code generating Siemens HRRT scanner data using ecat file format and validating the matlab and python conversion tools (i.e. giving the data generated as ecat, do our nifti images reflect accurately the data).
 
-## Citation 
+## Citation
 
 Please [cite us](CITATION.cff) when using PET2BIDS.
 
