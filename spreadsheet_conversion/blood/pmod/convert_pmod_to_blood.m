@@ -31,7 +31,7 @@ function convert_pmod_to_blood(varargin)
 %
 % .. code-block::
 %
-%    Examples:
+%    Examples: 
 %             file1 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'parent_pmodexample.bld');
 %             file2 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'plasma_pmodexample.bld');
 %             file3 = fullfile(fileparts(which('convert_pmod_to_blood.m')),'wholeblood_pmodexample.bld');
@@ -69,7 +69,7 @@ if strcmpi(addjson,'on')
     else
         error('looking for %s, but the file is missing',jsontoload)
     end
-
+    
     % check library
     if ~exist('jsonwrite.m', 'file')
         error(['JSONio library jsonwrite.m file was not found but is needed,', ...
@@ -89,7 +89,7 @@ if nargin == 0
             fprintf('files selected:\n%s\n', filein{i});
         end
     end
-
+    
     % 'type' should be 'manual' 'autosampler' or 'both'
     type = questdlg('What type of blood sampling was performed?', ...
         'blood sampling', ...
@@ -97,14 +97,14 @@ if nargin == 0
     if isempty(type)
         warning('selection aborted - exiting'); return
     end
-
+    
     outputname = inputdlg('please input the base name for the files to save');
     if isempty(outputname)
         warning('name aborted - exiting'); return
     else
         outputname = fullfile(pathnames,cell2mat(outputname));
     end
-
+    
 else
     for i = 1:3
         if ~strcmpi(varargin{i},'type')
@@ -115,7 +115,7 @@ else
             end
         end
     end
-
+    
     for v=1:nargin
         if strcmpi(varargin{v},'outputname')
             outputname = varargin{v+1};
@@ -252,7 +252,7 @@ else % mixed case - assume the autosampling has more data points
         warning('time data between whole blood and plasma are mixed, trying to fix it based on parent fraction - do check tsv files')
         duplicates = arrayfun(@(x) find(WBtime == x), PFtime);
         if ~isempty(duplicates)
-            Ptime                     = Ptime(duplicates);
+            Ptime                     = Ptime(duplicates);  
             notduplicates             = 1:length(WBtime);
             notduplicates(duplicates) = [];
             WBtime                    = WBtime(notduplicates);
@@ -261,15 +261,15 @@ else % mixed case - assume the autosampling has more data points
         warning('time data between whole blood and plasma are mixed, trying to fix it based on parent fraction - do check tsv files')
         if length(Ptime) ~= length(PFtime)
             if PFtime(1) == WBtime(1) && PFtime(1) == 0
-                Ptime = [0;Ptime];
+                Ptime = [0;Ptime];                 
             else
                 error('Parent fraction and Plasma times do not match, we cannot figure out which time points to extract in whole blood')
             end
         end
-
+        
         duplicates = arrayfun(@(x) find(WBtime == x), PFtime, 'UniformOutput', false);
         if ~isempty(duplicates)
-            emptyduplicates = find(cellfun(@(x) isempty(x),duplicates));
+            emptyduplicates = find(cellfun(@(x) isempty(x),duplicates)); 
             if ~isempty(emptyduplicates)
                 % strategy 1, is the missing index between two adjacent
                 % integer, if so just used the value e.g. 183, [], 185
@@ -283,7 +283,7 @@ else % mixed case - assume the autosampling has more data points
                 end
             end
 
-           emptyduplicates = find(cellfun(@(x) isempty(x),duplicates));
+           emptyduplicates = find(cellfun(@(x) isempty(x),duplicates)); 
            if ~isempty(emptyduplicates)
                % strategy 2, try figuring out the closest time
                 warning('whole blood times do not match perfectly parent fraction times - using closest match')
@@ -293,7 +293,7 @@ else % mixed case - assume the autosampling has more data points
                     duplicates{emptyduplicates(m)} = find(WBtime == timevalue);
                 end
             end
-
+         
             if iscell(duplicates)
                 duplicates = cell2mat(duplicates);
             end
@@ -389,11 +389,11 @@ else
     tsvname = [outputname '_recording-' type '_blood.tsv'];
     writetable(t, tsvname, 'FileType', 'text', 'Delimiter', '\t');
 end
-
+ 
 %% export json
 
 if strcmpi(addjson,'on')
-
+    
     for v=1:nargin % since we have Parent those should be there
         if strcmpi(varargin{v},'MetaboliteMethod')
             MetaboliteMethod = varargin{v+1};
@@ -403,7 +403,7 @@ if strcmpi(addjson,'on')
             DispersionCorrected = varargin{v+1};
         end
     end
-
+    
     info.WholeBloodAvail = "true"; % the function would have not run otherwise
     info.MetaboliteAvail = 'true';
     if exist('MetaboliteMethod','var')
@@ -411,19 +411,19 @@ if strcmpi(addjson,'on')
     else
         warning('Parent fraction is available, but input method is not specified, which is not BIDS compliant')
     end
-
+    
     if exist('MetaboliteRecoveryCorrectionApplied','var')
         info.MetaboliteRecoveryCorrectionApplied = MetaboliteRecoveryCorrectionApplied;
     else
         warning('Parent fraction is available, but there is no information if Recovery Correction was applied, which is not BIDS compliant')
     end
-
+       
     if exist('DispersionCorrected','var')
         info.DispersionCorrected = DispersionCorrected;
     else
         warning('Parent fraction is available, but there is no information if DispersionCorrected was applied, which is not BIDS compliant')
     end
-
+    
     info.time.Description                       = 'Time in relation to time zero defined by the _pet.json';
     info.time.Units                             = 's';
     info.whole_blood_radioactivity.Description  = 'Radioactivity in whole blood samples.';
@@ -435,21 +435,21 @@ if strcmpi(addjson,'on')
         info.plasma_radioactivity.Description   = 'Radioactivity in plasma samples';
         info.plasma_radioactivity.Units         = 'kBq/mL';
     end
-
-    for v=1:nargin
+    
+    for v=1:nargin 
         if any(strcmpi(varargin{v},recommended))
             index = find(strcmpi(varargin{v},recommended));
             info.(recommended{index}) = varargin{v+1}; %#ok<FNDSB>
         end
     end
-
+    
     if ~strcmpi(type,'both')
        jsonname = [outputname '_recording-' type '_blood.json'];
     else
        jsonname = [outputname '_blood.json'];
     end
     jsonwrite(jsonname,info,'prettyprint','true');
-
+   
     % run a last check
     for f=length(mandatory):-1:1
         M(f) = any(contains(mandatory{f}, fieldnames(info)));
@@ -469,3 +469,5 @@ if strcmpi(addjson,'on')
         warning('the json file created is NOT BIDS compliant, mandatory fields are missing')
     end
 end
+
+
