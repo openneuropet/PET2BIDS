@@ -2,7 +2,7 @@
 
 ## ecat_info
 
-During our effort to create a converter to BIDS, we came across some documentation that might be useful to others - so 
+During our effort to create a converter to BIDS, we came across some documentation that might be useful to others - so
 we stored it here. Please feel free to create a pull request or reach out to us if you have any additional information
 to contribute concerning the ECAT filetype/specification. Our knowledge only extends to ECAT versions 6.3, 7.2, and 7.3,
 and may always be improved.
@@ -10,20 +10,20 @@ and may always be improved.
 ## Validation
 
 ### Motivation
-We wished to quantify how reliably our ECAT to nifti tools translated ecat pixel arrays. After observing some major 
-differences between our own tools as well as other existing ecat2nii/neuroimaging libraries we decided that we should 
+We wished to quantify how reliably our ECAT to nifti tools translated ecat pixel arrays. After observing some major
+differences between our own tools as well as other existing ecat2nii/neuroimaging libraries we decided that we should
 first create an extremely standard and well behaved sythentic ecat file populated with known values. The image is simply
 a 4d array of pixel values increasing from 0 to 32766, the dimensions were picked because they cover (most of) the range
-of unsigned int16 which is the most common type of pixel data element seen in the ECAT file format. 
+of unsigned int16 which is the most common type of pixel data element seen in the ECAT file format.
 
-**Note:** ECAT supports pixel arrays of float and integer data types, but we've only ever seen pixel data as uint16. Hence, 
+**Note:** ECAT supports pixel arrays of float and integer data types, but we've only ever seen pixel data as uint16. Hence,
 the strange naming convention of our golden ecat files. Maybe we will test floats, most likely not.
 
-The synthetic ecat data of size 16 * 16 * 16 * 4 were created using golden_ecat.py 
+The synthetic ecat data of size 16 * 16 * 16 * 4 were created using golden_ecat.py
 the gzipped output can be found [here](synthetic_ecat_integer_16x16x16x4.v.gz), additionally the values of each voxel
-are saved directly as .mat for later comparison and analysis [here](synthetic_ecat_integer_16x16x16x4.mat). 
-The script used to create this synthetic "golden" ecat file [golden_ecat.py](..pypet2bids/pypet2bids/golden_ecat.py) 
-makes use of functions in [pypet2bids/write_ecat.py](../pypet2bids/pypet2bids/write_ecat.py) which allow us to modify 
+are saved directly as .mat for later comparison and analysis [here](synthetic_ecat_integer_16x16x16x4.mat).
+The script used to create this synthetic "golden" ecat file [golden_ecat.py](..pypet2bids/pypet2bids/golden_ecat.py)
+makes use of functions in [pypet2bids/write_ecat.py](../pypet2bids/pypet2bids/write_ecat.py) which allow us to modify
 and write the main header, directory table, sub headers, and pixel data of an ECAT file.
 
 ### Image Creation
@@ -82,11 +82,11 @@ write_ecat(ecat_file=int_golden_ecat_path,
 ### Results
 
 The  validation ecat2nii_test.m then read the .v, convert to .nii, and reread the .nii. It then compares the reread values to
-expected ones (from the .mat). Ideally we would have the same values but (1) we have different dynamic range 
-(here only 1 out of 16bits ~0.0003) because ecat2nii rescale your data to 16bits and (2) precisions around 0 differs as 
-well, some small changes are expected. This can be seen in the figure below. Reread vs Original show a 
-perfect correlation, but with an average difference of -0.000001 with min -05 and max 0.5 
-(to put this in perspective, it means for PET images, differences are equivalent of 1 photon detection - we can live 
+expected ones (from the .mat). Ideally we would have the same values but (1) we have different dynamic range
+(here only 1 out of 16bits ~0.0003) because ecat2nii rescale your data to 16bits and (2) precisions around 0 differs as
+well, some small changes are expected. This can be seen in the figure below. Reread vs Original show a
+perfect correlation, but with an average difference of -0.000001 with min -05 and max 0.5
+(to put this in perspective, it means for PET images, differences are equivalent of 1 photon detection - we can live
 with that).
 
 ![](synthetic_ecat_integer_16x16x16x4.v.jpg)

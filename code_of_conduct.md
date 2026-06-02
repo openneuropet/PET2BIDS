@@ -30,8 +30,8 @@ This Code of Conduct applies to all [PET2BIDS](https://github.com/openneuropet/P
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at openneuropet@gmail.com. The project team will review and investigate all complaints, and will respond in a way that it deems appropriate to the circumstances. 
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at openneuropet@gmail.com. The project team will review and investigate all complaints, and will respond in a way that it deems appropriate to the circumstances.
 
-## Attribution 
+## Attribution
 
 This Code of Conduct is adapted from the [BIDS standard](https://github.com/bids-standard/bids-specification).

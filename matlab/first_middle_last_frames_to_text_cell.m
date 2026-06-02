@@ -6,7 +6,7 @@ function [output_folder, step_name] = first_middle_last_frames_to_text(four_d_ar
 %   four_d_array_like_object: input time series
 %   output_folder: path to write the selected 2D frames to
 %   step_name: name to apply to output files
-%   
+%
 output_folder = output_folder;
 step_name = step_name;
 data = four_d_array_like_object;

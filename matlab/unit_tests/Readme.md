@@ -19,5 +19,3 @@ We read the ecat file, rescale the data to 16 bits, round, multiply by the scann
 `ecat2nii_test.m` test our groundtruth data and any other nifti file. Because acquired data are already scaled by the manufacturer (for instance in the 12 bits range) and then we rescaled in 16 bits, round and multiply by the dose calibration factor, many small [quantization errors](https://en.wikipedia.org/wiki/Quantization_(signal_processing)) occur. In addition, because the [representation of floating points is the densest around zero](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) it also means that most errors are concentrated around zero. When testing against the unsigned ground data (just type ecat) , we can see all errors above 0 with the largest error of 0.000000000002. With real data, we observed most errors around 0 because data be signed (which makes so sense for PET by the way) staying relarively constant across all data frames.
 
 ![small_error](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/ECAT7_multiframe.v.jpg)
-
-

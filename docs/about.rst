@@ -40,7 +40,7 @@ for a small walk-through. Additionally, if you want to truly see how this softwa
 our CI on `Github <https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml>`_
 as a further demonstration of running this software.
 
-**This tool doesn't work/this is really hard....** 
+**This tool doesn't work/this is really hard....**
 
 Reshaping PET data into BIDS can often be difficult, but it's the goal of this library and it's developers to make the
 process easier for you the user. If you are struggling with using the tools (or the tools are struggling to work

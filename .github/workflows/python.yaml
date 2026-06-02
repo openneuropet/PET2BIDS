@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd pypet2bids
-          pip install -e .[dev] 
+          pip install -e .[dev]
 
       - name: Collect ECAT and other phantoms
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
@@ -87,7 +87,7 @@ jobs:
       - name: Unzip Test File(s)
         run: |
           gzip -d ${{ env.SMALLER_ECAT_PATH }}
-      
+
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
 

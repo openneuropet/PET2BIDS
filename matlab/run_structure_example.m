@@ -15,15 +15,15 @@
 %   toolboxName - string : "Name_of_the_toolbox"
 %       Distinct name that will be shown in the documentation
 %   delOld - boolean: true
-%       If documentation folder opts.outputFolder already exist, delete it 
+%       If documentation folder opts.outputFolder already exist, delete it
 %       first.
 %   mFolder - string array : ["absolute_path_to_scripts"]
-%       The path specified in this variable (and subfolders) will be 
+%       The path specified in this variable (and subfolders) will be
 %       searched for .m and .mlx files to convert to html. Multiple folders
-%       are possible. 
+%       are possible.
 %   outputFolder - string array : ["absolute_path_to_output_folder"]
-%       The path specified in this variable will contain the converted html 
-%       files, a subfolder with the .css files, and the toc xml file. 
+%       The path specified in this variable will contain the converted html
+%       files, a subfolder with the .css files, and the toc xml file.
 %   excludeFolder - string array : ["folder_names_to_exclude"]
 %       If the path of an m file contains these words, they will be ignored
 %       and not be converted to html.
@@ -42,7 +42,7 @@
 %       documentation. Specify instead here a html site as landing page.
 %       Create this page by writing an m/mlx-file with the specified name
 %       The file will be converted to HTML and used as landing page.
-%   toc - cell: 
+%   toc - cell:
 %       The html documentation requires an xml file (helptoc.xml) that
 %       structures the documentation. If this variable is empty, then the
 %       original folder structure from opts.mFolder will be used.
@@ -77,13 +77,13 @@ opts = struct(  'toolboxName',      "m2docgen", ...
                 'startPage',        ["Welcome_to_m2docgen.html"], ...
                 'toc',              [], ...
                 'verbose',          false);
-            
+
 opts.toc        = {"MainCode"   ,     "/", {} ; ...
                     "Additional",  "help", {}};
 
 opts.toc{1,3}   = {"@Dummy"     , "@Dummy"                      , {};
                     "@MFile"    , "@MFile"                      , {};
-                    "@createDoc", ["@createDoc" "@TemplateHTML"], {}};  
+                    "@createDoc", ["@createDoc" "@TemplateHTML"], {}};
 
 % make sure to have added m2docgen to the matlab path
 res = m2docgen(opts);

@@ -31,7 +31,7 @@ function telemetry(telemetry_data, input_path, output_path)
 end
 
 function e = telemetry_enabled()
-    % checks to see if the telemetry is enabled or disabled 
+    % checks to see if the telemetry is enabled or disabled
     environment = getenv();
     % check environment too before loading the config file
     if isfield(environment, 'TELEMETRY_ENABLED')
@@ -57,8 +57,8 @@ function e = telemetry_enabled()
         e = false;
     else
         e = true;
-    end 
-    
+    end
+
 end
 
 

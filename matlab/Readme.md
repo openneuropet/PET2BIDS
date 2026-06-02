@@ -8,25 +8,25 @@ _To convert DICOM files_, [dcm2niix](https://www.nitrc.org/plugins/mwiki/index.p
 
 ## Redistributed functions
 
- _To convert ECAT files_, [ecat2nii.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/ecat2nii.m) uses [readECAT7](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/readECAT7.m) (Raymond Muzic, 2002) and [nii_tool](https://github.com/xiangruili/dicm2nii) (Xiangrui Li, 2016), who are included and redistributed in the repository. _To write the JSON sidecar files_, one uses jsonwrite.m (Guillaume Flandin, 2020) taken from [json.io](https://github.com/gllmflndn/JSONio). 
+ _To convert ECAT files_, [ecat2nii.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/ecat2nii.m) uses [readECAT7](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/readECAT7.m) (Raymond Muzic, 2002) and [nii_tool](https://github.com/xiangruili/dicm2nii) (Xiangrui Li, 2016), who are included and redistributed in the repository. _To write the JSON sidecar files_, one uses jsonwrite.m (Guillaume Flandin, 2020) taken from [json.io](https://github.com/gllmflndn/JSONio).
 
 ## Configuration
 
-The entire repository or only the matlab subfolder (your choice) should be in your matlab path.  
+The entire repository or only the matlab subfolder (your choice) should be in your matlab path.
 
 Defaults parameters should be set in (scannername).txt files to generate metadata easily (i.e. avoiding to pass all arguments in although this is also possible). You can find templates of such parameter file under /template_txt (SiemensHRRTparameters.txt, SiemensBiographparameters.txt, GEAdvanceparameters.txt,  PhilipsVereosparameters.txt).
 
 ### Get metadata
 
-To simplify the curation of json files, one uses the [get_pet_metadata.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/get_pet_metadata.m) function. This function takes as arguments the scanner info (thus loading the relevant *parameters.txt file) and also need some manual input related to the injected tracer.  
-  
+To simplify the curation of json files, one uses the [get_pet_metadata.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/get_pet_metadata.m) function. This function takes as arguments the scanner info (thus loading the relevant *parameters.txt file) and also need some manual input related to the injected tracer.
+
 _Feel free to reach out if you have an issue with your scanner files, we can help_.
 
 ## Usage
 
 ### converting dicom files
 
-The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m) which wraps around dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.  
+The simplest way is to call [dcm2niix4pet.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/dcm2niix4pet.m) which wraps around dcm2niix. Assuming dcm2niix is present in your environment, Matlab will call it to convert your data to nifti and json - and the wrapper function will additionally edit the json file. Arguments in are the dcm folder(s) in, the metadata as a structure (using the get_pet_metadata.m function for instance) and possibly options as per dcm2nixx.
 
 _Note for windows user_: edit the dcm2niix4pet.m line 51 to indicate where is the .exe function located
 
@@ -44,7 +44,7 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart',...
     'ReconMethodParameterValues',[21 3], 'ReconFilterType','XYZGAUSSIAN',...
     'ReconFilterSize',2, 'AttenuationCorrection','CT-based attenuation correction');
 dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
-```  
+```
 _Note that get_pet_metadata can be called in a much simpler way if you have a `*parameters.txt` seating on disk next to this function. The call would then looks like:_
 
 ```matlab
@@ -53,7 +53,7 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','Trac
     'TracerRadionuclide','C11', 'ModeOfAdministration','infusion','SpecificRadioactivity', ...
     605.3220, 'InjectedMass', 1.5934,'MolarActivity', 107.66);
 dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
-```  
+```
 
 **Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
 
@@ -66,18 +66,18 @@ metadata = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','
                         'ModeOfAdministration','bolus','InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 dcminfo = dicominfo('DBSGRIS13.PT.PETMR_NRU.48.13.2015.11.11.14.03.16.226.61519201.dcm')
 status = updatejsonpetfile(jsonfilename,metadata,dcminfo)
-```  
+```
 
-2. Add the metadata 'manually' to the json file, shown below for GE Advance data. 
+2. Add the metadata 'manually' to the json file, shown below for GE Advance data.
 
 ```matlab
 metadata1 = jsondecode(textread(myjsonfile.json)); % or use jsonread from the matlab BIDS library
 % your GEAdvance.txt file is stored next to get_pet_metadata.m
 metadata2 = get_pet_metadata('Scanner', 'GEAdvance','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11', ...
                         'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
-metadata  = [metadata2;metadata1];                        
-jsonwrite('mynewjsonfile.json'],metadata)                        
-```  
+metadata  = [metadata2;metadata1];
+jsonwrite('mynewjsonfile.json'],metadata)
+```
 
 
 ### converting ecat files
@@ -89,6 +89,5 @@ If you have ecat (.v) instead of dicom (.dcm), we have build a dedicated convert
 metadata = get_pet_metadata('Scanner','SiemensHRRT','TimeZero','XXX','TracerName','DASB','TracerRadionuclide','C11', ...
     'ModeOfAdministration','bolus', 'InjectedRadioactivity', 605.3220,'InjectedMass', 1.5934,'MolarActivity', 107.66)
 ecat2nii({full_file_name},{metadata})
-```  
-See the [documentation](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/Readme.md) for further details on ecat conversion.  
-
+```
+See the [documentation](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/unit_tests/Readme.md) for further details on ecat conversion.
