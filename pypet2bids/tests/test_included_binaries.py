@@ -80,9 +80,9 @@ class TestIncludedBinaries:
                 assert config_path.exists(), "Config file was not created"
 
                 saved_path = helper_functions.check_pet2bids_config("DCM2NIIX_PATH")
-                assert str(saved_path) == str(
-                    binary_path
-                ), f"Config path does not match extracted path: {saved_path} != {binary_path}"
+                assert str(saved_path) == str(binary_path), (
+                    f"Config path does not match extracted path: {saved_path} != {binary_path}"
+                )
         finally:
             # Restore original config if it existed
             if config_backup is not None:
@@ -153,15 +153,15 @@ class TestIncludedBinaries:
                 import re
 
                 version_match = re.search(r"v[0-9]+\.[0-9]+\.\d{8}", version_output)
-                assert (
-                    version_match is not None
-                ), f"Could not parse version from: {version_output}"
+                assert version_match is not None, (
+                    f"Could not parse version from: {version_output}"
+                )
 
                 version = version_match.group(0)
                 minimum_version = "v1.0.20220720"
-                assert (
-                    version >= minimum_version
-                ), f"Version {version} is below minimum {minimum_version}"
+                assert version >= minimum_version, (
+                    f"Version {version} is below minimum {minimum_version}"
+                )
 
     def test_binary_path_consistency(self):
         """Test that the same binary path is returned on multiple calls."""

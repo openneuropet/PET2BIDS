@@ -53,7 +53,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('PHANTOMS.zip') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-
-            ${{ runner.os }}- 
+            ${{ runner.os }}-
 
       - name: Set up python
         uses: actions/setup-python@v4

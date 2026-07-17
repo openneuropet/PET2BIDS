@@ -25,7 +25,6 @@ if __name__ == "__main__":
     check_header_json = True
 
     if check_header_json:
-
         for header, header_values in ecat_header_maps["ecat_headers"].items():
             for header_name, header_map in header_values.items():
                 byte_position = 0
@@ -60,7 +59,6 @@ if __name__ == "__main__":
     """
     check_byte_reading = False
     if check_byte_reading:
-
         load_dotenv(env_path)
         ecat_test_file = os.environ.get("TEST_ECAT_PATH")
 

@@ -1,7 +1,7 @@
 % this is how source data were converted using matlab
 % note that usually we use the *parameter.txt file facilitating the metadata
 % information but here it is done fully for completeness
-% 
+%
 % cyril pernet - Nov 2023
 
 %% set paths where the repo is to bypass the path/env parts below
@@ -335,7 +335,7 @@ message = 'Failed to convert subject, moving onto next.';
 %% National Institute of Mental Health, Bethesda
 % ----------------------------------------------
 
-% Siemens Biograph - AC_TOF 
+% Siemens Biograph - AC_TOF
 % --------------------------
 try
     clear meta
@@ -362,7 +362,7 @@ try
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,['SiemensBiographPETMR-NIMH' filesep 'AC_TOF']),meta,...
-         'o',fullfile(destination,['sub-SiemensBiographNIMH' filesep 'pet'])); 
+         'o',fullfile(destination,['sub-SiemensBiographNIMH' filesep 'pet']));
 catch
     disp(message);
 end
@@ -392,7 +392,7 @@ try
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,'GeneralElectricSignaPETMR-NIMH'),meta,...
-        'o',fullfile(destination,['sub-GeneralElectricSignaNIMH' filesep 'pet'])); 
+        'o',fullfile(destination,['sub-GeneralElectricSignaNIMH' filesep 'pet']));
 catch
     disp(message);
 end
@@ -426,14 +426,14 @@ try
     meta.ReconFilterSize            = 1;
 
     dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
-        '2d_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceNIMH' filesep 'pet'])); 
-     
+        '2d_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GeneralElectricAdvanceNIMH' filesep 'pet']));
+
     % dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
-    %     '3d_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GEAdvance3d-NIMH' filesep 'pet'])); 
-    % 
+    %     '3d_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GEAdvance3d-NIMH' filesep 'pet']));
+    %
     % dcm2niix4pet(fullfile(source,['GeneralElectricAdvance-NIMH' filesep ...
-    %     '3d375_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GEAdvance3d375-NIMH' filesep 'pet'])); 
-    % 
+    %     '3d375_unif_lt_ramp']),meta,'o',fullfile(destination,['sub-GEAdvance3d375-NIMH' filesep 'pet']));
+    %
 catch
     disp(message);
 end
@@ -502,7 +502,7 @@ try
     meta.InjectedRadioactivityUnits = 'mCi';
     meta.SpecificRadioactivity      = 'n/a';
     meta.SpecificRadioactivityUnits = 'n/a';
-    meta.ModeOfAdministration       = 'infusion';   
+    meta.ModeOfAdministration       = 'infusion';
     meta.AcquisitionMode            = 'list mode';
     meta.ImageDecayCorrected        = true; % when passing this as string it fails validation
     meta.ImageDecayCorrectionTime   = 0;
@@ -515,7 +515,7 @@ try
     meta.ReconMethodParameterLabels = ["subsets" "iterations"];
     meta.ReconMethodParameterLabels = ["none" "none"];
     meta.ReconMethodParameterValues = [16 2];
-    
+
     out = ecat2nii(fullfile(source,['SiemensHRRT-JHU' filesep 'Hoffman.v']),...
         meta,'gz',true,'FileListOut',fullfile(destination,['sub-SiemensHRRTJHU'  filesep 'pet' filesep 'sub-SiemensHRRTJHU.nii']));
 

@@ -86,5 +86,5 @@ testotherpython:
 pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
 	@echo finished running python tests
 
-black:
-	@black pypet2bids/
+format:
+	@uv run ruff format pypet2bids/

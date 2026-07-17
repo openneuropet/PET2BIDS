@@ -33,13 +33,13 @@ except ModuleNotFoundError:
 
 epilog = textwrap.dedent(
     """
-    
+
     example usage:
-    
+
     convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld # simplest use case
     convert-pmod-to-blood --whole-blood-path wholeblood.bld --parent-fraction parentfraction.bld --plasma-activity-path plasma.bld
     convert-pmod-to-blood --whole blood-path wholeblood.bld --parent-fraction parentfraction.bld --outputh-path sub-01/pet
-    
+
     For more extensive examples rerun this program with the --show-example flag
 """
 )
@@ -52,11 +52,11 @@ Additional arguments/fields are passed via the kwargs flag in key value pairs.
 Note: lines prepended with # denote comments/notes where as lines without # denote data or input arguments
 
 example 1 (passing the bare minimum):
-    
+
     # running the following
     convert-pmod-to-blood -whole whole_blood.bld -parent plasma_parent.bld
     # will result in outputting a tsv like the following:
-    
+
     time	whole_blood_radioactivity	metabolite_parent_fraction
     25.2	0.000885	0.000874
     43.2	0.0192	0.00603
@@ -77,7 +77,7 @@ example 1 (passing the bare minimum):
     3607.2	4.798934663	2.48197381
     5419.8	3.898890497	2.05348682
     7207.2	3.772252717	1.77176473
-    
+
     # and a json data dictionary as well
     {
       "WholeBloodAvail": "true",
@@ -96,7 +96,7 @@ example 1 (passing the bare minimum):
       }
     }
 
- 
+
 """
 )
 
@@ -152,7 +152,7 @@ def cli():
         "--output-path",
         "-o",
         help="""Output path for output files (tsv and json) provide an existing folder path, if the output path is a
-         BIDS path containing subject id and session id those values will be extracted an used to name the output 
+         BIDS path containing subject id and session id those values will be extracted an used to name the output
          files.""",
         type=Path,
         default=None,
@@ -243,7 +243,6 @@ class PmodToBlood:
         engine="",
         **kwargs,
     ):
-
         if kwargs:
             try:
                 self.kwargs = kwargs["kwargs"]
@@ -280,7 +279,9 @@ class PmodToBlood:
                 "sub", self.output_path
             )
         else:
-            helper_functions.logger("pypet2bids").warning("Subject id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning(
+                "Subject id not found in output_path, checking key pair input."
+            )
             self.subject_id = self.kwargs.get("subject_id", "")
 
         if helper_functions.collect_bids_part("ses", str(self.output_path)):
@@ -288,7 +289,9 @@ class PmodToBlood:
                 "ses", self.output_path
             )
         else:
-            helper_functions.logger("pypet2bids").warning("Session id not found in output_path, checking key pair input.")
+            helper_functions.logger("pypet2bids").warning(
+                "Session id not found in output_path, checking key pair input."
+            )
             self.session_id = self.kwargs.get("session_id", "")
 
         self.output_json = output_json
@@ -296,9 +299,7 @@ class PmodToBlood:
         self.auto_sampled = []
         self.manually_sampled = []
         self.blood_series = {}
-        self.duplicates = (
-            {}
-        )  # list of times that are duplicated across manual and automatic samples
+        self.duplicates = {}  # list of times that are duplicated across manual and automatic samples
 
         if whole_blood_activity.is_file():
             self.blood_series["whole_blood_activity"] = self.load_pmod_file(
@@ -580,7 +581,6 @@ class PmodToBlood:
                         != self.blood_series[new_string]["time"][0]
                         and parent_fraction["time"][0] == 0
                     ):
-
                         self.blood_series[new_string].loc[-1] = [0, 0]
                         self.blood_series[new_string].index = (
                             self.blood_series[new_string].index + 1
@@ -610,7 +610,6 @@ class PmodToBlood:
                 ).shape[0]
                 != 0
             ):
-
                 wba = self.blood_series["whole_blood_activity_manually_popped"]
                 new_plasma = (
                     wba["whole_blood_radioactivity"]

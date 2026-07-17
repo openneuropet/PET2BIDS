@@ -49,7 +49,7 @@ for t = 1:length(various_data_types)
     disp(various_bytes);
     disp(various_data_types{t});
     fclose(fid);
-    
+
     % scale the data to see what happens
     scaled_bytes = calibration_factor * various_bytes
 end

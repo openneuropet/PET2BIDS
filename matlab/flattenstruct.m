@@ -7,7 +7,7 @@ function structout = flattenstruct(structin)
 %
 % :param structin: a structure with nested fields
 % :returns structout: a flat structure with all the fields
-%                  
+%
 %.. note::
 %
 %   there is an exception handling for the fieldname 'Item_1'
@@ -65,5 +65,3 @@ for f=1:length(rootfields)
         end
     end
 end
-
-

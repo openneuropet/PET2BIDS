@@ -26,6 +26,7 @@ from pypet2bids import helper_functions
 import numpy
 from pypet2bids.helper_functions import decompress, first_middle_last_frames_to_text
 from pypet2bids.helper_functions import logger
+
 parent_dir = pathlib.Path(__file__).parent.resolve()
 code_dir = parent_dir.parent
 data_dir = code_dir.parent
@@ -308,18 +309,18 @@ def read_ecat(
             json.dump(main_header, outfile)
     """
     Some notes about the file directory/sorted directory:
-    
+
     Comments referencing matrix/table indexing may vary by +-1 in relation to code written.
     Python is 0 indexed by default so it can be taken as truth w/ relation to element location.
     Deviation from this convention are intended to clarify what is happening to a human reader
-    although we are aware that this most likely has the opposite effect. 
+    although we are aware that this most likely has the opposite effect.
 
     The first or 0th column of the file directory correspond to the nature of the directory itself:
     row 0: ??? No idea, some integer
     row 1: Byte position of this table/directory
     row 2: not sure in testing it seems to be 0 most times..
     row 3: The number of frames/additional columns in the file. If the number of columns of this array
-    is n, it would contain n-1 frames. 
+    is n, it would contain n-1 frames.
 
     The values in sorted_directory correspond to the following for all columns except the first column
     row 0: Not sure, but we sort on this, perhaps it's the frame start time
@@ -341,26 +342,26 @@ def read_ecat(
     """
     ECAT 7.2 Only
     Subheader types correspond to these enumerated types as defined below:
-    00 = unknown, 
-    01 = Sinogram, 
-    02 = Image - 16, 
-    03 = Attenuation Correction, 
-    04 = Normalization, 
-    05 = PolarMap, 
-    06 = Volume 8, 
-    07 = Volume 16, 
-    08 = Projection 8, 
-    09 = Projection 16, 
-    10 = Image 8, 
-    11 = 3D Sinogram 16, 
-    12 = 3D Sinogram 8, 
-    13 = 3D Normalization, 
+    00 = unknown,
+    01 = Sinogram,
+    02 = Image - 16,
+    03 = Attenuation Correction,
+    04 = Normalization,
+    05 = PolarMap,
+    06 = Volume 8,
+    07 = Volume 16,
+    08 = Projection 8,
+    09 = Projection 16,
+    10 = Image 8,
+    11 = 3D Sinogram 16,
+    12 = 3D Sinogram 8,
+    13 = 3D Normalization,
     14 = 3D Sinogram Fit)
 
     Presently, only types 03, 05, 07, 11, and 13 correspond to known subheader types for 72. If the
     value in FILE_TYPE is outside of this range the subheaders will not be read and this will
     raise an exception.
-    
+
     ECAT 7.3 Only
     00 = unknown
     01 = unknown
@@ -373,7 +374,7 @@ def read_ecat(
     08 = unknown
     09 = unknown
     10 = unknown
-    11 = 3D Sinogram 16 
+    11 = 3D Sinogram 16
     """
 
     # collect the bytes map file for the designated subheader, note some are not supported.
@@ -480,7 +481,6 @@ def read_ecat(
             pixel_data_matrix_4d[:, :, :, index] = frame
 
         if ecat_save_steps == "1":
-
             # write out the endianness and datatype of the pixel data matrix
             step_3_dict = {
                 "datatype": pixel_data_matrix_4d.dtype.name,

@@ -22,8 +22,8 @@ except FileNotFoundError:
     )
 
 """
-This script reads in an ecat file from .env/environment variable 'TEST_ECAT_PATH' and saves the pixel data into a 
-.mat file located at the variable found in the .env/environment variable 'READ_ECAT_SAVE_AS_MATLAB' and attempts to 
+This script reads in an ecat file from .env/environment variable 'TEST_ECAT_PATH' and saves the pixel data into a
+.mat file located at the variable found in the .env/environment variable 'READ_ECAT_SAVE_AS_MATLAB' and attempts to
 repeat this operation using nibabel's ecat.load and storing the output at 'NIBABEL_READ_ECAT_SAVE_AS_MATLAB'.
 
 The error handling for the nibabel write to matlab demonstrate that saving the larger nibabel generated array can fail

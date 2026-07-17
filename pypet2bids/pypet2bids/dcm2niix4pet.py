@@ -32,6 +32,8 @@ import argparse
 import importlib
 import zipfile
 import stat
+import tarfile
+
 
 try:
     import helper_functions
@@ -294,9 +296,33 @@ class Dcm2niix4PET:
                     f"installed version {version[0]} at {self.dcm2niix_path}."
                 )
 
-        # check if user provided a custom tempdir location
+        # set user supplied tempdir if it exists, else None.
         self.tempdir_location = tempdir_location
         self.image_folder = Path(image_folder)
+        # if the input is a tar file we will expand the tar in a temporary dir
+        self._tmp_image_folder = None
+        if self.image_folder.is_file() and "tar" in self.image_folder.name.lower():
+            try:
+                # also check to see if there are any metadata files located with the tar
+                metadata_files = helper_functions.collect_spreadsheets(
+                    self.image_folder.parent
+                )
+                self._tmp_image_folder = TemporaryDirectory()
+                with tarfile.open(self.image_folder, "r:*") as tar:
+                    tar.extractall(self._tmp_image_folder.name)
+                    self.image_folder = Path(self._tmp_image_folder.name)
+                    # copy those metadata files over to the same directory as the dicoms
+                    for mf in metadata_files:
+                        shutil.copy2(mf, self.image_folder)
+            except (tarfile.TarError, OSError, UnicodeDecodeError) as e:
+                logger.error(
+                    f"Failed to extract {self.image_folder}: {e}", exc_info=True
+                )
+                self.cleanup()
+                raise RuntimeError(
+                    f"Archive extraction failed for {self.image_folder}"
+                ) from e
+
         self.destination_folder = None
 
         # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
@@ -465,6 +491,15 @@ class Dcm2niix4PET:
         # if silent is set to True output warnings aren't displayed to stdout/stderr
         self.silent = silent
 
+    def cleanup(self):
+        """
+        Housekeeping if things crash.
+        """
+        # cleanup tempdirs
+        if self._tmp_image_folder is not None:
+            self._tmp_image_folder.cleanup()
+            self._tmp_image_folder = None
+
     @staticmethod
     def check_posix():
         check = subprocess.run(
@@ -498,10 +533,10 @@ class Dcm2niix4PET:
             if not dcm2niix_path:
                 pkged = "https://github.com/rordenlab/dcm2niix/releases"
                 instructions = "https://github.com/rordenlab/dcm2niix#install"
-                no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in 
-                            $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here 
-                            {instructions} 
-                            and packaged versions can be found at 
+                no_dcm2niix = f"""Unable to locate Dcm2niix on your system $PATH or using the path specified in
+                            $HOME/.pypet2bidsconfig. Installation instructions for dcm2niix can be found here
+                            {instructions}
+                            and packaged versions can be found at
                             {pkged}
                             Alternatively, you can set the path to dcm2niix in the config file at $HOME/.pet2bidsconfig
                             using the command dcm2niix4pet --set-dcm2niix-path."""
@@ -599,7 +634,9 @@ class Dcm2niix4PET:
                     bytes("Skipping existing file name", "utf-8") not in convert.stdout
                     or convert.stderr
                 ):
-                    helper_functions.logger("pypet2bids").warning(convert.stderr.decode("utf-8"))
+                    helper_functions.logger("pypet2bids").warning(
+                        convert.stderr.decode("utf-8")
+                    )
                 elif (
                     convert.returncode != 0
                     and bytes("Error: Check sorted order", "utf-8") in convert.stdout
@@ -970,7 +1007,7 @@ class Dcm2niix4PET:
             if type(blood_tsv_data) is pd.DataFrame or type(blood_tsv_data) is dict:
                 if type(blood_tsv_data) is dict:
                     blood_tsv_data = pd.DataFrame(blood_tsv_data)
-                
+
                 # remove any empty rows
                 blood_tsv_data = helper_functions.remove_zero_rows(blood_tsv_data)
 
@@ -1130,8 +1167,10 @@ class Dcm2niix4PET:
                 spec.loader.exec_module(module)
                 text_file_data = module.translate_metadata(self.metadata_dataframe)
             except AttributeError as err:
-               helper_functions.logger("pypet2bids").error(f"Unable to locate metadata_translation_script")
-               raise err
+                helper_functions.logger("pypet2bids").error(
+                    f"Unable to locate metadata_translation_script"
+                )
+                raise err
 
             self.spreadsheet_metadata["blood_tsv"] = text_file_data.get("blood_tsv", {})
             self.spreadsheet_metadata["blood_json"] = text_file_data.get(
@@ -1144,9 +1183,9 @@ class Dcm2niix4PET:
 
 epilog = textwrap.dedent(
     """
-    
+
     example usage:
-    
+
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidSSubject/pet # the simplest conversion
     dcm2niix4pet folder_with_pet_dicoms/ --destination-path sub-ValidBidsSubject/pet --metadata-path metadata.xlsx \
     # use with an input spreadsheet
@@ -1154,7 +1193,7 @@ epilog = textwrap.dedent(
     # use with custom dcm2niix options
     dcm2niix4pet --set-dcm2niix-options '-v y -w 1 -z y' \
     # set default dcm2niix options in config file
-    
+
 """
 )
 
@@ -1329,34 +1368,34 @@ example1 = textwrap.dedent(
 Usage examples are below, the first being the most brutish way of making dcm2niix4pet to pass through the
 BIDS validator (with no errors, removing all warnings is left to the user as an exercise) see:
 
-example 1 (Passing PET metadata via the --kwargs argument): 
-    
+example 1 (Passing PET metadata via the --kwargs argument):
+
     # Note `#` denotes a comment
     # dcm2niix4pet is called with the following arguments
-    
+
     # folder -> GeneralElectricSignaPETMR-NIMH/
     # destination-path -> sub-GeneralElectricSignaPETMRINIMH/pet
     # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
 
-    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet 
-    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR" 
-    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate" 
-    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75 
-    ModeOfAdministration="infusion" FrameTimesStart=0 
-    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0 
+    dcm2niix4pet GeneralElectricSignaPETMR-NIMH/ --destination-path sub-GeneralElectricSignaPETMRNIMH/pet
+    --kwargs TimeZero="14:08:45" Manufacturer="GE MEDICAL SYSTEMS" ManufacturersModelName="SIGNA PET/MR"
+    InstitutionName="NIH Clinical Center, USA" BodyPart="Phantom" Units="Bq/mL" TracerName="Gallium citrate"
+    TracerRadionuclide="Germanium68" InjectedRadioactivity=1 SpecificRadioactivity=23423.75
+    ModeOfAdministration="infusion" FrameTimesStart=0
+    AcquisitionMode="list mode" ImageDecayCorrected="False" FrameTimesStart="[0]" ImageDecayCorrectionTime=0
     ReconMethodParameterValues="[1, 1]" ReconFilterType="n/a" ReconFilterSize=1
 
     # The output of the above command (given some GE phantoms from the NIMH) can be seen below with tree
-    
-    tree sub-GeneralElectricSignaPETMRNIMH 
+
+    tree sub-GeneralElectricSignaPETMRNIMH
     sub-GeneralElectricSignaPETMRNIMH
     └── pet
         ├── sub-GeneralElectricSignaPETMRNIMH_pet.json
         └── sub-GeneralElectricSignaPETMRNIMH_pet.nii.gz
 
     # Further, when we examine the json output file we can see that all of our metadata supplied via kwargs was written
-    # into the sidecar json 
-    
+    # into the sidecar json
+
     cat sub-GeneralElectricSignalPETMRNIMH/pet/sub-GeneralElectricSignaPETMRNIMH_pet.json
     {
         "Modality": "PT",

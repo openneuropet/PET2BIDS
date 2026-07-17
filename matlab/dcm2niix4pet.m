@@ -2,8 +2,8 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 
 % Converts dicom image file to nifti+json calling dcm2niix augmenting the
 % json file to be BIDS compliant. Note that you are always right when it
-% comes to metadata! DICOM values to be used in the json will be ignored, 
-% always using the meta data provided - BUT DICOM values are checked and 
+% comes to metadata! DICOM values to be used in the json will be ignored,
+% always using the meta data provided - BUT DICOM values are checked and
 % the code tells you if there is inconsistency between your inputs and what
 % DICOM says.
 %
@@ -155,7 +155,7 @@ end
 % check options
 outputdir = [];
 for var=1:length(varargin)
-    
+
     if strcmpi(varargin{var},'deletedcm')
         deletedcm = varargin{var+1};
     elseif strcmpi(varargin{var},'gz')
@@ -263,9 +263,9 @@ for folder = 1:size(FolderList,1)
         ' -z ' z ...
         ' ' FolderList{folder}];
     if ~exist(outputdir{folder},'dir')
-        mkdir(outputdir{folder}); 
+        mkdir(outputdir{folder});
     end
-    
+
     out = system(command);
     telemetry_data.dcm2niix.returncode = out;
     % we still want to send telemetry even if this fails
@@ -274,7 +274,7 @@ for folder = 1:size(FolderList,1)
         telemetry(telemetry_data, folder);
         error('%s did not run properly',command)
     end
-   
+
     % deal with dcm files
     dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
     if isempty(dcmfiles) % since sometimes they have no ext :-(
@@ -283,11 +283,11 @@ for folder = 1:size(FolderList,1)
     else
         dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
     end
-    
+
     if strcmpi(deletedcm,'on')
         delete(fullfile(outputdir{folder},'*dcm'))
     end
-    
+
     % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
         if strcmpi(z,'y')
@@ -295,22 +295,22 @@ for folder = 1:size(FolderList,1)
         else
             data  = dir(fullfile(outputdir{folder},'*.nii'));
         end
-        
+
         if size(data,1)>1
             warning('more than 1 nifti file found in %s, using only 1st one',outputdir{folder})
             data = data(1);
         end
-        
+
         dataname    = fullfile(data.folder,data.name);
         start       = strfind(data.folder,'sub-');
         ending      = strfind(data.folder,filesep);
         if sum(ending>start)~=0
             newname = data.folder(start:ending(end)-1); % from sub- to last subfolder (ses-)
-            newname(strfind(newname,filesep)) = '_'; 
+            newname(strfind(newname,filesep)) = '_';
         else
             newname = data.folder(start:end); % from sub- to the end
         end
-        
+
         if strcmpi(z,'y')
             newname     = [newname '_pet.nii.gz']; %#ok<AGROW>
             metadata    = [dataname(1:end-7) '.json'];
@@ -323,7 +323,7 @@ for folder = 1:size(FolderList,1)
         movefile(dataname,fullfile(data.folder,newname));
         movefile(metadata,newmetadata);
     end
-    
+
     % update json
     if ~exist('newmetadata','var')
         newmetadata  = dir(fullfile(outputdir{folder},'*.json'));

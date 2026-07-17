@@ -13,7 +13,7 @@ This evenly pixel spaced ecat that has a small number of frames will be used to 
 of a number of tools that convert or otherwise manipulate ecat data by supplying a ecat image and a corresponding text
 file containing the pixel data of that ecat.
 
-This ECAT file and script is thus referred to as the Golden ECAT b/c it represents the perfect standard by which to 
+This ECAT file and script is thus referred to as the Golden ECAT b/c it represents the perfect standard by which to
 judge all ECATs.
 
 The accompanying text file is formatted such that the pixel values are written one per line:
@@ -28,7 +28,7 @@ The accompanying text file is formatted such that the pixel values are written o
 32767
 
 These values are then transformed into a set of NxNxNxF where N = the dimension of a matrix, and F = the total number of
-frames within the ecat. 
+frames within the ecat.
 
 Anthony Galassi - 2022
 ----------------------------------------------

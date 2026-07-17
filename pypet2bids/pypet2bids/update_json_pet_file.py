@@ -15,15 +15,17 @@ from pandas import Timestamp
 
 try:
     import helper_functions
-    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to
     # prevent circular import
-    #import is_pet
+    # import is_pet
     import pet_metadata as metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to
     # prevent circular import
-    #import pypet2bids.is_pet as is_pet
+    # import pypet2bids.is_pet as is_pet
     import pypet2bids.pet_metadata as metadata
 
 # import logging
@@ -786,10 +788,15 @@ def get_metadata_from_spreadsheet(
         # we accept folder input as well as no input, in the
         # event of no input we search for spreadsheets in the
         # image folder
+        spreadsheets = []
         if metadata_path == "":
             metadata_path = image_folder
+            # check parent folder of image folder as spreadsheets are sometimes placed near
+            spreadsheets += helper_functions.collect_spreadsheets(
+                Path(image_folder).parent
+            )
 
-        spreadsheets = helper_functions.collect_spreadsheets(metadata_path)
+        spreadsheets += helper_functions.collect_spreadsheets(metadata_path)
         pet_spreadsheets = [
             spreadsheet for spreadsheet in spreadsheets if is_pet.pet_file(spreadsheet)
         ]
