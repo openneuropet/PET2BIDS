@@ -788,10 +788,14 @@ def get_metadata_from_spreadsheet(
         # we accept folder input as well as no input, in the
         # event of no input we search for spreadsheets in the
         # image folder
+        spreadsheets = []
         if metadata_path == "":
             metadata_path = image_folder
-
-        spreadsheets = helper_functions.collect_spreadsheets(metadata_path)
+            # check parent folder of image folder as spreadsheets are sometimes placed near
+            spreadsheets += helper_functions.collect_spreadsheets(Path(image_folder).parent) 
+           
+        
+        spreadsheets += helper_functions.collect_spreadsheets(metadata_path)
         pet_spreadsheets = [
             spreadsheet for spreadsheet in spreadsheets if is_pet.pet_file(spreadsheet)
         ]
