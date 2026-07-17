@@ -1,7 +1,7 @@
 # Pypet2bids
 
-This library contains several tools and many methods to aid in the conversion of PET imaging and blood data into 
-[BIDS]() formatted data. For more detailed documentation refer to the pages at our 
+This library contains several tools and many methods to aid in the conversion of PET imaging and blood data into
+[BIDS]() formatted data. For more detailed documentation refer to the pages at our
 [readthedocs.io site](https://pet2bids.readthedocs.io/en/latest/).
 
 # Python DICOM PET converter
@@ -38,19 +38,19 @@ a configuration file at `$Home\.pet2bidsconfig`
 ## A brief note about kwargs
 
 It's desirable for the user to be able to quickly provide additional metadata at the time of conversion to make the output of
-the conversion BIDS compliant. PET data is often strewn across multiple files and formats; the `--kwargs` flag allows 
-the user to input any metadata that may not be present in a spreadsheet, text, or imaging type of file. We use the 
-word `kwargs` is it corresponds directly to the default argument place-holder in Python used for dictionary based 
-arguments (key pair sets of values), see 
+the conversion BIDS compliant. PET data is often strewn across multiple files and formats; the `--kwargs` flag allows
+the user to input any metadata that may not be present in a spreadsheet, text, or imaging type of file. We use the
+word `kwargs` is it corresponds directly to the default argument place-holder in Python used for dictionary based
+arguments (key pair sets of values), see
 [kwargs](https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists).
 
 `--kwargs` can be used to *force* (or guide) an image or set of images into BIDS compliance by supplying missing info.
-or overwriting errant info recorded or used elsewhere. In the example below the following arguments are supplied to 
+or overwriting errant info recorded or used elsewhere. In the example below the following arguments are supplied to
 `kwargs`:
 
 ```bash
 # full example below; input is wrapped with \ for readability on screen
-dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans \ 
+dcm2niix4pet $SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans \
 --destination-path $DESTINATION/sub-GeneralElectricAdvanceNIMH/pet \
 --kwargs \
 TimeZero="13:39:41" \
@@ -85,7 +85,7 @@ kwargs = {
     "InstitutionName": "NIH Clinical Center, USA",
     "BodyPart": "Phantom",
     "Units": "Bq/mL",
-    "TracerName": "FDG", 
+    "TracerName": "FDG",
     "TracerRadionuclide": "F18",
     "InjectedRadioactivity": 75.8500,
     "InjectionStart": 0,
@@ -102,13 +102,13 @@ kwargs = {
     }
 
 dcm2niix4pet = Dcm2niix4PET(
-    image_folder='SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans', 
+    image_folder='SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans',
     destination_path='DESTINATION/sub-GeneralElectricAdvanceNIMH/pet',
     additional_arguments=kwargs)
 
 ```
 
-Arguments supplied to kwargs should correspond directly to the following datatypes (which as chance would have it are 
+Arguments supplied to kwargs should correspond directly to the following datatypes (which as chance would have it are
 all acceptable BIDS types, json serializable too!):
 - [int](https://docs.python.org/3/library/functions.html?highlight=int#int)
 - [float](https://docs.python.org/3/library/functions.html?highlight=float#float)

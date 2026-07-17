@@ -24,15 +24,15 @@ except ModuleNotFoundError:
 
 epilog = textwrap.dedent(
     """
-    
+
     example usage:
-    
+
     ecatpet2bids ecatfile.v --dump # dumps ecat header information
     ecatpet2bids ecatfile.v --json # dumps header and subheader information to stdout
     ecatpet2bids ecatfile.v --nifti sub-01_ses-example_pet.nii --convert --kwargs TimeZero="12:34:56" # convert to nii
     ecatpet2bids ecatfile.v --scannerparams ge_parameters.txt --nifti sub-01_pet.nii --convert # load scanner specific \
 params
-    
+
     For additional (highly verbose) example usage call this program with the --show-examples flag.
 """
 )
@@ -126,7 +126,7 @@ def cli():
     parser.add_argument(
         "--sidecar",
         action="store_true",
-        help="Output a bids formatted sidecar for pairing with" "a nifti.",
+        help="Output a bids formatted sidecar for pairing with a nifti.",
     )
     parser.add_argument(
         "--kwargs",
@@ -212,21 +212,21 @@ def cli():
 
 example1 = textwrap.dedent(
     """
-    
+
 Usage examples are below, the first being the most brutish way of injecting BIDS required fields
 into the output from ecatpet2bids. Additional arguments/fields are passed via the kwargs flag
 in key value pairs.
 
 example 1 (Passing PET metadata via the --kwargs argument):
-    
+
     # Note `#` denotes a comment
-    
-    # ecatfile -> SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v  
+
+    # ecatfile -> SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v
     # nifti -> sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii
     # kwargs -> a bunch of key pair arguments spaced 1 space apart with the values surrounded by double quotes
 
-    ecatpet2bids SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v 
-    --nifti sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii --convert 
+    ecatpet2bids SiemensHRRT-NRU/XCal-Hrrt-2022.04.21.15.43.05_EM_3D.v
+    --nifti sub-SiemensHRRTNRU/pet/sub-SiemensHRRTNRU_pet.nii --convert
     --kwargs
     TimeZero="10:10:10"
     Manufacturer=Siemens

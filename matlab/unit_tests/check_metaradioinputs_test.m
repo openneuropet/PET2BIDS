@@ -29,7 +29,7 @@ if SpecificRadioactivity ~= dataout.SpecificRadioactivity
 else
     report{1} = 'computing SpecificRadioactivity from Injected activity and mass ok';
 end
-  
+
 InjectedRadioactivity = 44.4;
 SpecificRadioactivity = 7.1154e+09;
 InjectedMass = ((InjectedRadioactivity*10^6)/SpecificRadioactivity)*10^6; % ((MBq*10^6)/(Bq/g))*10^6 = ug
@@ -87,4 +87,3 @@ check_metaradioinputs('InjectedRadioactivity',44.4,'SpecificRadioactivity',7.115
 
 check_metaradioinputs('MolecularWeight',19,'SpecificRadioactivity',7.1154e+09,...
     'MolarActivity',135192600);
-

@@ -7,4 +7,3 @@ ReconMethodName                = '3D-OP-OSEM';
 ReconFilterType                = 'none';
 ReconFilterSize                = 0;
 AttenuationCorrection          = '10-min transmission scan';
-

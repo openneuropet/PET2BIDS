@@ -178,4 +178,3 @@ if exist('MolecularWeight', 'var') && exist('SpecificRadioactivity', 'var')
         end
     end
 end
-

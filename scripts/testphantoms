@@ -45,6 +45,5 @@ pushd OpenNeuroPET-Phantoms
 cp dataset_description.json python/
 popd
 
-# Validate 
+# Validate
 deno run -ERWN jsr:@bids/validator OpenNeuroPET-Phantoms/python --ignoreWarnings --verbose
-

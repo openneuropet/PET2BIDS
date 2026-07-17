@@ -1,6 +1,6 @@
 function niftiwrite_test
 
-% simple routine testing the error in nifti write as done in ecat2nii 
+% simple routine testing the error in nifti write as done in ecat2nii
 % Claus Svarer & Cyril Pernet
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
@@ -28,7 +28,7 @@ info.DisplayIntensityRange            = [0 0];
 info.TransformName                    = 'Sform';
 info.Transform.Dimensionality         = 3;
 info.Qfactor                          = 1; % determinant of the rotation matrix
-    
+
 % map https://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
 to_write                = round(img_q).*scale;
 info.raw.sizeof_hdr     = 348;
@@ -78,7 +78,7 @@ nii.img  = to_write;
 nii_tool('save', nii, 'test.nii');
 img_reread = nii_tool('img', 'test.nii');
 img_diff   = img(:)-img_reread(:);
-        
+
 figure
 subplot(1,3,1);plot(img(:),img_reread(:),'*'); grid on
 xlabel('Original'); ylabel('Reread'); title('Read vs Written');

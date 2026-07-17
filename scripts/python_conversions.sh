@@ -1,12 +1,12 @@
 #!/bin/bash
 # anthony galassi - Sept 2022
-# Note this script uses dcm2niix and ecatpet2bids to convert a series of phantoms in BIDS, all conversions take place at the command line 
+# Note this script uses dcm2niix and ecatpet2bids to convert a series of phantoms in BIDS, all conversions take place at the command line
 # and can be performed after installing pypet2bids with pip via `pip install pypet2bids`. Additional BIDS fields that are required for BIDS
 # but not present in the source data are provided as command line arguments following the --kwargs flag. For the sake of readability the
 # command like arguments are spaced one per line with a \ character to follow. In practice one would most like enter additional arguments
 # without newlines or a trailer \ eg:
 # --kwargs TimeZero="12:12:12" ScanStart=0
-# --kwargs accepts arguments passed to in in the form of JS or Python types: int, float, string, list/array. Where lists/arrays should be 
+# --kwargs accepts arguments passed to in in the form of JS or Python types: int, float, string, list/array. Where lists/arrays should be
 # wrapped in double quotes.
 
 # set paths where the repo is
@@ -277,7 +277,7 @@ cp $repo_path/dataset_description.json $DESTINATION/dataset_description.json
 # National Institute of Mental Health, Bethesda
 # ----------------------------------------------
 
-# Siemens Biograph - AC_TOF 
+# Siemens Biograph - AC_TOF
 # --------------------------
 echo "${SOURCE_FOLDER}/SiemensBiographPETMR-NIMH/AC_TOF"
 dcm2niix4pet $SOURCE_FOLDER/SiemensBiographPETMR-NIMH/AC_TOF --destination-path $DESTINATION/sub-SiemensBiographNIMH/pet \
@@ -487,4 +487,3 @@ ReconFilterSize=2
 #ReconMethodParameterLabels="['subsets', 'iterations']" \
 #ReconFilterType="Gaussian" \
 #ReconFilterSize=4
-

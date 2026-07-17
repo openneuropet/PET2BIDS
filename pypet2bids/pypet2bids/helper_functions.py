@@ -132,7 +132,6 @@ def single_spreadsheet_reader(
     dicom_metadata={},
     **kwargs,
 ) -> dict:
-
     spreadsheet_metadata = {}
     metadata_fields = pet2bids_metadata
 
@@ -197,11 +196,10 @@ def single_spreadsheet_reader(
 
 
 def compress(
-        file_like_object: Union[str, pathlib.Path], 
-        output_path: Union[str, pathlib.Path] = None,
-        delete_original=True,
-    ) -> pathlib.Path:
-    
+    file_like_object: Union[str, pathlib.Path],
+    output_path: Union[str, pathlib.Path] = None,
+    delete_original=True,
+) -> pathlib.Path:
     delete_original = delete_original
     """
     Compresses a file using gzip in place, set delete_original = False to keep uncompressed image.
@@ -239,7 +237,7 @@ def compress(
 
 
 def decompress(
-    file_like_object: Union[str, pathlib.Path], 
+    file_like_object: Union[str, pathlib.Path],
     output_path: Union[str, pathlib.Path] = None,
 ) -> pathlib.Path:
     """
@@ -253,7 +251,7 @@ def decompress(
     file_like_object = pathlib.Path(file_like_object).expanduser().resolve()
     if not output_path and get_zip_extension(file_like_object):
         output_path = file_like_object.with_suffix("")
-    
+
     compressed_file = gzip.GzipFile(str(file_like_object))
     compressed_input = compressed_file.read()
     compressed_file.close()
@@ -1175,29 +1173,31 @@ def reorder_isotope(isotope: str) -> str:
 
     return isotope
 
+
 def remove_zero_rows(sheet: pandas.DataFrame) -> pandas.DataFrame:
     zero_rows = sheet.eq(0.0).all(axis=1)
     if True in zero_rows.values:
         fixed_tsv = sheet[~zero_rows]
         sheet = fixed_tsv
-    return sheet    
+    return sheet
+
 
 def suffixes_lower(path: pathlib.Path) -> tuple:
     return tuple(s.lower() for s in path.suffixes)
 
 
-def get_zip_extension(path: pathlib.Path) -> (str or None):
+def get_zip_extension(path: pathlib.Path) -> str or None:
     """
     Determines if a the provided filepath has a gz extension, if
     so returns that extension as written.
 
-    :param path: path to check for gzip 
+    :param path: path to check for gzip
     :type path: pathlib.Path
     :return: gzip extension if present
     :rtype: str
     """
-    gz = re.search(r'\.[gG][zZ]$', str(path))
+    gz = re.search(r"\.[gG][zZ]$", str(path))
     if gz:
         return gz.group(0)
     else:
-        return ''
+        return ""

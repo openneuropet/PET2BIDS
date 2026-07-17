@@ -138,7 +138,7 @@ else
             end
         end
     end
-    
+
     % check input values and consistency given expected units in
     % -----------------------------------------------------------
     mandatory = {'Scanner','TimeZero','TracerName','ModeOfAdministration','TracerRadionuclide'};
@@ -148,7 +148,7 @@ else
     if isempty(input_check) || sum(input_check)==0
         error('radioactivity related input are necessary - see help')
     end
-    
+
     index = 1; % make key-value pairs
     arguments   = cell(1,sum(input_check)*2);
     for r=find(input_check)
@@ -160,15 +160,15 @@ else
     if isempty(dataout)
         error('there are not enough radioactivity related inputs to make sense of the data - see help')
     end
-    
+
     % set old and new variables in memory
-    setval   = fieldnames(dataout) ; 
+    setval   = fieldnames(dataout) ;
     for f = 1:2:length(arguments) % dataout might not include all arguments in
         if ~any(strcmpi(arguments{f},setval))
             setval(length(setval)+1) = arguments(f);
         end
     end
-    
+
     for r=1:length(setval)
         mandatory{length(mandatory)+1} = setval{r}; % add to mandatory list
         if isfield(dataout,setval{r})
@@ -179,13 +179,13 @@ else
             end
         end
     end
-    
+
     % check mandatory/optional fields of this function
     % (same fields but different status as BIDS)
     if ~all(cellfun(@exist, mandatory))
         error('One or more mandatory name/value pairs is missing: %s\n',mandatory{find(cellfun(@exist, mandatory)==0)})
     end
-    
+
     current    = which('get_pet_metadata.m');
     root       = fileparts(fileparts(current));
     jsontoload = fullfile(root,['metadata' filesep 'PET_metadata.json']);
@@ -201,19 +201,19 @@ else
     else
         error('looking for %s, but the file is missing',jsontoload)
     end
-    
+
     % evaluate key-value pairs for optional arguments in
-    for n=1:2:nargin 
+    for n=1:2:nargin
         if any(strcmpi(varargin{n},optional))
             if isnumeric(varargin{n+1})
-                if length(varargin{n+1}) == 1 
+                if length(varargin{n+1}) == 1
                     eval([varargin{n} '=' num2str(varargin{n+1})]);
-                else 
+                else
                     eval([varargin{n} '=[' num2str(varargin{n+1}) ']']);
                 end
             else
                 if iscell(varargin{n+1})
-                    frameval = [varargin{n} '={']; 
+                    frameval = [varargin{n} '={'];
                     for f=1:length(varargin{n+1})
                         frameval = [frameval '''' varargin{n+1}{f} ''' ']; %#ok<AGROW>
                     end
@@ -224,7 +224,7 @@ else
             end
         end
     end
-     
+
     % evaluate key-value pairs for optional arguments from txt file
     parameter_file = fullfile(fileparts(which('get_pet_metadata.m')),[Scanner 'parameters.txt']);
     if any(cellfun(@exist, optional))
@@ -266,7 +266,7 @@ end
 %% make the metadata structure
 
 % this part is not really useful for BIDS, but helps users know which
-% scanner we tested -- 
+% scanner we tested --
 if contains(Scanner,'Siemens','IgnoreCase',true)
     metadata.Manufacturer = 'Siemens';
     if contains(Scanner,'Biograph','IgnoreCase',true)

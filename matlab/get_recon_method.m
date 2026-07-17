@@ -43,7 +43,7 @@ numbers            = regexp(headervalue,'\d*','Match');
 for n=1:length(numbers)
     loc        = strfind(headervalue,numbers{n});
     loc_length = loc+length(numbers{n})-1;
-    
+
     if strcmpi(headervalue(loc:loc+1),'2D')
         dim          = '2D';
         dim_position = loc:loc+1;
@@ -51,7 +51,7 @@ for n=1:length(numbers)
         dim          = '3D';
         dim_position = loc:loc+1;
     end
-    
+
     if loc > 1
         if loc_length<length(headervalue)
             if strcmpi([headervalue(loc-1) headervalue(loc:loc_length)],['i',numbers{n}]) && isempty(iteration)

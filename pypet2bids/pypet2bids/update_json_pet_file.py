@@ -15,15 +15,17 @@ from pandas import Timestamp
 
 try:
     import helper_functions
-    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to
     # prevent circular import
-    #import is_pet
+    # import is_pet
     import pet_metadata as metadata
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
-    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to 
+
+    # The import of is_pet is deferred to get_metadata_from_spreadsheet() to
     # prevent circular import
-    #import pypet2bids.is_pet as is_pet
+    # import pypet2bids.is_pet as is_pet
     import pypet2bids.pet_metadata as metadata
 
 # import logging
