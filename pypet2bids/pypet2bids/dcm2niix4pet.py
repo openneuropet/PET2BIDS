@@ -32,6 +32,8 @@ import argparse
 import importlib
 import zipfile
 import stat
+import tarfile
+
 
 try:
     import helper_functions
@@ -294,9 +296,33 @@ class Dcm2niix4PET:
                     f"installed version {version[0]} at {self.dcm2niix_path}."
                 )
 
-        # check if user provided a custom tempdir location
+        # set user supplied tempdir if it exists, else None.
         self.tempdir_location = tempdir_location
         self.image_folder = Path(image_folder)
+        # if the input is a tar file we will expand the tar in a temporary dir
+        self._tmp_image_folder = None
+        if self.image_folder.is_file() and "tar" in self.image_folder.name.lower():
+            try:
+                # also check to see if there are any metadata files located with the tar
+                metadata_files = helper_functions.collect_spreadsheets(
+                    self.image_folder.parent
+                )
+                self._tmp_image_folder = TemporaryDirectory()
+                with tarfile.open(self.image_folder, "r:*") as tar:
+                    tar.extractall(self._tmp_image_folder.name)
+                    self.image_folder = Path(self._tmp_image_folder.name)
+                    # copy those metadata files over to the same directory as the dicoms
+                    for mf in metadata_files:
+                        shutil.copy2(mf, self.image_folder)
+            except (tarfile.TarError, OSError, UnicodeDecodeError) as e:
+                logger.error(
+                    f"Failed to extract {self.image_folder}: {e}", exc_info=True
+                )
+                self.cleanup()
+                raise RuntimeError(
+                    f"Archive extraction failed for {self.image_folder}"
+                ) from e
+
         self.destination_folder = None
 
         # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
@@ -464,6 +490,15 @@ class Dcm2niix4PET:
         self.headers_to_files = {}
         # if silent is set to True output warnings aren't displayed to stdout/stderr
         self.silent = silent
+
+    def cleanup(self):
+        """
+        Housekeeping if things crash.
+        """
+        # cleanup tempdirs
+        if self._tmp_image_folder is not None:
+            self._tmp_image_folder.cleanup()
+            self._tmp_image_folder = None
 
     @staticmethod
     def check_posix():
