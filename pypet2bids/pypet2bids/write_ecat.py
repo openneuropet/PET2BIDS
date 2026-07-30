@@ -130,7 +130,7 @@ def create_directory_table(
     required_directory_blocks = ceil(num_frames / 31)
 
     # determine the width of the frame byte blocks with the pixel dimensions and data sizes
-    pixel_volume = numpy.product([*pixel_dimensions.values()])
+    pixel_volume = numpy.prod([*pixel_dimensions.values()])
 
     # still not sure what some of these numbers mean, but we populate the first column of the byte array with them
     directory_tables = []
