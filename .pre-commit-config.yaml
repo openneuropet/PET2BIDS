@@ -1,5 +1,6 @@
 ci:
-  autoupdate_schedule: quarterly
+  autoupdate_schedule: monthly
+  autofix_prs: false
 
 exclude: ^(docs/media/|spreadsheet_conversion/)
 
@@ -14,8 +15,13 @@ repos:
       - id: check-toml
       - id: check-added-large-files
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.16.2
     hooks:
       # - id: ruff-check
       #   args: ["--fix"]
       - id: ruff-format
+        types_or:
+          - python
+          - pyi
+          - jupyter
+          - markdown

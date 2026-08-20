@@ -92,20 +92,20 @@ kwargs = {
     "SpecificRadioactivity": 418713.8,
     "ModeOfAdministration": "infusion",
     "FrameTimesStart": [0],
-    "ReconMethodParameterValues":[1, 1],
+    "ReconMethodParameterValues": [1, 1],
     "ImageDecayCorrected": False,
     "AttenuationCorrection": "n/a",
     "AcquisitionMode": "list mode",
     "ImageDecayCorrectionTime": 0,
     "ScatterCorrectionMethod": "Gaussian Fit",
-    "ScanStart": 0
-    }
+    "ScanStart": 0,
+}
 
 dcm2niix4pet = Dcm2niix4PET(
-    image_folder='SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans',
-    destination_path='DESTINATION/sub-GeneralElectricAdvanceNIMH/pet',
-    additional_arguments=kwargs)
-
+    image_folder="SOURCE_FOLDER/GeneralElectricAdvance-NIMH/long_trans",
+    destination_path="DESTINATION/sub-GeneralElectricAdvanceNIMH/pet",
+    additional_arguments=kwargs,
+)
 ```
 
 Arguments supplied to kwargs should correspond directly to the following datatypes (which as chance would have it are

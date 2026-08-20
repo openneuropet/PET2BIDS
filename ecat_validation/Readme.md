@@ -42,7 +42,7 @@ image_min = 0
 image_max = 32767
 spacing = round((image_max - image_min) / number_of_array_elements)
 
-#integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
+# integer_pixel_data = numpy.arange(image_min, image_max, dtype=numpy.ushort, step=spacing)
 integer_pixel_data = numpy.arange(image_min, image_max, dtype=">H", step=spacing)
 ```
 
@@ -51,32 +51,35 @@ An existing ECAT image's header was used as a basis for the synthetic ECAT's hea
 ```python
 # edit the header to suit the new file
 header_to_write = skeleton_main_header
-header_to_write['NUM_FRAMES'] = 4
-header_to_write['ORIGINAL_FILE_NAME'] = 'GoldenECATInteger'
-header_to_write['STUDY_TYPE'] = 'Golden'
-header_to_write['PATIENT_ID'] = 'PerfectPatient'
-header_to_write['PATIENT_NAME'] = 'Majesty'
-header_to_write['FACILITY_NAME'] = 'Virtual'
-header_to_write['NUM_PLANES'] = one_dimension
-header_to_write['ECAT_CALIBRATION_FACTOR'] = 1.0 # keeping things simple so that our multiplication doesn't confuse us
+header_to_write["NUM_FRAMES"] = 4
+header_to_write["ORIGINAL_FILE_NAME"] = "GoldenECATInteger"
+header_to_write["STUDY_TYPE"] = "Golden"
+header_to_write["PATIENT_ID"] = "PerfectPatient"
+header_to_write["PATIENT_NAME"] = "Majesty"
+header_to_write["FACILITY_NAME"] = "Virtual"
+header_to_write["NUM_PLANES"] = one_dimension
+header_to_write["ECAT_CALIBRATION_FACTOR"] = (
+    1.0  # keeping things simple so that our multiplication doesn't confuse us
+)
 ```
 
 And lastly the main header, sub headers (modification not shown), and pixel data are fed to a `write_ecat` method and the
 ecat file is generated:
 
 ```python
-write_ecat(ecat_file=int_golden_ecat_path,
-               mainheader_schema=ecat_header_maps['ecat_headers']['73']['mainheader'],
-               mainheader_values=header_to_write,
-               subheaders_values=subheaders_to_write,
-               subheader_schema=ecat_header_maps['ecat_headers']['73']['7'],
-               number_of_frames=number_of_frames,
-               pixel_x_dimension=one_dimension,
-               pixel_y_dimension=one_dimension,
-               pixel_z_dimension=one_dimension,
-               pixel_byte_size=2,
-               pixel_data=frames
-               )
+write_ecat(
+    ecat_file=int_golden_ecat_path,
+    mainheader_schema=ecat_header_maps["ecat_headers"]["73"]["mainheader"],
+    mainheader_values=header_to_write,
+    subheaders_values=subheaders_to_write,
+    subheader_schema=ecat_header_maps["ecat_headers"]["73"]["7"],
+    number_of_frames=number_of_frames,
+    pixel_x_dimension=one_dimension,
+    pixel_y_dimension=one_dimension,
+    pixel_z_dimension=one_dimension,
+    pixel_byte_size=2,
+    pixel_data=frames,
+)
 ```
 
 ### Results
@@ -105,7 +108,8 @@ Similarly, in Python
 
 ```python
 from pypet2bids.ecat import Ecat
-ecat = Ecat(ecat_file='ECAT7_multiframe.v.gz')
+
+ecat = Ecat(ecat_file="ECAT7_multiframe.v.gz")
 ecat.make_nifti()
 ```
 
