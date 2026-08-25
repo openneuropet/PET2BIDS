@@ -14,6 +14,7 @@ Lists the mandatory, recommended and optional keys of the [*_pet.json file](http
 ## [dicom2bids](https://github.com/openneuropet/PET2BIDS/blob/main/metadata/dicom2bids.json)
 
 List of matched keys between dicom tags and json keys, by using this we can:
+
 - check values of the json match the dicom information
 - add missing information to the json
 - also contains the list of Radionuclide matching the dicom code to a name
@@ -24,5 +25,4 @@ A markdown table of the CID 4020 PET Radionuclide (same as what is in dicom2bids
 
 ## [blood_metadata](https://github.com/openneuropet/PET2BIDS/blob/main/metadata/blood_metadata.json)
 
-Lists the mandatory and recommended keys of the [*_blood.json and *blood.tsv files](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html#blood-recording-data)
- of the BIDS specification.
+Lists the mandatory and recommended keys of the [*_blood.json and *blood.tsv files](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/09-positron-emission-tomography.html#blood-recording-data) of the BIDS specification.
