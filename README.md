@@ -137,7 +137,13 @@ This folder contains spreadsheets templates and examples of metadata and matlab 
 
 ### metadata
 
-A small collection of json files for our metadata information.
+A small collection of json files for our metadata information. PET metadata requirements can be refreshed from the current BIDS schema with:
+
+```bash
+python metadata/update_metadata.py
+```
+
+Use `python metadata/update_metadata.py --dry-run` to preview the report without writing changes. The updater fetches the latest `@bids/schema` from JSR, falls back to GitHub/ReadTheDocs schema sources if needed, updates only the PET metadata files, and writes `metadata/metadata_updated.md`.
 
 ### user metadata
 

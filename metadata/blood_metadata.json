@@ -2,17 +2,24 @@
   "mandatory": [
     "PlasmaAvail",
     "MetaboliteAvail",
-    ["MetaboliteMethod", "MetaboliteRecoveryCorrectionApplied"],
+    [
+      "MetaboliteMethod",
+      "MetaboliteRecoveryCorrectionApplied"
+    ],
     "WholeBloodAvail",
     "DispersionCorrected"
   ],
   "recommended": [
-    ["PlasmaFreeFraction", "PlasmaFreeFractionMethod"],
+    [
+      "PlasmaFreeFraction",
+      "PlasmaFreeFractionMethod"
+    ],
     "WithdrawalRate",
     "TubingType",
     "TubingLength",
     "DispersionConstant",
     "Haematocrit",
     "BloodDensity"
-  ]
+  ],
+  "optional": []
 }

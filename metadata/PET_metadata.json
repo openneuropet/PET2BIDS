@@ -22,7 +22,6 @@
     "ImageDecayCorrectionTime",
     "ReconMethodName",
     "ReconMethodParameterLabels",
-    "ReconMethodParameterUnits",
     "ReconFilterType",
     "AttenuationCorrection"
   ],
@@ -30,7 +29,6 @@
     "InstitutionName",
     "InstitutionAddress",
     "InstitutionalDepartmentName",
-    "BodyPart",
     "TracerRadLex",
     "TracerSNOMED",
     "TracerMolecularWeight",
@@ -62,12 +60,21 @@
     "DecayCorrectionFactor",
     "PromptRate",
     "RandomRate",
-    "SinglesRate"
+    "SinglesRate",
+    "ReconMethodParameterUnits",
+    "ReconMethodParameterValues",
+    "ReconFilterSize",
+    "TaskName",
+    "Instructions",
+    "TaskDescription",
+    "CogAtlasID",
+    "CogPOID"
   ],
   "optional": [
     "Anaesthesia",
-    "ReconMethodParameterValues",
-    "ReconFilterSize"
+    "BodyPart",
+    "BodyPartDetails",
+    "BodyPartDetailsOntology"
   ],
   "blood_recording_fields": [
     "PlasmaAvail",
@@ -79,6 +86,16 @@
     "time",
     "plasma_radioactivity",
     "metabolite_parent_fraction",
-    "whole_blood_radioactivity"
+    "whole_blood_radioactivity",
+    "WithdrawalRate",
+    "TubingType",
+    "TubingLength",
+    "DispersionConstant",
+    "Haematocrit",
+    "BloodDensity",
+    "PlasmaFreeFraction",
+    "PlasmaFreeFractionMethod",
+    "metabolite_polar_fraction",
+    "hplc_recovery_fractions"
   ]
 }
