@@ -36,7 +36,7 @@ else:
 telemetry_notify_user = pet2bids_config.get("NOTIFY_USER_OF_TELEMETRY", False)
 
 
-def check_telemetry_enabled(config_path=None):
+def telemetry_enabled(config_path=None):
     """
     Check if telemetry is enabled, if it isn't disabled in the .pet2bidsconfig file
     it will be considered enabled. One must opt out of tracking usage manually.

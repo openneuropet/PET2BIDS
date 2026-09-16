@@ -18,7 +18,10 @@ DICOM_SOURCE = PHANTOM_SOURCE / "SiemensBiographPETMR-NIMH" / "AC_TOF"
 ECAT_SOURCES = tuple(sorted(PHANTOM_SOURCE.rglob("*.v"))) + tuple(
     sorted(PHANTOM_SOURCE.rglob("*.v.gz"))
 )
+ECAT_VALIDATION_SOURCE = REPOSITORY_ROOT / "ecat_validation" / "ECAT7_multiframe.v.gz"
 ECAT_SOURCE = ECAT_SOURCES[0] if ECAT_SOURCES else None
+if ECAT_SOURCE is None and ECAT_VALIDATION_SOURCE.is_file():
+    ECAT_SOURCE = ECAT_VALIDATION_SOURCE
 
 
 def test_default_telemetry_url():
@@ -169,3 +172,51 @@ def test_ecat2bids_conversion_posts_migas_breadcrumb(monkeypatch, tmp_path):
 
     assert nifti_output.is_file()
     _assert_completed_conversion_crumb(post, converter.telemetry_data["InputType"])
+    params = post.call_args.kwargs["json"]["proc"]["params"]
+    assert params["metadata_spreadsheet_used"] is False
+    assert params["blood_tsv"] is False
+
+
+@pytest.mark.parametrize(
+    ("conversion_error", "expected_returncode"),
+    [(None, 0), (RuntimeError("conversion failed"), 1)],
+)
+def test_ecat_conversion_reports_outcome(
+    monkeypatch, tmp_path, conversion_error, expected_returncode
+):
+    converter = Ecat.__new__(Ecat)
+    converter.telemetry_data = {
+        "InputType": "ECAT72",
+        "blood_tsv": True,
+        "metadata_spreadsheet_used": True,
+    }
+    converter.spreadsheet_metadata = {
+        "blood_tsv": {"time": [0]},
+        "blood_json": {},
+    }
+    converter.metadata_path = None
+    converter.kwargs = {}
+
+    if conversion_error:
+        converter.make_nifti = Mock(side_effect=conversion_error)
+    else:
+        converter.make_nifti = Mock(return_value=tmp_path / "output.nii.gz")
+    converter.populate_sidecar = Mock()
+    converter.prune_sidecar = Mock()
+    converter.show_sidecar = Mock()
+    converter.write_out_blood_files = Mock()
+
+    send = Mock()
+    monkeypatch.setattr(ecat_module, "telemetry_enabled", lambda: True)
+    monkeypatch.setattr(ecat_module, "send_telemetry", send)
+
+    if conversion_error:
+        with pytest.raises(RuntimeError, match="conversion failed"):
+            converter.convert()
+    else:
+        converter.convert()
+
+    assert converter.telemetry_data["returncode"] == expected_returncode
+    assert converter.telemetry_data["blood_tsv"] is True
+    assert converter.telemetry_data["metadata_spreadsheet_used"] is True
+    send.assert_called_once_with(converter.telemetry_data)
