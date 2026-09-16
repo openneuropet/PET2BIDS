@@ -21,20 +21,22 @@ except ModuleNotFoundError:
 
 pet2bids_config = load_vars_from_config()
 telemetry_default_url = pet2bids_config.get(
-    "TELEMETRY_URL", "http://openneuropet.org/pet2bids/"
+    "TELEMETRY_URL", "https://migas.openneuropet.org/api/breadcrumb"
 )
 # check environment variables as well as the config file
 telemetry_enabled_env = os.getenv("PET2BIDS_TELEMETRY_ENABLED", True)
-telemetry_enabled = pet2bids_config.get("TELEMETRY_ENABLED", True)
+telemetry_enabled_config = pet2bids_config.get("TELEMETRY_ENABLED", True)
 
 # if telemetry is disabled in the config file or the environment variable disable its use.
-if telemetry_enabled_env is False or telemetry_enabled is False:
+if telemetry_enabled_env is False or telemetry_enabled_config is False:
     telemetry_enabled = False
+else:
+    telemetry_enabled = True
 
 telemetry_notify_user = pet2bids_config.get("NOTIFY_USER_OF_TELEMETRY", False)
 
 
-def telemetry_enabled(config_path=None):
+def check_telemetry_enabled(config_path=None):
     """
     Check if telemetry is enabled, if it isn't disabled in the .pet2bidsconfig file
     it will be considered enabled. One must opt out of tracking usage manually.
@@ -62,6 +64,13 @@ def telemetry_enabled(config_path=None):
         return True
 
 
+def convert_return_code(return_code: int) -> str:
+    if return_code == 0:
+        return "C"
+    else:
+        return "F"
+
+
 def send_telemetry(json_data: dict, url: str = telemetry_default_url):
     """
     Send telemetry data to the telemetry server, by default this will first try
@@ -74,8 +83,29 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
     :type url: str
     """
     if telemetry_enabled():
+        python_version_number = '.'.join(
+            [
+                str(sys.version_info[0]), 
+                str(sys.version_info[1]), 
+                str(sys.version_info[2])
+            ]
+        )
+        bread_crumb = {
+            "project": "openneuropet/PET2BIDS",
+            "project_version": get_version(),
+            "language": "python",
+            "language_version": python_version_number,
+            "ctx": {
+                "platform": sys.platform,
+                "is_ci": os.getenv("CI", False)
+            },
+            "proc": {
+                "status": "",
+                "params": {} 
+            }
+        }
         # update data with version of pet2bids
-        json_data["pypet2bids_version"] = get_version()
+        json_data["version"] = bread_crumb["project_version"]
         # check if it's one of the dev's running this
         running_from_cloned_repository = subprocess.run(
             ["git", "status"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -85,9 +115,12 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
 
         json_data["description"] = "pet2bids_python_telemetry"
 
+        bread_crumb["proc"]["params"] = json_data
+        bread_crumb["proc"]["status"] = convert_return_code(json_data["returncode"])
+
         try:
             # Send a POST request to the telemetry server
-            requests.post(url, json=json_data)
+            requests.post(url, json=bread_crumb, timeout=5)
         except requests.exceptions.RequestException as e:
             pass
     else:

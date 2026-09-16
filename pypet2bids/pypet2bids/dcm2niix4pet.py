@@ -1058,29 +1058,31 @@ class Dcm2niix4PET:
     def convert(self):
         # check the size of out the output folder
         before_output_files = {}
-        self.run_dcm2niix()
-        self.post_dcm2niix()
-
-        # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
-        if telemetry_enabled:
-            # count the number of files
-            self.telemetry_data.update(count_input_files(self.image_folder))
-            # record if a blood tsv and json file were created
-            if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
-                self.telemetry_data["blood_tsv"] = True
-            else:
-                self.telemetry_data["blood_tsv"] = False
-            # record if a metadata spreadsheet was used
-            if helper_functions.collect_spreadsheets(self.metadata_path):
-                self.telemetry_data["metadata_spreadsheet_used"] = True
-            else:
-                self.telemetry_data["metadata_spreadsheet_used"] = False
-
-            self.telemetry_data["InputType"] = "DICOM"
-
+        try:
+            self.run_dcm2niix()
+            self.post_dcm2niix()
             self.telemetry_data["returncode"] = 0
+        except Exception as exc:
+            self.telemetry_data["returncode"] = 1
+            raise
+        finally:   # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
+            if telemetry_enabled():
+                # count the number of files
+                self.telemetry_data.update(count_input_files(self.image_folder))
+                # record if a blood tsv and json file were created
+                if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
+                    self.telemetry_data["blood_tsv"] = True
+                else:
+                    self.telemetry_data["blood_tsv"] = False
+                # record if a metadata spreadsheet was used
+                if helper_functions.collect_spreadsheets(self.metadata_path):
+                    self.telemetry_data["metadata_spreadsheet_used"] = True
+                else:
+                    self.telemetry_data["metadata_spreadsheet_used"] = False
 
-            send_telemetry(self.telemetry_data)
+                self.telemetry_data["InputType"] = "DICOM"
+
+                send_telemetry(self.telemetry_data)
 
     def match_dicom_header_to_file(self, destination_path=None):
         """
