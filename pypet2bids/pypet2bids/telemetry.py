@@ -5,6 +5,7 @@ import subprocess
 import time
 import sys
 import select
+import uuid
 from dotenv import load_dotenv
 from typing import Union
 
@@ -71,7 +72,11 @@ def convert_return_code(return_code: int) -> str:
         return "F"
 
 
-def send_telemetry(json_data: dict, url: str = telemetry_default_url):
+def send_telemetry(
+    json_data: dict,
+    url: str = telemetry_default_url,
+    project: str = "openneuropet/PET2BIDS",
+):
     """
     Send telemetry data to the telemetry server, by default this will first try
     to load the telemetry server url from the config file, if it's not found it will
@@ -81,28 +86,28 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
     :type json_data: dict
     :param url: The url of the telemetry server
     :type url: str
+    :param project: The Migas project receiving the telemetry
+    :type project: str
     """
     if telemetry_enabled():
-        python_version_number = '.'.join(
+        python_version_number = ".".join(
             [
-                str(sys.version_info[0]), 
-                str(sys.version_info[1]), 
-                str(sys.version_info[2])
+                str(sys.version_info[0]),
+                str(sys.version_info[1]),
+                str(sys.version_info[2]),
             ]
         )
         bread_crumb = {
-            "project": "openneuropet/PET2BIDS",
+            "project": project,
             "project_version": get_version(),
             "language": "python",
             "language_version": python_version_number,
             "ctx": {
+                "session_id": str(uuid.uuid4()),
                 "platform": sys.platform,
-                "is_ci": os.getenv("CI", False)
+                "is_ci": os.getenv("CI", False),
             },
-            "proc": {
-                "status": "",
-                "params": {} 
-            }
+            "proc": {"status": "", "params": {}},
         }
         # update data with version of pet2bids
         json_data["version"] = bread_crumb["project_version"]
@@ -120,11 +125,11 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
 
         try:
             # Send a POST request to the telemetry server
-            requests.post(url, json=bread_crumb, timeout=5)
+            return requests.post(url, json=bread_crumb, timeout=5)
         except requests.exceptions.RequestException as e:
-            pass
+            return None
     else:
-        pass
+        return None
 
 
 def count_input_files(input_file_path: Union[str, pathlib.Path]):

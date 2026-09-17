@@ -47,6 +47,11 @@ def test_send_telemetry_posts_migas_breadcrumb(
     monkeypatch.setattr(telemetry.sys, "version_info", (3, 12, 7))
     monkeypatch.setattr(telemetry.sys, "platform", "linux")
     monkeypatch.setattr(
+        telemetry.uuid,
+        "uuid4",
+        lambda: "12345678-1234-4234-8234-123456789abc",
+    )
+    monkeypatch.setattr(
         telemetry.subprocess,
         "run",
         Mock(return_value=SimpleNamespace(returncode=0)),
@@ -72,6 +77,7 @@ def test_send_telemetry_posts_migas_breadcrumb(
             "language": "python",
             "language_version": "3.12.7",
             "ctx": {
+                "session_id": "12345678-1234-4234-8234-123456789abc",
                 "platform": "linux",
                 "is_ci": False,
             },
