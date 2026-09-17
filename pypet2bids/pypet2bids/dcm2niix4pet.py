@@ -277,6 +277,7 @@ class Dcm2niix4PET:
         self.telemetry_data = {}
         self.ezbids = ezbids
         self.dcm2niix_path = self.check_for_dcm2niix()
+        self.metadata_path = metadata_path
         if not self.dcm2niix_path:
             logger.error(
                 "dcm2niix not found, this module depends on it for conversions, exiting."
@@ -412,7 +413,7 @@ class Dcm2niix4PET:
 
         # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
         # spreadsheet
-        if metadata_path and metadata_translation_script:
+        if self.metadata_path and metadata_translation_script:
             self.metadata_path = Path(metadata_path)
             self.metadata_translation_script = Path(metadata_translation_script)
 
@@ -424,13 +425,13 @@ class Dcm2niix4PET:
                 self.extract_metadata()
                 # next we use the loaded python script to extract the information we need
                 self.load_spread_sheet_data()
-        elif metadata_path and not metadata_translation_script or metadata_path == "":
+        elif self.metadata_path and not metadata_translation_script or self.metadata_path == "":
             self.metadata_path = Path(metadata_path)
             if not self.spreadsheet_metadata.get("nifti_json", None):
                 self.spreadsheet_metadata["nifti_json"] = {}
 
             load_spreadsheet_data = get_metadata_from_spreadsheet(
-                metadata_path=metadata_path,
+                metadata_path=self.metadata_path,
                 image_folder=self.image_folder,
                 image_header_dict=self.dicom_headers[next(iter(self.dicom_headers))],
                 **self.additional_arguments,
@@ -1058,29 +1059,31 @@ class Dcm2niix4PET:
     def convert(self):
         # check the size of out the output folder
         before_output_files = {}
-        self.run_dcm2niix()
-        self.post_dcm2niix()
-
-        # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
-        if telemetry_enabled:
-            # count the number of files
-            self.telemetry_data.update(count_input_files(self.image_folder))
-            # record if a blood tsv and json file were created
-            if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
-                self.telemetry_data["blood_tsv"] = True
-            else:
-                self.telemetry_data["blood_tsv"] = False
-            # record if a metadata spreadsheet was used
-            if helper_functions.collect_spreadsheets(self.metadata_path):
-                self.telemetry_data["metadata_spreadsheet_used"] = True
-            else:
-                self.telemetry_data["metadata_spreadsheet_used"] = False
-
-            self.telemetry_data["InputType"] = "DICOM"
-
+        try:
+            self.run_dcm2niix()
+            self.post_dcm2niix()
             self.telemetry_data["returncode"] = 0
+        except Exception as exc:
+            self.telemetry_data["returncode"] = 1
+            raise
+        finally:   # if telemetry isn't disabled we send a telemetry event to the pypet2bids server
+            if telemetry_enabled():
+                # count the number of files
+                self.telemetry_data.update(count_input_files(self.image_folder))
+                # record if a blood tsv and json file were created
+                if self.spreadsheet_metadata.get("blood_tsv", {}) != {}:
+                    self.telemetry_data["blood_tsv"] = True
+                else:
+                    self.telemetry_data["blood_tsv"] = False
+                # record if a metadata spreadsheet was used
+                if self.metadata_path:
+                    self.telemetry_data["metadata_spreadsheet_used"] = True
+                else:
+                    self.telemetry_data["metadata_spreadsheet_used"] = False
 
-            send_telemetry(self.telemetry_data)
+                self.telemetry_data["InputType"] = "DICOM"
+
+                send_telemetry(self.telemetry_data)
 
     def match_dicom_header_to_file(self, destination_path=None):
         """

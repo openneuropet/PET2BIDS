@@ -107,7 +107,10 @@ class Ecat:
         self.output_path = None
         self.metadata_path = metadata_path
         self.ezbids = ezbids
-        self.telemetry_data = {}
+        self.telemetry_data = {
+            "metadata_spreadsheet_used": False,
+            "blood_tsv": False,
+        }
 
         # load config file
         default_json_path = helper_functions.check_pet2bids_config(
@@ -193,7 +196,7 @@ class Ecat:
         else:
             self.metadata_path = None
 
-        if self.metadata_path:
+        if self.metadata_path and pathlib.Path(self.metadata_path).exists():
             load_spreadsheet_data = get_metadata_from_spreadsheet(
                 metadata_path=self.metadata_path,
                 image_folder=pathlib.Path(self.ecat_file).parent,
@@ -211,9 +214,9 @@ class Ecat:
             )
 
             if helper_functions.collect_spreadsheets(self.metadata_path):
-                self.telemetry_data.update({"metadata_spreadsheet_user": True})
+                self.telemetry_data.update({"metadata_spreadsheet_used": True})
             else:
-                self.telemetry_data.update({"metadata_spreadsheet_user": False})
+                self.telemetry_data.update({"metadata_spreadsheet_used": False})
 
             if self.spreadsheet_metadata.get("blood_tsv", None):
                 self.telemetry_data.update({"blood_tsv": True})
@@ -695,13 +698,18 @@ class Ecat:
         Convert ecat to nifti
         :return: None
         """
-        self.output_path = pathlib.Path(self.make_nifti())
-        self.sidecar_path = self.output_path.parent / self.output_path.stem
-        self.sidecar_path = self.sidecar_path.with_suffix(".json")
-        self.populate_sidecar(**self.kwargs)
-        self.prune_sidecar()
-        self.show_sidecar(output_path=self.sidecar_path)
-        self.write_out_blood_files()
-
-        if telemetry_enabled:
-            send_telemetry(self.telemetry_data)
+        try:
+            self.output_path = pathlib.Path(self.make_nifti())
+            self.sidecar_path = self.output_path.parent / self.output_path.stem
+            self.sidecar_path = self.sidecar_path.with_suffix(".json")
+            self.populate_sidecar(**self.kwargs)
+            self.prune_sidecar()
+            self.show_sidecar(output_path=self.sidecar_path)
+            self.write_out_blood_files()
+            self.telemetry_data["returncode"] = 0
+        except Exception:
+            self.telemetry_data["returncode"] = 1
+            raise
+        finally:
+            if telemetry_enabled():
+                send_telemetry(self.telemetry_data)
