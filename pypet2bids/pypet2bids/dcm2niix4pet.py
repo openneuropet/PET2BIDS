@@ -227,7 +227,6 @@ class Dcm2niix4PET:
         image_folder,
         destination_path=None,
         metadata_path=None,
-        metadata_translation_script=None,
         additional_arguments={},
         dcm2niix_options="",
         file_format="%p_%i_%t_%s",
@@ -241,7 +240,7 @@ class Dcm2niix4PET:
             - Convert a set of dicoms into .nii and .json sidecar files
             - Inspect the .json sidecar files for any missing BIDS PET fields or values
             - If there are missing BIDS PET fields or values this class will attempt to extract them from the dicom
-            header, a metadata file using a metadata translation script, and lastly from user supplied key pair
+            header, a simlpy formatted metadata file, and lastly from user supplied key pair
             arguments.
 
         # class is instantiated:
@@ -256,7 +255,6 @@ class Dcm2niix4PET:
         :param image_folder: folder containing a single series/session of dicoms
         :param destination_path: destination path for dcm2niix output nii and json files
         :param metadata_path: path to excel, csv, or text file with PET metadata (radioligand, blood, etc etc)
-        :param metadata_translation_script: python file to extract and transform data contained in the metadata_path
         :param file_format: the file format that we want dcm2niix to use, by default %p_%i_%t_%s
         %p -> protocol
         %i -> ID of patient
@@ -410,21 +408,7 @@ class Dcm2niix4PET:
 
         self.additional_arguments = additional_arguments
 
-        # if there's a spreadsheet and if there's a provided python script use it to manipulate the data in the
-        # spreadsheet
-        if metadata_path and metadata_translation_script:
-            self.metadata_path = Path(metadata_path)
-            self.metadata_translation_script = Path(metadata_translation_script)
-
-            if (
-                self.metadata_path.exists()
-                and self.metadata_translation_script.exists()
-            ):
-                # load the spreadsheet into a dataframe
-                self.extract_metadata()
-                # next we use the loaded python script to extract the information we need
-                self.load_spread_sheet_data()
-        elif metadata_path and not metadata_translation_script or metadata_path == "":
+        if metadata_path or metadata_path == "":
             self.metadata_path = Path(metadata_path)
             if not self.spreadsheet_metadata.get("nifti_json", None):
                 self.spreadsheet_metadata["nifti_json"] = {}
@@ -1027,8 +1011,7 @@ class Dcm2niix4PET:
             else:
                 raise (
                     f"blood_tsv dictionary is incorrect type {type(blood_tsv_data)}, must be type: "
-                    f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                    f"{self.metadata_translation_script}"
+                    f"pandas.DataFrame or str"
                 )
 
         # if there's blood data in the tsv then write out the sidecar file too
@@ -1046,8 +1029,7 @@ class Dcm2niix4PET:
             else:
                 raise (
                     f"blood_json dictionary is incorrect type {type(blood_json_data)}, must be type: dict or str"
-                    f"pandas.DataFrame or str\nCheck return type of translate_metadata in "
-                    f"{self.metadata_translation_script}"
+                    f"pandas.DataFrame or str"
                 )
 
             with open(
@@ -1154,32 +1136,6 @@ class Dcm2niix4PET:
         except IOError as err:
             raise err(f"Problem opening {self.metadata_path}")
 
-    def load_spread_sheet_data(self):
-        text_file_data = {}
-        if self.metadata_translation_script:
-            try:
-                # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
-                # data from their particular spreadsheet wherever that file is located.
-                spec = importlib.util.spec_from_file_location(
-                    "metadata_translation_script", self.metadata_translation_script
-                )
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                text_file_data = module.translate_metadata(self.metadata_dataframe)
-            except AttributeError as err:
-                helper_functions.logger("pypet2bids").error(
-                    f"Unable to locate metadata_translation_script"
-                )
-                raise err
-
-            self.spreadsheet_metadata["blood_tsv"] = text_file_data.get("blood_tsv", {})
-            self.spreadsheet_metadata["blood_json"] = text_file_data.get(
-                "blood_json", {}
-            )
-            self.spreadsheet_metadata["nifti_json"] = text_file_data.get(
-                "nifti_json", {}
-            )
-
 
 epilog = textwrap.dedent(
     """
@@ -1204,7 +1160,6 @@ def cli():
 
     :param folder: folder containing imaging data, no flag required
     :param -m, --metadata-path: path to PET metadata spreadsheet
-    :param -t, --translation-script-path: path to script used to extract information from metadata spreadsheet
     :param -d, --destination-path: path to place outputfiles post conversion from dicom to nifti + json
     :return: arguments collected from argument parser
     """
@@ -1225,13 +1180,6 @@ def cli():
         const="",
         nargs="?",
         help="Path to metadata file for scan",
-    )
-    parser.add_argument(
-        "--translation-script-path",
-        "-t",
-        default=None,
-        help="Path to a script written to extract and transform metadata from a spreadsheet to BIDS"
-        + " compliant text files (tsv and json)",
     )
     parser.add_argument(
         "--destination-path",
@@ -1525,9 +1473,6 @@ def main():
             image_folder=helper_functions.expand_path(cli_args.folder),
             destination_path=helper_functions.expand_path(cli_args.destination_path),
             metadata_path=helper_functions.expand_path(cli_args.metadata_path),
-            metadata_translation_script=helper_functions.expand_path(
-                cli_args.translation_script_path
-            ),
             additional_arguments=cli_args.kwargs,
             dcm2niix_options=(
                 " ".join(cli_args.dcm2niix_options) if cli_args.dcm2niix_options else ""

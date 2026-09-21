@@ -141,8 +141,8 @@ You should see the following afterwards:
     (c) Microsoft Corporation. All rights reserved.
 
     H:\>dcm2niix4pet
-    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--translation-script-path TRANSLATION_SCRIPT_PATH]
-                        [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent SILENT] [--show-examples]
+    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--destination-path DESTINATION_PATH]
+                        [--kwargs [KWARGS ...]] [--silent SILENT] [--show-examples]
                         [--set-dcm2niix-path SET_DCM2NIIX_PATH]
                         [folder]
 
@@ -190,7 +190,7 @@ For converting dicom to BIDS use dcm2niix4pet via:
 .. code-block::
 
     dcm2niix4pet -h
-    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--translation-script-path TRANSLATION_SCRIPT_PATH] [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent SILENT]
+    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent SILENT]
                     [--write-template-script]
                     folder
 
@@ -201,8 +201,6 @@ For converting dicom to BIDS use dcm2niix4pet via:
       -h, --help            show this help message and exit
       --metadata-path METADATA_PATH, -m METADATA_PATH
                             Path to metadata file for scan
-      --translation-script-path TRANSLATION_SCRIPT_PATH, -t TRANSLATION_SCRIPT_PATH
-                            Path to a script written to extract and transform metadata from a spreadsheet to BIDS compliant text files (tsv and json)
       --destination-path DESTINATION_PATH, -d DESTINATION_PATH
                             Destination path to send converted imaging and metadata files to. If omitted defaults to using the path supplied to folder path. If destination path doesn't exist an attempt to
                             create it will be made.

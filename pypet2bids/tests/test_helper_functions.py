@@ -102,25 +102,6 @@ def test_open_metadata():
         pass
 
 
-def test_translate_metadata():
-    test_translate_script_path = join(module_folder, "metadata_excel_example_reader.py")
-
-    test_output = helper_functions.translate_metadata(
-        single_subject_metadata_file, test_translate_script_path
-    )
-
-    # values below manually parsed out of the file 'subject_metadata_example.xlsx'
-    assert test_output["nifti_json"]["ImageDecayCorrectionTime"] == 0
-    assert test_output["nifti_json"]["ReconMethodName"] == "3D-OSEM-PSF"
-    assert test_output["nifti_json"]["ReconMethodParameterLabels"] == [
-        "subsets",
-        "iterations",
-    ]
-    assert test_output["nifti_json"]["ReconMethodParameterUnits"] == ["none", "none"]
-    assert test_output["nifti_json"]["ReconMethodParameterValues"] == [16, 10]
-    assert test_output["nifti_json"]["ReconFilterType"] == "none"
-
-
 def test_collect_bids_parts():
     bids_like_path = "/home/users/user/bids_data/sub-NDAR123/ses-firstsession"
     windows_bids_like_path = "D:\BIDS\ONP\sub-NDAR123\ses-firstsession\pet"
