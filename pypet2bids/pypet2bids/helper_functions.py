@@ -130,11 +130,9 @@ def single_spreadsheet_reader(
     path_to_spreadsheet: Union[str, pathlib.Path],
     pet2bids_metadata: dict = metadata.PET_metadata,
     dicom_metadata={},
+    warn_missing=True,
     **kwargs,
 ) -> dict:
-    spreadsheet_metadata = {}
-    metadata_fields = pet2bids_metadata
-
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -145,16 +143,41 @@ def single_spreadsheet_reader(
 
     spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
 
+    return check_read_spreadsheet(
+        read_sheet=spreadsheet_dataframe,
+        path_to_spreadsheet=path_to_spreadsheet,
+        pet2bids_metadata=pet2bids_metadata,
+        dicom_metadata=dicom_metadata,
+        warn_missing=warn_missing,
+        **kwargs,
+    )
+
+
+def check_read_spreadsheet(
+    read_sheet: pandas.DataFrame,
+    path_to_spreadsheet: Union[str, pathlib.Path],
+    pet2bids_metadata: dict = metadata.PET_metadata,
+    dicom_metadata=None,
+    warn_missing=True,
+    **kwargs,
+) -> dict:
+    spreadsheet_metadata = {}
+    dicom_metadata = dicom_metadata or {}
     log = logging.getLogger("pypet2bids")
 
     # collect mandatory fields
-    for field_level in metadata_fields.keys():
-        for field in metadata_fields[field_level]:
-            series = spreadsheet_dataframe.get(field, Series(dtype=numpy.float64))
+    for field_level in pet2bids_metadata.keys():
+        for field in pet2bids_metadata[field_level]:
+            series = read_sheet.get(field, Series(dtype=numpy.float64))
             if not series.empty:
+                if series.dropna().empty:
+                    raise ValueError(
+                        f"Spreadsheet {path_to_spreadsheet} contains empty column {field}, "
+                        "provide values or remove column to proceed"
+                    )
                 spreadsheet_metadata[field] = flatten_series(series)
             elif (
-                series.empty
+                warn_missing
                 and field_level == "mandatory"
                 and not dicom_metadata.get(field, None)
                 and field not in kwargs
@@ -192,6 +215,7 @@ def single_spreadsheet_reader(
                     log.warning(f"{field} is not string, it's value is {value}")
             else:
                 pass
+
     return spreadsheet_metadata
 
 
