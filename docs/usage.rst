@@ -149,7 +149,7 @@ You should see the following afterwards:
     H:\>ecatpet2bids
     usage: ecat_cli.py [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar]
                        [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table]
-                       [--show-examples]
+                       [--show-examples] [--silent | --verbose]
                        [ecat_file]
 
 
@@ -159,7 +159,7 @@ ecatpet2bids for converting ecat data into nii & json
 
     # our ecat conversion library should be available via the following
     ecatpet2bids -h
-    usage: ecatpet2bids [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar] [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table]
+    usage: ecatpet2bids [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar] [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table] [--silent | --verbose]
                     ecat_file
 
     positional arguments:
@@ -183,6 +183,8 @@ ecatpet2bids for converting ecat data into nii & json
                             in the directory with the name *parameters.txt from which this cli is called.
       --directory_table, -t
                             Collect table/array of ECAT frame byte location map
+      --silent              Hide all log output.
+      --verbose             Show informational, warning, and debug output, including missing recommended BIDS fields.
 
 
 For converting dicom to BIDS use dcm2niix4pet via:

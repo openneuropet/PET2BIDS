@@ -53,14 +53,14 @@ def check_json(
 ):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
-    also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
+    also checks for recommended key value pairs. Missing fields are reported using BIDS-specific log levels.
 
     :param spreadsheet_metadata:
     :type spreadsheet_metadata:
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
     :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
            PET_metadata imported from pet_metadata.PET_metadata
-    :param silent: suppress warnings and errors when set to True
+    :param silent: suppress BIDS validation messages when set to True
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
             corresponding entry in the json the same can be said of value
     """
@@ -110,13 +110,21 @@ def check_json(
                 or json_to_check.get(item, None) == ""
             ):
                 if not silent:
-                    logger.error(f"{item} present but has null value.")
+                    logger.error(
+                        f"{item} present but has null value.",
+                        extra={
+                            "display_levelname": helper_functions.BIDS_INVALID_LABEL
+                        },
+                    )
                 storage[item] = {"key": True, "value": False}
             elif not all_good:
                 if not silent:
                     logger.error(
                         f"{item} is not present in {path_to_json}. This will have to be "
-                        f"corrected post conversion."
+                        "corrected post conversion.",
+                        extra={
+                            "display_levelname": helper_functions.BIDS_INVALID_LABEL
+                        },
                     )
                 storage[item] = {"key": False, "value": False}
 
@@ -140,12 +148,16 @@ def check_json(
                 or json_to_check.get(item, None) == ""
             ):
                 if not silent:
-                    logger.info(f"{item} present but has null value.")
+                    logger.log(
+                        helper_functions.BIDS_RECOMMENDED,
+                        f"{item} present but has null value.",
+                    )
                 storage[item] = {"key": True, "value": False}
             elif not all_good:
                 if not silent:
-                    logger.info(
-                        f"{item} is recommended but not present in {path_to_json}"
+                    logger.log(
+                        helper_functions.BIDS_RECOMMENDED,
+                        f"{item} is recommended but not present in {path_to_json}",
                     )
                 storage[item] = {"key": False, "value": False}
 
