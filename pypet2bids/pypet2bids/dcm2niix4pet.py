@@ -33,6 +33,7 @@ import importlib
 import zipfile
 import stat
 import tarfile
+import logging
 
 
 try:
@@ -231,6 +232,7 @@ class Dcm2niix4PET:
         dcm2niix_options="",
         file_format="%p_%i_%t_%s",
         silent=False,
+        verbose=False,
         tempdir_location=None,
         ezbids=False,
         ignore_dcm2niix_errors=False,
@@ -265,9 +267,15 @@ class Dcm2niix4PET:
         the user knows more about converting their data than the heuristics within dcm2niix, this library, or even the
         dicom header
         :param tempdir_location: user supplied base location for temporary directory (override system default)
-        :param silent: silence missing sidecar metadata messages, default is False and very verbose
+        :param silent: hide all log output
+        :param verbose: display informational, warning, and debug messages
         :param tempdir_location: location to create the temporary directory, for use on constrained systems
         """
+
+        self.silent = silent
+        self.verbose = verbose
+        logger.disabled = silent
+        logger.setLevel(logging.DEBUG if verbose else logging.ERROR)
 
         # check to see if dcm2niix is installed
         self.blood_json = None
@@ -418,6 +426,7 @@ class Dcm2niix4PET:
                 metadata_path=self.metadata_path,
                 image_folder=self.image_folder,
                 image_header_dict=self.dicom_headers[next(iter(self.dicom_headers))],
+                warn_missing=False,
                 **self.additional_arguments,
             )
 
@@ -473,9 +482,6 @@ class Dcm2niix4PET:
         # to access the dicom header information use the key in self.headers_to_files to access that specific header
         # in self.dicom_headers
         self.headers_to_files = {}
-        # if silent is set to True output warnings aren't displayed to stdout/stderr
-        self.silent = silent
-
     def cleanup(self):
         """
         Housekeeping if things crash.
@@ -718,6 +724,7 @@ class Dcm2niix4PET:
                             check_for_missing,
                             dicom_header,
                             dicom2bids_json=metadata_dictionaries["dicom2bids"],
+                            silent=False,
                             ezbids=self.ezbids,
                             **self.additional_arguments,
                         )
@@ -962,6 +969,16 @@ class Dcm2niix4PET:
                 self.new_file_name_with_entities = new_path
 
                 shutil.move(src=created, dst=new_path)
+
+                if created_path.suffix == ".json":
+                    # Report metadata still missing after every available source
+                    # has been applied to the final sidecar.
+                    check_json(
+                        new_path,
+                        silent=self.silent,
+                        recommended=self.verbose,
+                        logger_name="pypet2bids",
+                    )
 
             return self.destination_path
 
@@ -1216,12 +1233,19 @@ def cli():
         "Note: the value portion of the argument (right side of the equal's sign) should always"
         'be surrounded by double quotes BidsVarQuoted="[0, 1 , 3]"',
     )
-    parser.add_argument(
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument(
         "--silent",
         "-s",
         action="store_true",
         default=False,
-        help="Hide missing metadata warnings and errors to stdout/stderr",
+        help="Hide all log output",
+    )
+    output_group.add_argument(
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Show informational, warning, and debug output, including missing recommended metadata",
     )
     parser.add_argument(
         "--show-examples",
@@ -1482,6 +1506,7 @@ def main():
             ),
             tempdir_location=cli_args.tempdir,
             silent=cli_args.silent,
+            verbose=cli_args.verbose,
             ezbids=cli_args.ezbids,
             ignore_dcm2niix_errors=cli_args.ignore_dcm2niix_errors,
         )

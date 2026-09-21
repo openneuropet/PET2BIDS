@@ -53,24 +53,19 @@ def check_json(
 ):
     """
     This method opens a json and checks to see if a set of mandatory values is present within that json, optionally it
-    also checks for recommended key value pairs. If fields are not present a warning is raised to the user.
+    also checks for recommended key value pairs. Missing fields are reported using BIDS-specific log levels.
 
     :param spreadsheet_metadata:
     :type spreadsheet_metadata:
     :param path_to_json: path to a json file e.g. a BIDS sidecar file created after running dcm2niix
     :param items_to_check: a dictionary with items to check for within that json. If None is supplied defaults to the
            PET_metadata imported from pet_metadata.PET_metadata
-    :param silent: Raises warnings or errors to stdout if this flag is set to True
+    :param silent: suppress BIDS validation messages when set to True
     :return: dictionary of items existence and value state, if key is True/False there exists/(does not exist) a
             corresponding entry in the json the same can be said of value
     """
 
     logger = helper_functions.logger(logger_name)
-
-    if silent:
-        logger.disabled = True
-    else:
-        logger.disabled = False
 
     # check if path exists
     path_to_json = Path(path_to_json)
@@ -102,7 +97,7 @@ def check_json(
                 item in json_to_check.keys()
                 and (
                     json_to_check.get(item, None) is not None
-                    or json_to_check.get(item) != ""
+                    and json_to_check.get(item) != ""
                 )
                 or item in additional_arguments
                 or item in flattened_spreadsheet_metadata.keys()
@@ -114,13 +109,23 @@ def check_json(
                 json_to_check.get(item, None) is None
                 or json_to_check.get(item, None) == ""
             ):
-                logger.error(f"{item} present but has null value.")
+                if not silent:
+                    logger.error(
+                        f"{item} present but has null value.",
+                        extra={
+                            "display_levelname": helper_functions.BIDS_INVALID_LABEL
+                        },
+                    )
                 storage[item] = {"key": True, "value": False}
             elif not all_good:
-                logger.error(
-                    f"{item} is not present in {path_to_json}. This will have to be "
-                    f"corrected post conversion."
-                )
+                if not silent:
+                    logger.error(
+                        f"{item} is not present in {path_to_json}. This will have to be "
+                        "corrected post conversion.",
+                        extra={
+                            "display_levelname": helper_functions.BIDS_INVALID_LABEL
+                        },
+                    )
                 storage[item] = {"key": False, "value": False}
 
     if recommended:
@@ -130,7 +135,7 @@ def check_json(
                 item in json_to_check.keys()
                 and (
                     json_to_check.get(item, None) is not None
-                    or json_to_check.get(item) != ""
+                    and json_to_check.get(item) != ""
                 )
                 or item in additional_arguments
                 or item in flattened_spreadsheet_metadata.keys()
@@ -142,10 +147,18 @@ def check_json(
                 json_to_check.get(item, None) is None
                 or json_to_check.get(item, None) == ""
             ):
-                logger.info(f"{item} present but has null value.")
+                if not silent:
+                    logger.log(
+                        helper_functions.BIDS_RECOMMENDED,
+                        f"{item} present but has null value.",
+                    )
                 storage[item] = {"key": True, "value": False}
             elif not all_good:
-                logger.info(f"{item} is recommended but not present in {path_to_json}")
+                if not silent:
+                    logger.log(
+                        helper_functions.BIDS_RECOMMENDED,
+                        f"{item} is recommended but not present in {path_to_json}",
+                    )
                 storage[item] = {"key": False, "value": False}
 
     return storage
@@ -752,6 +765,7 @@ def get_metadata_from_spreadsheet(
     metadata_path: Union[str, Path],
     image_folder,
     image_header_dict={},
+    warn_missing=True,
     **additional_arguments,
 ) -> dict:
     """
@@ -764,6 +778,8 @@ def get_metadata_from_spreadsheet(
     :type image_folder: [str, pathlib.Path]
     :param image_header_dict: dictionary of image header values
     :type image_header_dict: dict
+    :param warn_missing: warn about mandatory fields absent from the spreadsheet
+    :type warn_missing: bool
     :param additional_arguments: additional arguments to pass on, typically user sourced key value pairs
     :type additional_arguments: dict
     :return: dictionary of metadata
@@ -781,6 +797,7 @@ def get_metadata_from_spreadsheet(
         spreadsheet_values = helper_functions.single_spreadsheet_reader(
             path_to_spreadsheet=metadata_path,
             dicom_metadata=image_header_dict,
+            warn_missing=warn_missing,
             **additional_arguments,
         )
 
@@ -807,6 +824,7 @@ def get_metadata_from_spreadsheet(
                 helper_functions.single_spreadsheet_reader(
                     path_to_spreadsheet=pet_spreadsheet,
                     dicom_metadata=image_header_dict,
+                    warn_missing=warn_missing,
                     **additional_arguments,
                 )
             )

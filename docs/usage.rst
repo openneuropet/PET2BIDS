@@ -142,14 +142,14 @@ You should see the following afterwards:
 
     H:\>dcm2niix4pet
     usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--destination-path DESTINATION_PATH]
-                        [--kwargs [KWARGS ...]] [--silent SILENT] [--show-examples]
+                        [--kwargs [KWARGS ...]] [--silent | --verbose] [--show-examples]
                         [--set-dcm2niix-path SET_DCM2NIIX_PATH]
                         [folder]
 
     H:\>ecatpet2bids
     usage: ecat_cli.py [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar]
                        [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table]
-                       [--show-examples]
+                       [--show-examples] [--silent | --verbose]
                        [ecat_file]
 
 
@@ -159,7 +159,7 @@ ecatpet2bids for converting ecat data into nii & json
 
     # our ecat conversion library should be available via the following
     ecatpet2bids -h
-    usage: ecatpet2bids [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar] [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table]
+    usage: ecatpet2bids [-h] [--affine] [--convert] [--dump] [--json] [--nifti file_name] [--subheader] [--sidecar] [--kwargs [KWARGS ...]] [--scannerparams [SCANNERPARAMS ...]] [--directory_table] [--silent | --verbose]
                     ecat_file
 
     positional arguments:
@@ -183,6 +183,8 @@ ecatpet2bids for converting ecat data into nii & json
                             in the directory with the name *parameters.txt from which this cli is called.
       --directory_table, -t
                             Collect table/array of ECAT frame byte location map
+      --silent              Hide all log output.
+      --verbose             Show informational, warning, and debug output, including missing recommended BIDS fields.
 
 
 For converting dicom to BIDS use dcm2niix4pet via:
@@ -190,7 +192,7 @@ For converting dicom to BIDS use dcm2niix4pet via:
 .. code-block::
 
     dcm2niix4pet -h
-    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent SILENT]
+    usage: dcm2niix4pet [-h] [--metadata-path METADATA_PATH] [--destination-path DESTINATION_PATH] [--kwargs [KWARGS ...]] [--silent | --verbose]
                     [--write-template-script]
                     folder
 
@@ -207,8 +209,8 @@ For converting dicom to BIDS use dcm2niix4pet via:
       --kwargs [KWARGS ...], -k [KWARGS ...]
                             Include additional values int the nifti sidecar json or override values extracted from the supplied nifti. e.g. including `--kwargs TimeZero='12:12:12'` would override the
                             calculated TimeZero. Any number of additional arguments can be supplied after --kwargs e.g. `--kwargs BidsVariable1=1 BidsVariable2=2` etc etc.
-      --silent SILENT, -s SILENT
-                            Display missing metadata warnings and errorsto stdout/stderr
+      --silent, -s          Hide all log output
+      --verbose             Show informational, warning, and debug output, including missing recommended metadata
 
 **Using pypet2bids**
 

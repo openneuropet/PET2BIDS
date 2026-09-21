@@ -102,6 +102,45 @@ def test_open_metadata():
         pass
 
 
+def test_single_spreadsheet_reader_rejects_empty_column(tmp_path, monkeypatch):
+    spreadsheet = tmp_path / "metadata.xlsx"
+    spreadsheet.touch()
+    monkeypatch.setattr(
+        helper_functions,
+        "open_meta_data",
+        lambda _: pandas.DataFrame({"AttenuationCorrection": [None]}),
+    )
+
+    try:
+        helper_functions.single_spreadsheet_reader(
+            spreadsheet,
+            pet2bids_metadata={"mandatory": ["AttenuationCorrection"]},
+        )
+    except ValueError as error:
+        assert str(error) == (
+            f"Spreadsheet {spreadsheet} contains empty column AttenuationCorrection, "
+            "provide values or remove column to proceed"
+        )
+    else:
+        raise AssertionError("Expected an empty spreadsheet column to raise ValueError")
+
+
+def test_check_read_spreadsheet_can_suppress_missing_warnings(monkeypatch):
+    warnings = []
+    test_logger = helper_functions.logging.getLogger("pypet2bids")
+    monkeypatch.setattr(test_logger, "warning", warnings.append)
+
+    spreadsheet_metadata = helper_functions.check_read_spreadsheet(
+        read_sheet=pandas.DataFrame({"Manufacturer": ["Example"]}),
+        path_to_spreadsheet=Path("metadata.xlsx"),
+        pet2bids_metadata={"mandatory": ["Manufacturer", "ImageDecayCorrected"]},
+        warn_missing=False,
+    )
+
+    assert spreadsheet_metadata == {"Manufacturer": "Example"}
+    assert warnings == []
+
+
 def test_collect_bids_parts():
     bids_like_path = "/home/users/user/bids_data/sub-NDAR123/ses-firstsession"
     windows_bids_like_path = "D:\BIDS\ONP\sub-NDAR123\ses-firstsession\pet"
