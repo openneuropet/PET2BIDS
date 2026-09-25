@@ -1,10 +1,16 @@
+import copy
+import json
+import logging
 import os
+import pathlib
+import pdb
 import subprocess
 import tempfile
-import pathlib
-import json
-import pdb
+
+import numpy
+
 from pypet2bids.ecat import Ecat
+from pypet2bids import sidecar
 
 TESTS_DIR = pathlib.Path(__file__).resolve().parent
 PYPET2BIDS_DIR = TESTS_DIR.parent
@@ -34,6 +40,49 @@ dataset_description_dictionary = {
         "Fine, https://fake.fakelink.null",
     ],
 }
+
+
+def test_populate_sidecar_calculates_recording_start(caplog):
+    ecat = Ecat.__new__(Ecat)
+    ecat.ecat_header = {
+        "SERIAL_NUMBER": "test-scanner",
+        "ISOTOPE_NAME": "C11",
+        "RADIOPHARMACEUTICAL": "test-tracer",
+        "ECAT_CALIBRATION_FACTOR": 1,
+        "NUM_FRAMES": 1,
+    }
+    ecat.subheaders = [
+        {
+            "FRAME_START_TIME": 25,
+            "FRAME_DURATION": 30,
+            "SCALE_FACTOR": 1,
+            "X_DIMENSION": 1,
+            "Y_DIMENSION": 1,
+            "Z_DIMENSION": 1,
+            "X_PIXEL_SIZE": 1,
+            "Y_PIXEL_SIZE": 1,
+            "Z_PIXEL_SIZE": 1,
+        }
+    ]
+    ecat.decay_factors = []
+    ecat.data = numpy.array([32767])
+    ecat.sidecar_template = copy.deepcopy(sidecar.sidecar_template_full)
+    ecat.spreadsheet_metadata = {"nifti_json": {}}
+    ecat.output_path = None
+    ecat.nifti_file = pathlib.Path("test.nii")
+    ecat.ecat_file = pathlib.Path("test.v")
+
+    with caplog.at_level(logging.WARNING, logger="pypet2bids"):
+        ecat.populate_sidecar(
+            TimeZero="00:00:00",
+            ScanStart=10,
+            PharmaceuticalDoseTime=0,
+            InjectionStart=0,
+            RecordingStart=0,
+        )
+
+    assert ecat.sidecar_template["RecordingStart"] == 35
+    assert "FrameTimesStart[0] 25 is lower than RecordingStart 35" in caplog.text
 
 
 def test_kwargs_produce_valid_conversion(tmp_path):

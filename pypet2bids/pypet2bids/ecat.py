@@ -478,6 +478,21 @@ class Ecat:
                 time_diff = t_datetime - time_zero_datetime
                 self.sidecar_template[t] = time_diff.total_seconds()
 
+        if "RecordingStart" in self.sidecar_template:
+            self.sidecar_template["RecordingStart"] = (
+                self.sidecar_template["ScanStart"]
+                + self.sidecar_template["FrameTimesStart"][0]
+            )
+            if (
+                self.sidecar_template["FrameTimesStart"][0]
+                < self.sidecar_template["RecordingStart"]
+            ):
+                logger.warning(
+                    "FrameTimesStart[0] %s is lower than RecordingStart %s",
+                    self.sidecar_template["FrameTimesStart"][0],
+                    self.sidecar_template["RecordingStart"],
+                )
+
         # clear any nulls from json sidecar and replace with none's
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 
