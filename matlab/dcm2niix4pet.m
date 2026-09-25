@@ -49,9 +49,10 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+current = pwd; % for windows machine indicate where is dcm2niix
+dcm2niixpath = [fileparts(current) '\MRIcroGL12win\Resources\dcm2niix.exe']; 
 if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 51 and indicate the dcm2niix path')
+    error('for windows machine please edit the function line 52 and indicate the dcm2niix path')
 end
 
 if ~ispc % overwrite if not windowns (as it should be in the computer path)
@@ -284,10 +285,6 @@ for folder = 1:size(FolderList,1)
         dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
     end
 
-    if strcmpi(deletedcm,'on')
-        delete(fullfile(outputdir{folder},'*dcm'))
-    end
-
     % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
         if strcmpi(z,'y')
@@ -341,6 +338,10 @@ for folder = 1:size(FolderList,1)
     end
     updatejsonpetfile(jsonfilename,MetaList,dcminfo);
 
+    if strcmpi(deletedcm,'on')
+        delete(fullfile(outputdir{folder},'*dcm'))
+    end
+    
     % if this all goes well update the telemetry data and send it with a positive return code of 0
     telemetry_data.returncode = 0;
     telemetry(telemetry_data, FolderList{folder})
