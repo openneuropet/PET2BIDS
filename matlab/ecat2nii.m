@@ -342,6 +342,10 @@ for j=1:length(FileListIn)
         % time difference between ScanStart and start time of first reconstructed volume
         if isfield(info, 'RecordingStart')
             info.RecordingStart = info.ScanStart + sh{1}.frame_start_time*60; % convert minutes to seconds
+            if info.FrameTimesStart(1) < info.RecordingStart
+                  warning('FrameTimesStart(1) %d is lower than RecordingStart %d', ...
+                    info.FrameTimesStart(1), info.RecordingStart)
+            end
         end 
 
         info.DoseCalibrationFactor            = Sca*mh.ecat_calibration_factor;
