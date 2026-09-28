@@ -4,6 +4,8 @@ from pathlib import Path
 from os.path import join
 from os import listdir
 import json
+import math
+from numbers import Real
 from json_maj.main import JsonMAJ, load_json_or_dict
 import re
 from dateutil import parser
@@ -537,215 +539,142 @@ def get_radionuclide(pydicom_dicom):
     return radionuclide
 
 
+def _radio_unit_factor(unit, quantity):
+    """Conversion to Bq, g, Bq/g, Bq/mol or g/mol; NaN if incompatible."""
+    if not isinstance(unit, str):
+        return math.nan
+    unit = unit.strip().replace("µ", "u").replace("μ", "u")
+    activity = {
+        "Bq": 1,
+        "kBq": 1e3,
+        "MBq": 1e6,
+        "GBq": 1e9,
+        "TBq": 1e12,
+        "Ci": 3.7e10,
+        "mCi": 3.7e7,
+        "uCi": 3.7e4,
+    }
+    mass = {"kg": 1e3, "g": 1, "mg": 1e-3, "ug": 1e-6, "ng": 1e-9}
+    amount = {"mol": 1, "mmol": 1e-3, "umol": 1e-6, "nmol": 1e-9, "pmol": 1e-12}
+    numerator, denominator = {
+        "InjectedRadioactivity": (activity, None),
+        "InjectedMass": (mass, None),
+        "SpecificRadioactivity": (activity, mass),
+        "MolarActivity": (activity, amount),
+        "MolecularWeight": (mass, amount),
+    }[quantity]
+    parts = [part.strip() for part in unit.split("/")]
+    if denominator is None and len(parts) == 1:
+        return numerator.get(parts[0], math.nan)
+    if denominator is not None and len(parts) == 2:
+        return numerator.get(parts[0], math.nan) / denominator.get(parts[1], math.nan)
+    return math.nan
+
+
 def check_meta_radio_inputs(kwargs: dict, logger="pypet2bids") -> dict:
+    """Check radiotracer quantities and infer missing values with explicit units.
+
+    Defaults: InjectedRadioactivity in MBq, InjectedMass in ug,
+    SpecificRadioactivity in Bq/g, MolarActivity in GBq/umol and MolecularWeight
+    in g/mol. Supply each corresponding <Name>Units field to override its default.
+    Specific radioactivity may use any supported ratio commensurate with Bq/g;
+    for example, 1 MBq/ug equals 1e12 Bq/g, not 1 Bq/g.
+
+    Supported activity units: Bq, kBq, MBq, GBq, TBq, Ci, mCi, uCi; mass units:
+    kg, g, mg, ug, ng; amount units: mol, mmol, umol, nmol, pmol. Micro signs
+    are accepted as 'u'. Unsupported/incompatible units are warned about and
+    excluded from calculations, rather than relabelled.
+
+    Supplied values and units are preserved. Inferred values use requested units
+    or the defaults. Only supplied input pairs are used; inferred quantities
+    are not fed back into calculations. Non-numeric inputs and zero denominators
+    yield 'n/a' for absent output quantities without overwriting measurements.
+    Consistency uses relative tolerance 1e-5 and absolute tolerance 1e-12 in the
+    target's declared units. Returns a metadata update; does not mutate kwargs.
     """
-    Routine to check input consistency, possibly generate new ones from PET
-    BIDS metadata - this only makes sense if you respect the input units as
-    indicated
-
-    e.g. arguments in are provided via the following params (key/value pairs)
-        - 'InjectedRadioctivity',81.24
-        - 'SpecificRadioactivity',1.3019e+04
-
-    Units are transformed as follows:
-
-    InjectedRadioactivity: in MBq
-    InjectedMass:          in ug
-    SpecificRadioactivity: in Bq/g or MBq/ug
-    MolarActivity:         in GBq/umol
-    MolecularWeight:       in g/mol
-
-    :param kwargs: metadata key pair's to examine
-    :type kwargs: dict
-    :return: fitted/massaged metadata, return type is an update on input `kwargs`
-    :rtype: dict
-    """
-
     logger = helper_functions.logger(logger)
+    defaults = {
+        "InjectedRadioactivity": "MBq",
+        "InjectedMass": "ug",
+        "SpecificRadioactivity": "Bq/g",
+        "MolarActivity": "GBq/umol",
+        "MolecularWeight": "g/mol",
+    }
+    data_out, values, factors, units = {}, {}, {}, {}
+    present = set()
+    for name, default in defaults.items():
+        value = kwargs.get(name)
+        # Zero is a supplied value; None and empty strings are missing.
+        has_value = value is not None and not (isinstance(value, str) and value == "")
+        unit = kwargs.get(name + "Units")
+        if unit is None or (isinstance(unit, str) and unit == ""):
+            unit = default
+        units[name] = unit
+        factors[name] = _radio_unit_factor(unit, name)
+        if math.isnan(factors[name]) and (has_value or name + "Units" in kwargs):
+            logger.warning("Unsupported or incompatible %sUnits: %r", name, unit)
+        if has_value:
+            present.add(name)
+            data_out[name] = value
+            data_out[name + "Units"] = unit
+            numeric = _radio_numeric(value)
+            if numeric >= 0 and not (name == "MolecularWeight" and numeric == 0):
+                values[name] = numeric * factors[name]
 
-    InjectedRadioactivity = kwargs.get("InjectedRadioactivity", None)
-    InjectedMass = kwargs.get("InjectedMass", None)
-    SpecificRadioactivity = kwargs.get("SpecificRadioactivity", None)
-    MolarActivity = kwargs.get("MolarActivity", None)
-    MolecularWeight = kwargs.get("MolecularWeight", None)
-
-    data_out = {}
-
-    if InjectedRadioactivity and InjectedMass:
-        data_out["InjectedRadioactivity"] = InjectedRadioactivity
-        data_out["InjectedRadioactivityUnits"] = "MBq"
-        data_out["InjectedMass"] = InjectedMass
-        data_out["InjectedMassUnits"] = "ug"
-        # check for strings where there shouldn't be strings
-        numeric_check = [
-            helper_functions.is_numeric(str(InjectedRadioactivity)),
-            helper_functions.is_numeric(str(InjectedMass)),
-        ]
-        if False in numeric_check:
-            data_out["InjectedMass"] = "n/a"
-            data_out["InjectedMassUnits"] = "n/a"
-        else:
-            tmp = (InjectedRadioactivity * 10**6) / (InjectedMass * 10**6)
-            if SpecificRadioactivity:
-                if SpecificRadioactivity != tmp:
-                    logger.warning(
-                        "Inferred SpecificRadioactivity in Bq/g doesn't match InjectedRadioactivity "
-                        "and InjectedMass, could be a unit issue"
-                    )
-                data_out["SpecificRadioactivity"] = SpecificRadioactivity
-                data_out["SpecificRadioactivityUnits"] = kwargs.get(
-                    "SpecificRadioactivityUnityUnits", "n/a"
+    # Work internally in Bq, g, Bq/g, Bq/mol and g/mol.
+    relations = [
+        ("SpecificRadioactivity", "InjectedRadioactivity", "InjectedMass", True),
+        ("InjectedMass", "InjectedRadioactivity", "SpecificRadioactivity", True),
+        ("InjectedRadioactivity", "InjectedMass", "SpecificRadioactivity", False),
+        ("SpecificRadioactivity", "MolarActivity", "MolecularWeight", True),
+        ("MolecularWeight", "MolarActivity", "SpecificRadioactivity", True),
+        ("MolarActivity", "MolecularWeight", "SpecificRadioactivity", False),
+    ]
+    for target, first, second, divide in relations:
+        if first not in present or second not in present:
+            continue
+        a, b = values.get(first, math.nan), values.get(second, math.nan)
+        inferred = math.nan
+        if math.isfinite(a) and math.isfinite(b):
+            if divide:
+                if b != 0:
+                    inferred = a / b
+                else:
+                    logger.warning("Cannot infer %s from zero %s.", target, second)
+            else:
+                inferred = a * b
+        inferred /= factors[target]
+        if math.isfinite(inferred):
+            supplied = _radio_numeric(data_out.get(target))
+            if math.isfinite(supplied) and not math.isclose(
+                supplied, inferred, rel_tol=1e-5, abs_tol=1e-12
+            ):
+                logger.warning(
+                    "Inferred %s does not match %s and %s; check values and units.",
+                    target,
+                    first,
+                    second,
                 )
-            else:
-                data_out["SpecificRadioactivity"] = tmp
-                data_out["SpecificRadioactivityUnits"] = "Bq/g"
-
-    if InjectedRadioactivity and SpecificRadioactivity:
-        data_out["InjectedRadioactivity"] = InjectedRadioactivity
-        data_out["InjectedRadioactivityUnits"] = "MBq"
-        data_out["SpecificRadioactivity"] = SpecificRadioactivity
-        data_out["SpecificRadioactivityUnits"] = "Bq/g"
-        numeric_check = [
-            helper_functions.is_numeric(str(InjectedRadioactivity)),
-            helper_functions.is_numeric(str(SpecificRadioactivity)),
-        ]
-        if False in numeric_check:
-            data_out["InjectedMass"] = "n/a"
-            data_out["InjectedMassUnits"] = "n/a"
-        else:
-            tmp = (InjectedRadioactivity * (10**6) / SpecificRadioactivity) * (10**6)
-            if InjectedMass:
-                if InjectedMass != tmp:
-                    logger.warning(
-                        "Inferred InjectedMass in ug doesn't match InjectedRadioactivity and "
-                        "InjectedMass, could be a unit issue"
-                    )
-                data_out["InjectedMass"] = InjectedMass
-                data_out["InjectedMassUnits"] = kwargs.get("InjectedMassUnits", "n/a")
-            else:
-                data_out["InjectedMass"] = tmp
-                data_out["InjectedMassUnits"] = "ug"
-
-    if InjectedMass and SpecificRadioactivity:
-        data_out["InjectedMass"] = InjectedMass
-        data_out["InjectedMassUnits"] = "ug"
-        data_out["SpecificRadioactivity"] = SpecificRadioactivity
-        data_out["SpecificRadioactivityUnits"] = "Bq/g"
-        numeric_check = [
-            helper_functions.is_numeric(str(SpecificRadioactivity)),
-            helper_functions.is_numeric(str(InjectedMass)),
-        ]
-        if False in numeric_check:
-            data_out["InjectedRadioactivity"] = "n/a"
-            data_out["InjectedRadioactivityUnits"] = "n/a"
-        else:
-            tmp = ((InjectedMass / (10**6)) * SpecificRadioactivity) / (
-                10**6
-            )  # ((ug / 10 ^ 6) / Bq / g)/10 ^ 6 = MBq
-            if InjectedRadioactivity:
-                if InjectedRadioactivity != tmp:
-                    logger.warning(
-                        "Inferred InjectedRadioactivity in MBq doesn't match SpecificRadioactivity "
-                        "and InjectedMass, could be a unit issue"
-                    )
-                data_out["InjectedRadioactivity"] = InjectedRadioactivity
-                data_out["InjectedRadioactivityUnits"] = kwargs.get(
-                    "InjectedRadioactivityUnits", "n/a"
-                )
-            else:
-                data_out["InjectedRadioactivity"] = tmp
-                data_out["InjectedRadioactivityUnits"] = "MBq"
-
-    if MolarActivity and MolecularWeight:
-        data_out["MolarActivity"] = MolarActivity
-        data_out["MolarActivityUnits"] = "GBq/umol"
-        data_out["MolecularWeight"] = MolecularWeight
-        data_out["MolecularWeightUnits"] = "g/mol"
-        numeric_check = [
-            helper_functions.is_numeric(str(MolarActivity)),
-            helper_functions.is_numeric(str(MolecularWeight)),
-        ]
-        if False in numeric_check:
-            data_out["SpecificRadioactivity"] = "n/a"
-            data_out["SpecificRadioactivityUnits"] = "n/a"
-        else:
-            tmp = (
-                MolarActivity * (10**3)
-            ) / MolecularWeight  # (GBq / umol * 10 ^ 6) / (g / mol / * 10 ^ 6) = Bq / g
-            if SpecificRadioactivity:
-                if SpecificRadioactivity != tmp:
-                    logger.warning(
-                        "Inferred SpecificRadioactivity in MBq/ug doesn't match Molar Activity and Molecular "
-                        "Weight, could be a unit issue"
-                    )
-                data_out["SpecificRadioactivity"] = SpecificRadioactivity
-                data_out["SpecificRadioactivityUnits"] = kwargs.get(
-                    "SpecificRadioactivityUnityUnits", "n/a"
-                )
-            else:
-                data_out["SpecificRadioactivity"] = tmp
-                data_out["SpecificRadioactivityUnits"] = "Bq/g"
-
-    if MolarActivity and SpecificRadioactivity:
-        data_out["SpecificRadioactivity"] = SpecificRadioactivity
-        data_out["SpecificRadioactivityUnits"] = "MBq/ug"
-        data_out["MolarActivity"] = MolarActivity
-        data_out["MolarActivityUnits"] = "GBq/umol"
-        numeric_check = [
-            helper_functions.is_numeric(str(SpecificRadioactivity)),
-            helper_functions.is_numeric(str(MolarActivity)),
-        ]
-        if False in numeric_check:
-            data_out["MolecularWeight"] = "n/a"
-            data_out["MolecularWeightUnits"] = "n/a"
-        else:
-            tmp = (
-                MolarActivity * 1000
-            ) / SpecificRadioactivity  # (MBq / ug / 1000) / (GBq / umol) = g / mol
-            if MolecularWeight:
-                if MolecularWeight != tmp:
-                    logger.warning(
-                        "Inferred MolecularWeight in MBq/ug doesn't match Molar Activity and "
-                        "Molecular Weight, could be a unit issue"
-                    )
-
-                data_out["MolecularWeight"] = tmp
-                data_out["MolecularWeightUnits"] = kwargs.get(
-                    "MolecularWeightUnits", "n/a"
-                )
-            else:
-                data_out["MolecularWeight"] = tmp
-                data_out["MolecularWeightUnits"] = "g/mol"
-
-    if MolecularWeight and SpecificRadioactivity:
-        data_out["SpecificRadioactivity"] = SpecificRadioactivity
-        data_out["SpecificRadioactivityUnits"] = "MBq/ug"
-        data_out["MolecularWeight"] = MolarActivity
-        data_out["MolecularWeightUnits"] = "g/mol"
-        numeric_check = [
-            helper_functions.is_numeric(str(SpecificRadioactivity)),
-            helper_functions.is_numeric(str(MolecularWeight)),
-        ]
-        if False in numeric_check:
-            data_out["MolarActivity"] = "n/a"
-            data_out["MolarActivityUnits"] = "n/a"
-        else:
-            tmp = MolecularWeight * (
-                SpecificRadioactivity / 1000
-            )  # g / mol * (MBq / ug / 1000) = GBq / umol
-            if MolarActivity:
-                if MolarActivity != tmp:
-                    logger.warning(
-                        "Inferred MolarActivity in GBq/umol doesn't match Specific Radioactivity and "
-                        "Molecular Weight, could be a unit issue"
-                    )
-                data_out["MolarActivity"] = MolarActivity
-                data_out["MolarActivityUnits"] = kwargs.get("MolarActivityUnits", "n/a")
-            else:
-                data_out["MolarActivity"] = tmp
-                data_out["MolarActivityUnits"] = "GBq/umol"
-
+            if target not in present and (
+                target not in data_out or data_out[target] == "n/a"
+            ):
+                data_out[target] = inferred
+                data_out[target + "Units"] = units[target]
+        elif target not in present and target not in data_out:
+            data_out[target] = "n/a"
+            data_out[target + "Units"] = "n/a"
     return data_out
+
+
+def _radio_numeric(value):
+    """Accept finite real scalars and numeric text, but not booleans or arrays."""
+    if isinstance(value, bool) or not isinstance(value, (Real, str)):
+        return math.nan
+    try:
+        number = float(value)
+    except (ValueError, OverflowError):
+        return math.nan
+    return number if math.isfinite(number) else math.nan
 
 
 def get_metadata_from_spreadsheet(
