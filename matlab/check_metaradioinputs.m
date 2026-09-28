@@ -1,180 +1,168 @@
 function dataout = check_metaradioinputs(varargin)
-
-% Routine to check input consistency, possibly generate new ones from PET
-% BIDS metadata - this only makes sense if you respect the input units as
-% indicated
+% Check radiotracer metadata and infer missing quantities with consistent units.
 %
-% :format: dataout = check_metaradioinputs(varargin)
+% :format: dataout = check_metaradioinputs('Name', value, ...)
+%          A cell array of name/value pairs is also accepted.
 %
-% .. note:: arguments in are provided via the following params (key/value pairs)
-%   e.g.
-%   - 'InjectedRadioctivity',81.24
-%   - 'SpecificRadioactivity',1.3019e+04
+% :param InjectedRadioactivity: default MBq
+% :param InjectedMass: default ug
+% :param SpecificRadioactivity: default Bq/g (NOT numerically equal to MBq/ug)
+% :param MolarActivity: default GBq/umol
+% :param MolecularWeight: default g/mol
 %
-% :param InjectedRadioactivity: in MBq
-% :param InjectedMass:          in ug
-% :param SpecificRadioactivity: in Bq/g or MBq/ug
-% :param MolarActivity:         in GBq/umol
-% :param MolecularWeight:       in g/mol
+% Each quantity accepts a corresponding <Name>Units argument. Activity units
+% Bq, kBq, MBq, GBq, TBq, Ci, mCi, uCi; mass units kg, g, mg, ug, ng;
+% and amount units mol, mmol, umol, nmol, pmol are supported, including ratios
+% commensurate with Bq/g, Bq/mol and g/mol. Micro signs are accepted as 'u'.
+% Supplied values and units are preserved. Omitted units use the defaults above.
+% Inferred values use requested units, or the defaults if none were supplied.
+% For example, 10 MBq / 10 ug is 1 MBq/ug, or 1e12 Bq/g.
+% Unknown/incompatible units are warned about and excluded from calculations.
+% Missing/non-numeric inputs and zero denominators cannot generate a numeric
+% result. Only absent output quantities are marked 'n/a'; inputs are retained.
+% Consistency uses relative tolerance 1e-5 rather than integer truncation.
 %
-% :return: a structure with the original and updated field,
-%         including expected units
-%
-%
-% | *Claus Svarer, Martin Nørgaard  & Cyril Pernet - 2021*
+% | *Claus Svarer, Martin Nørgaard & Cyril Pernet - 2021*
 % | *Copyright Open NeuroPET team*
 
-%% check inputs
-if size(varargin,2)==1
+if numel(varargin) == 1 && iscell(varargin{1})
     varargin = varargin{1};
 end
-
-for n=1:length(varargin)
-    if strcmpi(varargin{n},'InjectedRadioactivity')
-        InjectedRadioactivity = varargin{n+1};
-    elseif strcmpi(varargin{n},'InjectedMass')
-        InjectedMass = varargin{n+1};
-    elseif strcmpi(varargin{n},'SpecificRadioactivity')
-        SpecificRadioactivity = varargin{n+1};
-    elseif strcmpi(varargin{n},'MolarActivity')
-        MolarActivity = varargin{n+1};
-    elseif strcmpi(varargin{n},'MolecularWeight')
-        MolecularWeight = varargin{n+1};
+if mod(numel(varargin), 2) ~= 0
+    error('PET2BIDS:RadioInputPairs', 'Expected name/value pairs.');
+end
+names = {'InjectedRadioactivity', 'InjectedMass', 'SpecificRadioactivity', ...
+    'MolarActivity', 'MolecularWeight'};
+defaults = {'MBq', 'ug', 'Bq/g', 'GBq/umol', 'g/mol'};
+unitnames = strcat(names, 'Units');
+inputs = struct();
+for n = 1:2:numel(varargin)
+    key = varargin{n};
+    if ~(ischar(key) || (isstring(key) && isscalar(key)))
+        error('PET2BIDS:RadioInputPairs', 'Input names must be text.');
+    end
+    allnames = [names unitnames];
+    index = find(strcmpi(key, allnames), 1);
+    if ~isempty(index)
+        inputs.(allnames{index}) = varargin{n+1};
     end
 end
-
-%% validates those metata
 
 dataout = [];
-
-if exist('InjectedRadioactivity', 'var') && exist('InjectedMass', 'var')
-    dataout.InjectedRadioactivity          = InjectedRadioactivity;
-    dataout.InjectedRadioactivityUnits     = 'MBq';
-    dataout.InjectedMass                   = InjectedMass;
-    dataout.InjectedMassUnits              = 'ug';
-    if any(ischar([InjectedRadioactivity,InjectedMass]))
-        dataout.SpecificRadioactivity      = 'n/a';
-        dataout.SpecificRadioactivityUnits = 'n/a';
-    else
-        tmp = (InjectedRadioactivity*10^6) / (InjectedMass/10*6); % (MBq*10^6)/(ug/10^6) = Bq/g
-        if exist('SpecificRadioactivity', 'var')
-            if uint16(SpecificRadioactivity) ~= uint16(tmp)
-                warning('infered SpecificRadioactivity in Bq/g doesn''t match InjectedRadioactivity and InjectedMass, could be a unit issue')
-            end
-            dataout.SpecificRadioactivity      = SpecificRadioactivity;
-        else
-            dataout.SpecificRadioactivity      = tmp;
-            dataout.SpecificRadioactivityUnits = 'Bq/g';
+present = false(1, 5);
+values = nan(1, 5);
+factors = nan(1, 5);
+units = defaults;
+for n = 1:5
+    present(n) = isfield(inputs, names{n}) && ~isempty(inputs.(names{n}));
+    if isfield(inputs, unitnames{n}) && ~isempty(inputs.(unitnames{n}))
+        units{n} = inputs.(unitnames{n});
+    end
+    factors(n) = unit_factor(units{n}, n);
+    if isnan(factors(n)) && (present(n) || isfield(inputs, unitnames{n}))
+        warning('PET2BIDS:RadioUnits', 'Unsupported or incompatible %s.', unitnames{n});
+    end
+    if present(n)
+        value = inputs.(names{n});
+        dataout.(names{n}) = value;
+        dataout.(unitnames{n}) = units{n};
+        if ischar(value) || (isstring(value) && isscalar(value))
+            value = str2double(value);
+        end
+        if isnumeric(value) && isscalar(value) && isreal(value) && ...
+                isfinite(value) && value >= 0 && ~(n == 5 && value == 0)
+            values(n) = double(value) * factors(n);
         end
     end
 end
 
-if exist('InjectedRadioactivity', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.InjectedRadioactivity      = InjectedRadioactivity;
-    dataout.InjectedRadioactivityUnits = 'MBq';
-    dataout.SpecificRadioactivity      = SpecificRadioactivity;
-    dataout.SpecificRadioactivityUnits = 'Bq/g';
-    if any(ischar([InjectedRadioactivity,SpecificRadioactivity]))
-        dataout.InjectedMass           = 'n/a';
-        dataout.InjectedMassUnits      = 'n/a';
-    else
-        tmp = ((InjectedRadioactivity*10^6)/SpecificRadioactivity)*10^6; % ((MBq*10^6)/(Bq/g))*10^6 = ug
-        if exist('InjectedMass', 'var')
-            if uint16(InjectedMass) ~= uint16(tmp)
-                warning('infered InjectedMass in ug doesn''t match InjectedRadioactivity and InjectedMass, could be a unit issue')
+% Work internally in Bq, g, Bq/g, Bq/mol, g/mol. Each row is
+% [target, first input, second input, divide (1) or multiply (0)].
+% Use supplied inputs only: inferred values do not overwrite measurements
+% or become new evidence for further consistency checks.
+relations = [3 1 2 1; 2 1 3 1; 1 2 3 0; ...
+             3 4 5 1; 5 4 3 1; 4 5 3 0];
+for r = 1:size(relations, 1)
+    target = relations(r, 1);
+    a = relations(r, 2);
+    b = relations(r, 3);
+    if ~present(a) || ~present(b)
+        continue
+    end
+    inferred = NaN;
+    if isfinite(values(a)) && isfinite(values(b))
+        if relations(r, 4)
+            if values(b) ~= 0
+                inferred = values(a) / values(b);
+            else
+                warning('PET2BIDS:RadioZeroDenominator', ...
+                    'Cannot infer %s from zero %s.', names{target}, names{b});
             end
-            dataout.InjectedMass      = InjectedMass;
         else
-            dataout.InjectedMass      = tmp;
-            dataout.InjectedMassUnits = 'ug';
+            inferred = values(a) * values(b);
         end
+    end
+    inferred = inferred / factors(target);
+    if isfinite(inferred)
+        if isfield(dataout, names{target})
+            % Includes a previous independent estimate of the same quantity.
+            supplied = dataout.(names{target});
+            if ischar(supplied) || (isstring(supplied) && isscalar(supplied))
+                supplied = str2double(supplied);
+            end
+            if isnumeric(supplied) && isscalar(supplied) && isreal(supplied) && ...
+                    isfinite(supplied) && abs(supplied - inferred) > ...
+                    1e-12 + 1e-5 * max(abs(supplied), abs(inferred))
+                warning('PET2BIDS:RadioMismatch', ...
+                    'Inferred %s does not match %s and %s; check values and units.', ...
+                    names{target}, names{a}, names{b});
+            end
+        end
+        if ~present(target) && (~isfield(dataout, names{target}) || ...
+                isequal(dataout.(names{target}), 'n/a'))
+            dataout.(names{target}) = inferred;
+            dataout.(unitnames{target}) = units{target};
+        end
+    elseif ~present(target) && ~isfield(dataout, names{target})
+        dataout.(names{target}) = 'n/a';
+        dataout.(unitnames{target}) = 'n/a';
     end
 end
-
-if exist('InjectedMass', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.InjectedMass                   = InjectedMass;
-    dataout.InjectedMassUnits              = 'ug';
-    dataout.SpecificRadioactivity          = SpecificRadioactivity;
-    dataout.SpecificRadioactivityUnits     = 'Bq/g';
-    if any(ischar([SpecificRadioactivity,InjectedMass]))
-        dataout.InjectedRadioactivity      = 'n/a';
-        dataout.InjectedRadioactivityUnits = 'n/a';
-    else
-        tmp = ((InjectedMass/10^6)*SpecificRadioactivity) / 10^6; % ((ug/10^6)*Bq/g) / 10^6 = MBq
-        if exist('InjectedRadioactivity', 'var')
-            if uint16(InjectedRadioactivity) ~= uint16(tmp)
-                warning('infered InjectedRadioactivity in MBq doesn''t match SpecificRadioactivity and InjectedMass, could be a unit issue')
-            end
-            dataout.InjectedRadioactivity      = InjectedRadioactivity;
-        else
-            dataout.InjectedRadioactivity      = tmp;
-            dataout.InjectedRadioactivityUnits = 'MBq';
-        end
-    end
 end
 
-if exist('MolarActivity', 'var') && exist('MolecularWeight', 'var')
-    dataout.MolarActivity                  = MolarActivity;
-    dataout.MolarActivityUnits             = 'GBq/umol';
-    dataout.MolecularWeight                = MolecularWeight;
-    dataout.MolecularWeightUnits           = 'g/mol';
-    if any(ischar([MolarActivity,MolecularWeight]))
-        dataout.SpecificRadioactivity      = 'n/a';
-        dataout.SpecificRadioactivityUnits = 'n/a';
-    else
-        tmp = (MolarActivity*1000)/ MolecularWeight; % (GBq/umol*1000) / g/mol = Bq/g
-        if exist('SpecificRadioactivity', 'var')
-            if uint16(SpecificRadioactivity) ~= uint16(tmp)
-                warning('infered SpecificRadioactivity in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
-            end
-            dataout.SpecificRadioactivity      = SpecificRadioactivity;
-        else
-            dataout.SpecificRadioactivity      = tmp;
-            dataout.SpecificRadioactivityUnits = 'Bq/g';
-        end
-    end
+function factor = unit_factor(unit, quantity)
+% Return conversion to the canonical unit, or NaN for incompatible units.
+factor = NaN;
+if ~(ischar(unit) || (isstring(unit) && isscalar(unit)))
+    return
+end
+unit = strrep(strrep(strtrim(char(unit)), 'µ', 'u'), 'μ', 'u');
+parts = strsplit(unit, '/');
+kinds = {'activity', 'mass', 'activity', 'activity', 'mass'};
+denominators = {'', '', 'mass', 'amount', 'amount'};
+if quantity <= 2 && numel(parts) == 1
+    factor = base_factor(parts{1}, kinds{quantity});
+elseif quantity >= 3 && numel(parts) == 2
+    factor = base_factor(parts{1}, kinds{quantity}) / ...
+        base_factor(parts{2}, denominators{quantity});
+end
 end
 
-if exist('MolarActivity', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.SpecificRadioactivity      = SpecificRadioactivity;
-    dataout.SpecificRadioactivityUnits = 'MBq/ug';
-    dataout.MolarActivity              = MolarActivity;
-    dataout.MolarActivityUnits         = 'GBq/umol';
-    if any(ischar([SpecificRadioactivity,MolarActivity]))
-        dataout.MolecularWeight        = 'n/a';
-        dataout.MolecularWeightUnits  = 'n/a';
-    else
-        tmp = (MolarActivity*1000)/SpecificRadioactivity; % = g / mol
-        if exist('MolecularWeight', 'var')
-            if uint16(MolecularWeight) ~= uint16(tmp)
-                warning('infered MolecularWeight in MBq/ug doesn''t match Molar Activity and Molecular Weight, could be a unit issue')
-            end
-            dataout.MolecularWeight      = MolecularWeight;
-        else
-            dataout.MolecularWeight      = tmp;
-            dataout.MolecularWeightUnits = 'g/mol';
-        end
-    end
+function factor = base_factor(unit, kind)
+switch kind
+    case 'activity'
+        labels = {'Bq', 'kBq', 'MBq', 'GBq', 'TBq', 'Ci', 'mCi', 'uCi'};
+        scales = [1 1e3 1e6 1e9 1e12 3.7e10 3.7e7 3.7e4];
+    case 'mass'
+        labels = {'kg', 'g', 'mg', 'ug', 'ng'};
+        scales = [1e3 1 1e-3 1e-6 1e-9];
+    case 'amount'
+        labels = {'mol', 'mmol', 'umol', 'nmol', 'pmol'};
+        scales = [1 1e-3 1e-6 1e-9 1e-12];
 end
-
-if exist('MolecularWeight', 'var') && exist('SpecificRadioactivity', 'var')
-    dataout.SpecificRadioactivity      = SpecificRadioactivity;
-    dataout.SpecificRadioactivityUnits = 'MBq/ug';
-    dataout.MolecularWeight            = MolecularWeight;
-    dataout.MolecularWeightUnits       = 'g/mol';
-    if any(ischar([SpecificRadioactivity,MolecularWeight]))
-        dataout.MolarActivity         = 'n/a';
-        dataout.MolarActivityUnits    = 'n/a';
-    else
-        tmp =  (MolecularWeight*SpecificRadioactivity)/1000; % MBq/umol/1000 = GBq/umol
-        if exist('MolarActivity', 'var')
-            if uint16(MolarActivity) ~= uint16(tmp)
-                warning('infered MolarActivity in GBq/umol doesn''t match Specific Radioactivity and Molecular Weight, could be a unit issue')
-            end
-            dataout.MolarActivity       = MolarActivity;
-        else
-            dataout.MolarActivity       = tmp;
-            dataout.MolarActivityUnits  = 'GBq/umol';
-        end
-    end
+index = find(strcmp(strtrim(unit), labels), 1);
+factor = NaN;
+if ~isempty(index)
+    factor = scales(index);
+end
 end

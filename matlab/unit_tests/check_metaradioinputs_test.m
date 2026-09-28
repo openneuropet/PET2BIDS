@@ -1,89 +1,104 @@
 function check_metaradioinputs_test
-
-% given know input values, does check_metaradioinputs return valid output
-%
-% @context:
-% Activity is the number of disintegrations per second in Bq
-% SpecificRadioactivity is the activity per unit mass of a radionuclide in Bq/g or MBq/ug
-% InjectedRadioactivity how much activity was injected in MBq
-% InjectedMass how much mass was injected in ug
-% It follows that
-%        SpecificRadioactivity = InjectedRadioactivity / InjectedMass (with values scaled)
-% A Mole is 6.02214076^23 of a compound/molecule
-% MolarActivity is the amount of activity per compound (active and stable) in GBq/umol
-% MolecularWeight is the weight of a mol of compound in g/mol
-% It follows that
-%         SpecificRadioactivity = MolarActivity / MolecularWeight (with values scaled)
-%
-% Cyril Pernet
-% ----------------------------------------------
-% Copyright OpenNeuroPET team
-
-%% does it compute as expected
-InjectedRadioactivity = 44.4;
-InjectedMass          = 6240;
-SpecificRadioactivity = (InjectedRadioactivity*10^6) / (InjectedMass/10^6); % (MBq*10^6)/(ug/10^6) = Bq/g
-dataout = check_metaradioinputs('InjectedRadioactivity',44.4,'InjectedMass',6240);
-if SpecificRadioactivity ~= dataout.SpecificRadioactivity
-    report{1} = 'error in computing SpecificRadioactivity from Injected activity and mass';
-else
-    report{1} = 'computing SpecificRadioactivity from Injected activity and mass ok';
+% Numerical regression tests: failures must fail CI, not merely print a report.
+% Independent physical example: 100 MBq, 2 ug, 50 MBq/ug,
+% 15 GBq/umol, molecular weight 300 g/mol.
+names = {'InjectedRadioactivity', 'InjectedMass', 'SpecificRadioactivity', ...
+    'MolarActivity', 'MolecularWeight'};
+expected = [100, 2, 5e13, 15, 300];
+relations = [3 1 2; 2 1 3; 1 2 3; 3 4 5; 5 4 3; 4 5 3];
+for r = 1:size(relations, 1)
+    row = relations(r, :);
+    out = check_metaradioinputs(names{row(2)}, expected(row(2)), ...
+        names{row(3)}, expected(row(3)));
+    assert_close(out.(names{row(1)}), expected(row(1)));
 end
 
-InjectedRadioactivity = 44.4;
-SpecificRadioactivity = 7.1154e+09;
-InjectedMass = ((InjectedRadioactivity*10^6)/SpecificRadioactivity)*10^6; % ((MBq*10^6)/(Bq/g))*10^6 = ug
-dataout = check_metaradioinputs('InjectedRadioactivity',44.4,'SpecificRadioactivity',7.1154e+09);
-if InjectedMass ~= dataout.InjectedMass
-    report{2} = 'error in computing InjectedMass';
-else
-    report{2} = 'computing InjectedMass ok';
+% Equivalent specific-activity units must give the same physical results.
+unitlabels = {'Bq/g', 'MBq/ug', 'kBq/mg', 'GBq/g', 'MBq/µg', 'MBq/μg'};
+specific = [5e13, 50, 5e7, 5e4, 50, 50];
+for k = 1:numel(unitlabels)
+    args = {'SpecificRadioactivity', specific(k), ...
+        'SpecificRadioactivityUnits', unitlabels{k}};
+    out = check_metaradioinputs(args{:}, 'InjectedRadioactivity', 100);
+    assert_close(out.InjectedMass, 2);
+    out = check_metaradioinputs(args{:}, 'InjectedMass', 2);
+    assert_close(out.InjectedRadioactivity, 100);
+    out = check_metaradioinputs(args{:}, 'MolarActivity', 15);
+    assert_close(out.MolecularWeight, 300);
+    out = check_metaradioinputs(args{:}, 'MolecularWeight', 300);
+    assert_close(out.MolarActivity, 15);
+    assert(strcmp(out.SpecificRadioactivityUnits, unitlabels{k}));
+    assert(out.SpecificRadioactivity == specific(k));
 end
 
-SpecificRadioactivity = 7.1154e+09;
-InjectedMass          = 6240;
-InjectedRadioactivity = ((InjectedMass/10^6)*SpecificRadioactivity) / 10^6; % ((ug/10^6)*Bq/g) / 10^6 = MBq
-dataout = check_metaradioinputs('InjectedMass',6240,'SpecificRadioactivity',7.1154e+09);
-if InjectedRadioactivity ~= dataout.InjectedRadioactivity
-    report{3} = 'error in computing InjectedRadioactivity';
-else
-    report{3} = 'computing InjectedRadioactivity ok';
+out = check_metaradioinputs('InjectedRadioactivity', 10, 'InjectedMass', 10);
+assert_close(out.SpecificRadioactivity, 1e12);
+out = check_metaradioinputs('InjectedRadioactivity', 10, 'InjectedMass', 10, ...
+    'SpecificRadioactivityUnits', 'MBq/ug');
+assert_close(out.SpecificRadioactivity, 1);
+assert(strcmp(out.SpecificRadioactivityUnits, 'MBq/ug'));
+
+% Preserve every supplied quantity and unit; no spurious consistency warning.
+args = {'InjectedRadioactivity', 100, 'InjectedMass', 2, ...
+    'SpecificRadioactivity', 50, 'SpecificRadioactivityUnits', 'MBq/ug', ...
+    'MolarActivity', 15, 'MolecularWeight', 300};
+lastwarn('');
+out = check_metaradioinputs(args);
+[msg, ~] = lastwarn;
+assert(isempty(msg));
+assert(out.MolecularWeight == 300 && out.MolarActivity == 15);
+assert(out.SpecificRadioactivity == 50);
+assert(strcmp(out.MolarActivityUnits, 'GBq/umol'));
+assert(isequal(out, check_metaradioinputs(args{:})));
+
+% Other input units and requested output units.
+out = check_metaradioinputs('InjectedRadioactivity', 1e8, ...
+    'InjectedRadioactivityUnits', 'Bq', 'InjectedMass', .002, ...
+    'InjectedMassUnits', 'mg', 'SpecificRadioactivityUnits', 'MBq/ug');
+assert_close(out.SpecificRadioactivity, 50);
+assert(out.InjectedMass == .002 && strcmp(out.InjectedMassUnits, 'mg'));
+out = check_metaradioinputs('MolarActivity', 15e6, ...
+    'MolarActivityUnits', 'MBq/mol', 'MolecularWeight', .3, ...
+    'MolecularWeightUnits', 'kg/mol');
+assert_close(out.SpecificRadioactivity, 5e10);
+out = check_metaradioinputs('InjectedRadioactivity', 1, ...
+    'InjectedRadioactivityUnits', 'mCi', 'InjectedMass', 1);
+assert_close(out.SpecificRadioactivity, 3.7e13);
+
+% Relative tolerance works for large Bq/g values; unlike uint16 saturation.
+lastwarn('');
+check_metaradioinputs('InjectedRadioactivity', 44.4, 'InjectedMass', 6240, ...
+    'SpecificRadioactivity', 7.1154e9);
+[msg, ~] = lastwarn;
+assert(isempty(msg));
+lastwarn('');
+out = check_metaradioinputs('InjectedRadioactivity', 100, 'InjectedMass', 2, ...
+    'SpecificRadioactivity', 8e13);
+[~, id] = lastwarn;
+assert(strcmp(id, 'PET2BIDS:RadioMismatch'));
+assert(out.SpecificRadioactivity == 8e13);
+
+% Missing values must not overwrite measurements; zero numerators are valid.
+out = check_metaradioinputs('InjectedRadioactivity', 'n/a', 'InjectedMass', 2);
+assert(out.InjectedMass == 2 && strcmp(out.SpecificRadioactivity, 'n/a'));
+out = check_metaradioinputs('InjectedRadioactivity', 0, 'InjectedMass', 2);
+assert(out.SpecificRadioactivity == 0);
+out = check_metaradioinputs('InjectedRadioactivity', 100, 'InjectedMass', 0);
+assert(strcmp(out.SpecificRadioactivity, 'n/a'));
+out = check_metaradioinputs('InjectedRadioactivity', '100', 'InjectedMass', '2');
+assert_close(out.SpecificRadioactivity, 5e13);
+out = check_metaradioinputs('InjectedRadioactivity', NaN, 'InjectedMass', 2);
+assert(strcmp(out.SpecificRadioactivity, 'n/a'));
+out = check_metaradioinputs('InjectedRadioactivity', 100, 'InjectedMass', 2, ...
+    'SpecificRadioactivity', 10, 'SpecificRadioactivityUnits', 'Bq/mol');
+assert(out.SpecificRadioactivity == 10);
+assert(strcmp(out.SpecificRadioactivityUnits, 'Bq/mol'));
+assert(out.InjectedMass == 2);
+assert(isempty(check_metaradioinputs()));
+assert(isempty(check_metaradioinputs({})));
+fprintf('check_metaradioinputs regression tests passed.\n');
 end
 
-MolarActivity         = 135192600;
-MolecularWeight       = 19;
-SpecificRadioactivity = (MolarActivity*1000)/ MolecularWeight; % (GBq/umol*1000) / g/mol = Bq/g
-dataout = check_metaradioinputs('MolarActivity',135192600,'MolecularWeight',19);
-if SpecificRadioactivity ~= dataout.SpecificRadioactivity
-    report{4} = 'error in computing SpecificRadioactivity from Molecular activity and mass';
-else
-    report{4} = 'computing SpecificRadioactivity from Molecular activity and mass ok';
+function assert_close(actual, expected)
+assert(abs(actual - expected) <= 1e-12 + 1e-10 * abs(expected));
 end
-
-MolarActivity         = 135192600;
-SpecificRadioactivity = 7.1154e+09;
-MolecularWeight       = (MolarActivity*1000)/SpecificRadioactivity; % (GBq/umol)*1000 / (MBq/ug) = g / mol
-dataout = check_metaradioinputs('MolarActivity',135192600,'SpecificRadioactivity',7.1154e+09);
-if MolecularWeight ~= dataout.MolecularWeight
-    report{5} = 'error in computing MolecularWeight';
-else
-    report{5} = 'computing MolecularWeight ok';
-end
-
-MolecularWeight       = 19;
-SpecificRadioactivity = 7.1154e+09;
-MolarActivity         = (MolecularWeight*SpecificRadioactivity)/1000; % g/mol*(MBq/ug) = ug/umol*(MBq/ug) = MBq/umol/1000 = GBq/umol
-dataout = check_metaradioinputs('MolecularWeight',19,'SpecificRadioactivity',7.1154e+09);
-if MolarActivity ~= dataout.MolarActivity
-    report{6} = 'error in computing MolarActivity';
-else
-    report{6} = 'computing MolarActivity ok';
-end
-celldisp(report)
-
-%% also check if any warning issued
-check_metaradioinputs('InjectedRadioactivity',44.4,'SpecificRadioactivity',7.1154e+09,...
-    'InjectedMass',6240);
-
-check_metaradioinputs('MolecularWeight',19,'SpecificRadioactivity',7.1154e+09,...
-    'MolarActivity',135192600);

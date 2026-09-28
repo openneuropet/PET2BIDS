@@ -330,7 +330,9 @@ end
 % get_pet_metadata ; but user can also populate metadata by hand
 % so let's recheck
 radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-    'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+    'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight', ...
+            'InjectedRadioactivityUnits', 'InjectedMassUnits', ...
+            'SpecificRadioactivityUnits', 'MolarActivityUnits', 'MolecularWeightUnits'};
 input_check            = cellfun(@(x) isfield(filemetadata,x), radioinputs);
 index                  = 1; % make key-value pairs
 arguments              = cell(1,sum(input_check)*2);

@@ -356,7 +356,9 @@ for j=1:length(FileListIn)
         end
 
         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-            'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+            'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight', ...
+            'InjectedRadioactivityUnits', 'InjectedMassUnits', ...
+            'SpecificRadioactivityUnits', 'MolarActivityUnits', 'MolecularWeightUnits'};
         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
         index                  = 1; % make key-value pairs
         arguments              = cell(1,sum(input_check)*2);
