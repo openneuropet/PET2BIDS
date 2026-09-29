@@ -61,6 +61,10 @@ pet2bids_folder = python_folder.parent
 
 loggers = {}
 
+BIDS_RECOMMENDED = 25
+BIDS_INVALID_LABEL = "BIDS-INVALID"
+logging.addLevelName(BIDS_RECOMMENDED, "BIDS-RECOMMENDED")
+
 
 def logger(name):
     global loggers
@@ -1054,6 +1058,7 @@ class CustomFormatter(logging.Formatter):
     FORMATS = {
         logging.DEBUG: grey + format + reset,
         logging.INFO: grey + format + reset,
+        BIDS_RECOMMENDED: grey + format + reset,
         logging.WARNING: yellow + format + reset,
         logging.ERROR: red + format + reset,
         logging.CRITICAL: bold_red + format + reset,
@@ -1062,7 +1067,12 @@ class CustomFormatter(logging.Formatter):
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        original_levelname = record.levelname
+        record.levelname = getattr(record, "display_levelname", record.levelname)
+        try:
+            return formatter.format(record)
+        finally:
+            record.levelname = original_levelname
 
 
 def hash_fields(**fields):

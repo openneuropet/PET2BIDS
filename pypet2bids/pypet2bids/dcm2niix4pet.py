@@ -682,7 +682,7 @@ class Dcm2niix4PET:
                 pass
 
             # iterate through created files to supplement sidecar jsons
-            for created in files_created_by_dcm2niix:
+            for created in sorted(files_created_by_dcm2niix):
                 created_path = Path(created)
                 if created_path.suffix == ".json":
                     # we want to pair up the headers to the files created in the output directory in case
@@ -788,49 +788,48 @@ class Dcm2niix4PET:
 
                     # check to see if convolution kernel is present
                     sidecar_json = JsonMAJ(json_path=str(created), bids_null=True)
-                    if sidecar_json.get("ConvolutionKernel"):
-                        if sidecar_json.get("ReconFilterType") and sidecar_json.get(
-                            "ReconFilterSize"
-                        ):
-                            sidecar_json.remove("ConvolutionKernel")
-                        else:
-                            # collect filter size
-                            recon_filter_size = ""
-                            if re.search(
-                                r"\d+.\d+", sidecar_json.get("ConvolutionKernel")
-                            ):
-                                try:
-                                    recon_filter_size = re.search(
-                                        r"\d+.\d*",
-                                        sidecar_json.get("ConvolutionKernel"),
-                                    )[0]
-                                    recon_filter_size = float(recon_filter_size)
-                                except ValueError:
-                                    # If float conversion fails, try splitting and take first part
-                                    match_str = re.search(
-                                        r"\d+.\d*",
-                                        sidecar_json.get("ConvolutionKernel"),
-                                    )[0]
-                                    recon_filter_size = float(match_str.split()[0])
-                                sidecar_json.update(
-                                    {"ReconFilterSize": float(recon_filter_size)}
-                                )
-                            # collect just the filter type by popping out the filter size if it exists
-                            recon_filter_type = re.sub(
-                                str(recon_filter_size),
-                                "",
-                                sidecar_json.get("ConvolutionKernel"),
-                            )
-                            # further sanitize the recon filter type string
-                            recon_filter_type = re.sub(
-                                r"[^a-zA-Z0-9]", " ", recon_filter_type
-                            )
-                            recon_filter_type = re.sub(r" +", " ", recon_filter_type)
+                    recon_filter_size = sidecar_json.get("ReconFilterSize", None)
+                    recon_filter_type = sidecar_json.get("ReconFilterType", None)
+                    convolution_kernel = sidecar_json.get("ConvolutionKernel", None)
+                    if convolution_kernel:
+                        sidecar_json.remove("ConvolutionKernel")
 
-                            # update the json
-                            sidecar_json.update({"ReconFilterType": recon_filter_type})
-                            # remove non bids field
-                            sidecar_json.remove("ConvolutionKernel")
+                    if not (recon_filter_type and recon_filter_size) and convolution_kernel:
+                        # collect filter size from convolution kernel
+                        recon_filter_size = ""
+                        if re.search(
+                            r"\d+.\d+", convolution_kernel
+                        ):
+                            try:
+                                recon_filter_size = re.search(
+                                    r"\d+.\d*",
+                                    convolution_kernel,
+                                )[0]
+                                recon_filter_size = float(recon_filter_size)
+                            except ValueError:
+                                # If float conversion fails, try splitting and take first part
+                                match_str = re.search(
+                                    r"\d+.\d*",
+                                    convolution_kernel,
+                                )[0]
+                                recon_filter_size = float(match_str.split()[0])
+                            sidecar_json.update(
+                                {"ReconFilterSize": float(recon_filter_size)}
+                            )
+                        # collect just the filter type by popping out the filter size if it exists
+                        recon_filter_type = re.sub(
+                            str(recon_filter_size),
+                            "",
+                            convolution_kernel,
+                        )
+                        # further sanitize the recon filter type string
+                        recon_filter_type = re.sub(
+                            r"[^a-zA-Z0-9]", " ", recon_filter_type
+                        )
+                        recon_filter_type = re.sub(r" +", " ", recon_filter_type)
+
+                        # update the json
+                        sidecar_json.update({"ReconFilterType": recon_filter_type})
 
                     # check the input args again as our logic is applied after parsing user inputs
                     if self.additional_arguments:
@@ -930,6 +929,8 @@ class Dcm2niix4PET:
 
                     if self.tracer:
                         trc = "_" + self.tracer
+                    elif not self.tracer and sidecar_json.get("TracerName"):
+                        trc = "_trc-" + re.sub(r"[^a-zA-Z0-9]", "", sidecar_json.get("TracerName"))
                     else:
                         trc = ""
 

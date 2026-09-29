@@ -8,6 +8,7 @@ and write them out to Nifti files.
 """
 
 import datetime
+import logging
 import re
 
 import nibabel
@@ -23,6 +24,7 @@ try:
     import ecat2nii
     import dcm2niix4pet
     from update_json_pet_file import (
+        check_json,
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
@@ -34,6 +36,7 @@ except ModuleNotFoundError:
     import pypet2bids.ecat2nii as ecat2nii
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
     from pypet2bids.update_json_pet_file import (
+        check_json,
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
@@ -74,6 +77,8 @@ class Ecat:
         metadata_path=None,
         kwargs={},
         ezbids=False,
+        silent=False,
+        verbose=False,
     ):
         """
         Initialization of this class requires only a path to an ecat file.
@@ -82,6 +87,8 @@ class Ecat:
         :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
             to output the newly generated nifti
         :param decompress: attempt to decompress the ecat file, should probably be set to false
+        :param silent: hide all log output
+        :param verbose: display informational, warning, and debug messages, including recommended BIDS fields
         """
         self.ecat_header = {}  # ecat header information is stored here
         self.subheaders = []  # subheader information is placed here
@@ -107,6 +114,10 @@ class Ecat:
         self.output_path = None
         self.metadata_path = metadata_path
         self.ezbids = ezbids
+        self.silent = silent
+        self.verbose = verbose
+        logger.disabled = silent
+        logger.setLevel(logging.DEBUG if verbose else logging.ERROR)
         self.telemetry_data = {
             "metadata_spreadsheet_used": False,
             "blood_tsv": False,
@@ -190,7 +201,7 @@ class Ecat:
                 pathlib.Path(metadata_path).is_file()
                 and pathlib.Path(metadata_path).exists()
             ):
-                self.metadata_path = metadata_path
+                self.metadata_path = pathlib.Path(metadata_path)
         elif metadata_path == "":
             self.metadata_path = pathlib.Path(self.ecat_file).parent
         else:
@@ -201,6 +212,7 @@ class Ecat:
                 metadata_path=self.metadata_path,
                 image_folder=pathlib.Path(self.ecat_file).parent,
                 image_header_dict={},
+                warn_missing=False,
             )
 
             self.spreadsheet_metadata["nifti_json"].update(
@@ -683,6 +695,12 @@ class Ecat:
         self.sidecar_template.update(check_meta_radio_inputs(self.sidecar_template))
 
         self.show_sidecar(output_path=pet_json_path)
+        check_json(
+            pet_json_path,
+            silent=self.silent,
+            recommended=self.verbose,
+            logger_name="pypet2bids",
+        )
 
     def json_out(self):
         """
@@ -705,6 +723,12 @@ class Ecat:
             self.populate_sidecar(**self.kwargs)
             self.prune_sidecar()
             self.show_sidecar(output_path=self.sidecar_path)
+            check_json(
+                self.sidecar_path,
+                silent=self.silent,
+                recommended=self.verbose,
+                logger_name="pypet2bids",
+            )
             self.write_out_blood_files()
             self.telemetry_data["returncode"] = 0
         except Exception:

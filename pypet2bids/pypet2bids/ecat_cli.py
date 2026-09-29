@@ -16,11 +16,9 @@ from importlib.metadata import version
 try:
     import helper_functions
     import Ecat
-    from update_json_pet_file import check_json, check_meta_radio_inputs
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     from pypet2bids.ecat import Ecat
-    from pypet2bids.update_json_pet_file import check_json, check_meta_radio_inputs
 
 epilog = textwrap.dedent(
     """
@@ -80,6 +78,7 @@ def cli():
         " and PET metadata files to BIDS compliant nifti, json, and tsv",
     )
     update_or_convert = parser.add_mutually_exclusive_group()
+    output_verbosity = parser.add_mutually_exclusive_group()
     parser.add_argument(
         "ecat", nargs="?", metavar="ecat_file", help="Ecat image to collect info from."
     )
@@ -206,6 +205,16 @@ def cli():
         action="store_true",
         help="Enable or disable extra steps performed for ezBIDS.",
     )
+    output_verbosity.add_argument(
+        "--silent",
+        action="store_true",
+        help="Hide all log output.",
+    )
+    output_verbosity.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show informational, warning, and debug output, including missing recommended BIDS fields.",
+    )
 
     return parser
 
@@ -318,6 +327,8 @@ def main():
         metadata_path=cli_args.metadata_path,
         kwargs=cli_args.kwargs,
         ezbids=cli_args.ezbids,
+        silent=cli_args.silent,
+        verbose=cli_args.verbose,
     )
     if cli_args.json:
         ecat.json_out()
@@ -375,6 +386,17 @@ def update_json_with_ecat_value_cli():
         "Note: the value portion of the argument (right side of the equal's sign) should "
         'always be surrounded by double quotes BidsVarQuoted="[0, 1 , 3]"',
     )
+    output_verbosity = json_update_cli.add_mutually_exclusive_group()
+    output_verbosity.add_argument(
+        "--silent",
+        action="store_true",
+        help="Hide all log output.",
+    )
+    output_verbosity.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show informational, warning, and debug output, including missing recommended BIDS fields.",
+    )
 
     args = json_update_cli.parse_args()
 
@@ -384,11 +406,10 @@ def update_json_with_ecat_value_cli():
         collect_pixel_data=True,
         metadata_path=args.metadata_path,
         kwargs=args.additional_arguments,
+        silent=args.silent,
+        verbose=args.verbose,
     )
     update_ecat.update_pet_json(args.json)
-
-    # lastly check the json
-    check_json(args.json, logger="check_json", silent=False)
 
 
 if __name__ == "__main__":
