@@ -276,8 +276,8 @@ def update_json_with_dicom_value(
             missing_values.get("TimeZero")["key"] is False
             or missing_values.get("TimeZero")["value"] is False
         ):
-            series_time = sidecar_json.get("SeriesTime", None)
-            if not series_time and dicom_header.get("SeriesTime", None):
+            series_time = sidecar_json.get("SeriesTime")
+            if not series_time and dicom_header.get("SeriesTime"):
                 series_time = dicom_header["SeriesTime"].value
             if not series_time:
                 raise ValueError(
@@ -313,7 +313,7 @@ def update_json_with_dicom_value(
 
     # Add radionuclide to json
     Radionuclide = get_radionuclide(dicom_header)
-    if Radionuclide and not json_updater.get("TracerRadionuclide", None):
+    if Radionuclide and not json_updater.get("TracerRadionuclide"):
         json_updater.update({"TracerRadionuclide": Radionuclide})
 
     # remove scandate if it exists

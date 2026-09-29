@@ -788,9 +788,9 @@ class Dcm2niix4PET:
 
                     # check to see if convolution kernel is present
                     sidecar_json = JsonMAJ(json_path=str(created), bids_null=True)
-                    recon_filter_size = sidecar_json.get("ReconFilterSize", None)
-                    recon_filter_type = sidecar_json.get("ReconFilterType", None)
-                    convolution_kernel = sidecar_json.get("ConvolutionKernel", None)
+                    recon_filter_size = sidecar_json.get("ReconFilterSize")
+                    recon_filter_type = sidecar_json.get("ReconFilterType")
+                    convolution_kernel = sidecar_json.get("ConvolutionKernel")
                     if convolution_kernel:
                         sidecar_json.remove("ConvolutionKernel")
 
