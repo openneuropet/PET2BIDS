@@ -235,7 +235,8 @@ def update_json_with_dicom_value(
 
     logger.info("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
-    json_updater = JsonMAJ(json_path=path_to_json, bids_null=True)
+    # TODO: Pass path_to_json directly once json-maj supports pathlib.Path inputs.
+    json_updater = JsonMAJ(json_path=str(path_to_json), bids_null=True)
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
