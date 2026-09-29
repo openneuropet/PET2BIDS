@@ -1,20 +1,21 @@
 function sorted_names = sort_dcm(folder,method)
 
 % sort_dcm.m
-% Sorts DICOM files in a folder in natural filename order.
-% The issue is that dicom ordering is not always correct,
-% especially when the files are named with numbers that
-% are not zero-padded (e.g., file1.dcm, file2.dcm, ...,
-% file10.dcm). This function sorts the files in a natural order.
+% Sorts DICOM filenames naturally, or checks their acquisition order.
+% Numeric parts are zero-padded in temporary sorting keys only; files on
+% disk are never renamed. Padding fixes 1, 10, 2 but cannot repair filenames
+% whose numbers do not follow the acquisition sequence.
 %
 % FORMAT sorted_names = sort_dcm(folder,method)
 %
 % INPUTS
 %   folder - The path to the folder containing the DICOM files.
-%   method - The sorting method to use. Options are 'name' (default) or 'acquisition_time'.
-%            By name is fast and works for most cases because we do not load the DICOM files.
-%            However, if the DICOM files have the same name endings, the acquisition time can
-%            be used to sort them. Times are ordered within a day, without date information.
+%   method - 'name' (default): natural filename order, without reading headers.
+%            'acquisition_time': read all headers and sort by acquisition time.
+%            'auto': read all headers to check natural filename order; retain it
+%            when chronological, otherwise warn and sort by acquisition time.
+%            Use 'auto' when downstream processing requires chronological volumes.
+%            Acquisition times are ordered within a day, without date information.
 %            Files with .dcm or .ima extensions (case insensitive), and files
 %            without extensions, are included. Extensionless files are assumed to be DICOM.
 %            Subfolders are not searched.
@@ -45,8 +46,8 @@ if isstring(method) && isscalar(method)
     method = char(method);
 end
 if ~ischar(method) || size(method,1) ~= 1 || ...
-        ~any(strcmpi(method,{'name','acquisition_time'}))
-    error('sort_dcm:InvalidMethod','method must be ''name'' or ''acquisition_time''.');
+        ~any(strcmpi(method,{'name','acquisition_time','auto'}))
+    error('sort_dcm:InvalidMethod','method must be ''name'', ''acquisition_time'' or ''auto''.');
 end
 
 % Select candidate DICOM filenames without reading file contents.
@@ -82,8 +83,8 @@ end
 [~,order]    = sort(keys);
 sorted_names = sorted_names(order);
 
-% Read metadata only when acquisition-time sorting is requested.
-if strcmpi(method,'acquisition_time')
+% The fast name method never reads headers. Checked modes read each once.
+if ~strcmpi(method,'name')
     times = zeros(numel(sorted_names),1);
     for f = 1:numel(sorted_names)
         info = dicominfo(fullfile(folder,sorted_names{f}));
@@ -121,6 +122,14 @@ if strcmpi(method,'acquisition_time')
                 'Invalid AcquisitionTime in %s.',sorted_names{f});
         end
         times(f) = hours*3600 + minutes*60 + seconds;
+    end
+    if strcmpi(method,'auto')
+        if all(diff(times) >= 0)
+            return
+        end
+        warning('sort_dcm:NameOrderMismatch', ...
+            ['Natural filename order does not follow acquisition time in %s; ' ...
+             'returning acquisition-time order.'],folder);
     end
     % Use the existing filename position to break ties between equal times.
     [~,order]    = sortrows([times (1:numel(times))'],[1 2]);

@@ -16,6 +16,11 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
 %                 IF the folder is BIDS sub-xx files are renamed automatically
+%   - *sort_method* DICOM order for per-volume scatter/decay recovery:
+%                 'name' (default) uses natural filename order without reading all headers;
+%                 'acquisition_time' reads every header to order volumes chronologically;
+%                 'auto' checks name order and falls back to acquisition time if needed.
+%                 This controls JSON metadata recovery, not dcm2niix image ordering.
 %   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 %   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 %   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
@@ -94,6 +99,7 @@ end
 % ---------
 
 deletedcm  = 'off';
+sort_method = 'name';
 
 gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
@@ -225,6 +231,13 @@ for var=1:length(varargin)
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
+    elseif strcmpi(varargin{var},'sort_method')
+        if var == length(varargin)
+            error('dcm2niix4pet:MissingSortMethod', ...
+                'sort_method requires name, acquisition_time or auto.');
+        end
+        sort_method = validatestring(varargin{var+1}, ...
+            {'name','acquisition_time','auto'},mfilename,'sort_method');
     elseif strcmpi(varargin{var},'notrack')
         setenv('TELEMETRY_ENABLED', 'False')
     end
@@ -247,6 +260,7 @@ end
 %% convert
 % ----------
 for folder = 1:size(FolderList,1)
+    clear newmetadata % Resolve the JSON path separately for each input folder.
     % dcm2niix
     command = [dcm2niixpath ' -o ' outputdir{folder} ' ' num2str(gz) ...
         ' -a ' a ...
@@ -276,14 +290,13 @@ for folder = 1:size(FolderList,1)
         error('%s did not run properly',command)
     end
 
-    % deal with dcm files
-    dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
-    if isempty(dcmfiles) % since sometimes they have no ext :-(
-        dcmfiles = dir(FolderList{folder}); % pick in the middle to avoid other files
-        dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
-    else
-        dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    % Read a representative header cheaply; sort_dcm applies sort_method
+    % during per-volume recovery, avoiding a second full header scan here.
+    dcmfiles = sort_dcm(FolderList{folder});
+    if isempty(dcmfiles)
+        error('No DICOM files found in %s.',FolderList{folder});
     end
+    dcminfo = dicominfo(fullfile(FolderList{folder},dcmfiles{1}));
 
     % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
@@ -336,7 +349,7 @@ for folder = 1:size(FolderList,1)
     else
         jsonfilename = newmetadata;
     end
-    updatejsonpetfile(jsonfilename,MetaList,dcminfo);
+    updatejsonpetfile(jsonfilename,MetaList{folder},dcminfo,FolderList{folder},sort_method);
 
     if strcmpi(deletedcm,'on')
         delete(fullfile(outputdir{folder},'*dcm'))

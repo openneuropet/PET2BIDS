@@ -55,6 +55,23 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','Trac
 dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
 ```
 
+DICOM metadata recovery uses natural filename order by default (`sort_method='name'`).
+Numbers are padded internally for sorting; source files are not renamed. This is fast,
+but assumes consecutive groups of slices belong to consecutive volumes. To check a
+series whose filenames may not follow acquisition order, convert into separate output folders:
+
+```matlab
+dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_method','name');
+dcm2niix4pet(dcmfolder,meta,'o',timeOutput,'sort_method','acquisition_time');
+```
+
+Compare `ScatterFraction` and `DecayCorrectionFactor` in the two JSON files.
+Acquisition-time sorting reads every DICOM header. Alternatively, use
+`'sort_method','auto'` to check filename order and warn and reorder when it disagrees
+with acquisition times; this also reads every header. These options affect metadata
+recovery, while dcm2niix controls NIfTI image ordering. Acquisition times are currently
+sorted within a day, so scans crossing midnight need separate review.
+
 **Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
 
 1. Use the [updatejsonpetfile.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/updatejsonpetfile.m) function. Arguments in are the json file to update and metadata to add as a structure (using a get_metadata.m function for instance) and possibly a dicom file to check additional fields. This is show below for data from the biograph.
