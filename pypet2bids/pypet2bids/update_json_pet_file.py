@@ -235,7 +235,8 @@ def update_json_with_dicom_value(
 
     logger.info("Attempting to locate missing BIDS fields in dicom header")
     # go through missing fields and reach into dicom to pull out values
-    json_updater = JsonMAJ(json_path=path_to_json, bids_null=True)
+    # TODO: Pass path_to_json directly once json-maj supports pathlib.Path inputs.
+    json_updater = JsonMAJ(json_path=str(path_to_json), bids_null=True)
     for key, value in paired_fields.items():
         missing_bids_field = missing_values.get(key, None)
         # if field is missing look into dicom
@@ -276,23 +277,20 @@ def update_json_with_dicom_value(
             missing_values.get("TimeZero")["key"] is False
             or missing_values.get("TimeZero")["value"] is False
         ):
-            time_parser = parser
-            if sidecar_json.get("AcquisitionTime", None):
-                acquisition_time = (
-                    time_parser.parse(sidecar_json.get("AcquisitionTime"))
-                    .time()
-                    .strftime("%H:%M:%S")
+            series_time = sidecar_json.get("SeriesTime")
+            if not series_time and dicom_header.get("SeriesTime"):
+                series_time = dicom_header["SeriesTime"].value
+            if not series_time:
+                raise ValueError(
+                    f"Unable to determine TimeZero for {path_to_json}: SeriesTime "
+                    "is missing from both the dcm2niix sidecar and DICOM header"
                 )
-            else:
-                acquisition_time = (
-                    time_parser.parse(dicom_header["SeriesTime"].value)
-                    .time()
-                    .strftime("%H:%M:%S")
-                )
+            time_zero = parser.parse(series_time).time().strftime("%H:%M:%S")
 
-            json_updater.update({"TimeZero": acquisition_time})
+            json_updater.update({"TimeZero": time_zero})
             json_updater.remove("AcquisitionTime")
-            json_updater.update({"ScanStart": 0})
+            if json_updater.get("ScanStart") is None:
+                json_updater.update({"ScanStart": 0})
         else:
             pass
 
@@ -316,7 +314,7 @@ def update_json_with_dicom_value(
 
     # Add radionuclide to json
     Radionuclide = get_radionuclide(dicom_header)
-    if Radionuclide:
+    if Radionuclide and not json_updater.get("TracerRadionuclide"):
         json_updater.update({"TracerRadionuclide": Radionuclide})
 
     # remove scandate if it exists

@@ -10,6 +10,7 @@ and write them out to Nifti files.
 import datetime
 import logging
 import re
+import copy
 
 import nibabel
 import os
@@ -98,7 +99,7 @@ class Ecat:
         self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
         self.sidecar_template = (
-            sidecar.sidecar_template_full
+            copy.deepcopy(sidecar.sidecar_template_full)
         )  # bids approved sidecar file with ALL bids fields
         self.sidecar_template_short = (
             sidecar.sidecar_template_short
@@ -478,11 +479,12 @@ class Ecat:
                 time_diff = t_datetime - time_zero_datetime
                 self.sidecar_template[t] = time_diff.total_seconds()
 
-        if "RecordingStart" in self.sidecar_template:
+        recording_delay = self.subheaders[0].get("FRAME_START_TIME") or 0
+        if recording_delay > 0:
             self.sidecar_template["RecordingStart"] = (
-                self.sidecar_template["ScanStart"]
-                + self.sidecar_template["FrameTimesStart"][0]
+                self.sidecar_template["ScanStart"] + recording_delay
             )
+
             if (
                 self.sidecar_template["FrameTimesStart"][0]
                 < self.sidecar_template["RecordingStart"]
