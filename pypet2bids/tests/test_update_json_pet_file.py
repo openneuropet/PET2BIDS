@@ -51,3 +51,29 @@ def test_missing_time_zero_uses_dicom_series_time(tmp_path):
 
     sidecar = json.loads(sidecar_path.read_text())
     assert sidecar["TimeZero"] == "11:22:33"
+
+
+def test_reconstruction_fallback_accepts_path(tmp_path):
+    sidecar_path = tmp_path / "sidecar.json"
+    sidecar_path.write_text(
+        json.dumps(
+            {
+                "ReconstructionMethod": "PSF+TOF 3i21s",
+                "ReconMethodName": "incomplete native result",
+            }
+        )
+    )
+    dicom_header = Dataset()
+    dicom_header.ReconstructionMethod = "PSF+TOF 3i21s"
+
+    update_json_with_dicom_value(
+        sidecar_path,
+        {"ReconMethodParameterLabels": {"key": False, "value": False}},
+        dicom_header,
+    )
+
+    sidecar = json.loads(sidecar_path.read_text())
+    assert sidecar["ReconMethodName"] == (
+        "Point-Spread Function modelling Time Of Flight"
+    )
+    assert sidecar["ReconMethodParameterLabels"] == ["subsets", "iterations"]
