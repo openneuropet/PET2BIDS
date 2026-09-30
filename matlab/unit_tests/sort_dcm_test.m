@@ -64,3 +64,55 @@ for k = 1:numel(names)
     dicomwrite(uint16(ones(2)),fullfile(folder,names{k}),info,'CreateMode','Copy');
 end
 end
+
+function testNumericStemsAcrossWidthsAndExtensions(testCase)
+folder = namefixture(testCase,'numeric', ...
+    {'1001.dcm','10.IMA','1000.dcm','1','100.dcm','2.DCM','notes.txt'});
+mkdir(fullfile(folder,'3.dcm')); % Directories must not become candidates.
+verifyEqual(testCase,sort_dcm(folder), ...
+    {'1','2.DCM','10.IMA','100.dcm','1000.dcm','1001.dcm'});
+end
+
+function testNaturalNamesAndExactLongIntegers(testCase)
+folder = namefixture(testCase,'natural', ...
+    {'image10.dcm','image2.dcm','image1.dcm'});
+verifyEqual(testCase,sort_dcm(folder),{'image1.dcm','image2.dcm','image10.dcm'});
+folder = namefixture(testCase,'long', ...
+    {'9007199254740993.dcm','9007199254740992.dcm','2.dcm'});
+verifyEqual(testCase,sort_dcm(folder), ...
+    {'2.dcm','9007199254740992.dcm','9007199254740993.dcm'});
+end
+
+function testPatternOrdersFrameBeforeSlice(testCase)
+folder = namefixture(testCase,'pattern', ...
+    {'slice2_frame10.dcm','slice10_frame2.dcm','slice2_frame2.dcm'});
+pattern = '^slice(?<slice>\d+)_frame(?<frame>\d+)$';
+verifyEqual(testCase,sort_dcm(folder,'name',pattern), ...
+    {'slice2_frame2.dcm','slice10_frame2.dcm','slice2_frame10.dcm'});
+verifyEqual(testCase,sort_dcm(folder,'name','^slice\d+_frame(?<frame>\d+)$'), ...
+    {'slice2_frame2.dcm','slice10_frame2.dcm','slice2_frame10.dcm'});
+verifyError(testCase,@() sort_dcm(folder,'name','^(?<frame>\d+)$'), ...
+    'sort_dcm:InvalidPattern');
+verifyError(testCase,@() sort_dcm(folder,'name','(?<frame>\d+)[z-a]'),'sort_dcm:InvalidPattern');
+verifyError(testCase,@() sort_dcm(folder,'name',42),'sort_dcm:InvalidPattern');
+verifyError(testCase,@() sort_dcm(folder,'name','^slice(?<slice>\d+)_frame\d+$'), ...
+    'sort_dcm:InvalidPattern');
+end
+
+function testPatternBreaksEqualAcquisitionTimes(testCase)
+folder = fixture(testCase,'pattern_times', ...
+    {'slice2_frame10.dcm','slice10_frame2.dcm','slice2_frame2.dcm'}, ...
+    {'120001','120001','120001'});
+pattern = '^slice(?<slice>\d+)_frame(?<frame>\d+)$';
+expected = {'slice2_frame2.dcm','slice10_frame2.dcm','slice2_frame10.dcm'};
+verifyEqual(testCase,sort_dcm(folder,'auto',pattern),expected);
+verifyEqual(testCase,sort_dcm(folder,'acquisition_time',pattern),expected);
+end
+
+function folder = namefixture(testCase,name,names)
+folder = fullfile(testCase.TestData.root,name);
+mkdir(folder);
+for k = 1:numel(names)
+    fid = fopen(fullfile(folder,names{k}),'w'); fclose(fid);
+end
+end

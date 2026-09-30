@@ -68,6 +68,23 @@ verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
 verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
 end
 
+function testFrameSlicePattern(testCase)
+[jsonfile,source] = fixture(testCase,'pattern',3,2,false);
+% Rename the interleaved fixture so lexical/natural order puts slices first.
+for slice = 1:2
+    for frame = 1:3
+        index = (slice-1)*3 + (3-frame+1);
+        movefile(fullfile(source,sprintf('%d.dcm',index)), ...
+            fullfile(source,sprintf('slice%d_frame%d.dcm',slice,frame)));
+    end
+end
+pattern = '^slice(?<slice>\d+)_frame(?<frame>\d+)$';
+updatejsonpetfile(jsonfile,struct,[],source,'name',pattern);
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
 function [jsonfile,source] = fixture(testCase,name,nframes,nslices,compressed,byVolume)
 if nargin < 6, byVolume = false; end
 folder = fullfile(testCase.TestData.root,name);

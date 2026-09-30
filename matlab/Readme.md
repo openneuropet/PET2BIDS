@@ -55,8 +55,10 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','Trac
 dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
 ```
 
-DICOM metadata recovery uses natural filename order by default (`sort_method='name'`).
-Numbers are padded internally for sorting; source files are not renamed. This is fast,
+DICOM metadata recovery uses numeric/natural filename order by default (`sort_method='name'`).
+Purely numeric stems are sorted by value (`1.dcm`, `2.dcm`, `10.dcm`); names with text
+use natural ordering of their numeric parts. Long integers use exact text keys to
+avoid loss of precision. Source files are not renamed. This is fast,
 but assumes consecutive groups of slices belong to consecutive volumes. To check a
 series whose filenames may not follow acquisition order, convert into separate output folders:
 
@@ -64,6 +66,23 @@ series whose filenames may not follow acquisition order, convert into separate o
 dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_method','name');
 dcm2niix4pet(dcmfolder,meta,'o',timeOutput,'sort_method','acquisition_time');
 ```
+
+For filenames containing both frame and slice numbers, provide a regular expression
+on the filename stem with a named `frame` token and an optional `slice` token.
+For example, these calls order `slice2_frame10.dcm` by frame first, then slice:
+
+```matlab
+pattern = '^slice(?<slice>\d+)_frame(?<frame>\d+)$';
+names = sort_dcm(dcmfolder,'name',pattern);
+dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_pattern',pattern);
+% For an existing JSON/NIfTI pair:
+updatejsonpetfile(jsonfile,meta,dcminfo,dcmfolder,'name',pattern);
+```
+
+Every candidate filename must match and captured values must be nonnegative integers.
+Equal frame/slice keys retain natural filename order. `auto` and `acquisition_time`
+can also use this pattern, with acquisition time taking priority and filename order
+breaking time ties. `sort_dcm` returns a row cell array of unchanged filenames.
 
 Compare `ScatterFraction` and `DecayCorrectionFactor` in the two JSON files.
 Acquisition-time sorting reads every DICOM header. Alternatively, use

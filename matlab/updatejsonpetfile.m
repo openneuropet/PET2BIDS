@@ -4,7 +4,7 @@ function status = updatejsonpetfile(varargin)
 % information, if only the jsonfile is provided, it only checks if valid
 % (and possibly updates some fields from scalar to array)
 %
-% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo,dicomfolder,sort_method)
+% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo,dicomfolder,sort_method,sort_pattern)
 %
 % :param jsonfilename: json file to check or update update
 %                      can also be the json structure (add field filename to ensure update on disk)
@@ -23,6 +23,9 @@ function status = updatejsonpetfile(varargin)
 %                         'acquisition_time', or 'auto'; see sort_dcm.
 %                         Pass [] for dicomfolder to infer it from dcminfo.
 %
+% :param sort_pattern: (optional) filename-stem regex with named frame and optional
+%                          slice tokens; see sort_dcm.
+%
 % :returns status: the state of the updating (includes warning messages returned if any)
 %
 % .. code-block::
@@ -36,11 +39,13 @@ function status = updatejsonpetfile(varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-narginchk(1,5);
+narginchk(1,6);
 warning on % set to off to ignore our useful warnings
 status = struct('state',[],'messages',{''});
 
 % check data in
+sort_pattern = '';
+if nargin >= 6, sort_pattern = varargin{6}; end
 sort_method = 'name';
 if nargin >= 5
     sort_method = validatestring(varargin{5},{'name','acquisition_time','auto'}, ...
@@ -321,7 +326,7 @@ else % -------------- update ---------------
             end
         end
     end
-    filemetadata = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method);
+    filemetadata = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method,sort_pattern);
 
     % set ModeOfAdministration to lower case
     if isfield(filemetadata,'ModeOfAdministration')
@@ -478,7 +483,7 @@ else
     filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType
 end
 
-function [filemetadata,updated] = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method)
+function [filemetadata,updated] = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method,sort_pattern)
 % Recover per-volume factors, then ensure BIDS array fields serialize as arrays.
 % Optional source paths are only needed for DICOM recovery; validation and
 % ECAT callers can still normalize arrays with just the metadata structure.
@@ -487,6 +492,7 @@ if nargin < 2, dicomfolder = ''; end
 if nargin < 3, jsonfilename = ''; end
 if nargin < 4, newfields = struct; end
 if nargin < 5, sort_method = 'name'; end
+if nargin < 6, sort_pattern = ''; end
 
 updated      = 0;
 shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
@@ -535,7 +541,7 @@ if any(recover) && ~isempty(dicomfolder) && ~isempty(jsonfilename)
 
         % 2. Delegate the requested DICOM ordering to sort_dcm.
         % Read every file for volume DICOMs, or every nslices-th file for slices.
-        dcmnames = sort_dcm(dicomfolder,sort_method);
+        dcmnames = sort_dcm(dicomfolder,sort_method,sort_pattern);
         if numel(dcmnames) == nvolumes
             stride = 1;
         elseif numel(dcmnames) == nslices*nvolumes

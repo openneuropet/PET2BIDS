@@ -21,6 +21,8 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %                 'acquisition_time' reads every header to order volumes chronologically;
 %                 'auto' checks name order and falls back to acquisition time if needed.
 %                 This controls JSON metadata recovery, not dcm2niix image ordering.
+%   - *sort_pattern* Optional filename-stem regex with named frame and optional
+%                 slice tokens; see sort_dcm. Orders by frame, then slice.
 %   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 %   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 %   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
@@ -100,6 +102,7 @@ end
 
 deletedcm  = 'off';
 sort_method = 'name';
+sort_pattern = '';
 
 gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
@@ -238,6 +241,11 @@ for var=1:length(varargin)
         end
         sort_method = validatestring(varargin{var+1}, ...
             {'name','acquisition_time','auto'},mfilename,'sort_method');
+    elseif strcmpi(varargin{var},'sort_pattern')
+        if var == length(varargin)
+            error('dcm2niix4pet:MissingSortPattern','sort_pattern requires a regular expression.');
+        end
+        sort_pattern = varargin{var+1};
     elseif strcmpi(varargin{var},'notrack')
         setenv('TELEMETRY_ENABLED', 'False')
     end
@@ -292,7 +300,7 @@ for folder = 1:size(FolderList,1)
 
     % Read a representative header cheaply; sort_dcm applies sort_method
     % during per-volume recovery, avoiding a second full header scan here.
-    dcmfiles = sort_dcm(FolderList{folder});
+    dcmfiles = sort_dcm(FolderList{folder},'name',sort_pattern);
     if isempty(dcmfiles)
         error('No DICOM files found in %s.',FolderList{folder});
     end
@@ -349,7 +357,7 @@ for folder = 1:size(FolderList,1)
     else
         jsonfilename = newmetadata;
     end
-    updatejsonpetfile(jsonfilename,MetaList{folder},dcminfo,FolderList{folder},sort_method);
+    updatejsonpetfile(jsonfilename,MetaList{folder},dcminfo,FolderList{folder},sort_method,sort_pattern);
 
     if strcmpi(deletedcm,'on')
         delete(fullfile(outputdir{folder},'*dcm'))
