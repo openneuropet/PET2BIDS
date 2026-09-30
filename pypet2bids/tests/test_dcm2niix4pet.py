@@ -301,7 +301,14 @@ def test_update_json_with_dicom_value():
 
 
 def test_additional_arguments():
-    additional_args = {"additional1": 1, "additional2": 2}
+    additional_args = {
+        "additional1": 1,
+        "additional2": 2,
+        "MolecularWeight": 300,
+        "MolecularWeightUnits": "g/mol",
+        "SpecificRadioactivity": 50,
+        "SpecificRadioactivityUnits": "MBq/ug",
+    }
     with TemporaryDirectory() as tempdir:
         converter = Dcm2niix4PET(
             test_dicom_image_folder,
@@ -320,8 +327,13 @@ def test_additional_arguments():
         with open(created_jsons[0], "r") as infile:
             json_contents = json.load(infile)
 
-        for key, value in additional_args.items():
+        for key, value in {"additional1": 1, "additional2": 2}.items():
             assert json_contents.get(key, "") == value
+        assert json_contents["TracerMolecularWeight"] == 300
+        assert json_contents["TracerMolecularWeightUnits"] == "g/mol"
+        assert json_contents["MolarActivity"] == 15
+        assert "MolecularWeight" not in json_contents
+        assert "MolecularWeightUnits" not in json_contents
 
 
 def test_get_convolution_kernel():

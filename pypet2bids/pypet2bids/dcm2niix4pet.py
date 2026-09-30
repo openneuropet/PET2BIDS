@@ -762,14 +762,6 @@ class Dcm2niix4PET:
 
                     sidecar_json.update()
 
-                    check_metadata_radio_inputs = check_meta_radio_inputs(
-                        sidecar_json.json_data
-                    )  # run logic
-
-                    sidecar_json.update(
-                        check_metadata_radio_inputs
-                    )  # update sidecar json with results of logic
-
                     # should be list/array types in the json
                     should_be_array = [
                         "FrameDuration",
@@ -878,6 +870,8 @@ class Dcm2niix4PET:
                     # made by this software as the input provided by the user is "the correct input"
                     sidecar_json.update(self.spreadsheet_metadata.get("nifti_json", {}))
                     sidecar_json.update(self.additional_arguments)
+                    sidecar_json.update(check_meta_radio_inputs(sidecar_json.json_data))
+                    sidecar_json.remove("MolecularWeight", "MolecularWeightUnits")
 
                     # set ModeOfAdministration to lower case
                     if sidecar_json.get("ModeOfAdministration"):

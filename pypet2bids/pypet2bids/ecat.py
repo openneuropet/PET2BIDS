@@ -514,6 +514,8 @@ class Ecat:
         :param output_path: path to output a json file
         :return: None
         """
+        self.sidecar_template.pop("MolecularWeight", None)
+        self.sidecar_template.pop("MolecularWeightUnits", None)
         self.prune_sidecar()
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 

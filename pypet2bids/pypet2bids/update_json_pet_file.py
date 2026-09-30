@@ -413,6 +413,13 @@ def update_json_with_dicom_value_cli():
 
     JsonMAJ(args.json, update_values=args.additional_arguments).update()
 
+    # Normalize after all DICOM, spreadsheet and command-line overrides.
+    j = JsonMAJ(args.json)
+    radio_inputs = check_meta_radio_inputs(j.json_data)
+    j.remove("MolecularWeight", "MolecularWeightUnits")
+    if radio_inputs:
+        j.update(radio_inputs)
+
     # check json again after updating
     check_json(
         args.json,
@@ -464,8 +471,11 @@ def update_json_cli():
     j.update()
     j.update(update_json_args.additional_arguments)
 
-    # check meta radio inputs
-    j.update(check_meta_radio_inputs(j.json_data))
+    # check meta radio inputs and migrate legacy molecular-weight field names
+    radio_inputs = check_meta_radio_inputs(j.json_data)
+    j.remove("MolecularWeight", "MolecularWeightUnits")
+    if radio_inputs:
+        j.update(radio_inputs)
 
     # check json again after updating
     check_json(
@@ -540,7 +550,7 @@ def get_radionuclide(pydicom_dicom):
 
 
 def _radio_unit_factor(unit, quantity):
-    """Conversion to Bq, g, Bq/g, Bq/mol or g/mol; NaN if incompatible."""
+    """Conversion to canonical SI-scaled units; NaN if incompatible."""
     if not isinstance(unit, str):
         return math.nan
     unit = unit.strip().replace("µ", "u").replace("μ", "u")
@@ -558,7 +568,7 @@ def _radio_unit_factor(unit, quantity):
     amount = {"mol": 1, "mmol": 1e-3, "umol": 1e-6, "nmol": 1e-9, "pmol": 1e-12}
     numerator, denominator = {
         "InjectedRadioactivity": (activity, None),
-        "InjectedMass": (mass, None),
+        "InjectedMass": ({**mass, **amount}, None),
         "SpecificRadioactivity": (activity, mass),
         "MolarActivity": (activity, amount),
         "MolecularWeight": (mass, amount),
@@ -571,19 +581,33 @@ def _radio_unit_factor(unit, quantity):
     return math.nan
 
 
+def _injected_mass_dimension(unit):
+    """Return whether InjectedMass is expressed as physical mass or amount."""
+    if not isinstance(unit, str):
+        return None
+    unit = unit.strip().replace("µ", "u").replace("μ", "u")
+    if unit in {"kg", "g", "mg", "ug", "ng"}:
+        return "mass"
+    if unit in {"mol", "mmol", "umol", "nmol", "pmol"}:
+        return "amount"
+    return None
+
+
 def check_meta_radio_inputs(kwargs: dict, logger="pypet2bids") -> dict:
     """Check radiotracer quantities and infer missing values with explicit units.
 
     Defaults: InjectedRadioactivity in MBq, InjectedMass in ug,
-    SpecificRadioactivity in Bq/g, MolarActivity in GBq/umol and MolecularWeight
-    in g/mol. Supply each corresponding <Name>Units field to override its default.
-    Specific radioactivity may use any supported ratio commensurate with Bq/g;
-    for example, 1 MBq/ug equals 1e12 Bq/g, not 1 Bq/g.
+    SpecificRadioactivity in Bq/g, MolarActivity in GBq/umol and
+    TracerMolecularWeight in g/mol. Legacy MolecularWeight fields are accepted
+    as input aliases. Supply each corresponding <Name>Units field to override
+    its default. Specific radioactivity may use any supported ratio commensurate
+    with Bq/g; for example, 1 MBq/ug equals 1e12 Bq/g, not 1 Bq/g.
 
     Supported activity units: Bq, kBq, MBq, GBq, TBq, Ci, mCi, uCi; mass units:
-    kg, g, mg, ug, ng; amount units: mol, mmol, umol, nmol, pmol. Micro signs
-    are accepted as 'u'. Unsupported/incompatible units are warned about and
-    excluded from calculations, rather than relabelled.
+    kg, g, mg, ug, ng; amount units: mol, mmol, umol, nmol, pmol. InjectedMass
+    accepts either mass or amount units; its dimension selects specific or molar
+    activity relations. Micro signs are accepted as 'u'. Unsupported/incompatible
+    units are warned about and excluded from calculations, rather than relabelled.
 
     Supplied values and units are preserved. Inferred values use requested units
     or the defaults. Only supplied input pairs are used; inferred quantities
@@ -600,36 +624,135 @@ def check_meta_radio_inputs(kwargs: dict, logger="pypet2bids") -> dict:
         "MolarActivity": "GBq/umol",
         "MolecularWeight": "g/mol",
     }
+    field_names = {
+        "InjectedRadioactivity": ("InjectedRadioactivity",),
+        "InjectedMass": ("InjectedMass",),
+        "SpecificRadioactivity": ("SpecificRadioactivity",),
+        "MolarActivity": ("MolarActivity",),
+        "MolecularWeight": ("TracerMolecularWeight", "MolecularWeight"),
+    }
+    output_names = {name: aliases[0] for name, aliases in field_names.items()}
     data_out, values, factors, units = {}, {}, {}, {}
     present = set()
+
+    def supplied(value):
+        return value is not None and not (isinstance(value, str) and value == "")
+
+    def alias_supplied(value):
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return value.strip().lower() not in {"", "none"}
+        try:
+            return len(value) > 0
+        except TypeError:
+            return True
+
     for name, default in defaults.items():
-        value = kwargs.get(name)
+        aliases = field_names[name]
+        if name == "MolecularWeight":
+            standard_value = kwargs.get(aliases[0])
+            legacy_value = kwargs.get(aliases[1])
+            standard_unit = kwargs.get(aliases[0] + "Units")
+            legacy_unit = kwargs.get(aliases[1] + "Units")
+            standard_present = alias_supplied(standard_value)
+            legacy_present = alias_supplied(legacy_value)
+            standard_unit_present = alias_supplied(standard_unit)
+            legacy_unit_present = alias_supplied(legacy_unit)
+
+            if standard_present:
+                value = standard_value
+                unit = standard_unit if standard_unit_present else default
+                if legacy_present:
+                    logger.warning(
+                        "Both TracerMolecularWeight and legacy MolecularWeight "
+                        "were supplied; using TracerMolecularWeight."
+                    )
+                if legacy_unit_present:
+                    logger.warning(
+                        "Legacy MolecularWeightUnits was supplied with "
+                        "TracerMolecularWeight; using "
+                        "TracerMolecularWeightUnits or its default."
+                    )
+            elif legacy_present:
+                value = legacy_value
+                unit = legacy_unit if legacy_unit_present else default
+            else:
+                value = None
+                unit = (
+                    standard_unit
+                    if standard_unit_present
+                    else legacy_unit
+                    if legacy_unit_present
+                    else default
+                )
+            unit_was_supplied = standard_unit_present or legacy_unit_present
+        else:
+            value = kwargs.get(name)
+            unit = kwargs.get(name + "Units")
+            unit_was_supplied = supplied(unit)
+            if not unit_was_supplied:
+                unit = default
+
         # Zero is a supplied value; None and empty strings are missing.
-        has_value = value is not None and not (isinstance(value, str) and value == "")
-        unit = kwargs.get(name + "Units")
-        if unit is None or (isinstance(unit, str) and unit == ""):
-            unit = default
+        has_value = supplied(value)
         units[name] = unit
         factors[name] = _radio_unit_factor(unit, name)
-        if math.isnan(factors[name]) and (has_value or name + "Units" in kwargs):
-            logger.warning("Unsupported or incompatible %sUnits: %r", name, unit)
+        if math.isnan(factors[name]) and (has_value or unit_was_supplied):
+            logger.warning(
+                "Unsupported or incompatible %sUnits: %r", output_names[name], unit
+            )
         if has_value:
             present.add(name)
-            data_out[name] = value
-            data_out[name + "Units"] = unit
+            data_out[output_names[name]] = value
+            data_out[output_names[name] + "Units"] = unit
             numeric = _radio_numeric(value)
             if numeric >= 0 and not (name == "MolecularWeight" and numeric == 0):
                 values[name] = numeric * factors[name]
+        elif name == "MolecularWeight" and unit_was_supplied:
+            data_out[output_names[name] + "Units"] = unit
 
-    # Work internally in Bq, g, Bq/g, Bq/mol and g/mol.
-    relations = [
-        ("SpecificRadioactivity", "InjectedRadioactivity", "InjectedMass", True),
-        ("InjectedMass", "InjectedRadioactivity", "SpecificRadioactivity", True),
-        ("InjectedRadioactivity", "InjectedMass", "SpecificRadioactivity", False),
-        ("SpecificRadioactivity", "MolarActivity", "MolecularWeight", True),
-        ("MolecularWeight", "MolarActivity", "SpecificRadioactivity", True),
-        ("MolarActivity", "MolecularWeight", "SpecificRadioactivity", False),
-    ]
+    # Work internally in Bq; InjectedMass in g or mol; Bq/g; Bq/mol; and g/mol.
+    relations = []
+    injected_mass_dimension = _injected_mass_dimension(units["InjectedMass"])
+    if injected_mass_dimension == "mass":
+        relations.extend(
+            [
+                (
+                    "SpecificRadioactivity",
+                    "InjectedRadioactivity",
+                    "InjectedMass",
+                    True,
+                ),
+                (
+                    "InjectedMass",
+                    "InjectedRadioactivity",
+                    "SpecificRadioactivity",
+                    True,
+                ),
+                (
+                    "InjectedRadioactivity",
+                    "InjectedMass",
+                    "SpecificRadioactivity",
+                    False,
+                ),
+            ]
+        )
+    elif injected_mass_dimension == "amount":
+        relations.extend(
+            [
+                ("MolarActivity", "InjectedRadioactivity", "InjectedMass", True),
+                ("InjectedMass", "InjectedRadioactivity", "MolarActivity", True),
+                ("InjectedRadioactivity", "InjectedMass", "MolarActivity", False),
+            ]
+        )
+    relations.extend(
+        [
+            ("SpecificRadioactivity", "MolarActivity", "MolecularWeight", True),
+            ("MolecularWeight", "MolarActivity", "SpecificRadioactivity", True),
+            ("MolarActivity", "MolecularWeight", "SpecificRadioactivity", False),
+        ]
+    )
     for target, first, second, divide in relations:
         if first not in present or second not in present:
             continue
@@ -640,29 +763,34 @@ def check_meta_radio_inputs(kwargs: dict, logger="pypet2bids") -> dict:
                 if b != 0:
                     inferred = a / b
                 else:
-                    logger.warning("Cannot infer %s from zero %s.", target, second)
+                    logger.warning(
+                        "Cannot infer %s from zero %s.",
+                        output_names[target],
+                        output_names[second],
+                    )
             else:
                 inferred = a * b
         inferred /= factors[target]
         if math.isfinite(inferred):
-            supplied = _radio_numeric(data_out.get(target))
+            output_name = output_names[target]
+            supplied = _radio_numeric(data_out.get(output_name))
             if math.isfinite(supplied) and not math.isclose(
                 supplied, inferred, rel_tol=1e-5, abs_tol=1e-12
             ):
                 logger.warning(
                     "Inferred %s does not match %s and %s; check values and units.",
-                    target,
-                    first,
-                    second,
+                    output_names[target],
+                    output_names[first],
+                    output_names[second],
                 )
             if target not in present and (
-                target not in data_out or data_out[target] == "n/a"
+                output_name not in data_out or data_out[output_name] == "n/a"
             ):
-                data_out[target] = inferred
-                data_out[target + "Units"] = units[target]
-        elif target not in present and target not in data_out:
-            data_out[target] = "n/a"
-            data_out[target + "Units"] = "n/a"
+                data_out[output_name] = inferred
+                data_out[output_name + "Units"] = units[target]
+        elif target not in present and output_names[target] not in data_out:
+            data_out[output_names[target]] = "n/a"
+            data_out[output_names[target] + "Units"] = "n/a"
     return data_out
 
 
