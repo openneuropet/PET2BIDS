@@ -223,6 +223,7 @@ class Ecat:
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file.
+
         :param output_path: Optional str or path to the desired output NIfTI (.nii or .nii.gz). If omitted,
             uses ``self.nifti_file`` (default from constructor: ``<ecat_stem>.nii.gz``).
         :return: pathlib.Path to the file on disk (``.nii`` or ``.nii.gz``). Uncompressed ``.nii`` is always

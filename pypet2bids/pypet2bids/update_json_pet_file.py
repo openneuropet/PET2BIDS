@@ -173,7 +173,7 @@ def update_json_with_dicom_value(
     :param dicom2bids_json: a json file that maps dicom header entities to their corresponding BIDS entities
     :param silent: run silently without error, status, or warning messages
     :param ezbids: boolean to supply additional data that ezbids or other software requires, defaults to false. When
-    true the sidecar json will be updated with AcquisitionDate, AcquisitionTime, and AcquisitionDateTime
+        true the sidecar json will be updated with AcquisitionDate, AcquisitionTime, and AcquisitionDateTime
     :return: a dictionary of successfully updated (written to the json file) fields and values
     """
 
