@@ -25,6 +25,11 @@ function dataout = check_metaradioinputs(varargin)
 % result. Only absent output quantities are marked 'n/a'; inputs are retained.
 % Consistency uses relative tolerance 1e-5 rather than integer truncation.
 %
+% .. seealso::
+%
+%    :doc:`Radiotracer quantity inference </radioactivity>` for the formulas,
+%    unit conversions, and worked examples.
+%
 % | *Claus Svarer, Martin Nørgaard & Cyril Pernet - 2021*
 % | *Copyright Open NeuroPET team*
 

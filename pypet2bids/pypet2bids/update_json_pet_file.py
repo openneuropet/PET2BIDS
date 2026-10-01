@@ -615,6 +615,10 @@ def check_meta_radio_inputs(kwargs: dict, logger="pypet2bids") -> dict:
     yield 'n/a' for absent output quantities without overwriting measurements.
     Consistency uses relative tolerance 1e-5 and absolute tolerance 1e-12 in the
     target's declared units. Returns a metadata update; does not mutate kwargs.
+
+    .. seealso::
+       :doc:`Radiotracer quantity inference </radioactivity>` for the formulas,
+       unit conversions, and worked examples.
     """
     logger = helper_functions.logger(logger)
     defaults = {
