@@ -10,6 +10,7 @@ Welcome to PET2BIDS's documentation!
    about
    installation
    usage
+   radioactivity
    modules
    spreadsheets
    :maxdepth: 2
