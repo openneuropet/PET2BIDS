@@ -22,6 +22,9 @@ function status = updatejsonpetfile(varargin)
 % :param sort_method: (optional) DICOM ordering: 'name' (default),
 %                         'acquisition_time', or 'auto'; see sort_dcm.
 %                         Pass [] for dicomfolder to infer it from dcminfo.
+%                         VolumeTimes are printed in seconds since midnight.
+%                         If volume times do not strictly increase in name order,
+%                         warn and retry recovery using acquisition-time order.
 %
 % :param sort_pattern: (optional) filename-stem regex with named frame and optional
 %                          slice tokens; see sort_dcm.
@@ -488,10 +491,10 @@ function [filemetadata,updated] = update_arrays(filemetadata,dicomfolder,jsonfil
 % Optional source paths are only needed for DICOM recovery; validation and
 % ECAT callers can still normalize arrays with just the metadata structure.
 
-if nargin < 2, dicomfolder = ''; end
+if nargin < 2, dicomfolder  = ''; end
 if nargin < 3, jsonfilename = ''; end
-if nargin < 4, newfields = struct; end
-if nargin < 5, sort_method = 'name'; end
+if nargin < 4, newfields    = struct; end
+if nargin < 5, sort_method  = 'name'; end
 if nargin < 6, sort_pattern = ''; end
 
 updated      = 0;
@@ -552,30 +555,49 @@ if any(recover) && ~isempty(dicomfolder) && ~isempty(jsonfilename)
                 numel(dcmnames),nvolumes,nslices*nvolumes);
         end
 
-        % 3. Collect complete arrays before changing either metadata field.
-        % A missing/invalid tag leaves that field at its original scalar value.
-        values = nan(nvolumes,numel(jsonfields));
-        for volume = 1:nvolumes
-            index = 1 + (volume-1)*stride;
-            info  = flattenstruct(dicominfo(fullfile(dicomfolder,dcmnames{index})));
-            names = fieldnames(info);
-            for f = find(recover)
-                tag = dcmfields{f};
-                if ~isfield(info,tag)
-                    % Flattened sequence fields retain a prefix before the tag.
-                    matches = names(~cellfun('isempty',regexp(names,['_' tag '$'],'once')));
-                    if numel(matches) ~= 1
-                        continue
+        % 3. Collect complete arrays and acquisition times before changing fields.
+        % Retry once by acquisition time if representative volumes fail the check.
+        while true
+            values      = nan(nvolumes,numel(jsonfields));
+            VolumeTimes = nan(1,nvolumes);
+            for volume = 1:nvolumes
+                index = 1 + (volume-1)*stride;
+                info  = flattenstruct(dicominfo(fullfile(dicomfolder,dcmnames{index})));
+                VolumeTimes(volume) = acquisition_time_seconds(info,dcmnames{index});
+                names = fieldnames(info);
+                for f = find(recover)
+                    tag = dcmfields{f};
+                    if ~isfield(info,tag)
+                        % Flattened sequence fields retain a prefix before the tag.
+                        matches = names(~cellfun('isempty',regexp(names,['_' tag '$'],'once')));
+                        if numel(matches) ~= 1
+                            continue
+                        end
+                        tag = matches{1};
                     end
-                    tag = matches{1};
+                    value = info.(tag);
+                    if ischar(value) || (isstring(value) && isscalar(value))
+                        value = str2double(value);
+                    end
+                    if isnumeric(value) && isscalar(value) && isreal(value) && isfinite(value)
+                        values(volume,f) = value;
+                    end
                 end
-                value = info.(tag);
-                if ischar(value) || (isstring(value) && isscalar(value))
-                    value = str2double(value);
-                end
-                if isnumeric(value) && isscalar(value) && isreal(value) && isfinite(value)
-                    values(volume,f) = value;
-                end
+            end
+            fprintf('VolumeTimes (%s; seconds since midnight): %s\n', ...
+                sort_method,mat2str(VolumeTimes,15));
+            if all(diff(VolumeTimes) > 0)
+                break
+            elseif strcmpi(sort_method,'name')
+                warning('updatejsonpetfile:NameOrderMismatch', ...
+                    ['DICOM name sorting does not work: VolumeTimes must strictly ' ...
+                     'increase from one volume to the next. Recomputing using ' ...
+                     'AcquisitionTime sorting (slower; reads every DICOM header).']);
+                sort_method = 'acquisition_time';
+                dcmnames = sort_dcm(dicomfolder,sort_method,sort_pattern);
+            else
+                error('updatejsonpetfile:NonIncreasingVolumeTimes', ...
+                    'VolumeTimes must strictly increase from one volume to the next, even after AcquisitionTime sorting.');
             end
         end
         for f = find(recover)
@@ -605,3 +627,35 @@ for f = 1:numel(shouldBarray)
         end
     end
 end
+
+function seconds = acquisition_time_seconds(info,filename)
+% Parse DICOM TM as seconds since midnight, including fractional seconds.
+% Zero is valid at midnight; the volume-order check requires positive differences.
+if ~isfield(info,'AcquisitionTime')
+    error('updatejsonpetfile:MissingAcquisitionTime', ...
+        'Missing AcquisitionTime in %s.',filename);
+end
+value = info.AcquisitionTime;
+if isstring(value) && isscalar(value)
+    value = char(value);
+end
+if ~ischar(value) || size(value,1) ~= 1
+    error('updatejsonpetfile:InvalidAcquisitionTime', ...
+        'Invalid AcquisitionTime in %s.',filename);
+end
+value = strtrim(value);
+if isempty(regexp(value,'^(\d{2}|\d{4}|\d{6}(\.\d{1,6})?)$','once'))
+    error('updatejsonpetfile:InvalidAcquisitionTime', ...
+        'Invalid AcquisitionTime in %s.',filename);
+end
+hours = str2double(value(1:2));
+minutes = 0;
+seconds = 0;
+if length(value) >= 4, minutes = str2double(value(3:4)); end
+if length(value) >= 6, seconds = str2double(value(5:end)); end
+% DICOM TM allows a leap-second value of 60.
+if hours > 23 || minutes > 59 || seconds >= 61
+    error('updatejsonpetfile:InvalidAcquisitionTime', ...
+        'Invalid AcquisitionTime in %s.',filename);
+end
+seconds = hours*3600 + minutes*60 + seconds;

@@ -62,10 +62,74 @@ end
 
 function testDefaultNameOrdering(testCase)
 [jsonfile,source] = fixture(testCase,'name',3,5,false,true);
-updatejsonpetfile(jsonfile,struct,[],source);
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (name; seconds since midnight): [43201 43202 43203]'));
+verifyEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
 result = jsondecode(fileread(jsonfile));
 verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
 verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
+function testNameOrderingRetriesDecreasingVolumeTimes(testCase)
+[jsonfile,source] = fixture(testCase,'name_fallback',3,2,false);
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (name; seconds since midnight): [43203 43201 43202]'));
+verifyNotEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (acquisition_time; seconds since midnight): [43201 43202 43203]'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
+function testNameOrderingRetriesEqualVolumeTimes(testCase)
+[jsonfile,source] = fixture(testCase,'equal_name_times',3,3,false);
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (name; seconds since midnight): [43203 43203 43203]'));
+verifyNotEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
+function testEqualAcquisitionTimesKeepOriginalFactors(testCase)
+[jsonfile,source] = fixture(testCase,'equal_acquisition_times',3,2,false,true);
+set_times(source,repmat({'120001'},1,6));
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'even after AcquisitionTime sorting'));
+% Only one retry is allowed, and no ambiguous per-volume factors are committed.
+verifyEqual(testCase,numel(strfind(output,'VolumeTimes (')),2);
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),0.9);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),9);
+end
+
+function testFractionalVolumeTimesAndMinuteBoundary(testCase)
+[jsonfile,source] = fixture(testCase,'fractional_times',3,2,false,true);
+set_times(source,{'120059.5','120059.5','120100','120100','120100.25','120100.25'});
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (name; seconds since midnight): [43259.5 43260 43260.25]'));
+verifyEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+end
+
+function testSingleVolumeAtMidnight(testCase)
+[jsonfile,source] = fixture(testCase,'midnight',1,2,false);
+set_times(source,{'000000','000000'});
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'VolumeTimes (name; seconds since midnight): 0'));
+verifyEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),0.1,'AbsTol',1e-7);
+end
+
+function set_times(source,times)
+for k = 1:numel(times)
+    filename = fullfile(source,sprintf('%d.dcm',k));
+    info = dicominfo(filename);
+    info.AcquisitionTime = times{k};
+    dicomwrite(dicomread(filename),filename,info,'CreateMode','Copy');
+end
 end
 
 function testFrameSlicePattern(testCase)

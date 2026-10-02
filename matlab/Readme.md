@@ -67,6 +67,12 @@ dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_method','name');
 dcm2niix4pet(dcmfolder,meta,'o',timeOutput,'sort_method','acquisition_time');
 ```
 
+During scatter/decay recovery, the first DICOM header from each volume supplies
+`VolumeTimes`, printed in seconds since midnight. These times must strictly increase.
+If name sorting produces equal or decreasing volume times, recovery warns and retries
+using `acquisition_time` sorting, which reads every header. If the retry still fails
+the check, recovery warns and keeps the existing factors.
+
 For filenames containing both frame and slice numbers, provide a regular expression
 on the filename stem with a named `frame` token and an optional `slice` token.
 For example, these calls order `slice2_frame10.dcm` by frame first, then slice:
