@@ -75,13 +75,18 @@ end
 
 %% check metadata and update them
 if nargin == 1
+    [filemetadata,aliases_updated] = migrate_molecular_weight_aliases(filemetadata);
+
     % --------- update arrays if needed ---------------
-    [filemetadata,updated] = update_arrays(filemetadata);
-    if updated && exist('jsonfilename','var')
+    [filemetadata,arrays_updated] = update_arrays(filemetadata);
+    if arrays_updated
         warning('some scalars were changed to array')
-        if strcmpi(filemetadata.ReconFilterType,"none")
+        if isfield(filemetadata, 'ReconFilterType') && ...
+                strcmpi(filemetadata.ReconFilterType,"none")
             filemetadata.ReconFilterSize = 0; % not necessary once the validator takes conditinonal
         end
+    end
+    if (aliases_updated || arrays_updated) && exist('jsonfilename','var')
         jsonwrite(jsonfilename,orderfields(filemetadata));
     end
 
@@ -313,6 +318,40 @@ else % -------------- update ---------------
     jsonwrite(jsonfilename,filemetadata)
 end
 
+function [filemetadata,updated] = migrate_molecular_weight_aliases(filemetadata)
+% Migrate legacy aliases without running the broader metadata inference pass.
+updated = false;
+if ~isfield(filemetadata, 'MolecularWeight') && ...
+        ~isfield(filemetadata, 'MolecularWeightUnits')
+    return
+end
+
+before = filemetadata;
+names = {'TracerMolecularWeight', 'MolecularWeight', ...
+    'TracerMolecularWeightUnits', 'MolecularWeightUnits'};
+input_check = cellfun(@(x) isfield(filemetadata, x), names);
+arguments = cell(1, sum(input_check) * 2);
+index = 1;
+for n = find(input_check)
+    arguments{index} = names{n};
+    arguments{index+1} = filemetadata.(names{n});
+    index = index + 2;
+end
+dataout = check_metaradioinputs(arguments);
+outputs = {'TracerMolecularWeight', 'TracerMolecularWeightUnits'};
+for n = 1:numel(outputs)
+    if isfield(dataout, outputs{n})
+        filemetadata.(outputs{n}) = dataout.(outputs{n});
+    end
+end
+if isfield(filemetadata, 'MolecularWeight')
+    filemetadata = rmfield(filemetadata, 'MolecularWeight');
+end
+if isfield(filemetadata, 'MolecularWeightUnits')
+    filemetadata = rmfield(filemetadata, 'MolecularWeightUnits');
+end
+updated = ~isequaln(before, filemetadata);
+
 function filemetadata = dcm2bids_internal(filemetadata)
 
 % routine to check dcm data compatible for BIDS
@@ -330,7 +369,11 @@ end
 % get_pet_metadata ; but user can also populate metadata by hand
 % so let's recheck
 radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-    'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+    'SpecificRadioactivity', 'MolarActivity', ...
+    'TracerMolecularWeight', 'MolecularWeight', ...
+            'InjectedRadioactivityUnits', 'InjectedMassUnits', ...
+            'SpecificRadioactivityUnits', 'MolarActivityUnits', ...
+            'TracerMolecularWeightUnits', 'MolecularWeightUnits'};
 input_check            = cellfun(@(x) isfield(filemetadata,x), radioinputs);
 index                  = 1; % make key-value pairs
 arguments              = cell(1,sum(input_check)*2);
@@ -344,11 +387,15 @@ if sum(input_check) ~= 0
 
     if ~isempty(dataout)
         datafieldnames     = fieldnames(dataout);
-        % set new info fields
+        % The helper preserves selected inputs and normalizes aliases.
         for f = 1:size(datafieldnames,1)
-            if ~isfield(filemetadata,datafieldnames{f})
-                filemetadata.(datafieldnames{f}) = dataout.(datafieldnames{f});
-            end
+            filemetadata.(datafieldnames{f}) = dataout.(datafieldnames{f});
+        end
+        if isfield(filemetadata, 'MolecularWeight')
+            filemetadata = rmfield(filemetadata, 'MolecularWeight');
+        end
+        if isfield(filemetadata, 'MolecularWeightUnits')
+            filemetadata = rmfield(filemetadata, 'MolecularWeightUnits');
         end
     end
 end

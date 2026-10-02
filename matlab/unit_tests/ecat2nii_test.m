@@ -17,6 +17,9 @@ function ecat2nii_test(varargin)
 % ----------------------------------------------
 % Copyright OpenNeuroPET team
 
+% Run metadata regressions in the existing MATLAB CI entry point.
+check_metaradioinputs_test;
+
 if nargin ==0 || isempty(varargin{1})
     ecatfile = fullfile(fileparts(fileparts(fileparts(which('ecat2nii_test.m')))),...
         ['ecat_validation' filesep 'synthetic_ecat_integer_16x16x16x4.v.gz']);

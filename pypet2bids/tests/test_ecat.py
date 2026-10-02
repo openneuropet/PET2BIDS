@@ -87,6 +87,8 @@ def test_kwargs_produce_valid_conversion(tmp_path):
         "InjectedMassUnits": "nmol",
         "SpecificRadioactivity": 341066000000000,
         "SpecificRadioactivityUnits": "Bq/mol",
+        "MolecularWeight": 300,
+        "MolecularWeightUnits": "g/mol",
         "ModeOfAdministration": "bolus",
         "AcquisitionMode": "dynamic",
         "ImageDecayCorrected": True,
@@ -122,6 +124,15 @@ def test_kwargs_produce_valid_conversion(tmp_path):
     )
 
     convert_ecat.convert()
+
+    with open(ecat_bids_nifti_path.with_suffix(".json")) as infile:
+        sidecar = json.load(infile)
+    assert sidecar["TracerMolecularWeight"] == 300
+    assert sidecar["TracerMolecularWeightUnits"] == "g/mol"
+    assert abs(sidecar["MolarActivity"] - 134.07489006254028) < 1e-9
+    assert sidecar["MolarActivityUnits"] == "GBq/umol"
+    assert "MolecularWeight" not in sidecar
+    assert "MolecularWeightUnits" not in sidecar
 
     # run validator
     cmd = f"bids-validator {ecat_bids_dir.parent.parent.parent} --ignoreWarnings"

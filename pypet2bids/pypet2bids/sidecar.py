@@ -34,7 +34,7 @@ sidecar_template_full = {
     "TracerRadLex": "",
     "TracerSNOMED": "",
     "TracerMolecularWeight": "",
-    "TracerMolecularUnits": "",
+    "TracerMolecularWeightUnits": "",
     "InjectedMassPerWeight": "",
     "InjectedMassPerWeightUnits": "",
     "SpecificRadioactivityMeasTime": "",
