@@ -68,8 +68,9 @@ dcm2niix4pet(dcmfolder,meta,'o',timeOutput,'sort_method','acquisition_time');
 ```
 
 During scatter/decay recovery, the first DICOM header from each volume supplies
-`VolumeTimes`, printed in seconds since midnight. These times must strictly increase.
-If name sorting produces equal or decreasing volume times, recovery warns and retries
+`VolumeTimes`, printed in seconds since midnight, and `VolumeDates` in YYYYMMDD format.
+Acquisition dates and times together must strictly increase, including across midnight.
+If name sorting produces equal or decreasing acquisition dates/times, recovery warns and retries
 using `acquisition_time` sorting, which reads every header. If the retry still fails
 the check, recovery warns and keeps the existing factors.
 
@@ -94,8 +95,10 @@ Compare `ScatterFraction` and `DecayCorrectionFactor` in the two JSON files.
 Acquisition-time sorting reads every DICOM header. Alternatively, use
 `'sort_method','auto'` to check filename order and warn and reorder when it disagrees
 with acquisition times; this also reads every header. These options affect metadata
-recovery, while dcm2niix controls NIfTI image ordering. Acquisition times are currently
-sorted within a day, so scans crossing midnight need separate review.
+recovery, while dcm2niix controls NIfTI image ordering. Checked sorting requires valid
+`AcquisitionDate` and `AcquisitionTime` in every candidate header and sorts by date,
+then time. Missing or invalid dates/times prevent factor recovery and leave existing
+values unchanged; `StudyDate` is not substituted for an acquisition date.
 
 **Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
 

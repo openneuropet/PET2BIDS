@@ -23,7 +23,8 @@ function status = updatejsonpetfile(varargin)
 %                         'acquisition_time', or 'auto'; see sort_dcm.
 %                         Pass [] for dicomfolder to infer it from dcminfo.
 %                         VolumeTimes are printed in seconds since midnight.
-%                         If volume times do not strictly increase in name order,
+%                         AcquisitionDate and AcquisitionTime must be valid.
+%                         If volume dates/times do not strictly increase in name order,
 %                         warn and retry recovery using acquisition-time order.
 %
 % :param sort_pattern: (optional) filename-stem regex with named frame and optional
@@ -560,10 +561,12 @@ if any(recover) && ~isempty(dicomfolder) && ~isempty(jsonfilename)
         while true
             values      = nan(nvolumes,numel(jsonfields));
             VolumeTimes = nan(1,nvolumes);
+            VolumeDates = nan(1,nvolumes);
             for volume = 1:nvolumes
                 index = 1 + (volume-1)*stride;
                 info  = flattenstruct(dicominfo(fullfile(dicomfolder,dcmnames{index})));
-                VolumeTimes(volume) = acquisition_time_seconds(info,dcmnames{index});
+                [VolumeDates(volume),VolumeTimes(volume)] = ...
+                    dicom_acquisition_datetime(info,dcmnames{index},'updatejsonpetfile');
                 names = fieldnames(info);
                 for f = find(recover)
                     tag = dcmfields{f};
@@ -586,18 +589,21 @@ if any(recover) && ~isempty(dicomfolder) && ~isempty(jsonfilename)
             end
             fprintf('VolumeTimes (%s; seconds since midnight): %s\n', ...
                 sort_method,mat2str(VolumeTimes,15));
-            if all(diff(VolumeTimes) > 0)
+            fprintf('VolumeDates (%s; YYYYMMDD): %s\n', ...
+                sort_method,strjoin(cellstr(datestr(VolumeDates(:),'yyyymmdd'))', ' '));
+            if all(diff(VolumeDates) > 0 | ...
+                    (diff(VolumeDates) == 0 & diff(VolumeTimes) > 0))
                 break
             elseif strcmpi(sort_method,'name')
                 warning('updatejsonpetfile:NameOrderMismatch', ...
-                    ['DICOM name sorting does not work: VolumeTimes must strictly ' ...
+                    ['DICOM name sorting does not work: volume acquisition dates/times must strictly ' ...
                      'increase from one volume to the next. Recomputing using ' ...
                      'AcquisitionTime sorting (slower; reads every DICOM header).']);
                 sort_method = 'acquisition_time';
                 dcmnames = sort_dcm(dicomfolder,sort_method,sort_pattern);
             else
                 error('updatejsonpetfile:NonIncreasingVolumeTimes', ...
-                    'VolumeTimes must strictly increase from one volume to the next, even after AcquisitionTime sorting.');
+                    'Volume acquisition dates/times must strictly increase from one volume to the next, even after AcquisitionTime sorting.');
             end
         end
         for f = find(recover)
@@ -627,35 +633,3 @@ for f = 1:numel(shouldBarray)
         end
     end
 end
-
-function seconds = acquisition_time_seconds(info,filename)
-% Parse DICOM TM as seconds since midnight, including fractional seconds.
-% Zero is valid at midnight; the volume-order check requires positive differences.
-if ~isfield(info,'AcquisitionTime')
-    error('updatejsonpetfile:MissingAcquisitionTime', ...
-        'Missing AcquisitionTime in %s.',filename);
-end
-value = info.AcquisitionTime;
-if isstring(value) && isscalar(value)
-    value = char(value);
-end
-if ~ischar(value) || size(value,1) ~= 1
-    error('updatejsonpetfile:InvalidAcquisitionTime', ...
-        'Invalid AcquisitionTime in %s.',filename);
-end
-value = strtrim(value);
-if isempty(regexp(value,'^(\d{2}|\d{4}|\d{6}(\.\d{1,6})?)$','once'))
-    error('updatejsonpetfile:InvalidAcquisitionTime', ...
-        'Invalid AcquisitionTime in %s.',filename);
-end
-hours = str2double(value(1:2));
-minutes = 0;
-seconds = 0;
-if length(value) >= 4, minutes = str2double(value(3:4)); end
-if length(value) >= 6, seconds = str2double(value(5:end)); end
-% DICOM TM allows a leap-second value of 60.
-if hours > 23 || minutes > 59 || seconds >= 61
-    error('updatejsonpetfile:InvalidAcquisitionTime', ...
-        'Invalid AcquisitionTime in %s.',filename);
-end
-seconds = hours*3600 + minutes*60 + seconds;

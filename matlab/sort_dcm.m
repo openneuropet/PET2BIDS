@@ -14,7 +14,8 @@ function sorted_names = sort_dcm(folder,method,pattern)
 %            'auto': read all headers to check natural filename order; retain it
 %            when chronological, otherwise warn and sort by acquisition time.
 %            Use 'auto' when downstream processing requires chronological volumes.
-%            Acquisition times are ordered within a day, without date information.
+%            Checked modes require valid AcquisitionDate and AcquisitionTime.
+%            Order is by date, then time, including scans crossing midnight.
 %            Files with .dcm or .ima extensions (case insensitive), and files
 %            without extensions, are included. Extensionless files are assumed to be DICOM.
 %            Subfolders are not searched.
@@ -33,7 +34,7 @@ function sorted_names = sort_dcm(folder,method,pattern)
 %                  Repeated whitespace is treated as a single space for sorting.
 %                  Original filenames are returned unchanged; alphabetical
 %                  ordering breaks ties between equivalent padded names.
-%                  Equal acquisition times retain the filename order.
+%                  Equal acquisition dates/times retain the filename order.
 %
 % Cyril Pernet 2026
 
@@ -118,54 +119,22 @@ end
 
 % The fast name method never reads headers. Checked modes read each once.
 if ~strcmpi(method,'name')
+    dates = zeros(numel(sorted_names),1);
     times = zeros(numel(sorted_names),1);
     for f = 1:numel(sorted_names)
         info = dicominfo(fullfile(folder,sorted_names{f}));
-        if ~isfield(info,'AcquisitionTime')
-            error('sort_dcm:MissingAcquisitionTime', ...
-                'Missing AcquisitionTime in %s.',sorted_names{f});
-        end
-        value = info.AcquisitionTime;
-        if isstring(value) && isscalar(value)
-            value = char(value);
-        end
-        if ~ischar(value) || size(value,1) ~= 1
-            error('sort_dcm:InvalidAcquisitionTime', ...
-                'Invalid AcquisitionTime in %s.',sorted_names{f});
-        end
-        value = strtrim(value);
-        % DICOM TM permits HH, HHMM or HHMMSS with optional fractional seconds.
-        if isempty(regexp(value,'^(\d{2}|\d{4}|\d{6}(\.\d{1,6})?)$','once'))
-            error('sort_dcm:InvalidAcquisitionTime', ...
-                'Invalid AcquisitionTime in %s.',sorted_names{f});
-        end
-        % Convert to seconds since midnight; omitted components stay zero.
-        hours   = str2double(value(1:2));
-        minutes = 0;
-        seconds = 0;
-        if length(value) >= 4
-            minutes = str2double(value(3:4));
-        end
-        if length(value) >= 6
-            seconds = str2double(value(5:end));
-        end
-        % Allow the DICOM leap-second value of 60.
-        if hours > 23 || minutes > 59 || seconds >= 61
-            error('sort_dcm:InvalidAcquisitionTime', ...
-                'Invalid AcquisitionTime in %s.',sorted_names{f});
-        end
-        times(f) = hours*3600 + minutes*60 + seconds;
+        [dates(f),times(f)] = dicom_acquisition_datetime(info,sorted_names{f},'sort_dcm');
     end
     if strcmpi(method,'auto')
-        if all(diff(times) >= 0)
+        if all(diff(dates) > 0 | (diff(dates) == 0 & diff(times) >= 0))
             return
         end
         warning('sort_dcm:NameOrderMismatch', ...
-            ['Filename order does not follow acquisition time in %s; ' ...
+            ['Filename order does not follow acquisition date/time in %s; ' ...
              'returning acquisition-time order.'],folder);
     end
-    % Use the existing filename position to break ties between equal times.
-    [~,order]    = sortrows([times (1:numel(times))'],[1 2]);
+    % Use the existing filename position to break ties between equal dates/times.
+    [~,order]    = sortrows([dates times (1:numel(times))'],[1 2 3]);
     sorted_names = sorted_names(order);
 end
 end

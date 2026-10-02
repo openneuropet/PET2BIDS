@@ -10,6 +10,7 @@ mkdir(testCase.TestData.root);
 basefile = fullfile(testCase.TestData.root,'base.dcm');
 dicomwrite(uint16(ones(2)),basefile);
 testCase.TestData.base = dicominfo(basefile);
+testCase.TestData.base.AcquisitionDate = '20260929';
 end
 
 function teardownOnce(testCase)
@@ -55,13 +56,59 @@ dicomwrite(uint16(ones(2)),fullfile(folder,'1.dcm'),info,'CreateMode','Copy');
 verifyError(testCase,@() sort_dcm(folder,'auto'),'sort_dcm:MissingAcquisitionTime');
 end
 
-function folder = fixture(testCase,name,names,times)
+function folder = fixture(testCase,name,names,times,dates)
+if nargin < 5, dates = repmat({'20260929'},size(times)); end
 folder = fullfile(testCase.TestData.root,name);
 mkdir(folder);
 for k = 1:numel(names)
     info = testCase.TestData.base;
     info.AcquisitionTime = times{k};
+    info.AcquisitionDate = dates{k};
     dicomwrite(uint16(ones(2)),fullfile(folder,names{k}),info,'CreateMode','Copy');
+end
+end
+
+function testMidnightCrossingKeepsChronologicalNames(testCase)
+folder = fixture(testCase,'midnight',{'1.dcm','2.dcm','3.dcm'}, ...
+    {'235959.999999','000000','000000.000001'}, ...
+    {'20261231','20270101','20270101'});
+verifyWarningFree(testCase,@() sort_dcm(folder,'auto'));
+verifyEqual(testCase,sort_dcm(folder,'acquisition_time'),{'1.dcm','2.dcm','3.dcm'});
+end
+
+function testDatesTakePriorityOverIncreasingTimes(testCase)
+folder = fixture(testCase,'dates',{'1.dcm','2.dcm'}, ...
+    {'000001','235959'}, {'20270101','20261231'});
+verifyWarning(testCase,@() sort_dcm(folder,'auto'),'sort_dcm:NameOrderMismatch');
+verifyEqual(testCase,sort_dcm(folder,'acquisition_time'),{'2.dcm','1.dcm'});
+end
+
+function testEqualTimesOnDifferentDates(testCase)
+folder = fixture(testCase,'equal_times_dates',{'1.dcm','2.dcm'}, ...
+    {'120000','120000'}, {'20261001','20260930'});
+verifyEqual(testCase,sort_dcm(folder,'acquisition_time'),{'2.dcm','1.dcm'});
+end
+
+function testCheckedModesRejectMissingDates(testCase)
+folder = fullfile(testCase.TestData.root,'missing_dates');
+mkdir(folder);
+info = rmfield(testCase.TestData.base,'AcquisitionDate');
+info.AcquisitionTime = '120001';
+dicomwrite(uint16(ones(2)),fullfile(folder,'1.dcm'),info,'CreateMode','Copy');
+verifyError(testCase,@() sort_dcm(folder,'auto'),'sort_dcm:MissingAcquisitionDate');
+verifyError(testCase,@() sort_dcm(folder,'acquisition_time'),'sort_dcm:MissingAcquisitionDate');
+verifyEqual(testCase,sort_dcm(folder),{'1.dcm'});
+end
+
+function testCalendarValidationAndFractionalPrecision(testCase)
+info = struct('AcquisitionDate','20240229','AcquisitionTime','235959.999999');
+[day,seconds] = dicom_acquisition_datetime(info,'fixture');
+verifyEqual(testCase,day,datenum(2024,2,29));
+verifyEqual(testCase,seconds,86399.999999,'AbsTol',1e-10);
+for value = {'20230229','20260431','20261301','20260001','00000101','2026-10-01'}
+    info.AcquisitionDate = value{1};
+    verifyError(testCase,@() dicom_acquisition_datetime(info,'fixture'), ...
+        'sort_dcm:InvalidAcquisitionDate');
 end
 end
 

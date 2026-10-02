@@ -10,6 +10,7 @@ addpath(fileparts(fileparts(mfilename('fullpath'))));
 basefile = fullfile(testCase.TestData.root,'base.dcm');
 dicomwrite(uint16(ones(2)),basefile);
 testCase.TestData.base = dicominfo(basefile);
+testCase.TestData.base.AcquisitionDate = '20260929';
 end
 
 function teardownOnce(testCase)
@@ -95,7 +96,7 @@ function testEqualAcquisitionTimesKeepOriginalFactors(testCase)
 [jsonfile,source] = fixture(testCase,'equal_acquisition_times',3,2,false,true);
 set_times(source,repmat({'120001'},1,6));
 output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
-verifyNotEmpty(testCase,strfind(output,'even after AcquisitionTime sorting'));
+verifyNotEmpty(testCase,strfind(output,'Volume acquisition dates/times'));
 % Only one retry is allowed, and no ambiguous per-volume factors are committed.
 verifyEqual(testCase,numel(strfind(output,'VolumeTimes (')),2);
 result = jsondecode(fileread(jsonfile));
@@ -123,13 +124,51 @@ result = jsondecode(fileread(jsonfile));
 verifyEqual(testCase,result.ScatterFraction(:),0.1,'AbsTol',1e-7);
 end
 
-function set_times(source,times)
+function set_times(source,times,dates)
 for k = 1:numel(times)
     filename = fullfile(source,sprintf('%d.dcm',k));
     info = dicominfo(filename);
     info.AcquisitionTime = times{k};
+    if nargin >= 3, info.AcquisitionDate = dates{k}; end
     dicomwrite(dicomread(filename),filename,info,'CreateMode','Copy');
 end
+end
+
+function testMidnightCrossingPreservesFrameFactors(testCase)
+for method = {'name','auto','acquisition_time'}
+    [jsonfile,source] = fixture(testCase,['cross_midnight_' method{1}],3,2,false,true);
+    set_times(source,{'235959.5','235959.5','000000','000000','000000.000001','000000.000001'}, ...
+        {'20261231','20261231','20270101','20270101','20270101','20270101'});
+    output = evalc('updatejsonpetfile(jsonfile,struct,[],source,method{1});');
+    verifyNotEmpty(testCase,strfind(output,'20261231 20270101 20270101'));
+    verifyEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+    result = jsondecode(fileread(jsonfile));
+    verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+    verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+end
+
+function testNameOrderingRetriesDecreasingDates(testCase)
+[jsonfile,source] = fixture(testCase,'date_fallback',3,2,false);
+set_times(source,repmat({'120000'},1,6), ...
+    {'20261001','20260930','20260929','20261001','20260930','20260929'});
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'DICOM name sorting does not work'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
+function testMissingDatesKeepOriginalFactors(testCase)
+[jsonfile,source] = fixture(testCase,'missing_date',3,2,false,true);
+filename = fullfile(source,'1.dcm');
+info = rmfield(dicominfo(filename),'AcquisitionDate');
+dicomwrite(dicomread(filename),filename,info,'CreateMode','Copy');
+output = evalc('updatejsonpetfile(jsonfile,struct,[],source);');
+verifyNotEmpty(testCase,strfind(output,'Missing AcquisitionDate'));
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.ScatterFraction(:),0.9);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),9);
 end
 
 function testFrameSlicePattern(testCase)
