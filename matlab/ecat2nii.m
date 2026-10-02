@@ -365,7 +365,11 @@ for j=1:length(FileListIn)
         end
 
         radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-            'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+            'SpecificRadioactivity', 'MolarActivity', ...
+            'TracerMolecularWeight', 'MolecularWeight', ...
+            'InjectedRadioactivityUnits', 'InjectedMassUnits', ...
+            'SpecificRadioactivityUnits', 'MolarActivityUnits', ...
+            'TracerMolecularWeightUnits', 'MolecularWeightUnits'};
         input_check            = cellfun(@(x) isfield(info,x), radioinputs);
         index                  = 1; % make key-value pairs
         arguments              = cell(1,sum(input_check)*2);
@@ -376,13 +380,19 @@ for j=1:length(FileListIn)
                 index = index + 2;
             end
             dataout                = check_metaradioinputs(arguments);
-            datafieldnames         = fieldnames(dataout);
+            if ~isempty(dataout)
+                datafieldnames = fieldnames(dataout);
 
-            % set new info fields
-            for f = 1:size(datafieldnames,1)
-                if ~isfield(info,datafieldnames{f})
+                % The helper preserves selected inputs and normalizes aliases.
+                for f = 1:size(datafieldnames,1)
                     info.(datafieldnames{f}) = dataout.(datafieldnames{f});
                 end
+            end
+            if isfield(info, 'MolecularWeight')
+                info = rmfield(info, 'MolecularWeight');
+            end
+            if isfield(info, 'MolecularWeightUnits')
+                info = rmfield(info, 'MolecularWeightUnits');
             end
         end
 

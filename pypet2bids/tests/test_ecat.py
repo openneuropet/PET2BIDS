@@ -1,6 +1,5 @@
 import copy
 import json
-import logging
 import os
 import pathlib
 import pdb
@@ -8,6 +7,7 @@ import subprocess
 import tempfile
 
 import numpy
+import pytest
 
 from pypet2bids.ecat import Ecat
 from pypet2bids import sidecar
@@ -42,7 +42,12 @@ dataset_description_dictionary = {
 }
 
 
-def test_populate_sidecar_calculates_recording_start(caplog):
+@pytest.mark.parametrize(
+    ("frame_start_time", "expected_recording_start"), [(25, 35), (0, None)]
+)
+def test_populate_sidecar_calculates_recording_start(
+    frame_start_time, expected_recording_start
+):
     ecat = Ecat.__new__(Ecat)
     ecat.ecat_header = {
         "SERIAL_NUMBER": "test-scanner",
@@ -53,9 +58,10 @@ def test_populate_sidecar_calculates_recording_start(caplog):
     }
     ecat.subheaders = [
         {
-            "FRAME_START_TIME": 25,
+            "FRAME_START_TIME": frame_start_time,
             "FRAME_DURATION": 30,
             "SCALE_FACTOR": 1,
+            "ANNOTATION": "OSEM",
             "X_DIMENSION": 1,
             "Y_DIMENSION": 1,
             "Z_DIMENSION": 1,
@@ -72,17 +78,17 @@ def test_populate_sidecar_calculates_recording_start(caplog):
     ecat.nifti_file = pathlib.Path("test.nii")
     ecat.ecat_file = pathlib.Path("test.v")
 
-    with caplog.at_level(logging.WARNING, logger="pypet2bids"):
-        ecat.populate_sidecar(
-            TimeZero="00:00:00",
-            ScanStart=10,
-            PharmaceuticalDoseTime=0,
-            InjectionStart=0,
-            RecordingStart=0,
-        )
+    ecat.populate_sidecar(
+        TimeZero="00:00:00",
+        ScanStart=10,
+        PharmaceuticalDoseTime=0,
+        InjectionStart=0,
+    )
 
-    assert ecat.sidecar_template["RecordingStart"] == 35
-    assert "FrameTimesStart[0] 25 is lower than RecordingStart 35" in caplog.text
+    if expected_recording_start is None:
+        assert "RecordingStart" not in ecat.sidecar_template
+    else:
+        assert ecat.sidecar_template["RecordingStart"] == expected_recording_start
 
 
 def test_kwargs_produce_valid_conversion(tmp_path):
@@ -136,6 +142,8 @@ def test_kwargs_produce_valid_conversion(tmp_path):
         "InjectedMassUnits": "nmol",
         "SpecificRadioactivity": 341066000000000,
         "SpecificRadioactivityUnits": "Bq/mol",
+        "MolecularWeight": 300,
+        "MolecularWeightUnits": "g/mol",
         "ModeOfAdministration": "bolus",
         "AcquisitionMode": "dynamic",
         "ImageDecayCorrected": True,
@@ -171,6 +179,15 @@ def test_kwargs_produce_valid_conversion(tmp_path):
     )
 
     convert_ecat.convert()
+
+    with open(ecat_bids_nifti_path.with_suffix(".json")) as infile:
+        sidecar = json.load(infile)
+    assert sidecar["TracerMolecularWeight"] == 300
+    assert sidecar["TracerMolecularWeightUnits"] == "g/mol"
+    assert abs(sidecar["MolarActivity"] - 134.07489006254028) < 1e-9
+    assert sidecar["MolarActivityUnits"] == "GBq/umol"
+    assert "MolecularWeight" not in sidecar
+    assert "MolecularWeightUnits" not in sidecar
 
     # run validator
     cmd = f"bids-validator {ecat_bids_dir.parent.parent.parent} --ignoreWarnings"

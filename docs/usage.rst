@@ -18,7 +18,7 @@ otherwise.
 
 To simplify the curation of json files, one uses the
 `get_pet_metadata.m <https://github.com/openneuropet/PET2BIDS/blob/main/matlab/get_pet_metadata.m>`_ function. This
-function takes as arguments the scanner info (thus loading the relevant *parameters.txt file) and also need some manual
+function takes as arguments the scanner info (thus loading the relevant ``*parameters.txt`` file) and also need some manual
 input related to the injected tracer.
 
 *Feel free to reach out if you have an issue with your scanner files, we can help*.

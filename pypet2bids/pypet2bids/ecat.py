@@ -10,6 +10,7 @@ and write them out to Nifti files.
 import datetime
 import logging
 import re
+import copy
 
 import nibabel
 import os
@@ -98,7 +99,7 @@ class Ecat:
         self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
         self.sidecar_template = (
-            sidecar.sidecar_template_full
+            copy.deepcopy(sidecar.sidecar_template_full)
         )  # bids approved sidecar file with ALL bids fields
         self.sidecar_template_short = (
             sidecar.sidecar_template_short
@@ -238,6 +239,7 @@ class Ecat:
     def make_nifti(self, output_path=None):
         """
         Outputs a nifti from the read in ECAT file.
+
         :param output_path: Optional str or path to the desired output NIfTI (.nii or .nii.gz). If omitted,
             uses ``self.nifti_file`` (default from constructor: ``<ecat_stem>.nii.gz``).
         :return: pathlib.Path to the file on disk (``.nii`` or ``.nii.gz``). Uncompressed ``.nii`` is always
@@ -478,11 +480,12 @@ class Ecat:
                 time_diff = t_datetime - time_zero_datetime
                 self.sidecar_template[t] = time_diff.total_seconds()
 
-        if "RecordingStart" in self.sidecar_template:
+        recording_delay = self.subheaders[0].get("FRAME_START_TIME") or 0
+        if recording_delay > 0:
             self.sidecar_template["RecordingStart"] = (
-                self.sidecar_template["ScanStart"]
-                + self.sidecar_template["FrameTimesStart"][0]
+                self.sidecar_template["ScanStart"] + recording_delay
             )
+
             if (
                 self.sidecar_template["FrameTimesStart"][0]
                 < self.sidecar_template["RecordingStart"]
@@ -544,6 +547,8 @@ class Ecat:
         :param output_path: path to output a json file
         :return: None
         """
+        self.sidecar_template.pop("MolecularWeight", None)
+        self.sidecar_template.pop("MolecularWeightUnits", None)
         self.prune_sidecar()
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 

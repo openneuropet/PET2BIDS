@@ -43,6 +43,47 @@ verifyEqual(testCase,result.ScatterFraction(:),explicit.ScatterFraction(:));
 verifyEqual(testCase,result.DecayCorrectionFactor(:),explicit.DecayCorrectionFactor(:));
 end
 
+function testMolecularWeightMigrationWithFrameRecovery(testCase)
+[jsonfile,source] = fixture(testCase,'radioactivity_and_frames',3,2,false);
+input = jsondecode(fileread(jsonfile));
+input.MolecularWeight = .3;
+input.MolecularWeightUnits = 'kg/mol';
+input.SpecificRadioactivity = 50;
+input.SpecificRadioactivityUnits = 'MBq/ug';
+jsonwrite(jsonfile,input);
+updatejsonpetfile(jsonfile,struct,[],source,'acquisition_time');
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.TracerMolecularWeight,.3);
+verifyEqual(testCase,result.TracerMolecularWeightUnits,'kg/mol');
+verifyEqual(testCase,result.MolarActivity,15,'AbsTol',1e-7);
+verifyFalse(testCase,isfield(result,'MolecularWeight'));
+verifyFalse(testCase,isfield(result,'MolecularWeightUnits'));
+verifyEqual(testCase,result.ScatterFraction(:),[0.1;0.2;0.3],'AbsTol',1e-7);
+verifyEqual(testCase,result.DecayCorrectionFactor(:),[1.1;1.2;1.3],'AbsTol',1e-7);
+end
+
+function testValidationMigrationPreservesFlatArrays(testCase)
+[jsonfile,~] = fixture(testCase,'validation_migration',1,2,false);
+input = struct('MolecularWeight',.3,'MolecularWeightUnits','kg/mol', ...
+    'ScatterFraction',{{0.1}},'DecayCorrectionFactor',{{1.1}}, ...
+    'ReconFilterType','none','ReconFilterSize',0);
+jsonwrite(jsonfile,input);
+updatejsonpetfile(jsonfile);
+result = jsondecode(fileread(jsonfile));
+verifyEqual(testCase,result.TracerMolecularWeight,.3);
+verifyEqual(testCase,result.TracerMolecularWeightUnits,'kg/mol');
+verifyFalse(testCase,isfield(result,'MolarActivity'));
+verifyFalse(testCase,isfield(result,'MolecularWeight'));
+before = fileread(jsonfile);
+for field = {'ScatterFraction','DecayCorrectionFactor','ReconFilterSize'}
+    verifyNotEmpty(testCase,regexp(before,['"' field{1} '":\s*\[[^\[\]]+\]'],'once'));
+end
+updatejsonpetfile(jsonfile);
+verifyEqual(testCase,fileread(jsonfile),before);
+% Struct-only validation must also combine migration and normalization safely.
+verifyClass(testCase,updatejsonpetfile(input),'struct');
+end
+
 function testSingleVolumeArraysRemainFlat(testCase)
 [jsonfile,source] = fixture(testCase,'single',1,2,false);
 updatejsonpetfile(jsonfile,struct,[],source);
