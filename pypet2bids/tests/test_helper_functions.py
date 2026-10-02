@@ -102,23 +102,43 @@ def test_open_metadata():
         pass
 
 
-def test_translate_metadata():
-    test_translate_script_path = join(module_folder, "metadata_excel_example_reader.py")
-
-    test_output = helper_functions.translate_metadata(
-        single_subject_metadata_file, test_translate_script_path
+def test_single_spreadsheet_reader_rejects_empty_column(tmp_path, monkeypatch):
+    spreadsheet = tmp_path / "metadata.xlsx"
+    spreadsheet.touch()
+    monkeypatch.setattr(
+        helper_functions,
+        "open_meta_data",
+        lambda _: pandas.DataFrame({"AttenuationCorrection": [None]}),
     )
 
-    # values below manually parsed out of the file 'subject_metadata_example.xlsx'
-    assert test_output["nifti_json"]["ImageDecayCorrectionTime"] == 0
-    assert test_output["nifti_json"]["ReconMethodName"] == "3D-OSEM-PSF"
-    assert test_output["nifti_json"]["ReconMethodParameterLabels"] == [
-        "subsets",
-        "iterations",
-    ]
-    assert test_output["nifti_json"]["ReconMethodParameterUnits"] == ["none", "none"]
-    assert test_output["nifti_json"]["ReconMethodParameterValues"] == [16, 10]
-    assert test_output["nifti_json"]["ReconFilterType"] == "none"
+    try:
+        helper_functions.single_spreadsheet_reader(
+            spreadsheet,
+            pet2bids_metadata={"mandatory": ["AttenuationCorrection"]},
+        )
+    except ValueError as error:
+        assert str(error) == (
+            f"Spreadsheet {spreadsheet} contains empty column AttenuationCorrection, "
+            "provide values or remove column to proceed"
+        )
+    else:
+        raise AssertionError("Expected an empty spreadsheet column to raise ValueError")
+
+
+def test_check_read_spreadsheet_can_suppress_missing_warnings(monkeypatch):
+    warnings = []
+    test_logger = helper_functions.logging.getLogger("pypet2bids")
+    monkeypatch.setattr(test_logger, "warning", warnings.append)
+
+    spreadsheet_metadata = helper_functions.check_read_spreadsheet(
+        read_sheet=pandas.DataFrame({"Manufacturer": ["Example"]}),
+        path_to_spreadsheet=Path("metadata.xlsx"),
+        pet2bids_metadata={"mandatory": ["Manufacturer", "ImageDecayCorrected"]},
+        warn_missing=False,
+    )
+
+    assert spreadsheet_metadata == {"Manufacturer": "Example"}
+    assert warnings == []
 
 
 def test_collect_bids_parts():

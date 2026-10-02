@@ -117,7 +117,7 @@ else % -------------- update ---------------
 
     if isfield(filemetadata,'TimeZero')
         if strcmpi(filemetadata.TimeZero,'ScanStart') || isempty(filemetadata.TimeZero)
-            filemetadata.TimeZero   = datetime(filemetadata.AcquisitionTime,'Format','hh:mm:ss');
+            filemetadata.TimeZero   = datetime(filemetadata.AcquisitionTime,'Format','HH:mm:ss');
             filemetadata.ScanStart  = 0;
 
             if ~isfield(filemetadata,'InjectionStart')
@@ -264,7 +264,7 @@ else % -------------- update ---------------
     if isfield(filemetadata,'ScanDate')
         try
             if ~ischar(filemetadata.ScanDate)
-                filemetadata.ScanDate = datetime(filemetadata.ScanDate,'Format','hh:mm:ss');
+                filemetadata.ScanDate = datetime(filemetadata.ScanDate,'Format','HH:mm:ss');
                 warning('metadata ScanDate is deprecated')
             else
                 warning('ScanDate is not converted - no big deal this field is deprecated')

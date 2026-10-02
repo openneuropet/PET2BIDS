@@ -5,6 +5,7 @@ import subprocess
 import time
 import sys
 import select
+import uuid
 from dotenv import load_dotenv
 from typing import Union
 
@@ -21,15 +22,17 @@ except ModuleNotFoundError:
 
 pet2bids_config = load_vars_from_config()
 telemetry_default_url = pet2bids_config.get(
-    "TELEMETRY_URL", "http://openneuropet.org/pet2bids/"
+    "TELEMETRY_URL", "https://migas.openneuropet.org/api/breadcrumb"
 )
 # check environment variables as well as the config file
 telemetry_enabled_env = os.getenv("PET2BIDS_TELEMETRY_ENABLED", True)
-telemetry_enabled = pet2bids_config.get("TELEMETRY_ENABLED", True)
+telemetry_enabled_config = pet2bids_config.get("TELEMETRY_ENABLED", True)
 
 # if telemetry is disabled in the config file or the environment variable disable its use.
-if telemetry_enabled_env is False or telemetry_enabled is False:
+if telemetry_enabled_env is False or telemetry_enabled_config is False:
     telemetry_enabled = False
+else:
+    telemetry_enabled = True
 
 telemetry_notify_user = pet2bids_config.get("NOTIFY_USER_OF_TELEMETRY", False)
 
@@ -62,7 +65,18 @@ def telemetry_enabled(config_path=None):
         return True
 
 
-def send_telemetry(json_data: dict, url: str = telemetry_default_url):
+def convert_return_code(return_code: int) -> str:
+    if return_code == 0:
+        return "C"
+    else:
+        return "F"
+
+
+def send_telemetry(
+    json_data: dict,
+    url: str = telemetry_default_url,
+    project: str = "openneuropet/PET2BIDS",
+):
     """
     Send telemetry data to the telemetry server, by default this will first try
     to load the telemetry server url from the config file, if it's not found it will
@@ -72,10 +86,31 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
     :type json_data: dict
     :param url: The url of the telemetry server
     :type url: str
+    :param project: The Migas project receiving the telemetry
+    :type project: str
     """
     if telemetry_enabled():
+        python_version_number = ".".join(
+            [
+                str(sys.version_info[0]),
+                str(sys.version_info[1]),
+                str(sys.version_info[2]),
+            ]
+        )
+        bread_crumb = {
+            "project": project,
+            "project_version": get_version(),
+            "language": "python",
+            "language_version": python_version_number,
+            "ctx": {
+                "session_id": str(uuid.uuid4()),
+                "platform": sys.platform,
+                "is_ci": os.getenv("CI", False),
+            },
+            "proc": {"status": "", "params": {}},
+        }
         # update data with version of pet2bids
-        json_data["pypet2bids_version"] = get_version()
+        json_data["version"] = bread_crumb["project_version"]
         # check if it's one of the dev's running this
         running_from_cloned_repository = subprocess.run(
             ["git", "status"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -85,13 +120,16 @@ def send_telemetry(json_data: dict, url: str = telemetry_default_url):
 
         json_data["description"] = "pet2bids_python_telemetry"
 
+        bread_crumb["proc"]["params"] = json_data
+        bread_crumb["proc"]["status"] = convert_return_code(json_data["returncode"])
+
         try:
             # Send a POST request to the telemetry server
-            requests.post(url, json=json_data)
+            return requests.post(url, json=bread_crumb, timeout=5)
         except requests.exceptions.RequestException as e:
-            pass
+            return None
     else:
-        pass
+        return None
 
 
 def count_input_files(input_file_path: Union[str, pathlib.Path]):

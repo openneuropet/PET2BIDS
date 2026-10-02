@@ -8,7 +8,9 @@ and write them out to Nifti files.
 """
 
 import datetime
+import logging
 import re
+import copy
 
 import nibabel
 import os
@@ -23,6 +25,7 @@ try:
     import ecat2nii
     import dcm2niix4pet
     from update_json_pet_file import (
+        check_json,
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
@@ -34,6 +37,7 @@ except ModuleNotFoundError:
     import pypet2bids.ecat2nii as ecat2nii
     import pypet2bids.dcm2niix4pet as dcm2niix4pet
     from pypet2bids.update_json_pet_file import (
+        check_json,
         get_metadata_from_spreadsheet,
         check_meta_radio_inputs,
     )
@@ -74,6 +78,8 @@ class Ecat:
         metadata_path=None,
         kwargs={},
         ezbids=False,
+        silent=False,
+        verbose=False,
     ):
         """
         Initialization of this class requires only a path to an ecat file.
@@ -82,6 +88,8 @@ class Ecat:
         :param nifti_file: when using this class for conversion from ecat to nifti this path, if supplied, will be used
             to output the newly generated nifti
         :param decompress: attempt to decompress the ecat file, should probably be set to false
+        :param silent: hide all log output
+        :param verbose: display informational, warning, and debug messages, including recommended BIDS fields
         """
         self.ecat_header = {}  # ecat header information is stored here
         self.subheaders = []  # subheader information is placed here
@@ -91,7 +99,7 @@ class Ecat:
         self.frame_durations = []  # extracted from ecat subheaders. They're pretty important and get
         self.decay_factors = []  # stored here
         self.sidecar_template = (
-            sidecar.sidecar_template_full
+            copy.deepcopy(sidecar.sidecar_template_full)
         )  # bids approved sidecar file with ALL bids fields
         self.sidecar_template_short = (
             sidecar.sidecar_template_short
@@ -107,7 +115,14 @@ class Ecat:
         self.output_path = None
         self.metadata_path = metadata_path
         self.ezbids = ezbids
-        self.telemetry_data = {}
+        self.silent = silent
+        self.verbose = verbose
+        logger.disabled = silent
+        logger.setLevel(logging.DEBUG if verbose else logging.ERROR)
+        self.telemetry_data = {
+            "metadata_spreadsheet_used": False,
+            "blood_tsv": False,
+        }
 
         # load config file
         default_json_path = helper_functions.check_pet2bids_config(
@@ -187,17 +202,18 @@ class Ecat:
                 pathlib.Path(metadata_path).is_file()
                 and pathlib.Path(metadata_path).exists()
             ):
-                self.metadata_path = metadata_path
+                self.metadata_path = pathlib.Path(metadata_path)
         elif metadata_path == "":
             self.metadata_path = pathlib.Path(self.ecat_file).parent
         else:
             self.metadata_path = None
 
-        if self.metadata_path:
+        if self.metadata_path and pathlib.Path(self.metadata_path).exists():
             load_spreadsheet_data = get_metadata_from_spreadsheet(
                 metadata_path=self.metadata_path,
                 image_folder=pathlib.Path(self.ecat_file).parent,
                 image_header_dict={},
+                warn_missing=False,
             )
 
             self.spreadsheet_metadata["nifti_json"].update(
@@ -211,9 +227,9 @@ class Ecat:
             )
 
             if helper_functions.collect_spreadsheets(self.metadata_path):
-                self.telemetry_data.update({"metadata_spreadsheet_user": True})
+                self.telemetry_data.update({"metadata_spreadsheet_used": True})
             else:
-                self.telemetry_data.update({"metadata_spreadsheet_user": False})
+                self.telemetry_data.update({"metadata_spreadsheet_used": False})
 
             if self.spreadsheet_metadata.get("blood_tsv", None):
                 self.telemetry_data.update({"blood_tsv": True})
@@ -464,6 +480,22 @@ class Ecat:
                 time_diff = t_datetime - time_zero_datetime
                 self.sidecar_template[t] = time_diff.total_seconds()
 
+        recording_delay = self.subheaders[0].get("FRAME_START_TIME") or 0
+        if recording_delay > 0:
+            self.sidecar_template["RecordingStart"] = (
+                self.sidecar_template["ScanStart"] + recording_delay
+            )
+
+            if (
+                self.sidecar_template["FrameTimesStart"][0]
+                < self.sidecar_template["RecordingStart"]
+            ):
+                logger.warning(
+                    "FrameTimesStart[0] %s is lower than RecordingStart %s",
+                    self.sidecar_template["FrameTimesStart"][0],
+                    self.sidecar_template["RecordingStart"],
+                )
+
         # clear any nulls from json sidecar and replace with none's
         self.sidecar_template = helper_functions.replace_nones(self.sidecar_template)
 
@@ -683,6 +715,12 @@ class Ecat:
         self.sidecar_template.update(check_meta_radio_inputs(self.sidecar_template))
 
         self.show_sidecar(output_path=pet_json_path)
+        check_json(
+            pet_json_path,
+            silent=self.silent,
+            recommended=self.verbose,
+            logger_name="pypet2bids",
+        )
 
     def json_out(self):
         """
@@ -698,13 +736,24 @@ class Ecat:
         Convert ecat to nifti
         :return: None
         """
-        self.output_path = pathlib.Path(self.make_nifti())
-        self.sidecar_path = self.output_path.parent / self.output_path.stem
-        self.sidecar_path = self.sidecar_path.with_suffix(".json")
-        self.populate_sidecar(**self.kwargs)
-        self.prune_sidecar()
-        self.show_sidecar(output_path=self.sidecar_path)
-        self.write_out_blood_files()
-
-        if telemetry_enabled:
-            send_telemetry(self.telemetry_data)
+        try:
+            self.output_path = pathlib.Path(self.make_nifti())
+            self.sidecar_path = self.output_path.parent / self.output_path.stem
+            self.sidecar_path = self.sidecar_path.with_suffix(".json")
+            self.populate_sidecar(**self.kwargs)
+            self.prune_sidecar()
+            self.show_sidecar(output_path=self.sidecar_path)
+            check_json(
+                self.sidecar_path,
+                silent=self.silent,
+                recommended=self.verbose,
+                logger_name="pypet2bids",
+            )
+            self.write_out_blood_files()
+            self.telemetry_data["returncode"] = 0
+        except Exception:
+            self.telemetry_data["returncode"] = 1
+            raise
+        finally:
+            if telemetry_enabled():
+                send_telemetry(self.telemetry_data)

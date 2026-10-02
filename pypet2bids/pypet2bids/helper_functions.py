@@ -61,6 +61,10 @@ pet2bids_folder = python_folder.parent
 
 loggers = {}
 
+BIDS_RECOMMENDED = 25
+BIDS_INVALID_LABEL = "BIDS-INVALID"
+logging.addLevelName(BIDS_RECOMMENDED, "BIDS-RECOMMENDED")
+
 
 def logger(name):
     global loggers
@@ -130,11 +134,9 @@ def single_spreadsheet_reader(
     path_to_spreadsheet: Union[str, pathlib.Path],
     pet2bids_metadata: dict = metadata.PET_metadata,
     dicom_metadata={},
+    warn_missing=True,
     **kwargs,
 ) -> dict:
-    spreadsheet_metadata = {}
-    metadata_fields = pet2bids_metadata
-
     if type(path_to_spreadsheet) is str:
         path_to_spreadsheet = pathlib.Path(path_to_spreadsheet)
 
@@ -145,16 +147,41 @@ def single_spreadsheet_reader(
 
     spreadsheet_dataframe = open_meta_data(path_to_spreadsheet)
 
+    return check_read_spreadsheet(
+        read_sheet=spreadsheet_dataframe,
+        path_to_spreadsheet=path_to_spreadsheet,
+        pet2bids_metadata=pet2bids_metadata,
+        dicom_metadata=dicom_metadata,
+        warn_missing=warn_missing,
+        **kwargs,
+    )
+
+
+def check_read_spreadsheet(
+    read_sheet: pandas.DataFrame,
+    path_to_spreadsheet: Union[str, pathlib.Path],
+    pet2bids_metadata: dict = metadata.PET_metadata,
+    dicom_metadata=None,
+    warn_missing=True,
+    **kwargs,
+) -> dict:
+    spreadsheet_metadata = {}
+    dicom_metadata = dicom_metadata or {}
     log = logging.getLogger("pypet2bids")
 
     # collect mandatory fields
-    for field_level in metadata_fields.keys():
-        for field in metadata_fields[field_level]:
-            series = spreadsheet_dataframe.get(field, Series(dtype=numpy.float64))
+    for field_level in pet2bids_metadata.keys():
+        for field in pet2bids_metadata[field_level]:
+            series = read_sheet.get(field, Series(dtype=numpy.float64))
             if not series.empty:
+                if series.dropna().empty:
+                    raise ValueError(
+                        f"Spreadsheet {path_to_spreadsheet} contains empty column {field}, "
+                        "provide values or remove column to proceed"
+                    )
                 spreadsheet_metadata[field] = flatten_series(series)
             elif (
-                series.empty
+                warn_missing
                 and field_level == "mandatory"
                 and not dicom_metadata.get(field, None)
                 and field not in kwargs
@@ -192,6 +219,7 @@ def single_spreadsheet_reader(
                     log.warning(f"{field} is not string, it's value is {value}")
             else:
                 pass
+
     return spreadsheet_metadata
 
 
@@ -455,63 +483,6 @@ def open_meta_data(
             raise err(f"Problem opening {metadata_path}")
 
     return metadata_dataframe
-
-
-def translate_metadata(metadata_path, metadata_translation_script_path, **kwargs):
-    log = logger("pypet2bids")
-    # load metadata
-    metadata_dataframe = open_meta_data(metadata_path)
-
-    if metadata_dataframe is not None:
-        try:
-            # this is where the goofiness happens, we allow the user to create their own custom script to manipulate
-            # data from their particular spreadsheet wherever that file is located.
-            spec = importlib.util.spec_from_file_location(
-                "metadata_translation_script_path", metadata_translation_script_path
-            )
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            # note the translation must have a method named translate metadata in order to work
-            text_file_data = module.translate_metadata(metadata_dataframe, **kwargs)
-        except AttributeError as err:
-            log.warning(f"Unable to locate metadata_translation_script\n{err}")
-    else:
-        log.info(f"No metadata found at {metadata_path}")
-        text_file_data = None
-
-    return text_file_data
-
-
-def import_and_write_out_module(module: str, destination: str):
-    """
-    Writes an imported module file to a destination
-    :param module: an imported python module
-    :param destination: the destination to write the source/script of the module to file
-
-    :return: the destination path of the copied module file if successful
-    """
-    imported_module = importlib.import_module(module)
-    path_to_module = os.path.abspath(imported_module.__file__)
-    shutil.copy(path_to_module, destination)
-    if os.path.isfile(destination):
-        return destination
-    elif os.path.isdir(destination):
-        return os.path.join(destination, os.path.basename(path_to_module))
-
-
-def write_out_module(module: str = "pypet2bids.metadata_spreadsheet_example_reader"):
-    parser = argparse.ArgumentParser(
-        description="[DEPRECATED!!] Write out a template for a python script used for "
-        "bespoke metadata."
-    )
-    parser.add_argument(
-        "template_path",
-        type=str,
-        help="Path to write out template for a translation script.",
-    )
-    args = parser.parse_args()
-
-    import_and_write_out_module(module=module, destination=args.template_path)
 
 
 def expand_path(path_like: str) -> str:
@@ -1087,6 +1058,7 @@ class CustomFormatter(logging.Formatter):
     FORMATS = {
         logging.DEBUG: grey + format + reset,
         logging.INFO: grey + format + reset,
+        BIDS_RECOMMENDED: grey + format + reset,
         logging.WARNING: yellow + format + reset,
         logging.ERROR: red + format + reset,
         logging.CRITICAL: bold_red + format + reset,
@@ -1095,7 +1067,12 @@ class CustomFormatter(logging.Formatter):
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        original_levelname = record.levelname
+        record.levelname = getattr(record, "display_levelname", record.levelname)
+        try:
+            return formatter.format(record)
+        finally:
+            record.levelname = original_levelname
 
 
 def hash_fields(**fields):

@@ -1,13 +1,14 @@
-function telemetry(telemetry_data, input_path, output_path)
+function response = telemetry(telemetry_data, input_path, output_path, project, url)
     arguments
         telemetry_data (1,:) struct
         input_path (1,:) string = ''
         output_path (1,:) string = ''
+        project (1,1) string = "openneuropet/PET2BIDS"
+        url (1,1) string = "https://migas.openneuropet.org/api/breadcrumb"
     end
 
+    response = [];
     if telemetry_enabled
-        % do all the things
-
         telemetry_data.description = "Matlab";
 
         if strcmp(input_path, '')
@@ -18,16 +19,51 @@ function telemetry(telemetry_data, input_path, output_path)
             telemetry_data.TotalInputFileSize = input_file_count.TotalInputFileSize;
         end
 
-        url = 'http://openneuropet.org/pet2bids/';
+        if isfield(telemetry_data, 'version')
+            project_version = string(telemetry_data.version);
+        else
+            project_version = "unknown";
+        end
+
+        status = "R";
+        if isfield(telemetry_data, 'returncode')
+            if telemetry_data.returncode == 0
+                status = "C";
+            else
+                status = "F";
+            end
+        end
+
+        breadcrumb.project = project;
+        breadcrumb.project_version = project_version;
+        breadcrumb.language = "matlab";
+        breadcrumb.language_version = string(version);
+        breadcrumb.ctx.session_id = string(generate_session_id());
+        breadcrumb.ctx.platform = string(computer);
+        breadcrumb.ctx.is_ci = strcmpi(getenv("CI"), "true");
+        breadcrumb.proc.status = status;
+        breadcrumb.proc.params = telemetry_data;
+
         options = weboptions('MediaType', 'application/json', 'Timeout', 5);
         try
-            response = webwrite(url, telemetry_data, options);
+            response = webwrite(url, breadcrumb, options);
         catch ME
             % do nothing
         end
     else
         % don't do anything
     end
+end
+
+
+function id = generate_session_id()
+    bytes = randi([0, 255], 1, 16, 'uint8');
+    bytes(7) = bitor(bitand(bytes(7), uint8(15)), uint8(64));
+    bytes(9) = bitor(bitand(bytes(9), uint8(63)), uint8(128));
+    hex = lower(reshape(dec2hex(bytes, 2).', 1, []));
+    id = sprintf( ...
+        '%s-%s-%s-%s-%s', ...
+        hex(1:8), hex(9:12), hex(13:16), hex(17:20), hex(21:32));
 end
 
 function e = telemetry_enabled()

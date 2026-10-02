@@ -13,7 +13,7 @@ BUILDDIR      = build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile
+.PHONY: help Makefile testtelemetrypythonfunctional testtelemetrymatlabfunctional testtelemetryfunctional
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
@@ -82,6 +82,15 @@ testotherpython:
 	cd pypet2bids; \
 	export TEST_DICOM_IMAGE_FOLDER="../OpenNeuroPET-Phantoms/sourcedata/SiemensBiographPETMR-NIMH/AC_TOF"; \
 	uv run pytest --ignore=tests/test_write_ecat.py tests/ -vvv
+
+testtelemetrypythonfunctional:
+	@RUN_TELEMETRY_FUNCTIONAL=1 uv run --project pypet2bids pytest pypet2bids/tests/test_telemetry_functional.py -vv
+
+testtelemetrymatlabfunctional:
+	@matlab -batch "addpath('matlab'); addpath('matlab/unit_tests'); telemetry_functional_test"
+
+testtelemetryfunctional: testtelemetrypythonfunctional testtelemetrymatlabfunctional
+	@echo finished running telemetry functional tests
 
 pythongithubworkflow: installdependencies collectphantoms decompressphantoms testecatread testecatcli testotherpython
 	@echo finished running python tests

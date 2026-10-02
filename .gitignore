@@ -69,3 +69,5 @@ matlab/SiemensHRRTparameters.txt
 
 dcm2niix
 dcm2niix.exe
+
+scripts/dcm2niix_comparison_results/
