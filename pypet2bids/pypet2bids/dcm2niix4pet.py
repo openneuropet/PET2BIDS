@@ -54,7 +54,7 @@ try:
         telemetry_enabled,
         count_output_files,
     )
-    from read_dicom import read_dicom_frames, reduce_dicom_frames
+    from read_dicom import read_dicom_header, read_dicom_frames, reduce_dicom_frames
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
@@ -73,7 +73,11 @@ except ModuleNotFoundError:
         telemetry_enabled,
         count_output_files,
     )
-    from pypet2bids.read_dicom import read_dicom_frames, reduce_dicom_frames
+    from pypet2bids.read_dicom import (
+        read_dicom_header,
+        read_dicom_frames,
+        reduce_dicom_frames,
+    )
 
 logger = helper_functions.logger("pypet2bids")
 
@@ -574,18 +578,17 @@ class Dcm2niix4PET:
             for f in files:
                 if n >= depth:
                     break
-                try:
-                    dicom_path = Path(join(root, f))
-                    dicom_header = pydicom.dcmread(dicom_path, stop_before_pixels=True)
-                    # collect subject/patient id if none is supplied
-                    if self.subject_id is None:
-                        self.subject_id = dicom_header.PatientID
+                dicom_path = Path(join(root, f))
+                dicom_header = read_dicom_header(dicom_path)
+                if dicom_header is None:
+                    continue
 
-                    dicom_headers[dicom_path.name] = dicom_header
-                    n += 1
+                # collect subject/patient id if none is supplied
+                if self.subject_id is None:
+                    self.subject_id = dicom_header.PatientID
 
-                except pydicom.errors.InvalidDicomError:
-                    pass
+                dicom_headers[dicom_path.name] = dicom_header
+                n += 1
 
         return dicom_headers
 

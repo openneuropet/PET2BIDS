@@ -10,6 +10,7 @@ import pydicom
 __all__ = [
     "default_worker_count",
     "group_dicom_headers_by_frame",
+    "read_dicom_header",
     "read_dicom_frames",
     "read_dicom_headers",
     "reduce_dicom_frames",
@@ -23,7 +24,8 @@ def default_worker_count(cpu_count=None):
     return 2 * math.ceil(quarter / 2)
 
 
-def _read_header(path):
+def read_dicom_header(path):
+    """Read one DICOM header, returning ``None`` for invalid input."""
     try:
         dataset = pydicom.dcmread(path, stop_before_pixels=True)
         sop_class_uid = getattr(dataset, "SOPClassUID", None)
@@ -120,7 +122,7 @@ def read_dicom_headers(paths, workers=None):
         raise ValueError("workers must be at least 1")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        datasets = executor.map(_read_header, paths)
+        datasets = executor.map(read_dicom_header, paths)
         headers = [
             (path, dataset)
             for path, dataset in zip(paths, datasets)
