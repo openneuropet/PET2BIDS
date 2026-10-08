@@ -30,8 +30,9 @@ paths = sort_dicom_files(selected_paths, method="acquisition_time")
 ```
 
 `sort_dcm` returns unchanged filenames from a single folder, including `.dcm`,
-`.ima` (case insensitive), and extensionless files. `sort_dicom_files` accepts
-an explicit iterable of paths and returns `Path` objects without extension filtering.
+`.ima`, `.img` (case insensitive), and extensionless files. `sort_dicom_files`
+accepts an explicit iterable of paths and returns `Path` objects without
+extension filtering.
 Regex patterns require an integer `frame` group and may include an integer `slice`
 group; every filename must match. Python uses `(?P<frame>...)` rather than MATLAB's
 `(?<frame>...)` syntax.
@@ -48,8 +49,35 @@ python pypet2bids/sort_dcm.py /path/to/dicoms --method auto
 ```
 
 Only the Python standard library is needed for `name` mode; checked modes also
-require `pydicom`. These functions are available for reuse; Python PET metadata
-recovery will be integrated separately.
+require `pydicom`. These functions are also available for reuse outside PET
+conversion.
+
+### Per-frame scatter and decay factors
+
+If dcm2niix omits `ScatterFraction` or `DecayCorrectionFactor`, or returns the
+wrong number of values, the default recovery sorts filenames and samples one
+header per frame. This is fast but requires filename order to match frame order.
+
+For arbitrary filenames or when the default reports a warning, use
+`--make-no-mistakes`. It reads all headers and groups them by frame metadata:
+
+```bash
+dcm2niix4pet /path/to/dicoms --make-no-mistakes
+```
+
+The equivalent Python API argument is:
+
+```python
+from pypet2bids.dcm2niix4pet import Dcm2niix4PET
+
+converter = Dcm2niix4PET(
+    image_folder="/path/to/dicoms",
+    make_no_mistakes=True,
+)
+```
+
+This mode can be slower on large series. If recovery does not find exactly one
+value per frame, the dcm2niix output is left unchanged.
 
 For **more detailed** (and most likely helpful) documentation visit the Read the Docs site for this project at:
 

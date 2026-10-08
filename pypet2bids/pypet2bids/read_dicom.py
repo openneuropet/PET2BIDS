@@ -13,6 +13,7 @@ __all__ = [
     "read_dicom_header",
     "read_dicom_frames",
     "read_dicom_headers",
+    "read_sampled_dicom_frames",
     "reduce_dicom_frames",
 ]
 
@@ -167,6 +168,38 @@ def read_dicom_frames(paths, workers=None):
     """Read headers concurrently and return chronologically ordered frames."""
     headers, skipped = read_dicom_headers(paths, workers=workers)
     return group_dicom_headers_by_frame(headers), skipped
+
+
+def read_sampled_dicom_frames(
+    ordered_paths, num_frames, num_slices, series_uid, workers=None
+):
+    """Read and validate one presumed representative header per frame."""
+    ordered_paths = [Path(path) for path in ordered_paths]
+    if len(ordered_paths) == num_frames:
+        stride = 1
+    elif len(ordered_paths) == num_frames * num_slices:
+        stride = num_slices
+    else:
+        raise ValueError(
+            f"found {len(ordered_paths)} candidate DICOMs; expected "
+            f"{num_frames} or {num_frames * num_slices}"
+        )
+
+    frames, skipped = read_dicom_frames(ordered_paths[::stride], workers=workers)
+    if skipped:
+        raise ValueError(f"could not read {skipped} sampled DICOM headers")
+    if len(frames) != num_frames:
+        raise ValueError(
+            f"sampled DICOMs produced {len(frames)} frames; expected {num_frames}"
+        )
+
+    headers = reduce_dicom_frames(frames)
+    if any(
+        str(getattr(header, "SeriesInstanceUID", "")) != series_uid
+        for header in headers
+    ):
+        raise ValueError("sampled DICOMs do not all belong to the expected series")
+    return headers
 
 
 def reduce_dicom_frames(frames):
