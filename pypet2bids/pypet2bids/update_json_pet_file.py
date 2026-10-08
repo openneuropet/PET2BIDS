@@ -43,6 +43,53 @@ metadata_dictionaries = {
 }
 
 
+def _parse_dicom_date(value):
+    """Parse a DICOM DA value without guessing whether digits are a date or time."""
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    if value is None:
+        return None
+
+    date_value = str(value).strip()
+    if not date_value:
+        return None
+    # ACR-NEMA, the DICOM predecessor, used YYYY.MM.DD.
+    return datetime.datetime.strptime(date_value.replace(".", ""), "%Y%m%d").date()
+
+
+def _parse_dicom_time(value):
+    """Parse DICOM TM/basic or legacy colon-separated time values explicitly."""
+    if isinstance(value, datetime.datetime):
+        return value.time()
+    if isinstance(value, datetime.time):
+        return value
+    if value is None:
+        return None
+
+    time_value = str(value).strip()
+    if not time_value:
+        return None
+    if ":" in time_value:
+        # Sidecars and legacy ACR-NEMA values may use HH:MM[:SS[.ffffff]].
+        return datetime.time.fromisoformat(time_value)
+
+    components, separator, fraction = time_value.partition(".")
+    if not components.isdigit() or len(components) not in (2, 4, 6):
+        raise ValueError(f"Invalid DICOM TM value: {time_value!r}")
+    if separator and (
+        len(components) != 6 or not 1 <= len(fraction) <= 6 or not fraction.isdigit()
+    ):
+        raise ValueError(f"Invalid DICOM TM value: {time_value!r}")
+
+    hour = int(components[:2])
+    minute = int(components[2:4]) if len(components) >= 4 else 0
+    second = int(components[4:6]) if len(components) == 6 else 0
+    microsecond = int(fraction.ljust(6, "0")) if separator else 0
+    return datetime.time(hour, minute, second, microsecond)
+
+
 def check_json(
     path_to_json,
     items_to_check=None,
@@ -287,7 +334,7 @@ def update_json_with_dicom_value(
                     f"Unable to determine TimeZero for {path_to_json}: SeriesTime "
                     "is missing from both the dcm2niix sidecar and DICOM header"
                 )
-            time_zero = parser.parse(series_time).time().strftime("%H:%M:%S")
+            time_zero = _parse_dicom_time(series_time).strftime("%H:%M:%S")
 
             json_updater.update({"TimeZero": time_zero})
             json_updater.remove("AcquisitionTime")
@@ -324,21 +371,20 @@ def update_json_with_dicom_value(
 
     # lastly if ezbids is true update the sidecar with acquisition data
     if ezbids:
-        acquisition_date = parser.parse(dicom_header.get("AcquisitionDate", ""))
-        acquisition_time = parser.parse(dicom_header.get("AcquisitionTime", ""))
-        if acquisition_time and acquisition_date:
+        acquisition_date = _parse_dicom_date(dicom_header.get("AcquisitionDate"))
+        acquisition_time = _parse_dicom_time(dicom_header.get("AcquisitionTime"))
+        if acquisition_date is not None and acquisition_time is not None:
             acquisition_datetime = datetime.datetime.combine(
-                acquisition_date.date(), acquisition_time.time()
+                acquisition_date, acquisition_time
             )
-        else:
-            acquisition_datetime = "0000-00-00T00:00:00"
-        json_updater.update(
-            {
-                "AcquisitionDate": f"{acquisition_date.date()}",
-                "AcquisitionTime": f"{acquisition_time.time()}",
-                "AcquisitionDateTime": f"{acquisition_datetime.isoformat()}",
+            acquisition_values = {
+                "AcquisitionDate": acquisition_date.isoformat(),
+                "AcquisitionTime": acquisition_time.isoformat(),
+                "AcquisitionDateTime": acquisition_datetime.isoformat(),
             }
-        )
+        else:
+            acquisition_values = {"AcquisitionDateTime": "0000-00-00T00:00:00"}
+        json_updater.update(acquisition_values)
 
     # after updating raise warnings to user if values in json don't match values in dicom headers, only warn!
     updated_values = json.load(open(path_to_json, "r"))
@@ -892,9 +938,13 @@ def get_metadata_from_spreadsheet(
     for key, value in spreadsheet_values.items():
         if "time" in key.lower():
             if isinstance(value, str):
-                # check to see if the value converts to a datetime object with a date
                 try:
-                    time_value = parser.parse(value).time().strftime("%H:%M:%S")
+                    try:
+                        parsed_time = _parse_dicom_time(value)
+                    except ValueError:
+                        # Preserve support for spreadsheet values with date or timezone text.
+                        parsed_time = parser.parse(value).time()
+                    time_value = parsed_time.strftime("%H:%M:%S")
                     spreadsheet_values[key] = time_value
                 except ValueError:
                     pass
