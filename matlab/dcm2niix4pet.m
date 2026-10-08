@@ -56,19 +56,46 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
-current = pwd; % for windows machine indicate where is dcm2niix
-dcm2niixpath = [fileparts(current) '\MRIcroGL12win\Resources\dcm2niix.exe']; 
-if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 52 and indicate the dcm2niix path')
-end
-
-if ~ispc % overwrite if not windowns (as it should be in the computer path)
+dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
+if ~ispc || ~isfile(dcm2niixpath)
     dcm2niixpath = 'dcm2niix';
 end
 
-status = system('dcm2niix');
-if status ~=0
-    error('no dcm2niix found')
+dcm2niixcmd = ['"' dcm2niixpath '"'];
+[status,~] = system([dcm2niixcmd ' -h']);
+if status ~= 0
+    binaryfolder = fullfile(fileparts(fileparts(mfilename('fullpath'))), ...
+        'pypet2bids','pypet2bids','dcm2niix_binaries');
+    if ispc
+        archive = fullfile(binaryfolder,'dcm2niix_win.zip');
+        binary = 'dcm2niix.exe';
+    elseif ismac
+        archive = fullfile(binaryfolder,'dcm2niix_mac.zip');
+        binary = 'dcm2niix';
+    elseif isunix
+        archive = fullfile(binaryfolder,'dcm2niix_lnx.zip');
+        binary = 'dcm2niix';
+    else
+        error('No packaged dcm2niix binary is available for this platform.')
+    end
+    extractfolder = fullfile(tempdir,'pet2bids_dcm2niix');
+    dcm2niixpath = fullfile(extractfolder,binary);
+    dcm2niixcmd = ['"' dcm2niixpath '"'];
+    if isfile(dcm2niixpath)
+        [status,~] = system([dcm2niixcmd ' -h']);
+    else
+        status = 1;
+    end
+    if status ~= 0
+        if ~isfile(archive)
+            error('No dcm2niix found on PATH or at %s.',archive)
+        end
+        unzip(archive,extractfolder);
+        [status,~] = system([dcm2niixcmd ' -h']);
+    end
+    if status ~= 0
+        error('Unable to run packaged dcm2niix at %s.',dcm2niixpath)
+    end
 end
 
 % we rely on more recent version of dcm2niix, certain pet fields are unavailable in the sidecar jsons for versions
@@ -76,9 +103,7 @@ end
 
 minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
-version_cmd = ['dcm2niix', ' -v'];
-
-[~, version_output_string] = system(version_cmd);
+[~, version_output_string] = system([dcm2niixcmd ' -v']);
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
 
 % initialize telemetry data fror later uploading
@@ -270,7 +295,7 @@ end
 for folder = 1:size(FolderList,1)
     clear newmetadata % Resolve the JSON path separately for each input folder.
     % dcm2niix
-    command = [dcm2niixpath ' -o ' outputdir{folder} ' ' num2str(gz) ...
+    command = [dcm2niixcmd ' -o ' outputdir{folder} ' ' num2str(gz) ...
         ' -a ' a ...
         ' -ba ' ba ...
         ' -d ' num2str(d) ...
