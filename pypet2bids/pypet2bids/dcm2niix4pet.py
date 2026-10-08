@@ -19,6 +19,7 @@ from json_maj.main import JsonMAJ
 from platform import system
 import subprocess
 import pandas as pd
+import nibabel
 from os.path import join
 from os import chmod
 from os import listdir, walk, environ
@@ -54,6 +55,13 @@ try:
         telemetry_enabled,
         count_output_files,
     )
+    from read_dicom import (
+        read_dicom_header,
+        read_dicom_frames,
+        read_sampled_dicom_frames,
+        reduce_dicom_frames,
+    )
+    from sort_dcm import sort_dicom_files
 except ModuleNotFoundError:
     import pypet2bids.helper_functions as helper_functions
     import pypet2bids.is_pet as is_pet
@@ -72,6 +80,13 @@ except ModuleNotFoundError:
         telemetry_enabled,
         count_output_files,
     )
+    from pypet2bids.read_dicom import (
+        read_dicom_header,
+        read_dicom_frames,
+        read_sampled_dicom_frames,
+        reduce_dicom_frames,
+    )
+    from pypet2bids.sort_dcm import sort_dicom_files
 
 logger = helper_functions.logger("pypet2bids")
 
@@ -236,6 +251,7 @@ class Dcm2niix4PET:
         tempdir_location=None,
         ezbids=False,
         ignore_dcm2niix_errors=False,
+        make_no_mistakes=False,
     ):
         """
         This class is a simple wrapper for dcm2niix and contains methods to do the following in order:
@@ -270,12 +286,15 @@ class Dcm2niix4PET:
         :param silent: hide all log output
         :param verbose: display informational, warning, and debug messages
         :param tempdir_location: location to create the temporary directory, for use on constrained systems
+        :param make_no_mistakes: read every DICOM header when recovering per-frame correction factors
         """
 
         self.silent = silent
         self.verbose = verbose
         logger.disabled = silent
         logger.setLevel(logging.DEBUG if verbose else logging.ERROR)
+        self.frame_headers = None
+        self.make_no_mistakes = make_no_mistakes
 
         # check to see if dcm2niix is installed
         self.blood_json = None
@@ -332,7 +351,7 @@ class Dcm2niix4PET:
 
         self.destination_folder = None
 
-        # if we're provided an entire file path just us that no matter what, we're assuming the user knows what they
+        # if we're provided an entire file path just use that no matter what, we're assuming the user knows what they
         # are doing in that case
         self.full_file_path_given = False
 
@@ -571,18 +590,17 @@ class Dcm2niix4PET:
             for f in files:
                 if n >= depth:
                     break
-                try:
-                    dicom_path = Path(join(root, f))
-                    dicom_header = pydicom.dcmread(dicom_path, stop_before_pixels=True)
-                    # collect subject/patient id if none is supplied
-                    if self.subject_id is None:
-                        self.subject_id = dicom_header.PatientID
+                dicom_path = Path(join(root, f))
+                dicom_header = read_dicom_header(dicom_path)
+                if dicom_header is None:
+                    continue
 
-                    dicom_headers[dicom_path.name] = dicom_header
-                    n += 1
+                # collect subject/patient id if none is supplied
+                if self.subject_id is None:
+                    self.subject_id = dicom_header.PatientID
 
-                except pydicom.errors.InvalidDicomError:
-                    pass
+                dicom_headers[dicom_path.name] = dicom_header
+                n += 1
 
         return dicom_headers
 
@@ -729,6 +747,113 @@ class Dcm2niix4PET:
                             **self.additional_arguments,
                         )
 
+                        dcm2niix_json = JsonMAJ(
+                            json_path=str(created_path), bids_null=True
+                        )
+                        frame_times = dcm2niix_json.get("FrameTimesStart")
+                        num_frames = (
+                            len(frame_times)
+                            if isinstance(frame_times, list)
+                            else 1
+                        )
+                        matching_headers = None
+                        for json_field, dicom_field in (
+                            ("DecayCorrectionFactor", "DecayFactor"),
+                            ("ScatterFraction", "ScatterFractionFactor"),
+                        ):
+                            existing = dcm2niix_json.get(json_field)
+                            if isinstance(existing, list) and len(existing) == num_frames:
+                                continue
+
+                            if matching_headers is None:
+                                series_uid = str(dicom_header.SeriesInstanceUID)
+                                if self.make_no_mistakes:
+                                    if self.frame_headers is None:
+                                        input_files = sort_dicom_files(
+                                            path
+                                            for path in self.image_folder.rglob("*")
+                                            if path.is_file()
+                                        )
+                                        frames, skipped = read_dicom_frames(input_files)
+                                        self.frame_headers = reduce_dicom_frames(frames)
+                                        if skipped:
+                                            logger.debug(
+                                                "Skipped %d non-DICOM or unreadable input files.",
+                                                skipped,
+                                            )
+                                    matching_headers = [
+                                        header
+                                        for header in self.frame_headers
+                                        if str(
+                                            getattr(header, "SeriesInstanceUID", "")
+                                        )
+                                        == series_uid
+                                    ]
+                                else:
+                                    try:
+                                        nifti_path = created_path.with_suffix(".nii")
+                                        if not nifti_path.exists():
+                                            nifti_path = Path(str(nifti_path) + ".gz")
+                                        shape = nibabel.load(nifti_path).shape
+                                        if len(shape) < 3:
+                                            raise ValueError(
+                                                f"expected a 3D or 4D NIfTI, got {shape}"
+                                            )
+                                        nifti_frames = shape[3] if len(shape) > 3 else 1
+                                        if nifti_frames != num_frames:
+                                            raise ValueError(
+                                                f"NIfTI has {nifti_frames} frames but JSON "
+                                                f"has {num_frames}"
+                                            )
+
+                                        source_folder = Path(dicom_header.filename).parent
+                                        input_files = [
+                                            path
+                                            for path in source_folder.iterdir()
+                                            if path.is_file()
+                                            and (
+                                                path.suffix.lower()
+                                                in (".dcm", ".ima", ".img")
+                                                or "." not in path.name
+                                            )
+                                        ]
+                                        ordered_paths = sort_dicom_files(
+                                            input_files, method="name"
+                                        )
+                                        matching_headers = read_sampled_dicom_frames(
+                                            ordered_paths,
+                                            num_frames=num_frames,
+                                            num_slices=shape[2],
+                                            series_uid=series_uid,
+                                        )
+                                    except (
+                                        nibabel.filebasedimages.ImageFileError,
+                                        OSError,
+                                        ValueError,
+                                    ) as error:
+                                        matching_headers = []
+                                        logger.warning(
+                                            "Fast scatter/decay recovery failed: %s. "
+                                            "Rerun with --make-no-mistakes.",
+                                            error,
+                                        )
+
+                            values = [
+                                float(header.get(dicom_field))
+                                for header in matching_headers
+                                if header.get(dicom_field) is not None
+                            ]
+                            if len(values) == num_frames:
+                                dcm2niix_json.update({json_field: values})
+                            else:
+                                logger.warning(
+                                    "Found %d %s values for %d frames; leaving the "
+                                    "dcm2niix value unchanged.",
+                                    len(values),
+                                    json_field,
+                                    num_frames,
+                                )
+
                     # if we have entities in our metadata spreadsheet that we've used we update
                     if self.spreadsheet_metadata.get("nifti_json", None):
                         update_json = JsonMAJ(
@@ -757,9 +882,7 @@ class Dcm2niix4PET:
                     # should be list/array types in the json
                     should_be_array = [
                         "FrameDuration",
-                        "ScatterFraction",
                         "FrameTimesStart",
-                        "DecayCorrectionFactor",
                         "ReconFilterSize",
                     ]
 
@@ -1321,6 +1444,12 @@ def cli():
         "batch processing and only if you're performing robust QC after the fact.",
     )
     parser.add_argument(
+        "--make-no-mistakes",
+        action="store_true",
+        help="Read every DICOM header and group files using frame metadata when "
+        "recovering scatter and decay factors.",
+    )
+    parser.add_argument(
         "--dcm2niix-options",
         nargs="*",
         default=[],
@@ -1504,6 +1633,7 @@ def main():
             verbose=cli_args.verbose,
             ezbids=cli_args.ezbids,
             ignore_dcm2niix_errors=cli_args.ignore_dcm2niix_errors,
+            make_no_mistakes=cli_args.make_no_mistakes,
         )
 
         if cli_args.trc:

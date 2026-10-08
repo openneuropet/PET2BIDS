@@ -135,7 +135,7 @@ def sort_dicom_files(
     files = sorted(
         (Path(path) for path in paths), key=lambda path: (path.name, str(path))
     )
-    stems = [re.sub(r"(?i)\.(dcm|ima)$", "", path.name) for path in files]
+    stems = [re.sub(r"(?i)\.(dcm|ima|img)$", "", path.name) for path in files]
     if not expression and all(re.fullmatch(r"[0-9]+", stem) for stem in stems):
         files = [
             path
@@ -149,7 +149,7 @@ def sort_dicom_files(
     if expression:
         keys = []
         for path in files:
-            stem = re.sub(r"(?i)\.(dcm|ima)$", "", path.name)
+            stem = re.sub(r"(?i)\.(dcm|ima|img)$", "", path.name)
             match = expression.search(stem)
             groups = ["frame"] + (["slice"] if "slice" in expression.groupindex else [])
             key = []
@@ -186,7 +186,7 @@ def sort_dcm(
 ) -> list[str]:
     """Return DICOM filenames in a folder using ``sort_dicom_files`` ordering.
 
-    Includes .dcm/.ima extensions (case insensitive) and extensionless files.
+    Includes .dcm/.ima/.img extensions (case insensitive) and extensionless files.
     Extensionless files are assumed to be DICOM. Subfolders are not searched.
     Returns unchanged filenames without folder paths, matching MATLAB sort_dcm.
     """
@@ -197,7 +197,7 @@ def sort_dcm(
         path
         for path in folder.iterdir()
         if path.is_file()
-        and (path.suffix.lower() in (".dcm", ".ima") or "." not in path.name)
+        and (path.suffix.lower() in (".dcm", ".ima", ".img") or "." not in path.name)
     ]
     return [path.name for path in sort_dicom_files(paths, method, pattern)]
 

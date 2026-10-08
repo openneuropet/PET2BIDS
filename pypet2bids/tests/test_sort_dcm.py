@@ -74,7 +74,16 @@ def test_numeric_names_without_header_reads_or_renaming(tmp_path, monkeypatch):
 def test_extensions_and_no_recursion(tmp_path):
     names_fixture(
         tmp_path,
-        ["1001.dcm", "10.IMA", "1000.dcm", "1", "100.dcm", "2.DCM", "notes.txt"],
+        [
+            "1001.dcm",
+            "10.IMA",
+            "1000.dcm",
+            "1",
+            "100.dcm",
+            "2.DCM",
+            "20.img",
+            "notes.txt",
+        ],
     )
     nested = tmp_path / "3.dcm"
     nested.mkdir()
@@ -83,6 +92,7 @@ def test_extensions_and_no_recursion(tmp_path):
         "1",
         "2.DCM",
         "10.IMA",
+        "20.img",
         "100.dcm",
         "1000.dcm",
         "1001.dcm",
