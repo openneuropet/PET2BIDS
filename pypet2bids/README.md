@@ -14,6 +14,71 @@ and nifti please see [The first step for neuroimaging data analysis: DICOM to NI
 
 # Documentation
 
+The standalone `pypet2bids/sort_dcm.py` module orders DICOM files independently
+of PET conversion. Natural filename ordering does not read headers or rename files:
+
+```python
+from pypet2bids.sort_dcm import sort_dcm, sort_dicom_files
+
+names = sort_dcm("/path/to/dicoms")
+names = sort_dcm("/path/to/dicoms", method="auto")
+names = sort_dcm(
+    "/path/to/dicoms",
+    pattern=r"^slice(?P<slice>\d+)_frame(?P<frame>\d+)$",
+)
+paths = sort_dicom_files(selected_paths, method="acquisition_time")
+```
+
+`sort_dcm` returns unchanged filenames from a single folder, including `.dcm`,
+`.ima`, `.img` (case insensitive), and extensionless files. `sort_dicom_files`
+accepts an explicit iterable of paths and returns `Path` objects without
+extension filtering.
+Regex patterns require an integer `frame` group and may include an integer `slice`
+group; every filename must match. Python uses `(?P<frame>...)` rather than MATLAB's
+`(?<frame>...)` syntax.
+
+`acquisition_time` sorts by `AcquisitionDate`, then `AcquisitionTime`, handling
+midnight crossings. `auto` checks filename/pattern order and warns and reorders
+when needed. Both require valid acquisition dates/times and read each header once
+using `pydicom`, without pixel data. Equal timestamps retain filename/pattern order.
+
+The file can also be copied and imported directly as `sort_dcm`, or run as a script:
+
+```bash
+python pypet2bids/sort_dcm.py /path/to/dicoms --method auto
+```
+
+Only the Python standard library is needed for `name` mode; checked modes also
+require `pydicom`. These functions are also available for reuse outside PET
+conversion.
+
+### Per-frame scatter and decay factors
+
+If dcm2niix omits `ScatterFraction` or `DecayCorrectionFactor`, or returns the
+wrong number of values, the default recovery sorts filenames and samples one
+header per frame. This is fast but requires filename order to match frame order.
+
+For arbitrary filenames or when the default reports a warning, use
+`--make-no-mistakes`. It reads all headers and groups them by frame metadata:
+
+```bash
+dcm2niix4pet /path/to/dicoms --make-no-mistakes
+```
+
+The equivalent Python API argument is:
+
+```python
+from pypet2bids.dcm2niix4pet import Dcm2niix4PET
+
+converter = Dcm2niix4PET(
+    image_folder="/path/to/dicoms",
+    make_no_mistakes=True,
+)
+```
+
+This mode can be slower on large series. If recovery does not find exactly one
+value per frame, the dcm2niix output is left unchanged.
+
 For **more detailed** (and most likely helpful) documentation visit the Read the Docs site for this project at:
 
 [https://pet2bids.readthedocs.io](https://pet2bids.readthedocs.io/en/latest/index.html#)

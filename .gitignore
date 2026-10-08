@@ -64,6 +64,7 @@ ecat_testing/steps/
 ecat_testing/**/*.nii*
 *osem*
 *fbp*
+*data_test*
 
 matlab/SiemensHRRTparameters.txt
 

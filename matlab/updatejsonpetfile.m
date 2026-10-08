@@ -4,7 +4,7 @@ function status = updatejsonpetfile(varargin)
 % information, if only the jsonfile is provided, it only checks if valid
 % (and possibly updates some fields from scalar to array)
 %
-% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo)
+% :format: - status = updatejsonpetfile(jsonfilename,newfields,dcminfo,dicomfolder,sort_method,sort_pattern)
 %
 % :param jsonfilename: json file to check or update update
 %                      can also be the json structure (add field filename to ensure update on disk)
@@ -14,6 +14,21 @@ function status = updatejsonpetfile(varargin)
 %                    file, and if a conflict exists, it returns warning messages,
 %                    assumnimg the newfield provided is correct (i.e. as a user you
 %                    know better than default dicom, presumably)
+%
+% :param dicomfolder: (optional) source DICOM folder for per-volume scatter and decay
+%                        factors. If omitted, inferred from dcminfo or its Filename field.
+%                        The matching .nii or .nii.gz must be beside the JSON file.
+%
+% :param sort_method: (optional) DICOM ordering: 'name' (default),
+%                         'acquisition_time', or 'auto'; see sort_dcm.
+%                         Pass [] for dicomfolder to infer it from dcminfo.
+%                         VolumeTimes are printed in seconds since midnight.
+%                         AcquisitionDate and AcquisitionTime must be valid.
+%                         If volume dates/times do not strictly increase in name order,
+%                         warn and retry recovery using acquisition-time order.
+%
+% :param sort_pattern: (optional) filename-stem regex with named frame and optional
+%                          slice tokens; see sort_dcm.
 %
 % :returns status: the state of the updating (includes warning messages returned if any)
 %
@@ -28,10 +43,18 @@ function status = updatejsonpetfile(varargin)
 % | *Cyril Pernet 2022*
 % | *Copyright Open NeuroPET team*
 
+narginchk(1,6);
 warning on % set to off to ignore our useful warnings
 status = struct('state',[],'messages',{''});
 
 % check data in
+sort_pattern = '';
+if nargin >= 6, sort_pattern = varargin{6}; end
+sort_method = 'name';
+if nargin >= 5
+    sort_method = validatestring(varargin{5},{'name','acquisition_time','auto'}, ...
+        mfilename,'sort_method');
+end
 jsonfilename = varargin{1};
 if nargin >= 2
     newfields = varargin{2};
@@ -39,7 +62,7 @@ if nargin >= 2
         newfields = cell2mat(newfields);
     end
 
-    if nargin == 3
+    if nargin >= 3
         dcminfo = varargin{3};
     end
 end
@@ -51,7 +74,7 @@ if isstruct(jsonfilename)
         jsonfilename = filemetadata.filename;
         filemetadata = rmfield(filemetadata,'filename');
     else
-        clear jsonfilename;
+        jsonfilename = '';
     end
 else
     if exist(jsonfilename,'file')
@@ -60,6 +83,26 @@ else
         filemetadata = jsondecode(fr);
     else
         error('looking for %s, but the file is missing',jsonfilename)
+    end
+end
+
+% Keep the source folder before flattening the representative DICOM header.
+% Older three-argument calls can recover it from the DICOM filename.
+dicomfolder = '';
+if nargin >= 4 && ~isempty(varargin{4})
+    dicomfolder = varargin{4};
+elseif exist('dcminfo','var') && ~isempty(dcminfo)
+    sourcefile = '';
+    if ischar(dcminfo) || (isstring(dcminfo) && isscalar(dcminfo))
+        sourcefile = char(dcminfo);
+    elseif isstruct(dcminfo) && isfield(dcminfo,'Filename')
+        sourcefile = dcminfo.Filename;
+    end
+    if ~isempty(sourcefile)
+        dicomfolder = fileparts(sourcefile);
+        if isempty(dicomfolder)
+            dicomfolder = pwd;
+        end
     end
 end
 
@@ -83,10 +126,10 @@ if nargin == 1
         warning('some scalars were changed to array')
         if isfield(filemetadata, 'ReconFilterType') && ...
                 strcmpi(filemetadata.ReconFilterType,"none")
-            filemetadata.ReconFilterSize = 0; % not necessary once the validator takes conditinonal
+            filemetadata.ReconFilterSize = {0}; % not necessary once the validator takes conditinonal
         end
     end
-    if (aliases_updated || arrays_updated) && exist('jsonfilename','var')
+    if (aliases_updated || arrays_updated) && ~isempty(jsonfilename)
         jsonwrite(jsonfilename,orderfields(filemetadata));
     end
 
@@ -146,9 +189,9 @@ else % -------------- update ---------------
     % going over different dcm files and figuring out fields
     % ------------------------------------------------------------
 
-    if exist('dcminfo','var')
-        if ischar(dcminfo)
-            dcminfo = flattenstruct(dicominfo(dcminfo));
+    if exist('dcminfo','var') && ~isempty(dcminfo)
+        if ischar(dcminfo) || (isstring(dcminfo) && isscalar(dcminfo))
+            dcminfo = flattenstruct(dicominfo(char(dcminfo)));
         else
             dcminfo = flattenstruct(dcminfo);
         end
@@ -202,7 +245,7 @@ else % -------------- update ---------------
                                 if strcmp(jsonfields{f},'FrameDuration')
                                     if all([single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))/1000 ...
                                             single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))])
-                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}')) '/1000'])
+                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f})') '/1000'])
                                     end
                                 elseif strcmpi(jsonfields{f},'InjectedRadioactivity')
                                     if filemetadata.(jsonfields{f}) ~= dcminfo.(dcmfields{f})/10^6
@@ -210,7 +253,7 @@ else % -------------- update ---------------
                                     end
                                 else
                                     if single(filemetadata.(jsonfields{f})) ~= single(dcminfo.(dcmfields{f}))
-                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f}'))])
+                                        warning(['possible mismatch between json ' jsonfields{f} ': ' num2str(filemetadata.(jsonfields{f})') ' and dicom ' dcmfields{f} ': ' num2str(dcminfo.(dcmfields{f})')])
                                     end
                                 end
                             else
@@ -292,7 +335,7 @@ else % -------------- update ---------------
             end
         end
     end
-    filemetadata = update_arrays(filemetadata);
+    filemetadata = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method,sort_pattern);
 
     % set ModeOfAdministration to lower case
     if isfield(filemetadata,'ModeOfAdministration')
@@ -309,13 +352,16 @@ else % -------------- update ---------------
 
     %% recursive call to check status
     % -----------------------------
-    filemetadata.filename = jsonfilename;
-    status = updatejsonpetfile(filemetadata);
+    checkmetadata          = filemetadata;
+    checkmetadata.filename = jsonfilename;
+    status                 = updatejsonpetfile(checkmetadata);
     if isfield(filemetadata,'ConversionSoftware')
         filemetadata.ConversionSoftware = [filemetadata.ConversionSoftware ' - json edited with ONP updatejsonpetfile.m'];
     end
     filemetadata = orderfields(filemetadata);
-    jsonwrite(jsonfilename,filemetadata)
+    if ~isempty(jsonfilename)
+        jsonwrite(jsonfilename,filemetadata);
+    end
 end
 
 function [filemetadata,updated] = migrate_molecular_weight_aliases(filemetadata)
@@ -488,31 +534,149 @@ else
     filemetadata.ReconFilterSize = 0; % conditional on ReconFilterType
 end
 
-function [filemetadata,updated] = update_arrays(filemetadata)
-% hack a la Anthony making sure the validator is happy
-% make some scalar an array (i.e. a cell in matlab written as array in json)
+function [filemetadata,updated] = update_arrays(filemetadata,dicomfolder,jsonfilename,newfields,sort_method,sort_pattern)
+% Recover per-volume factors, then ensure BIDS array fields serialize as arrays.
+% Optional source paths are only needed for DICOM recovery; validation and
+% ECAT callers can still normalize arrays with just the metadata structure.
 
-updated = 0;
+if nargin < 2, dicomfolder  = ''; end
+if nargin < 3, jsonfilename = ''; end
+if nargin < 4, newfields    = struct; end
+if nargin < 5, sort_method  = 'name'; end
+if nargin < 6, sort_pattern = ''; end
+
+updated      = 0;
 shouldBarray = {'DecayCorrectionFactor','FrameDuration','FrameTimesStart',...
     'ReconFilterSize','ScatterFraction','ReconMethodParameterLabels',...
-    'ReconMethodParameterUnits','ReconMethodParameterValues', 'SinglesRate',...
-    'RandomRate', "PromptRate", "ScaleFactor"};
+    'ReconMethodParameterUnits','ReconMethodParameterValues','SinglesRate',...
+    'RandomRate','PromptRate','ScaleFactor'};
 
-for f = 1:length(shouldBarray)
-    if isfield(filemetadata,shouldBarray{f})
-        if isscalar(filemetadata.(shouldBarray{f}))
-            if ~iscell(filemetadata.(shouldBarray{f}))
-                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
-                updated = 1;
-            elseif isnumeric(filemetadata.(shouldBarray{f}){1})
-                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
-                updated = 1;
+% DICOM and BIDS use different names for these two per-volume measurements.
+jsonfields = {'ScatterFraction','DecayCorrectionFactor'};
+dcmfields  = {'ScatterFractionFactor','DecayFactor'};
+recover    = false(1,numel(jsonfields));
+for f = 1:numel(jsonfields)
+    field = jsonfields{f};
+    % Keep explicit user metadata and existing arrays. Only recover missing
+    % values or scalars inherited from a representative DICOM/JSON header.
+    recover(f) = ~isfield(newfields,field) && ...
+        (~isfield(filemetadata,field) || isempty(filemetadata.(field)) || ...
+         isscalar(filemetadata.(field)) || ischar(filemetadata.(field)));
+end
+
+if any(recover) && ~isempty(dicomfolder) && ~isempty(jsonfilename)
+    try
+        % 1. Read only the matching NIfTI header to obtain slice/frame counts.
+        % Matching the JSON basename avoids selecting another scan's NIfTI.
+        [jsonfolder,basename] = fileparts(char(jsonfilename));
+        niftifile             = fullfile(jsonfolder,[basename '.nii']);
+        if ~isfile(niftifile)
+            niftifile = [niftifile '.gz'];
+        end
+        if ~isfile(niftifile)
+            error('updatejsonpetfile:MissingNifti', ...
+                'No matching NIfTI found for %s.',char(jsonfilename));
+        end
+        hdr      = nii_tool('hdr',niftifile);
+        nslices  = hdr.dim(4);
+        nvolumes = 1;
+        if hdr.dim(1) >= 4
+            nvolumes = hdr.dim(5);
+        end
+        if any([nslices nvolumes] < 1) || ...
+                any(mod([nslices nvolumes],1) ~= 0) || ...
+                (hdr.dim(1) > 4 && any(hdr.dim(6:hdr.dim(1)+1) > 1))
+            error('updatejsonpetfile:InvalidDimensions', ...
+                'Expected a 3D or 4D PET NIfTI with nonempty slice/frame dimensions.');
+        end
+
+        % 2. Delegate the requested DICOM ordering to sort_dcm.
+        % Read every file for volume DICOMs, or every nslices-th file for slices.
+        dcmnames = sort_dcm(dicomfolder,sort_method,sort_pattern);
+        if numel(dcmnames) == nvolumes
+            stride = 1;
+        elseif numel(dcmnames) == nslices*nvolumes
+            stride = nslices;
+        else
+            error('updatejsonpetfile:DicomCountMismatch', ...
+                'Found %d DICOM files; expected %d volumes or %d slices.', ...
+                numel(dcmnames),nvolumes,nslices*nvolumes);
+        end
+
+        % 3. Collect complete arrays and acquisition times before changing fields.
+        % Retry once by acquisition time if representative volumes fail the check.
+        while true
+            values      = nan(nvolumes,numel(jsonfields));
+            VolumeTimes = nan(1,nvolumes);
+            VolumeDates = nan(1,nvolumes);
+            for volume = 1:nvolumes
+                index = 1 + (volume-1)*stride;
+                info  = flattenstruct(dicominfo(fullfile(dicomfolder,dcmnames{index})));
+                [VolumeDates(volume),VolumeTimes(volume)] = ...
+                    dicom_acquisition_datetime(info,dcmnames{index},'updatejsonpetfile');
+                names = fieldnames(info);
+                for f = find(recover)
+                    tag = dcmfields{f};
+                    if ~isfield(info,tag)
+                        % Flattened sequence fields retain a prefix before the tag.
+                        matches = names(~cellfun('isempty',regexp(names,['_' tag '$'],'once')));
+                        if numel(matches) ~= 1
+                            continue
+                        end
+                        tag = matches{1};
+                    end
+                    value = info.(tag);
+                    if ischar(value) || (isstring(value) && isscalar(value))
+                        value = str2double(value);
+                    end
+                    if isnumeric(value) && isscalar(value) && isreal(value) && isfinite(value)
+                        values(volume,f) = value;
+                    end
+                end
             end
-        elseif all(size(filemetadata.(shouldBarray{f})) == 1)
-            if any(contains(filemetadata.(shouldBarray{f}),{'none'}))
-                filemetadata.(shouldBarray{f}) = {filemetadata.(shouldBarray{f})};
-                updated = 1;
+            fprintf('VolumeTimes (%s; seconds since midnight): %s\n', ...
+                sort_method,mat2str(VolumeTimes,15));
+            fprintf('VolumeDates (%s; YYYYMMDD): %s\n', ...
+                sort_method,strjoin(cellstr(datestr(VolumeDates(:),'yyyymmdd'))', ' '));
+            if all(diff(VolumeDates) > 0 | ...
+                    (diff(VolumeDates) == 0 & diff(VolumeTimes) > 0))
+                break
+            elseif strcmpi(sort_method,'name')
+                warning('updatejsonpetfile:NameOrderMismatch', ...
+                    ['DICOM name sorting does not work: volume acquisition dates/times must strictly ' ...
+                     'increase from one volume to the next. Recomputing using ' ...
+                     'AcquisitionTime sorting (slower; reads every DICOM header).']);
+                sort_method = 'acquisition_time';
+                dcmnames = sort_dcm(dicomfolder,sort_method,sort_pattern);
+            else
+                error('updatejsonpetfile:NonIncreasingVolumeTimes', ...
+                    'Volume acquisition dates/times must strictly increase from one volume to the next, even after AcquisitionTime sorting.');
             end
+        end
+        for f = find(recover)
+            if all(isfinite(values(:,f)))
+                filemetadata.(jsonfields{f}) = values(:,f)';
+                updated                     = 1;
+            else
+                warning('updatejsonpetfile:IncompleteFrameMetadata', ...
+                    'Could not recover %s for every volume; keeping the existing value.',jsonfields{f});
+            end
+        end
+    catch err
+        % Fall back to the original values when files cannot be matched/read.
+        warning('updatejsonpetfile:FrameMetadataRecovery', ...
+            'Keeping existing scatter/decay factors: %s',err.message);
+    end
+end
+
+% Wrap scalars once so a single value is written as [value], never [[value]].
+for f = 1:numel(shouldBarray)
+    field = shouldBarray{f};
+    if isfield(filemetadata,field)
+        value = filemetadata.(field);
+        if ~iscell(value) && (isscalar(value) || ischar(value))
+            filemetadata.(field) = {value};
+            updated              = 1;
         end
     end
 end

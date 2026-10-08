@@ -16,6 +16,13 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 %   - *deletedcm*  to be 'on' or 'off'
 %   - *o*         the output directory or cell arrays of directories
 %                 IF the folder is BIDS sub-xx files are renamed automatically
+%   - *sort_method* DICOM order for per-volume scatter/decay recovery:
+%                 'name' (default) uses natural filename order without reading all headers;
+%                 'acquisition_time' reads every header to order volumes chronologically;
+%                 'auto' checks name order and falls back to acquisition time if needed.
+%                 This controls JSON metadata recovery, not dcm2niix image ordering.
+%   - *sort_pattern* Optional filename-stem regex with named frame and optional
+%                 slice tokens; see sort_dcm. Orders by frame, then slice.
 %   - *gz*         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 %   - *a*          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
 %   - *ba*         = 'y';    % -ba : anonymize BIDS (y/n, default y)
@@ -50,17 +57,45 @@ function dcm2niix4pet(FolderList,MetaList,varargin)
 % | *Copyright Open NeuroPET team*
 
 dcm2niixpath = 'D:\MRI\MRIcroGL12win\Resources\dcm2niix.exe'; % for windows machine indicate here, where is dcm2niix
-if ispc && ~exist(dcm2niixpath,'file')
-    error('for windows machine please edit the function line 51 and indicate the dcm2niix path')
-end
-
-if ~ispc % overwrite if not windowns (as it should be in the computer path)
+if ~ispc || ~isfile(dcm2niixpath)
     dcm2niixpath = 'dcm2niix';
 end
 
-status = system('dcm2niix');
-if status ~=0
-    error('no dcm2niix found')
+dcm2niixcmd = ['"' dcm2niixpath '"'];
+[status,~] = system([dcm2niixcmd ' -h']);
+if status ~= 0
+    binaryfolder = fullfile(fileparts(fileparts(mfilename('fullpath'))), ...
+        'pypet2bids','pypet2bids','dcm2niix_binaries');
+    if ispc
+        archive = fullfile(binaryfolder,'dcm2niix_win.zip');
+        binary = 'dcm2niix.exe';
+    elseif ismac
+        archive = fullfile(binaryfolder,'dcm2niix_mac.zip');
+        binary = 'dcm2niix';
+    elseif isunix
+        archive = fullfile(binaryfolder,'dcm2niix_lnx.zip');
+        binary = 'dcm2niix';
+    else
+        error('No packaged dcm2niix binary is available for this platform.')
+    end
+    extractfolder = fullfile(tempdir,'pet2bids_dcm2niix');
+    dcm2niixpath = fullfile(extractfolder,binary);
+    dcm2niixcmd = ['"' dcm2niixpath '"'];
+    if isfile(dcm2niixpath)
+        [status,~] = system([dcm2niixcmd ' -h']);
+    else
+        status = 1;
+    end
+    if status ~= 0
+        if ~isfile(archive)
+            error('No dcm2niix found on PATH or at %s.',archive)
+        end
+        unzip(archive,extractfolder);
+        [status,~] = system([dcm2niixcmd ' -h']);
+    end
+    if status ~= 0
+        error('Unable to run packaged dcm2niix at %s.',dcm2niixpath)
+    end
 end
 
 % we rely on more recent version of dcm2niix, certain pet fields are unavailable in the sidecar jsons for versions
@@ -68,9 +103,7 @@ end
 
 minimum_version = 'v1.0.20220720';
 minimum_version_date = datetime(minimum_version(6:end), 'InputFormat', 'yyyyMMdd');
-version_cmd = ['dcm2niix', ' -v'];
-
-[~, version_output_string] = system(version_cmd);
+[~, version_output_string] = system([dcm2niixcmd ' -v']);
 version = regexp(version_output_string, 'v[0-9].[0-9].{8}[0-9]', 'match');
 
 % initialize telemetry data fror later uploading
@@ -93,6 +126,8 @@ end
 % ---------
 
 deletedcm  = 'off';
+sort_method = 'name';
+sort_pattern = '';
 
 gz         = 6;      % -1..-9 : gz compression level (1=fastest..9=smallest, default 6)
 a          = 'n';    % -a : adjacent DICOMs (images from same series always in same folder) for faster conversion (n/y, default n)
@@ -224,6 +259,18 @@ for var=1:length(varargin)
         end
     elseif strcmpi(varargin{var},'o')
         outputdir = varargin{var+1};
+    elseif strcmpi(varargin{var},'sort_method')
+        if var == length(varargin)
+            error('dcm2niix4pet:MissingSortMethod', ...
+                'sort_method requires name, acquisition_time or auto.');
+        end
+        sort_method = validatestring(varargin{var+1}, ...
+            {'name','acquisition_time','auto'},mfilename,'sort_method');
+    elseif strcmpi(varargin{var},'sort_pattern')
+        if var == length(varargin)
+            error('dcm2niix4pet:MissingSortPattern','sort_pattern requires a regular expression.');
+        end
+        sort_pattern = varargin{var+1};
     elseif strcmpi(varargin{var},'notrack')
         setenv('TELEMETRY_ENABLED', 'False')
     end
@@ -246,8 +293,9 @@ end
 %% convert
 % ----------
 for folder = 1:size(FolderList,1)
+    clear newmetadata % Resolve the JSON path separately for each input folder.
     % dcm2niix
-    command = [dcm2niixpath ' -o ' outputdir{folder} ' ' num2str(gz) ...
+    command = [dcm2niixcmd ' -o ' outputdir{folder} ' ' num2str(gz) ...
         ' -a ' a ...
         ' -ba ' ba ...
         ' -d ' num2str(d) ...
@@ -275,18 +323,13 @@ for folder = 1:size(FolderList,1)
         error('%s did not run properly',command)
     end
 
-    % deal with dcm files
-    dcmfiles = dir(fullfile(FolderList{folder},'*.dcm'));
-    if isempty(dcmfiles) % since sometimes they have no ext :-(
-        dcmfiles = dir(FolderList{folder}); % pick in the middle to avoid other files
-        dcminfo  = dicominfo(fullfile(dcmfiles(round(size(dcmfiles,1)/2)).folder,dcmfiles(round(size(dcmfiles,1)/2)).name));
-    else
-        dcminfo  = dicominfo(fullfile(dcmfiles(1).folder,dcmfiles(1).name));
+    % Read a representative header cheaply; sort_dcm applies sort_method
+    % during per-volume recovery, avoiding a second full header scan here.
+    dcmfiles = sort_dcm(FolderList{folder},'name',sort_pattern);
+    if isempty(dcmfiles)
+        error('No DICOM files found in %s.',FolderList{folder});
     end
-
-    if strcmpi(deletedcm,'on')
-        delete(fullfile(outputdir{folder},'*dcm'))
-    end
+    dcminfo = dicominfo(fullfile(FolderList{folder},dcmfiles{1}));
 
     % rename if BIDS folder sub-
     if contains(outputdir{folder},'sub-')
@@ -339,8 +382,12 @@ for folder = 1:size(FolderList,1)
     else
         jsonfilename = newmetadata;
     end
-    updatejsonpetfile(jsonfilename,MetaList,dcminfo);
+    updatejsonpetfile(jsonfilename,MetaList{folder},dcminfo,FolderList{folder},sort_method,sort_pattern);
 
+    if strcmpi(deletedcm,'on')
+        delete(fullfile(outputdir{folder},'*dcm'))
+    end
+    
     % if this all goes well update the telemetry data and send it with a positive return code of 0
     telemetry_data.returncode = 0;
     telemetry(telemetry_data, FolderList{folder})
