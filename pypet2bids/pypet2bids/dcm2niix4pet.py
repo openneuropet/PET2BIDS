@@ -1423,6 +1423,7 @@ def cli():
     )
     parser.add_argument(
         "--notrack",
+        "--notrack",
         action="store_true",
         default=False,
         help="Opt-out of sending tracking information of this run to the PET2BIDS developers. "
@@ -1616,9 +1617,9 @@ def main():
         )
         sys.exit(0)
     if cli_args.notrack:
-        environ["PET2BIDS_TRACK"] = "False"
+        environ["PET2BIDS_TELEMETRY_ENABLED"] = "False"
 
-    elif cli_args.folder:
+    if cli_args.folder:
         # instantiate class
         converter = Dcm2niix4PET(
             image_folder=helper_functions.expand_path(cli_args.folder),
