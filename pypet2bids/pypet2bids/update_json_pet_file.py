@@ -279,17 +279,19 @@ def update_json_with_dicom_value(
             missing_values.get("TimeZero")["key"] is False
             or missing_values.get("TimeZero")["value"] is False
         ):
-            series_time = sidecar_json.get("SeriesTime")
-            if not series_time and dicom_header.get("SeriesTime"):
-                series_time = dicom_header["SeriesTime"].value
-            if not series_time:
+            sidecar_series_time = sidecar_json.get("SeriesTime")
+            dicom_series_time = dicom_header.get("SeriesTime")
+            if sidecar_series_time:
+                time_zero = datetime.time.fromisoformat(str(sidecar_series_time))
+            elif dicom_series_time:
+                time_zero = pydicom.valuerep.TM(dicom_series_time)
+            else:
                 raise ValueError(
                     f"Unable to determine TimeZero for {path_to_json}: SeriesTime "
                     "is missing from both the dcm2niix sidecar and DICOM header"
                 )
-            time_zero = parser.parse(series_time).time().strftime("%H:%M:%S")
 
-            json_updater.update({"TimeZero": time_zero})
+            json_updater.update({"TimeZero": time_zero.strftime("%H:%M:%S")})
             json_updater.remove("AcquisitionTime")
             if json_updater.get("ScanStart") is None:
                 json_updater.update({"ScanStart": 0})
@@ -324,19 +326,26 @@ def update_json_with_dicom_value(
 
     # lastly if ezbids is true update the sidecar with acquisition data
     if ezbids:
-        acquisition_date = parser.parse(dicom_header.get("AcquisitionDate", ""))
-        acquisition_time = parser.parse(dicom_header.get("AcquisitionTime", ""))
-        if acquisition_time and acquisition_date:
+        dicom_acquisition_date = dicom_header.get("AcquisitionDate")
+        dicom_acquisition_time = dicom_header.get("AcquisitionTime")
+        if dicom_acquisition_date and dicom_acquisition_time:
+            acquisition_date = pydicom.valuerep.DA(dicom_acquisition_date)
+            acquisition_time = pydicom.valuerep.TM(dicom_acquisition_time)
             acquisition_datetime = datetime.datetime.combine(
-                acquisition_date.date(), acquisition_time.time()
+                acquisition_date, acquisition_time
             )
+            acquisition_date = acquisition_date.isoformat()
+            acquisition_time = acquisition_time.isoformat()
+            acquisition_datetime = acquisition_datetime.isoformat()
         else:
+            acquisition_date = "0000-00-00"
+            acquisition_time = "00:00:00"
             acquisition_datetime = "0000-00-00T00:00:00"
         json_updater.update(
             {
-                "AcquisitionDate": f"{acquisition_date.date()}",
-                "AcquisitionTime": f"{acquisition_time.time()}",
-                "AcquisitionDateTime": f"{acquisition_datetime.isoformat()}",
+                "AcquisitionDate": acquisition_date,
+                "AcquisitionTime": acquisition_time,
+                "AcquisitionDateTime": acquisition_datetime,
             }
         )
 
@@ -890,21 +899,48 @@ def get_metadata_from_spreadsheet(
 
         # remove any dates from the spreadsheet time values
     for key, value in spreadsheet_values.items():
-        if "time" in key.lower():
+        field_schema = metadata_dictionaries["schema"]["objects"]["metadata"].get(
+            key, {}
+        )
+        if (
+            field_schema.get("type") == "string"
+            and field_schema.get("format") == "time"
+        ):
+            parsed_time = None
             if isinstance(value, str):
                 # check to see if the value converts to a datetime object with a date
                 try:
-                    time_value = parser.parse(value).time().strftime("%H:%M:%S")
-                    spreadsheet_values[key] = time_value
+                    stripped_value = value.strip()
+                    if re.fullmatch(r"\d{6}", stripped_value):
+                        parsed_time = datetime.datetime.strptime(
+                            stripped_value, "%H%M%S"
+                        ).time()
+                    else:
+                        parsed_time = parser.parse(value).time()
                 except ValueError:
                     pass
             elif isinstance(value, datetime.datetime):
-                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
+                parsed_time = value.time()
             elif isinstance(value, Timestamp):
-                value = value.to_pydatetime()
-                spreadsheet_values[key] = value.time().strftime("%H:%M:%S")
-            else:
-                pass
+                parsed_time = value.to_pydatetime().time()
+            elif isinstance(value, datetime.time):
+                parsed_time = value
+            elif (
+                isinstance(value, Real)
+                and not isinstance(value, bool)
+                and float(value).is_integer()
+            ):
+                try:
+                    compact_time = str(int(value)).zfill(6)
+                    if len(compact_time) == 6:
+                        parsed_time = datetime.datetime.strptime(
+                            compact_time, "%H%M%S"
+                        ).time()
+                except ValueError:
+                    pass
+
+            if parsed_time is not None:
+                spreadsheet_values[key] = parsed_time.strftime("%H:%M:%S")
 
     # check for any blood (tsv) data or otherwise in the given spreadsheet values
     blood_tsv_columns = [
@@ -951,6 +987,8 @@ def get_metadata_from_spreadsheet(
                 spreadsheet_metadata["blood_tsv"][column]
             )
             spreadsheet_metadata["blood_tsv"][column] += [0] * zeros_to_append
+    
+    
 
     # check for existing blood json values
     for column in blood_json_columns:
