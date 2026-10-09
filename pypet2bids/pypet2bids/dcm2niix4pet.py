@@ -1423,7 +1423,7 @@ def cli():
     )
     parser.add_argument(
         "--notrack",
-        "--no-track",
+        "--notrack",
         action="store_true",
         default=False,
         help="Opt-out of sending tracking information of this run to the PET2BIDS developers. "
