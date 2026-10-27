@@ -55,6 +55,51 @@ meta = get_pet_metadata('Scanner','SiemensBiograph','TimeZero','ScanStart','Trac
 dcm2niix4pet(dcmfolder,meta,'o',mynewfolder);
 ```
 
+DICOM metadata recovery uses numeric/natural filename order by default (`sort_method='name'`).
+Purely numeric stems are sorted by value (`1.dcm`, `2.dcm`, `10.dcm`); names with text
+use natural ordering of their numeric parts. Long integers use exact text keys to
+avoid loss of precision. Source files are not renamed. This is fast,
+but assumes consecutive groups of slices belong to consecutive volumes. To check a
+series whose filenames may not follow acquisition order, convert into separate output folders:
+
+```matlab
+dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_method','name');
+dcm2niix4pet(dcmfolder,meta,'o',timeOutput,'sort_method','acquisition_time');
+```
+
+During scatter/decay recovery, the first DICOM header from each volume supplies
+`VolumeTimes`, printed in seconds since midnight, and `VolumeDates` in YYYYMMDD format.
+Acquisition dates and times together must strictly increase, including across midnight.
+If name sorting produces equal or decreasing acquisition dates/times, recovery warns and retries
+using `acquisition_time` sorting, which reads every header. If the retry still fails
+the check, recovery warns and keeps the existing factors.
+
+For filenames containing both frame and slice numbers, provide a regular expression
+on the filename stem with a named `frame` token and an optional `slice` token.
+For example, these calls order `slice2_frame10.dcm` by frame first, then slice:
+
+```matlab
+pattern = '^slice(?<slice>\d+)_frame(?<frame>\d+)$';
+names = sort_dcm(dcmfolder,'name',pattern);
+dcm2niix4pet(dcmfolder,meta,'o',nameOutput,'sort_pattern',pattern);
+% For an existing JSON/NIfTI pair:
+updatejsonpetfile(jsonfile,meta,dcminfo,dcmfolder,'name',pattern);
+```
+
+Every candidate filename must match and captured values must be nonnegative integers.
+Equal frame/slice keys retain natural filename order. `auto` and `acquisition_time`
+can also use this pattern, with acquisition time taking priority and filename order
+breaking time ties. `sort_dcm` returns a row cell array of unchanged filenames.
+
+Compare `ScatterFraction` and `DecayCorrectionFactor` in the two JSON files.
+Acquisition-time sorting reads every DICOM header. Alternatively, use
+`'sort_method','auto'` to check filename order and warn and reorder when it disagrees
+with acquisition times; this also reads every header. These options affect metadata
+recovery, while dcm2niix controls NIfTI image ordering. Checked sorting requires valid
+`AcquisitionDate` and `AcquisitionTime` in every candidate header and sorts by date,
+then time. Missing or invalid dates/times prevent factor recovery and leave existing
+values unchanged; `StudyDate` is not substituted for an acquisition date.
+
 **Alternatively**, you could have data already converted to nifti and json, and you need to update the json file. This can be done 2 ways:
 
 1. Use the [updatejsonpetfile.m](https://github.com/openneuropet/PET2BIDS/blob/main/matlab/updatejsonpetfile.m) function. Arguments in are the json file to update and metadata to add as a structure (using a get_metadata.m function for instance) and possibly a dicom file to check additional fields. This is show below for data from the biograph.

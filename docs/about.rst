@@ -35,8 +35,8 @@ library. For more information on usage individual methods or modules refer to :r
 
 **How do I use this tool?**
 
-Please refer to the :ref:`usage` page for details on how to go about using this library or the :ref:`quickstart` page
-for a small walk-through. Additionally, if you want to truly see how this software works on real data, take a look at
+Please refer to the :ref:`usage` page for details on how to use this library. Additionally, if you want to see how
+this software works on real data, take a look at
 our CI on `Github <https://github.com/openneuropet/PET2BIDS/actions/workflows/setup_and_cli_test_posix.yaml>`_
 as a further demonstration of running this software.
 

@@ -971,7 +971,13 @@ for i = 1:size(C,1)
         end
     end
     if strcmp(C{i,3}, 'char')
-        a = deblank(native2unicode(a));
+        try
+            a = deblank(native2unicode(a));
+        catch
+            % Legacy header text may contain bytes invalid in the local encoding.
+            % Preserve those bytes without blocking access to numeric dimensions.
+            a = deblank(char(a));
+        end
     else
         a = cast_swap(a, C{i,3}, swap);
         a = double(a);

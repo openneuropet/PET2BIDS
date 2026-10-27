@@ -4,7 +4,6 @@ from pypet2bids.dcm2niix4pet import (
     collect_date_time_from_file_name,
 )
 from pypet2bids.update_json_pet_file import (
-    check_meta_radio_inputs,
     check_json,
     update_json_with_dicom_value,
 )
@@ -18,7 +17,6 @@ import json
 from os.path import join
 import pydicom
 import subprocess
-from unittest import TestCase
 
 
 # collect config files
@@ -303,7 +301,14 @@ def test_update_json_with_dicom_value():
 
 
 def test_additional_arguments():
-    additional_args = {"additional1": 1, "additional2": 2}
+    additional_args = {
+        "additional1": 1,
+        "additional2": 2,
+        "MolecularWeight": 300,
+        "MolecularWeightUnits": "g/mol",
+        "SpecificRadioactivity": 50,
+        "SpecificRadioactivityUnits": "MBq/ug",
+    }
     with TemporaryDirectory() as tempdir:
         converter = Dcm2niix4PET(
             test_dicom_image_folder,
@@ -322,107 +327,13 @@ def test_additional_arguments():
         with open(created_jsons[0], "r") as infile:
             json_contents = json.load(infile)
 
-        for key, value in additional_args.items():
+        for key, value in {"additional1": 1, "additional2": 2}.items():
             assert json_contents.get(key, "") == value
-
-
-def test_check_meta_radio_inputs():
-    # test first conditional given InjectedRadioactivity and InjectedMass
-    given = {"InjectedRadioactivity": 10, "InjectedMass": 10}
-    solution = {
-        "InjectedRadioactivityUnits": "MBq",
-        "InjectedMassUnits": "ug",
-        "SpecificRadioactivityUnits": "Bq/g",
-        "SpecificRadioactivity": 1,
-    }
-    solution.update(given)
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this, solution)
-
-    # first case + adding in a value for SpecificRadioactivity
-    given = {
-        "InjectedRadioactivity": 10,
-        "InjectedMass": 10,
-        "SpecificRadioactivity": 1,
-    }
-    solution = {
-        "InjectedRadioactivityUnits": "n/a",
-        "InjectedMassUnits": "ug",
-        "SpecificRadioactivityUnits": "Bq/g",
-    }
-    solution.update(given)
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this, solution)
-
-    # second case + SpecificRadioactivityUnits adde to given
-    solution.update({"SpecificRadioactivityUnits": "Bq/g"})
-    given.update({"SpecificRadioactivityUnits": "Bq/g"})
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this, solution)
-
-    # test second conditional given InjectedRadioactivity and SpecificRadioactivity
-    given = {"InjectedRadioactivity": 10, "SpecificRadioactivity": 10}
-    solution = {
-        "InjectedRadioactivityUnits": "MBq",
-        "InjectedMass": 1000000000000.0,
-        "InjectedMassUnits": "ug",
-        "SpecificRadioactivityUnits": "Bq/g",
-        "SpecificRadioactivity": 10,
-    }
-    solution.update(given)
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this, solution)
-
-    # test SpecificRadioactivity is okay
-    given = {"InjectedRadioactivity": 44.4, "InjectedMass": 6240}
-    solution = {
-        "InjectedRadioactivityUnits": "Bq/g",
-        "InjectedMass": given["InjectedMass"],
-        "InjectedMassUnits": "ug",
-        "SpecificRadioactivityUnits": "Bq/g",
-        "SpecificRadioactivity": (given["InjectedRadioactivity"] * (10**6))
-        / (given["InjectedMass"] * (10**6)),
-    }
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(
-        this["SpecificRadioactivity"], solution["SpecificRadioactivity"]
-    )
-
-    # check calc injected mass is okay
-    given = {"InjectedRadioactivity": 44, "SpecificRadioactivity": 7.1154 * (10**9)}
-    InjectedMass = (
-        (given["InjectedRadioactivity"] * (10**6))
-        / (given["SpecificRadioactivity"])
-        * (10**6)
-    )
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this["InjectedMass"], InjectedMass)
-
-    # check InjectedRadioactivity is okay
-    given = {"SpecificRadioactivity": 7.1154 * (10**9), "InjectedMass": 6240}
-    InjectedRadioactivity = (
-        (given["InjectedMass"] / (10**6)) * given["SpecificRadioactivity"]
-    ) / 10**6
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this["InjectedRadioactivity"], InjectedRadioactivity)
-
-    # check SpecificRadioactivity is okay
-    given = {"MolarActivity": 135192600, "MolecularWeight": 19}
-    SpecificRadioactivity = (given["MolarActivity"] * 1000) / given["MolecularWeight"]
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this["SpecificRadioactivity"], SpecificRadioactivity)
-
-    # check MolecularWeight is okay
-    given = {"MolarActivity": 135192600, "SpecificRadioactivity": 7.1154 * (10**9)}
-    MolecularWeight = (given["MolarActivity"] * 1000) / SpecificRadioactivity
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this["MolecularWeight"], MolecularWeight)
-
-    # check MolarActivity is okay
-    given = {"MolecularWeight": 19, "SpecificRadioactivity": 7.1154 * (10**9)}
-    MolarActivity = (given["MolecularWeight"] * given["SpecificRadioactivity"]) / 1000
-    this = check_meta_radio_inputs(given)
-    TestCase().assertEqual(this["MolarActivity"], MolarActivity)
+        assert json_contents["TracerMolecularWeight"] == 300
+        assert json_contents["TracerMolecularWeightUnits"] == "g/mol"
+        assert json_contents["MolarActivity"] == 15
+        assert "MolecularWeight" not in json_contents
+        assert "MolecularWeightUnits" not in json_contents
 
 
 def test_get_convolution_kernel():

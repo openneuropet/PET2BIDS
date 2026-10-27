@@ -109,6 +109,26 @@ def test_send_telemetry_does_not_post_when_disabled(monkeypatch):
     post.assert_not_called()
 
 
+@pytest.mark.parametrize("flag", ["--notrack", "--no-track"])
+def test_dcm2niix_cli_notrack_still_converts(monkeypatch, flag):
+    converter = Mock()
+    constructor = Mock(return_value=converter)
+    monkeypatch.setattr(dcm2niix4pet_module, "Dcm2niix4PET", constructor)
+    monkeypatch.setattr(
+        dcm2niix4pet_module.sys,
+        "argv",
+        ["dcm2niix4pet", "dicoms", "--destination-path", "output", flag],
+    )
+    monkeypatch.delenv("PET2BIDS_TELEMETRY_ENABLED", raising=False)
+
+    dcm2niix4pet_module.main()
+
+    assert dcm2niix4pet_module.environ["PET2BIDS_TELEMETRY_ENABLED"] == "False"
+    assert telemetry.telemetry_enabled() is False
+    constructor.assert_called_once()
+    converter.convert.assert_called_once_with()
+
+
 def _assert_completed_conversion_crumb(post, expected_input_type):
     post.assert_called_once()
     args, kwargs = post.call_args

@@ -33,10 +33,12 @@ function metadata = get_pet_metadata(varargin)
 %    **\+ at least 2 of those key/value arguments to infer others:**
 %
 %   - *InjectedRadioactivity* value in MBq                      e.g. 'InjectedRadioactivity', 605.3220
-%   - *InjectedMass* Value in ug                                e.g. 'InjectedMass', 1.5934
+%   - *InjectedMass* value in ug or amount units such as nmol  e.g. 'InjectedMass', 1.5934
 %   - *MolarActivity* value in GBq/umol                         e.g. 'MolarActivity', 107.66
-%   - *MolecularWeight* value in g/mol                          e.g. 'MolecularWeight', 15.02
-%   - *SpecificRadioactivity* in Bq/g or Bq/mol                 e.g. 'SpecificRadioactivity', 3.7989e+14
+%   - *TracerMolecularWeight* value in g/mol                    e.g. 'TracerMolecularWeight', 15.02
+%     (legacy *MolecularWeight* is also accepted)
+%   - *SpecificRadioactivity* in units commensurate with Bq/g (default Bq/g)
+%     e.g. 'SpecificRadioactivity', 3.7989e+14
 %
 % Here is an example of such defaults, used at NRU for our SiemensBiograph_parameters.txt
 %
@@ -87,6 +89,7 @@ function metadata = get_pet_metadata(varargin)
 % | *Martin Nørgaard & Cyril Pernet - 2021*
 % | *Copyright Open NeuroPET team*
 
+% Supply <Name>Units alongside radiotracer quantities to override default units.
 % defaults are loaded via the *_parameters.txt file
 
 %% check inputs
@@ -108,31 +111,37 @@ else
             ModeOfAdministration = varargin{n+1};
         elseif contains(varargin{n},{'InjectedRadioactivity','Injected Radioactivity'},'IgnoreCase',true)
             if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
-                warning('Argument InjectedRadioactivityUnits is ignored, BIDS indicates it must be in MBq');
+                InjectedRadioactivityUnits = varargin{n+1};
             else
                 InjectedRadioactivity = varargin{n+1};
             end
         elseif contains(varargin{n},{'SpecificRadioactivity','Specific Radioactivity'},'IgnoreCase',true)
             if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
-                warning('Argument SpecificRadioactivityUnits is ignored, BIDS indicates it must be in Bq/g or MBq/ug');
+                SpecificRadioactivityUnits = varargin{n+1};
             else
                 SpecificRadioactivity = varargin{n+1};
             end
         elseif contains(varargin{n},'Mass','IgnoreCase',true)
             if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
-                warning('Argument InjectedMassUnits is ignored, BIDS indicates it must be in ug');
+                InjectedMassUnits = varargin{n+1};
             else
                 InjectedMass = varargin{n+1};
             end
-        elseif any(strcmpi(varargin{n},{'MolarActivity','Molar Activity'}))
+        elseif contains(varargin{n},{'MolarActivity','Molar Activity'},'IgnoreCase',true)
             if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
-                warning('Argument MolarActivityUnits is ignored, BIDS indicates it must be in GBq/umolug');
+                MolarActivityUnits = varargin{n+1};
             else
                 MolarActivity = varargin{n+1};
             end
+        elseif contains(varargin{n},'TracerMolecularWeight','IgnoreCase',true)
+            if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
+                TracerMolecularWeightUnits = varargin{n+1};
+            else
+                TracerMolecularWeight = varargin{n+1};
+            end
         elseif contains(varargin{n},'Weight','IgnoreCase',true)
             if contains(varargin{n},{'Units','Unit'},'IgnoreCase',true)
-                warning('Argument MolecularWeightUnits is ignored, BIDS indicates it must be in g/mol');
+                MolecularWeightUnits = varargin{n+1};
             else
                 MolecularWeight = varargin{n+1};
             end
@@ -143,7 +152,11 @@ else
     % -----------------------------------------------------------
     mandatory = {'Scanner','TimeZero','TracerName','ModeOfAdministration','TracerRadionuclide'};
     radioinputs = {'InjectedRadioactivity', 'InjectedMass', ...
-        'SpecificRadioactivity', 'MolarActivity', 'MolecularWeight'};
+        'SpecificRadioactivity', 'MolarActivity', ...
+        'TracerMolecularWeight', 'MolecularWeight', ...
+            'InjectedRadioactivityUnits', 'InjectedMassUnits', ...
+            'SpecificRadioactivityUnits', 'MolarActivityUnits', ...
+            'TracerMolecularWeightUnits', 'MolecularWeightUnits'};
     input_check = cellfun(@exist,radioinputs);
     if isempty(input_check) || sum(input_check)==0
         error('radioactivity related input are necessary - see help')
@@ -157,7 +170,11 @@ else
         index = index + 2;
     end
     dataout  = check_metaradioinputs(arguments);
-    if isempty(dataout)
+    quantityfields = {'InjectedRadioactivity', 'InjectedMass', ...
+        'SpecificRadioactivity', 'MolarActivity', ...
+        'TracerMolecularWeight'};
+    if isempty(dataout) || ...
+            ~any(cellfun(@(x) isfield(dataout, x), quantityfields))
         error('there are not enough radioactivity related inputs to make sense of the data - see help')
     end
 
@@ -331,28 +348,17 @@ metadata.ModeOfAdministration           = ModeOfAdministration;
 metadata.TracerName                     = TracerName;
 metadata.TracerRadionuclide             = TracerRadionuclide;
 
-if exist('InjectedRadioactivity', 'var')
-    metadata.InjectedRadioactivity          = InjectedRadioactivity;
-    metadata.InjectedRadioactivityUnits     = 'MBq';
-end
-
-if exist('InjectedMass', 'var')
-    metadata.InjectedMass                   = InjectedMass;
-    metadata.InjectedMassUnits              = 'ug';
-end
-if exist('SpecificRadioactivity', 'var')
-    metadata.SpecificRadioactivity          = SpecificRadioactivity;
-    metadata.SpecificRadioactivityUnits     = SpecificRadioactivityUnits;
-end
-
-if exist('MolecularWeight', 'var')
-    metadata.TracerMolecularWeight      = MolecularWeight;
-    metadata.TracerMolecularWeightUnits = 'g/mol';
-end
-
-if exist('MolarActivity', 'var')
-    metadata.MolarActivity              = MolarActivity;
-    metadata.MolarActivityUnits         = 'GBq/umol';
+radiofields = {'InjectedRadioactivity', 'InjectedMass', ...
+    'SpecificRadioactivity', 'TracerMolecularWeight', 'MolarActivity'};
+for f = 1:numel(radiofields)
+    field = radiofields{f};
+    if isfield(dataout, field)
+        metadata.(field) = dataout.(field);
+        unitfield = [field 'Units'];
+        if isfield(dataout, unitfield)
+            metadata.(unitfield) = dataout.(unitfield);
+        end
+    end
 end
 
 

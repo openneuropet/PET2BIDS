@@ -57,6 +57,7 @@ extensions = [
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
+    "sphinx.ext.mathjax",
     "sphinx_rtd_theme",
     "sphinxcontrib.matlab",
 ]
