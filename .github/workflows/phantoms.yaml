@@ -19,7 +19,7 @@ on:
 
 jobs:
   phantoms:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     env:
       DCM2NIIX_WIN_PATH: dcm2niix_win/dcm2niix.exe
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
@@ -27,8 +27,16 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        python: ["3.12"]
+        include:
+          - python: "3.12"
+            os: ubuntu-latest
+            runner: [self-hosted, linux, x64, pet2bids-matlab, r2026a]
+          - python: "3.12"
+            os: windows-latest
+            runner: windows-latest
+          - python: "3.12"
+            os: macOS-latest
+            runner: macOS-latest
       fail-fast: false
 
     steps:
@@ -131,19 +139,11 @@ jobs:
           cd OpenNeuroPET-Phantoms/code
           bash python_conversions.sh
 
-      - name: SetupMatlab
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: matlab-actions/setup-matlab@v1
-        # note matlab-actions/setup-matlab@v2 breaks this script, don't update unless you're forced to
-        #with:
-          #release: 'R2023a'
-          #cache: true
-
       - name: Run Matlab Conversion Script on Phantoms
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: matlab-actions/run-command@v1
-        with:
-          command: |
+        shell: bash
+        run: |
+          matlab -batch "
             addpath('${{ github.workspace }}/OpenNeuroPET-Phantoms/code')
             addpath('${{ env.MATLAB_CODE_PATH }}');
             addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
@@ -151,6 +151,7 @@ jobs:
             addpath('${{ env.SMALLER_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
             matlab_conversions
+          "
 
       - name: Check Parity
         if: ${{ matrix.os == 'ubuntu-latest' }}

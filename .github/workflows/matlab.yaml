@@ -16,7 +16,7 @@ on:
 
 jobs:
   Matlab-Unit-Tests:
-    runs-on: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["self-hosted", "linux", "x64", "pet2bids-matlab", "r2026a"]') }}
+    runs-on: [self-hosted, linux, x64, pet2bids-matlab, r2026a]
 
     env:
       TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer.v.gz
@@ -34,24 +34,7 @@ jobs:
         with:
           limit-access-to-actor: true
 
-      - name: Perform setup-matlab
-        uses: matlab-actions/setup-matlab@v1
-        if: github.event_name == 'pull_request'
-
-      - name: Add Matlab Code Folder to Path and Run Tests
-        uses: matlab-actions/run-command@v1
-        with:
-          command: |
-            addpath('${{ env.MATLAB_CODE_PATH }}');
-            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
-            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.TEST_ECAT_PATH }}');
-            addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test
-        if: github.event_name == 'pull_request'
-
       - name: Run Tests with Installed MATLAB
-        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           matlab -batch "
