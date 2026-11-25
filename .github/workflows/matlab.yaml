@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Debug
         uses: mxschmitt/action-tmate@v3
@@ -36,12 +36,9 @@ jobs:
 
       - name: Run Tests with Installed MATLAB
         shell: bash
-        run: |
-          matlab -batch "
-            addpath('${{ env.MATLAB_CODE_PATH }}');
-            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
-            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
-            addpath('${{ env.TEST_ECAT_PATH }}');
-            addpath('${{ env.METADATA_PATH }}');
-            ecat2nii_test
-          "
+        run: >-
+          matlab -batch "addpath('${{ env.MATLAB_CODE_PATH }}');
+          addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
+          addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
+          addpath('${{ env.METADATA_PATH }}');
+          ecat2nii_test"

@@ -13,24 +13,23 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        python: ['3.9', '3.10']
+        python: ['3.10', '3.14']
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
 
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           cd pypet2bids
-          pip3 install .
+          python -m pip install .
 
       - name: Use CLI to set path to dcm2niix
         run: |
           cd pypet2bids
-          python dcm2niix4pet.py --set-dcm2niix-path
+          python -c "import subprocess; from pypet2bids.dcm2niix4pet import use_included_binary; binary = use_included_binary(); assert binary; subprocess.run(['dcm2niix4pet', '--set-dcm2niix-path', str(binary)], check=True)"
