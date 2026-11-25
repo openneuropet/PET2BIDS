@@ -16,16 +16,12 @@ on:
 
 jobs:
   Matlab-Unit-Tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["self-hosted", "linux", "x64", "pet2bids-matlab", "r2026a"]') }}
 
     env:
       TEST_ECAT_PATH: ${{ github.workspace }}/ecat_validation/synthetic_ecat_integer.v.gz
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
       METADATA_PATH: ${{ github.workspace }}/metadata/
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
 
     steps:
       - name: Checkout Repo
@@ -38,12 +34,10 @@ jobs:
         with:
           limit-access-to-actor: true
 
-        # matlab not supported on MacOS!! at this time
       - name: Perform setup-matlab
         uses: matlab-actions/setup-matlab@v1
-        if: matrix.os == 'ubuntu-latest'
+        if: github.event_name == 'pull_request'
 
-        # Again only running this on ubuntu
       - name: Add Matlab Code Folder to Path and Run Tests
         uses: matlab-actions/run-command@v1
         with:
@@ -54,4 +48,17 @@ jobs:
             addpath('${{ env.TEST_ECAT_PATH }}');
             addpath('${{ env.METADATA_PATH }}');
             ecat2nii_test
-        if: matrix.os == 'ubuntu-latest'
+        if: github.event_name == 'pull_request'
+
+      - name: Run Tests with Installed MATLAB
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          matlab -batch "
+            addpath('${{ env.MATLAB_CODE_PATH }}');
+            addpath('${{ env.MATLAB_CODE_PATH }}/unit_tests');
+            addpath('${{ env.MATLAB_CODE_PATH }}/template_txt');
+            addpath('${{ env.TEST_ECAT_PATH }}');
+            addpath('${{ env.METADATA_PATH }}');
+            ecat2nii_test
+          "
