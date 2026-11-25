@@ -28,35 +28,41 @@ jobs:
       MATLAB_CODE_PATH: ${{ github.workspace }}/matlab/
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [macOS-latest, ubuntu-latest]
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        os: [macOS-latest, ubuntu-24.04]
+        python: ['3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Cache Phantoms
         id: cache-phantoms
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: US-sourced-OpenNeuroPET-Phantoms.zip
           key: ${{ runner.os }}-phantoms
 
       - name: Set up python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependency-path: 'pypet2bids/pyproject.toml'
 
-      - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Install BIDS Validator
+        run: npm install -g bids-validator@1.14.6
 
       - name: Install dependencies
         run: |
           cd pypet2bids
-          pip install -e .[dev]
+          python -m pip install -e . pytest
 
       - name: Collect ECAT and other phantoms
         if: steps.cache-phantoms.outputs.cache-hit != 'true'
@@ -86,7 +92,7 @@ jobs:
       # heavy io operations instead
       - name: Unzip Test File(s)
         run: |
-          gzip -d ${{ env.SMALLER_ECAT_PATH }}
+          gzip -dk "${{ env.SMALLER_ECAT_PATH }}"
 
       - name: Test ecatread
         run: "cd pypet2bids/ && python3 -m tests.test_ecatread"
@@ -94,4 +100,4 @@ jobs:
       - name: Run All Other Python Tests w/ Pytest
         run: |
           cd pypet2bids
-          python -m pytest -k 'not write_pixel_data' -k 'not test_convert_pmod_to_blood' tests/
+          python -m pytest --ignore=tests/test_write_ecat.py --ignore=tests/test_convert_pmod_to_blood.py tests/

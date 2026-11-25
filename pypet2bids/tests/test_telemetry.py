@@ -211,6 +211,8 @@ def test_ecat_conversion_reports_outcome(
     monkeypatch, tmp_path, conversion_error, expected_returncode
 ):
     converter = Ecat.__new__(Ecat)
+    converter.silent = True
+    converter.verbose = False
     converter.telemetry_data = {
         "InputType": "ECAT72",
         "blood_tsv": True,
@@ -231,6 +233,7 @@ def test_ecat_conversion_reports_outcome(
     converter.prune_sidecar = Mock()
     converter.show_sidecar = Mock()
     converter.write_out_blood_files = Mock()
+    monkeypatch.setattr(ecat_module, "check_json", Mock())
 
     send = Mock()
     monkeypatch.setattr(ecat_module, "telemetry_enabled", lambda: True)
