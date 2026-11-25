@@ -16,7 +16,7 @@ function sorted_names = sort_dcm(folder,method,pattern)
 %            Use 'auto' when downstream processing requires chronological volumes.
 %            Checked modes require valid AcquisitionDate and AcquisitionTime.
 %            Order is by date, then time, including scans crossing midnight.
-%            Files with .dcm or .ima extensions (case insensitive), and files
+%            Files with .dcm, .ima or .img extensions (case insensitive), and files
 %            without extensions, are included. Extensionless files are assumed to be DICOM.
 %            Subfolders are not searched.
 %
@@ -69,7 +69,7 @@ end
 % Select candidate DICOM filenames without reading file contents.
 files            = dir(folder);
 names            = {files(~[files.isdir]).name};
-is_dicom         = ~cellfun('isempty',regexpi(names,'\.(dcm|ima)$','once'));
+is_dicom         = ~cellfun('isempty',regexpi(names,'\.(dcm|ima|img)$','once'));
 is_extensionless = cellfun('isempty',regexp(names,'\.','once'));
 names            = sort(names(is_dicom | is_extensionless)); % Break numeric ties.
 sorted_names = reshape(names,1,[]);
@@ -78,7 +78,7 @@ if isempty(sorted_names)
 end
 
 % Plain numbered files use numeric values, independent of file count.
-stems = regexprep(sorted_names,'(?i)\.(dcm|ima)$','');
+stems = regexprep(sorted_names,'(?i)\.(dcm|ima|img)$','');
 significant = regexprep(stems,'^0+(?=\d)','');
 numeric_stems = all(~cellfun('isempty',regexp(stems,'^\d+$','once')));
 if isempty(pattern) && numeric_stems && all(cellfun('length',significant) <= 15)

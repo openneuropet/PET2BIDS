@@ -130,6 +130,15 @@ verifyEqual(testCase,sort_dcm(folder), ...
     {'2.dcm','9007199254740992.dcm','9007199254740993.dcm'});
 end
 
+function testGEDicomImgFiles(testCase)
+folder = fixture(testCase,'ge_img',{'2.img','10.IMG'}, ...
+    {'120002','120001'});
+verifyEqual(testCase,sort_dcm(folder),{'2.img','10.IMG'});
+verifyEqual(testCase,sort_dcm(folder,'name','^(?<frame>\d+)$'), ...
+    {'2.img','10.IMG'});
+verifyEqual(testCase,sort_dcm(folder,'acquisition_time'),{'10.IMG','2.img'});
+end
+
 function testPatternOrdersFrameBeforeSlice(testCase)
 folder = namefixture(testCase,'pattern', ...
     {'slice2_frame10.dcm','slice10_frame2.dcm','slice2_frame2.dcm'});
