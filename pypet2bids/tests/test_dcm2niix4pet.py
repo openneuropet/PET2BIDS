@@ -8,7 +8,6 @@ from pypet2bids.update_json_pet_file import (
     update_json_with_dicom_value,
 )
 
-import shutil
 import dotenv
 import os
 from pathlib import Path
@@ -30,11 +29,11 @@ spreadsheet_folder = join(pet2bids_folder, "spreadsheet_conversion")
 # collect paths to test files/folders
 dotenv.load_dotenv(dotenv.find_dotenv())
 
-test_dicom_image_folder = os.environ["TEST_DICOM_IMAGE_FOLDER"]
-test_dicom_convert_metadata_path = os.environ["TEST_DICOM_CONVERT_METADATA_PATH"]
-test_dicom_convert_nifti_output_path = os.environ[
-    "TEST_DICOM_CONVERT_NIFTI_OUTPUT_PATH"
-]
+phantom_source = pet2bids_folder / "OpenNeuroPET-Phantoms" / "sourcedata"
+test_dicom_image_folder = os.getenv(
+    "TEST_DICOM_IMAGE_FOLDER",
+    str(phantom_source / "SiemensBiographPETMR-NIMH" / "AC_TOF"),
+)
 
 # collect dicoms from test input path
 representative_dicoms = {}
@@ -72,10 +71,8 @@ def test_check_json(capsys):
         # assert f'WARNING - Manufacturer is not present in {bad_json_path}' in check_output.out
 
 
-def test_extract_dicom_headers():
-    converter = Dcm2niix4PET(
-        test_dicom_image_folder, test_dicom_convert_nifti_output_path
-    )
+def test_extract_dicom_headers(tmp_path):
+    converter = Dcm2niix4PET(test_dicom_image_folder, tmp_path)
     converter.extract_dicom_headers()
     for key, value in converter.dicom_headers.items():
         assert os.path.isfile(os.path.join(test_dicom_image_folder, key))
@@ -151,15 +148,15 @@ def test_collect_date_from_file_name():
             assert collected_date[1] == StudyTime
 
 
-def test_run_dcm2niix():
+def test_run_dcm2niix(tmp_path):
     converter = Dcm2niix4PET(
         test_dicom_image_folder,
-        test_dicom_convert_nifti_output_path,
+        tmp_path,
         file_format="%p_%i_%t_%s",
         silent=True,
     )
     converter.run_dcm2niix()
-    contents_output = os.listdir(test_dicom_convert_nifti_output_path)
+    contents_output = os.listdir(tmp_path)
     created_jsons = [file for file in contents_output if ".json" in file]
     created_niftis = [file for file in contents_output if ".nii" in file]
 
@@ -167,7 +164,7 @@ def test_run_dcm2niix():
     for file in created_jsons:
         path_object = Path(file)
         checks = check_json(
-            join(test_dicom_convert_nifti_output_path, path_object), silent=True
+            tmp_path / path_object, silent=True
         )
         output_file_stem = os.path.join(*path_object.parents, path_object.stem)
         if dcm2niix_output.get(output_file_stem, None):
@@ -195,11 +192,18 @@ def test_run_dcm2niix():
 def test_manufacturers():
     # As far as we know there are these three manufacturers
     manufacturers = ["phillips", "siemens", "ge"]
+    default_paths = {
+        "phillips": "",
+        "siemens": phantom_source / "SiemensBiographPETMR-NIMH" / "AC_TOF",
+        "ge": phantom_source / "GeneralElectricAdvance-NIMH" / "2d_unif_lt_ramp",
+    }
 
     # make sure paths are attached with vendor/manufacturer specific dicoms
     manufacturer_paths = {}
     for manu in manufacturers:
-        dicom_folder_path = os.environ[f"TEST_DICOM_IMAGE_FOLDER_{manu.upper()}"]
+        dicom_folder_path = os.getenv(
+            f"TEST_DICOM_IMAGE_FOLDER_{manu.upper()}", str(default_paths[manu])
+        )
 
         if dicom_folder_path != "":
             dicom_folder_path = Path(dicom_folder_path)
@@ -261,7 +265,7 @@ def test_update_json_with_dicom_value():
             # now we collect a dicom header
             dicom_headers = []
 
-            dicom_folder = os.getenv("TEST_DICOM_IMAGE_FOLDER", "")
+            dicom_folder = test_dicom_image_folder
 
             # possible dicoms
             possible_dicoms = [
@@ -387,9 +391,13 @@ def test_run_dcm2niix4pet_with_full_blood_sheet():
         ) as f:
             json.dump(dataset_description, f, indent=4)
 
-        # copy over a readme file, we use the one in the metadata folder
-        readme = os.path.join(pet2bids_folder, "metadata/", "README")
-        shutil.copy(readme, os.path.join(tempdir, "bids_test_dir"))
+        Path(tempdir, "bids_test_dir", "README").write_text(
+            "PET conversion test dataset.\n"
+            "This fixture contains PET images converted from phantom DICOM data "
+            "and blood measurements from the example subject metadata spreadsheet. "
+            "It is generated temporarily to validate the conversion output.\n",
+            encoding="utf-8",
+        )
 
         # run the bids validator on the output
         command = ["bids-validator", os.path.join(tempdir, "bids_test_dir")]
